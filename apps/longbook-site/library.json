@@ -1,0 +1,278 @@
+{
+  "contract_revision": 43,
+  "tags": [
+    {
+      "kind": "commitment",
+      "name": "subscription",
+      "name_key": "subscription",
+      "icon": "arrow.triangle.2.circlepath",
+      "sort": 0
+    },
+    {
+      "kind": "commitment",
+      "name": "streaming",
+      "name_key": "streaming",
+      "icon": "play.tv",
+      "sort": 1
+    },
+    {
+      "kind": "commitment",
+      "name": "software",
+      "name_key": "software",
+      "icon": "app.badge",
+      "sort": 2
+    },
+    {
+      "kind": "commitment",
+      "name": "ai",
+      "name_key": "ai",
+      "icon": "sparkles",
+      "sort": 3
+    },
+    {
+      "kind": "commitment",
+      "name": "social media",
+      "name_key": "social media",
+      "icon": "at",
+      "sort": 4
+    },
+    {
+      "kind": "commitment",
+      "name": "telecom",
+      "name_key": "telecom",
+      "icon": "antenna.radiowaves.left.and.right",
+      "sort": 5
+    },
+    {
+      "kind": "commitment",
+      "name": "insurance",
+      "name_key": "insurance",
+      "icon": "shield.checkered",
+      "sort": 6
+    },
+    {
+      "kind": "commitment",
+      "name": "emi",
+      "name_key": "emi",
+      "icon": "building.columns",
+      "sort": 7
+    },
+    {
+      "kind": "commitment",
+      "name": "rent",
+      "name_key": "rent",
+      "icon": "house",
+      "sort": 8
+    },
+    {
+      "kind": "commitment",
+      "name": "utility",
+      "name_key": "utility",
+      "icon": "bolt",
+      "sort": 9
+    },
+    {
+      "kind": "commitment",
+      "name": "salary",
+      "name_key": "salary",
+      "icon": "banknote",
+      "sort": 10
+    },
+    {
+      "kind": "commitment",
+      "name": "education",
+      "name_key": "education",
+      "icon": "graduationcap",
+      "sort": 11
+    },
+    {
+      "kind": "commitment",
+      "name": "fees",
+      "name_key": "fees",
+      "icon": "doc.text",
+      "sort": 12
+    },
+    {
+      "kind": "commitment",
+      "name": "membership",
+      "name_key": "membership",
+      "icon": "checkmark.seal",
+      "sort": 13
+    },
+    {
+      "kind": "commitment",
+      "name": "domain & hosting",
+      "name_key": "domain & hosting",
+      "icon": "globe",
+      "sort": 14
+    },
+    {
+      "kind": "commitment",
+      "name": "travel",
+      "name_key": "travel",
+      "icon": "airplane",
+      "sort": 15
+    },
+    {
+      "kind": "commitment",
+      "name": "health & fitness",
+      "name_key": "health & fitness",
+      "icon": "heart",
+      "sort": 16
+    },
+    {
+      "kind": "commitment",
+      "name": "home",
+      "name_key": "home",
+      "icon": "wrench.and.screwdriver",
+      "sort": 17
+    },
+    {
+      "kind": "commitment",
+      "name": "vehicle",
+      "name_key": "vehicle",
+      "icon": "car",
+      "sort": 18
+    },
+    {
+      "kind": "commitment",
+      "name": "gift",
+      "name_key": "gift",
+      "icon": "gift",
+      "sort": 19
+    },
+    {
+      "kind": "commitment",
+      "name": "donation",
+      "name_key": "donation",
+      "icon": "heart.circle",
+      "sort": 20
+    },
+    {
+      "kind": "commitment",
+      "name": "warranty & amc",
+      "name_key": "warranty & amc",
+      "icon": "checkmark.shield",
+      "sort": 21
+    },
+    {
+      "kind": "commitment",
+      "name": "tax",
+      "name_key": "tax",
+      "icon": "percent",
+      "sort": 22
+    },
+    {
+      "kind": "member",
+      "name": "family",
+      "name_key": "family",
+      "icon": "person.2",
+      "sort": 0
+    },
+    {
+      "kind": "member",
+      "name": "household help",
+      "name_key": "household help",
+      "icon": "person.badge.clock",
+      "sort": 1
+    },
+    {
+      "kind": "member",
+      "name": "team",
+      "name_key": "team",
+      "icon": "briefcase",
+      "sort": 2
+    },
+    {
+      "kind": "member",
+      "name": "vendor",
+      "name_key": "vendor",
+      "icon": "shippingbox",
+      "sort": 3
+    },
+    {
+      "kind": "member",
+      "name": "professional",
+      "name_key": "professional",
+      "icon": "person.text.rectangle",
+      "sort": 4
+    },
+    {
+      "kind": "member",
+      "name": "landlord",
+      "name_key": "landlord",
+      "icon": "building.2",
+      "sort": 5
+    },
+    {
+      "kind": "member",
+      "name": "tenant",
+      "name_key": "tenant",
+      "icon": "key",
+      "sort": 6
+    },
+    {
+      "kind": "member",
+      "name": "friend",
+      "name_key": "friend",
+      "icon": "hand.wave",
+      "sort": 7
+    },
+    {
+      "kind": "account",
+      "name": "credit card",
+      "name_key": "credit card",
+      "icon": "creditcard.fill",
+      "sort": 0
+    },
+    {
+      "kind": "account",
+      "name": "debit card",
+      "name_key": "debit card",
+      "icon": "creditcard",
+      "sort": 1
+    },
+    {
+      "kind": "account",
+      "name": "bank account",
+      "name_key": "bank account",
+      "icon": "building.columns",
+      "sort": 2
+    },
+    {
+      "kind": "account",
+      "name": "upi",
+      "name_key": "upi",
+      "icon": "qrcode",
+      "sort": 3
+    },
+    {
+      "kind": "account",
+      "name": "wallet",
+      "name_key": "wallet",
+      "icon": "wallet.pass",
+      "sort": 4
+    },
+    {
+      "kind": "account",
+      "name": "cash",
+      "name_key": "cash",
+      "icon": "banknote",
+      "sort": 5
+    },
+    {
+      "kind": "account",
+      "name": "brokerage",
+      "name_key": "brokerage",
+      "icon": "chart.line.uptrend.xyaxis",
+      "sort": 6
+    },
+    {
+      "kind": "account",
+      "name": "loan account",
+      "name_key": "loan account",
+      "icon": "doc.plaintext",
+      "sort": 7
+    }
+  ]
+}

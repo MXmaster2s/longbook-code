@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	  The extension links LongbookCore, so its binary carries the same UserDefaults calls the app
+	  does: the group.app.longbook suite that holds the vault bookmark, and the plain defaults the
+	  same code falls back to when the group is unavailable. See VaultLocation in LongbookCore.
+	-->
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+				<string>1C8F.1</string>
+			</array>
+		</dict>
+	</array>
+
+	<!-- Empty because the widget reads a copy of the vault from the group container and
+	     contacts no server at all. -->
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+</dict>
+</plist>

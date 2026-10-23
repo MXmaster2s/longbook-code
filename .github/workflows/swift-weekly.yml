@@ -1,0 +1,40 @@
+name: swift-weekly
+
+# The macOS half of the checks: both Swift packages and both app builds. Weekly rather
+# than per-push because hosted macOS runners bill at ten times the Linux rate. Start a
+# run from the Actions tab before any release, or after changing Swift sources.
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  # One job, not three: each additional macOS job pays for its own runner boot and
+  # checkout at the same ten-times rate. timeout-minutes caps a hung run's cost.
+  swift:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: swift-core
+        working-directory: packages/swift-core
+        run: swift build && swift test
+
+      - name: swift-design
+        working-directory: packages/swift-design
+        run: swift build && swift test
+
+      - name: app
+        working-directory: apps/longbook
+        run: |
+          brew install xcodegen
+          xcodegen generate
+          xcodebuild -project longbook.xcodeproj -scheme longbook \
+            -destination 'platform=macOS' build CODE_SIGNING_ALLOWED=NO
+          xcodebuild -project longbook.xcodeproj -scheme longbook \
+            -destination 'generic/platform=iOS Simulator' build CODE_SIGNING_ALLOWED=NO

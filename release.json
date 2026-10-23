@@ -1,0 +1,4 @@
+{
+  "about": "longbook's one release number for the pieces built from the same code: the npm package, the Claude plugin, the MCP registry entry and the version each server reports. It is 1.<rulebook revision>.<patch>. Raise patch for a fix that leaves the rulebook alone; a new rulebook revision starts patch at 0 again. The app keeps its own number in apps/longbook/project.yml. npm run versions shows every piece.",
+  "patch": 0
+}

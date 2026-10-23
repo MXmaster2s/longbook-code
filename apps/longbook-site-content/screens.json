@@ -1,0 +1,200 @@
+{
+  "iphone-all-commitments": {
+    "platform": "iphone",
+    "source": "ios/23-all-commitments",
+    "title": "All commitments on iPhone",
+    "description": "The All commitments screen of longbook on iPhone: every charge ahead, grouped by month, each with its amount, due date, category and account, and Mark paid and Bookmark buttons."
+  },
+  "mac-commitments": {
+    "platform": "mac",
+    "source": "mac/16-commitments",
+    "title": "All commitments on Mac",
+    "description": "The All commitments screen of longbook on Mac: search, filters for category, account, member, type and status, commitments still to fill in, and every charge ahead grouped by month with Mark paid and Bookmark."
+  },
+  "iphone-all-charges": {
+    "platform": "iphone",
+    "source": "ios/26-all-charges",
+    "title": "All charges on iPhone",
+    "description": "The All charges screen of longbook on iPhone for August 2026: each charge made that month with its date, category and account."
+  },
+  "mac-charges": {
+    "platform": "mac",
+    "source": "mac/18-charges",
+    "title": "All charges on Mac",
+    "description": "The All charges screen of longbook on Mac for August 2026: each charge with its date, category and account, and the card bill marked as a transfer."
+  },
+  "iphone-members": {
+    "platform": "iphone",
+    "source": "ios/45-members",
+    "title": "Members on iPhone",
+    "description": "The Members screen of longbook on iPhone: a card for each person with their commitments, charges, accounts and next commitment."
+  },
+  "mac-members": {
+    "platform": "mac",
+    "source": "mac/26-members",
+    "title": "Members on Mac",
+    "description": "The Members screen of longbook on Mac: a card for each person, tagged Family, Household help or Landlord, with their commitments, charges, accounts and next commitment."
+  },
+  "iphone-accounts": {
+    "platform": "iphone",
+    "source": "ios/43-accounts",
+    "title": "Accounts on iPhone",
+    "description": "The Accounts screen of longbook on iPhone: a bank account and a credit card, each with its balance, owner, linked account and next commitment."
+  },
+  "mac-accounts": {
+    "platform": "mac",
+    "source": "mac/24-accounts",
+    "title": "Accounts on Mac",
+    "description": "The Accounts screen of longbook on Mac: two savings accounts and a credit card side by side, with balances, owners, linked accounts and the next twelve months of commitments."
+  },
+  "iphone-categories": {
+    "platform": "iphone",
+    "source": "ios/33-all-categories",
+    "title": "Categories on iPhone",
+    "description": "The category picker of longbook on iPhone: a searchable list of categories such as Streaming, Software, Telecom, Insurance, Rent and Education, with an Add button."
+  },
+  "mac-new-commitment": {
+    "platform": "mac",
+    "source": "mac/21-form",
+    "title": "New commitment on Mac",
+    "description": "The New commitment form of longbook on Mac: name, one-time or recurring, the amount in INR, USD, EUR or GBP, the first charge, how far ahead it is planned, a category, an account, a member and notes."
+  },
+  "iphone-display-currency": {
+    "platform": "iphone",
+    "source": "ios/48-display-currency",
+    "title": "Display and currency on iPhone",
+    "description": "The Display & currency settings of longbook on iPhone: a home currency to choose from INR and USD, or decided from the data, and a choice of dark, light or system appearance."
+  },
+  "iphone-dashboard": {
+    "platform": "iphone",
+    "source": "ios/17-dashboard",
+    "title": "Dashboard on iPhone",
+    "description": "The longbook dashboard on iPhone: the next commitment, the number of active commitments, the next 30 commitments, and the month's total expenses with a chart by day."
+  },
+  "mac-dashboard": {
+    "platform": "mac",
+    "source": "mac/11-dashboard",
+    "title": "Dashboard on Mac",
+    "description": "The longbook dashboard on Mac: the next commitment, the next 30 commitments, total expenses by day, spending by account in a ring, and spending by category."
+  },
+  "iphone-calendar": {
+    "platform": "iphone",
+    "source": "ios/30-calendar-transfer",
+    "title": "Calendar on iPhone",
+    "description": "The Calendar of longbook on iPhone for September 2026: each day marked with its number of charges, and a transfer on the 24th."
+  },
+  "mac-calendar": {
+    "platform": "mac",
+    "source": "mac/15-calendar",
+    "title": "Calendar on Mac",
+    "description": "The Calendar of longbook on Mac for September 2026, with charges marked on their days and a panel for the selected day."
+  },
+  "iphone-report": {
+    "platform": "iphone",
+    "source": "ios/37-report-july",
+    "title": "Monthly report on iPhone",
+    "description": "A monthly report of longbook on iPhone for July 2026: the total against June, the number of charges and the money in, and spending by account in a ring."
+  },
+  "mac-reports": {
+    "platform": "mac",
+    "source": "mac/14-reports",
+    "title": "Reports on Mac",
+    "description": "The Reports screen of longbook on Mac: thirteen monthly reports from September 2025 to September 2026, each drawn by longbook, and a button to upload a bank statement."
+  },
+  "iphone-report-sharing": {
+    "platform": "iphone",
+    "source": null,
+    "title": "Sharing a report on iPhone",
+    "description": "Sharing a monthly report from longbook on iPhone: the link, the password and the comments that come back."
+  },
+  "mac-report-sharing": {
+    "platform": "mac",
+    "source": null,
+    "title": "Sharing a report on Mac",
+    "description": "Sharing a monthly report from longbook on Mac: the link, the password and the comments that come back."
+  },
+  "iphone-import-review": {
+    "platform": "iphone",
+    "source": "ios/16-import-review-add",
+    "title": "Statement import on iPhone",
+    "description": "Importing a bank statement in longbook on iPhone: eight charges and one money in read from an August 2026 statement, with the person and the repeating payments found in it offered as a member and commitments."
+  },
+  "mac-import-review": {
+    "platform": "mac",
+    "source": "mac/10-import-review",
+    "title": "Statement import on Mac",
+    "description": "Importing a bank statement in longbook on Mac: each line read from the statement with its date, category, amount and the bank's own words, and a box to untick."
+  },
+  "iphone-automations": {
+    "platform": "iphone",
+    "source": "ios/47-automations",
+    "title": "Automations on iPhone",
+    "description": "The Automations screen of longbook on iPhone: the longbook MCP server switched on, AI suggestions allowed, and the Claude email automation with its prompt."
+  },
+  "mac-automations": {
+    "platform": "mac",
+    "source": "mac/30-automations",
+    "title": "Automations on Mac",
+    "description": "The Automations screen of longbook on Mac: the longbook MCP server switched on, the Claude email automation, the Shortcuts action for bank messages, and the Siri and Spotlight commands."
+  },
+  "iphone-own-ai": {
+    "platform": "iphone",
+    "source": "ios/51-setup-again-own-ai",
+    "title": "Connecting Claude on iPhone",
+    "description": "Importing a statement through Claude in longbook on iPhone: the steps to enable the longbook MCP server, add the connector in Claude and paste the prompt with the statements attached."
+  },
+  "mac-mcp-server": {
+    "platform": "mac",
+    "source": "mac/31-connect-ai",
+    "title": "MCP server on Mac",
+    "description": "The Automations screen of longbook on Mac with the MCP server on: a hosted copy for AI connectors, AI suggestions, and one-click setup of Claude Desktop on the same Mac."
+  },
+  "iphone-changes": {
+    "platform": "iphone",
+    "source": "ios/40-changes",
+    "title": "Changes on iPhone",
+    "description": "The Changes screen of longbook on iPhone: charges, a commitment, an account and a member suggested by Claude, with Keep all and Undo all."
+  },
+  "mac-changes": {
+    "platform": "mac",
+    "source": "mac/23-changes",
+    "title": "Changes on Mac",
+    "description": "The Changes screen of longbook on Mac: charges proposed by Claude with Keep all and Undo all, and the history of earlier versions."
+  },
+  "iphone-insights": {
+    "platform": "iphone",
+    "source": "ios/42-insights",
+    "title": "Insights on iPhone",
+    "description": "The Insights screen of longbook on iPhone: the notes an AI has left on the dashboard, an account and a member."
+  },
+  "mac-insights": {
+    "platform": "mac",
+    "source": "mac/22-insights",
+    "title": "Insights on Mac",
+    "description": "The Insights screen of longbook on Mac: the notes an AI has left on the dashboard, an account and a member."
+  },
+  "iphone-widget": {
+    "platform": "iphone",
+    "source": null,
+    "title": "The longbook widget on iPhone",
+    "description": "The longbook widget on an iPhone Home Screen, showing the next payment: the day, the total and the names."
+  },
+  "mac-menu-bar": {
+    "platform": "mac",
+    "source": null,
+    "title": "longbook in the Mac menu bar",
+    "description": "longbook in the Mac menu bar, showing the next payment and how many days away it is."
+  },
+  "iphone-data-privacy": {
+    "platform": "iphone",
+    "source": "ios/49-data-privacy",
+    "title": "Data and privacy on iPhone",
+    "description": "The Data & privacy settings of longbook on iPhone: the data file, where the folder lives, Move to iCloud and Make a backup."
+  },
+  "mac-data-privacy": {
+    "platform": "mac",
+    "source": "mac/33-data-privacy",
+    "title": "Data and privacy on Mac",
+    "description": "The Data & privacy settings of longbook on Mac: the data file, where the folder lives, Move to iCloud, a backup, and what the file cannot hold."
+  }
+}

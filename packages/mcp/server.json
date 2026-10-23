@@ -1,0 +1,47 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "app.longbook/mcp",
+  "title": "longbook",
+  "description": "Your longbook of bills, subscriptions and expenses, for your AI to read and to suggest changes to.",
+  "version": "1.43.0",
+  "websiteUrl": "https://longbook.app/mcp/",
+  "repository": {
+    "url": "https://github.com/MXmaster2s/longbook-code",
+    "source": "github",
+    "subfolder": "packages/mcp"
+  },
+  "icons": [
+    {
+      "src": "https://longbook.app/apple-touch-icon.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "180x180"
+      ]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://longbook.app/mcp"
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@longbook/mcp",
+      "version": "1.43.0",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [
+        {
+          "type": "named",
+          "name": "--vault",
+          "description": "Your longbook folder. On a Mac it defaults to the app's iCloud Drive folder.",
+          "isRequired": false
+        }
+      ]
+    }
+  ]
+}

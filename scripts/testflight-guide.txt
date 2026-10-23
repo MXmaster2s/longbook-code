@@ -1,0 +1,39 @@
+Thank you for testing longbook. You don't need to know anything about it first. Please try everything below and tell us what confused you, broke, or felt slow (screenshot in TestFlight, or contact@longbook.app).
+
+WHAT LONGBOOK IS
+A private memory for the money you pay again and again: subscriptions, rent, insurance, loans, salaries, bills. It never connects to your bank. Your data stays in a folder in your own iCloud Drive.
+
+1. GETTING IN
+- Open the app, read the two welcome pages, tap Continue.
+- Sign in with Apple, Google or your email (a code is emailed to you). Signing in makes your account.
+- Buy longbook. TestFlight purchases cost nothing. Try Restore Purchase and See Demo too.
+- If iCloud Drive is off, choose Keep It on this iPhone (or Mac).
+
+2. SETUP (3 steps)
+- Step 1: tick what you pay for (rent, Netflix, insurance...). Each question opens after a few seconds.
+- Step 2: tick the accounts you pay from.
+- Step 3: tap Securely Upload Statement and pick a bank or card statement (PDF, CSV or Excel). Review what it found, tick the repeating payments, and tap Add.
+
+3. EVERYDAY USE
+- Dashboard: Next payment, Coming up, Spending by month.
+- The + button: add a commitment (name, how often, amount) or a one-time expense.
+- Open any commitment: edit it, mark it paid, bookmark it, cancel it.
+- Calendar: every payment on its day.
+- Reports: a report for each month with charges.
+- Settings > Changes: keep or undo what a statement or your AI added.
+- Settings > Accounts and People: add your accounts and family members.
+- Settings > Trips: start a trip report.
+
+4. YOUR AI
+- Settings > AI Connections: Let AI Read My longbook, then connect Claude or ChatGPT and ask "What do I pay next?".
+- Reorganise my longbook: tidies names and categories in one change you can undo.
+
+5. ACCOUNT AND PRIVACY
+- Settings > Account and plan: your licence, longbook Cloud, Request a Refund (within 7 days).
+- Delete Account... removes your account but keeps your folder.
+- Settings > Help & about: what leaves your device, and the usage data switch.
+
+6. ALSO TRY
+- Dark mode and larger text sizes.
+- The longbook widget on your Home Screen (iPhone) or the menu bar (Mac).
+- Signing out and back in, and the same account on a second device.

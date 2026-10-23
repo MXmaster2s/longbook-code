@@ -1,0 +1,205 @@
+{
+  "iphone-accounts": {
+    "source": "ios/43-accounts-v3.png",
+    "width": 720,
+    "height": 1565,
+    "smallWidth": 400,
+    "smallHeight": 869
+  },
+  "iphone-all-charges": {
+    "source": "ios/26-all-charges-v4.png",
+    "width": 720,
+    "height": 1565,
+    "smallWidth": 400,
+    "smallHeight": 869
+  },
+  "iphone-all-commitments": {
+    "source": "ios/23-all-commitments-v3.png",
+    "width": 720,
+    "height": 1565,
+    "smallWidth": 400,
+    "smallHeight": 869
+  },
+  "iphone-automations": {
+    "source": "ios/47-automations-v4.png",
+    "width": 720,
+    "height": 1565,
+    "smallWidth": 400,
+    "smallHeight": 869
+  },
+  "iphone-calendar": {
+    "source": "ios/30-calendar-transfer-v2.png",
+    "width": 720,
+    "height": 1565,
+    "smallWidth": 400,
+    "smallHeight": 869
+  },
+  "iphone-categories": {
+    "source": "ios/33-all-categories-v2.png",
+    "width": 720,
+    "height": 1565,
+    "smallWidth": 400,
+    "smallHeight": 869
+  },
+  "iphone-changes": {
+    "source": "ios/40-changes-v5.png",
+    "width": 720,
+    "height": 1565,
+    "smallWidth": 400,
+    "smallHeight": 869
+  },
+  "iphone-dashboard": {
+    "source": "ios/17-dashboard-v5.png",
+    "width": 720,
+    "height": 1565,
+    "smallWidth": 400,
+    "smallHeight": 869
+  },
+  "iphone-data-privacy": {
+    "source": "ios/49-data-privacy-v2.png",
+    "width": 720,
+    "height": 1565,
+    "smallWidth": 400,
+    "smallHeight": 869
+  },
+  "iphone-display-currency": {
+    "source": "ios/48-display-currency-v2.png",
+    "width": 720,
+    "height": 1565,
+    "smallWidth": 400,
+    "smallHeight": 869
+  },
+  "iphone-import-review": {
+    "source": "ios/16-import-review-add-v2.png",
+    "width": 720,
+    "height": 1565,
+    "smallWidth": 400,
+    "smallHeight": 869
+  },
+  "iphone-insights": {
+    "source": "ios/42-insights-v2.png",
+    "width": 720,
+    "height": 1565,
+    "smallWidth": 400,
+    "smallHeight": 869
+  },
+  "iphone-members": {
+    "source": "ios/45-members-v4.png",
+    "width": 720,
+    "height": 1565,
+    "smallWidth": 400,
+    "smallHeight": 869
+  },
+  "iphone-own-ai": {
+    "source": "ios/51-setup-again-own-ai-v2.png",
+    "width": 720,
+    "height": 1565,
+    "smallWidth": 400,
+    "smallHeight": 869
+  },
+  "iphone-report": {
+    "source": "ios/37-report-july-v2.png",
+    "width": 720,
+    "height": 1565,
+    "smallWidth": 400,
+    "smallHeight": 869
+  },
+  "mac-accounts": {
+    "source": "mac/24-accounts-v3.png",
+    "width": 1280,
+    "height": 1100,
+    "smallWidth": 640,
+    "smallHeight": 550
+  },
+  "mac-automations": {
+    "source": "mac/30-automations-v3.png",
+    "width": 1280,
+    "height": 1100,
+    "smallWidth": 640,
+    "smallHeight": 550
+  },
+  "mac-calendar": {
+    "source": "mac/15-calendar-v2.png",
+    "width": 1280,
+    "height": 1040,
+    "smallWidth": 640,
+    "smallHeight": 520
+  },
+  "mac-changes": {
+    "source": "mac/23-changes-v5.png",
+    "width": 1280,
+    "height": 1100,
+    "smallWidth": 640,
+    "smallHeight": 550
+  },
+  "mac-charges": {
+    "source": "mac/18-charges-v4.png",
+    "width": 1280,
+    "height": 1100,
+    "smallWidth": 640,
+    "smallHeight": 550
+  },
+  "mac-commitments": {
+    "source": "mac/16-commitments-v3.png",
+    "width": 1280,
+    "height": 1100,
+    "smallWidth": 640,
+    "smallHeight": 550
+  },
+  "mac-dashboard": {
+    "source": "mac/11-dashboard-v6.png",
+    "width": 1280,
+    "height": 1500,
+    "smallWidth": 640,
+    "smallHeight": 750
+  },
+  "mac-data-privacy": {
+    "source": "mac/33-data-privacy-v2.png",
+    "width": 1280,
+    "height": 1240,
+    "smallWidth": 640,
+    "smallHeight": 620
+  },
+  "mac-import-review": {
+    "source": "mac/10-import-review-v2.png",
+    "width": 1280,
+    "height": 1300,
+    "smallWidth": 640,
+    "smallHeight": 650
+  },
+  "mac-insights": {
+    "source": "mac/22-insights-v2.png",
+    "width": 1280,
+    "height": 1100,
+    "smallWidth": 640,
+    "smallHeight": 550
+  },
+  "mac-mcp-server": {
+    "source": "mac/31-connect-ai-v2.png",
+    "width": 1280,
+    "height": 1400,
+    "smallWidth": 640,
+    "smallHeight": 700
+  },
+  "mac-members": {
+    "source": "mac/26-members-v3.png",
+    "width": 1280,
+    "height": 1100,
+    "smallWidth": 640,
+    "smallHeight": 550
+  },
+  "mac-new-commitment": {
+    "source": "mac/21-form-v4.png",
+    "width": 1280,
+    "height": 1700,
+    "smallWidth": 640,
+    "smallHeight": 850
+  },
+  "mac-reports": {
+    "source": "mac/14-reports-v2.png",
+    "width": 1280,
+    "height": 1200,
+    "smallWidth": 640,
+    "smallHeight": 600
+  }
+}

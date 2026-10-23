@@ -1,0 +1,72 @@
+name: ci
+
+# Linux only, so every push stays cheap: hosted macOS runners bill at ten times the
+# Linux rate. The Swift packages and the app builds run in swift-weekly.yml.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    # edited: the leak check reads a pull request's title and description, so a new one re-runs it.
+    types: [opened, synchronize, reopened, edited]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run lint:comments
+      - run: npm run lint:transform
+      - run: npm run guard:name
+      - run: npm run vault:contract:check
+      - run: npm run design:tokens:check
+      - run: npm run hosted:engine:check
+      - run: npm run local:server:check
+      - run: npm run site:consent:check
+      - run: npm run site:viewer:check
+      - run: npm run site:router:check
+      - run: npm run plugin:claude:check
+      - run: npm run release:check
+      - run: npm run versions
+      - run: npm run site:analytics:check
+      - run: npm run site:media-kit:check
+      - run: npm run site:pages:check
+      - run: npm run site:pages:test
+      - run: npm run email:test
+      - run: npm run auth-emails:check
+      - run: npm run sessions:test
+      - run: npm run review:test
+      - run: npm run cloud:test
+      - run: npm run statements:test
+      - run: npm run changelog:check
+
+      # These two read a commit range, not the tree. Their default (origin/main..HEAD) is
+      # empty on a push to main, so the range is computed here: a new branch or a force
+      # push reports an all-zero "before", and falls back to the preceding commit.
+      - name: leak and history guards
+        env:
+          BEFORE: ${{ github.event.before }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.sha }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          start="${BASE:-$BEFORE}"
+          if [ -z "$start" ] || [ "$start" = "0000000000000000000000000000000000000000" ]; then
+            start="$HEAD_SHA~1"
+          fi
+          node scripts/leak-check.mjs --range "$start..$HEAD_SHA"
+          node scripts/history-guard.mjs --range "$start..$HEAD_SHA"

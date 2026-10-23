@@ -1,0 +1,53 @@
+{
+  "name": "@longbook/mcp",
+  "version": "1.43.0",
+  "mcpName": "app.longbook/mcp",
+  "license": "GPL-3.0-only",
+  "description": "The longbook MCP server: your longbook folder, readable by the AI you already use. Real arithmetic on what is due and what renews; changes go through the app's Changes screen. mcprush.com-claim-longbook-mcp-5dd29bf58ce121bd23d37ac6",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "finance",
+    "subscriptions",
+    "longbook"
+  ],
+  "homepage": "https://longbook.app/features/longbook-npm-package/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MXmaster2s/longbook-code.git",
+    "directory": "packages/mcp"
+  },
+  "type": "module",
+  "main": "bin/longbook-mcp.mjs",
+  "bin": {
+    "longbook-mcp": "bin/longbook-mcp.mjs"
+  },
+  "files": [
+    "bin",
+    "README.md",
+    "LICENSE",
+    "server.json"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "serve": "tsx src/server.ts"
+  },
+  "devDependencies": {
+    "@longbook/cards": "*",
+    "@longbook/core": "*",
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "@types/node": "^20.19.43",
+    "fflate": "^0.8.3",
+    "tsx": "^4.23.1",
+    "typescript": "^5.5.4",
+    "unpdf": "^1.7.0",
+    "zod": "3.25.76"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

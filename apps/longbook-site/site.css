@@ -1,0 +1,39 @@
+/* What every hand-written page shares: the base, the header, the download menu, the buttons
+   and the footer. Linked with ?v=<hash> before each page's own <style>. */
+* { box-sizing:border-box; }
+body { margin:0; background:var(--lb-canvas); color:var(--lb-text-primary); font-family:var(--lb-font-sans); font-size:var(--lb-type-body-size); letter-spacing:var(--lb-type-body-tracking); line-height:1.6; }
+a { color:var(--lb-brand-text); }
+.top { position:sticky; top:0; z-index:80; border-bottom:1px solid var(--lb-hairline); background:var(--lb-canvas); background:color-mix(in srgb, var(--lb-canvas) 84%, transparent); -webkit-backdrop-filter:saturate(1.5) blur(14px); backdrop-filter:saturate(1.5) blur(14px); }
+.mk { width:24px; height:24px; display:block; flex-shrink:0; }
+.top nav { margin-left:auto; display:flex; align-items:center; gap:var(--lb-space-s6); }
+.top nav a { color:var(--lb-text-secondary); text-decoration:none; font-size:var(--lb-type-body-sm-size); }
+.top nav a:hover { color:var(--lb-brand-text); }
+.btn:hover { background:var(--lb-brand); color:var(--lb-on-brand); }
+.btn.ghost { background:var(--lb-card); color:var(--lb-text-primary); border-color:var(--lb-hairline); }
+.btn.ghost:hover { background:var(--lb-brand); color:var(--lb-on-brand); border-color:var(--lb-brand); }
+.btn.sm { font-size:var(--lb-type-body-sm-size); padding:0 var(--lb-space-s4); }
+.btn svg { width:17px; height:17px; }
+.thm { display:grid; place-items:center; width:36px; height:36px; padding:0; border:1px solid var(--lb-hairline); border-radius:50%; background:var(--lb-card); color:var(--lb-text-secondary); cursor:pointer; transition:color .14s ease, border-color .14s ease; }
+.thm:hover { color:var(--lb-brand-text); border-color:var(--lb-brand); }
+.thm svg { width:16px; height:16px; }
+.thm .sun { display:none; }
+:root[data-appearance="dark"] .thm .sun { display:block; }
+:root[data-appearance="dark"] .thm .moon { display:none; }
+.dl { position:relative; }
+.dlm { position:absolute; top:calc(100% + 8px); right:0; min-width:230px; padding:5px; z-index:90; background:var(--lb-card); border:1px solid var(--lb-hairline); border-radius:var(--lb-radius-sm); box-shadow:var(--sh-2); }
+.dlm svg { width:15px; height:15px; flex:0 0 auto; }
+.fcols { display:grid; grid-template-columns:1.5fr repeat(4, minmax(0,1fr)); gap:var(--lb-space-s6); }
+.fcols > div { min-width:0; }
+.fcols h4 { margin:0 0 var(--lb-space-s3); font-size:var(--lb-type-eyebrow-size); letter-spacing:var(--lb-type-eyebrow-tracking); font-weight:var(--lb-type-eyebrow-weight); color:var(--lb-text-quaternary); }
+.fcols a { display:block; color:var(--lb-text-secondary); text-decoration:none; font-size:var(--lb-type-body-sm-size); padding:5px 0; transition:color .14s ease; }
+.fcols a:hover { color:var(--lb-brand-text); }
+.fbrand p { margin:var(--lb-space-s3) 0 0; color:var(--lb-text-tertiary); font-size:var(--lb-type-body-sm-size); max-width:250px; }
+.fsoc { display:flex; gap:var(--lb-space-s2); margin-top:var(--lb-space-s6); }
+.fbrand .fsoc a { display:grid; place-items:center; width:36px; height:36px; padding:0; border-radius:50%; background:var(--lb-card); border:1px solid var(--lb-hairline); color:var(--lb-text-tertiary); transition:background .14s ease, color .14s ease, border-color .14s ease; }
+.fbrand .fsoc a:hover { background:var(--lb-brand); border-color:var(--lb-brand); color:var(--lb-on-brand); }
+.fsoc svg { width:15px; height:15px; }
+.fbrand .fsoc .copymail { position:relative; }
+.fsoc .tip { position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%); background:var(--lb-text-primary); color:var(--lb-canvas); border-radius:6px; padding:5px 9px; font-size:var(--lb-type-footnote-size); white-space:nowrap; opacity:0; pointer-events:none; transition:opacity .14s ease; }
+.fsoc .copymail:hover .tip, .fsoc .copymail.done .tip { opacity:1; }
+.fsoc .copymail.done { background:var(--lb-brand); border-color:var(--lb-brand); color:var(--lb-on-brand); }
+.fbase { margin-top:var(--lb-space-s8); padding-top:var(--lb-space-s6); border-top:1px solid var(--lb-hairline); display:flex; justify-content:space-between; gap:var(--lb-space-s3); flex-wrap:wrap; color:var(--lb-text-quaternary); font-size:var(--lb-type-footnote-size); }

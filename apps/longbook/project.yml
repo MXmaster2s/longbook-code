@@ -1,0 +1,141 @@
+name: longbook
+options:
+  bundleIdPrefix: app.longbook
+  createIntermediateGroups: true
+  deploymentTarget:
+    iOS: "17.0"
+    macOS: "14.0"
+# One version for every target. The app and its extension are uploaded together and App Store
+# Connect rejects a pair whose versions disagree, so each reads these two settings instead of
+# carrying its own copy. The release script reads the literals from here.
+settings:
+  base:
+    MARKETING_VERSION: "1.4.1"
+    CURRENT_PROJECT_VERSION: "50"
+    # The commit a build was made from, shown in Help & about. The build scripts pass it.
+    LONGBOOK_COMMIT: ""
+packages:
+  LongbookCore:
+    path: ../../packages/swift-core
+  LongbookDesign:
+    path: ../../packages/swift-design
+  # Apache 2.0 — fits the permissive-only rule. Pinned exactly, same as the UI stack.
+  GoogleSignIn:
+    url: https://github.com/google/GoogleSignIn-iOS
+    exactVersion: 9.2.0
+targets:
+  longbook:
+    type: application
+    supportedDestinations: [iOS, macOS]
+    sources:
+      - path: Sources
+      # PrivacyInfo.xcprivacy rides in here: everything under Resources is copied, so the
+      # manifest lands in the app bundle where the upload check looks for it.
+      - path: Resources
+        buildPhase: resources
+    dependencies:
+      - package: LongbookCore
+        product: LongbookCore
+      - package: LongbookDesign
+        product: DesignSystem
+      # App target only, never swift-core: the widget links LongbookCore and must not
+      # carry a sign-in SDK it can never present.
+      - package: GoogleSignIn
+        product: GoogleSignIn
+      # iOS only: the widget is an iOS extension, and embedding it into the macOS app
+      # would fail that build outright.
+      - target: LongbookWidget
+        embed: true
+        destinationFilters: [iOS]
+    # Xcode runs buy both products from this local store, with no App Store Connect
+    # behind it; archives and CI builds ignore it. The literals match scripts/asc-iap.mts.
+    scheme:
+      storeKitConfiguration: longbook.storekit
+    info:
+      path: Info.plist
+      properties:
+        CFBundleDisplayName: longbook
+        # Spoken, the name reaches Siri as two words; these are the spellings it may hear.
+        INAlternativeAppNames:
+          - INAlternativeAppName: Long Book
+            INAlternativeAppNamePronunciationHint: long book
+          - INAlternativeAppName: Long Book App
+            INAlternativeAppNamePronunciationHint: long book app
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        LongbookCommit: "$(LONGBOOK_COMMIT)"
+        LSApplicationCategoryType: public.app-category.finance
+        # The only cryptography here is HTTPS and the platform's own, both exempt. Declaring
+        # the exemption in the bundle answers the export question at upload rather than
+        # holding every build for a manual answer.
+        ITSAppUsesNonExemptEncryption: false
+        UILaunchScreen: {}
+        # Sign-in comes back through longbook://auth/callback — see AuthClient's
+        # AUTH_CALLBACK_URL and RootView's onOpenURL. The second scheme is Google's
+        # return path; GIDClientID below is how the SDK finds its configuration.
+        CFBundleURLTypes:
+          - CFBundleURLName: app.longbook
+            CFBundleURLSchemes: [longbook]
+          - CFBundleURLName: app.longbook.google
+            CFBundleURLSchemes: [com.googleusercontent.apps.617069415236-054hss1h8868rlvtplvkmfb6aau7sra4]
+        GIDClientID: 617069415236-054hss1h8868rlvtplvkmfb6aau7sra4.apps.googleusercontent.com
+        # The folder promise made visible: without these two, a vault kept on the device
+        # is invisible in the Files app, and the Data & privacy reveal has nothing to open.
+        UIFileSharingEnabled: true
+        LSSupportsOpeningDocumentsInPlace: true
+        # Publishing: the entitlement grants the container; THIS keeps iCloud Drive
+        # showing it as the longbook folder. Read once at container creation.
+        NSUbiquitousContainers:
+          iCloud.app.longbook:
+            NSUbiquitousContainerIsDocumentScopePublic: true
+            NSUbiquitousContainerSupportedFolderLevels: Any
+            NSUbiquitousContainerName: longbook
+    settings:
+      base:
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        # The Mac draws its icon from the layered .icon, so macOS 26 shows it unboxed.
+        "ASSETCATALOG_COMPILER_APPICON_NAME[sdk=macosx*]": AppIconMac
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        CODE_SIGN_ENTITLEMENTS: Longbook.entitlements
+        # The Mac ships through the Mac App Store: sandboxed, with its own entitlements
+        # file, and updated by the store. Both platforms buy through StoreKit.
+        "CODE_SIGN_ENTITLEMENTS[sdk=macosx*]": LongbookMac.entitlements
+        "ENABLE_HARDENED_RUNTIME[sdk=macosx*]": "YES"
+        "LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]": "/usr/lib/swift @executable_path/../Frameworks"
+        # Pinned, not left to automatic assignment: xcodegen regenerates the project
+        # from scratch, and a signing identity that drifts between builds is exactly
+        # what makes macOS treat each one as a new app and re-ask for Keychain access.
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: 27F9SH746V
+        GENERATE_INFOPLIST_FILE: "NO"
+        # iPhone only while the phone app is the one being finished: an iPad build is a
+        # second layout to design and a second set of screenshots to review, and nothing
+        # in the app is written for that width yet. Scoped to the iOS SDKs; macOS ignores it.
+        "TARGETED_DEVICE_FAMILY[sdk=iphoneos*]": "1"
+        "TARGETED_DEVICE_FAMILY[sdk=iphonesimulator*]": "1"
+        SWIFT_VERSION: "5.10"
+  LongbookWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Widget
+        excludes: [PrivacyInfo.xcprivacy]
+      # An extension is checked as its own bundle, so its manifest is named on its own and
+      # copied into the appex, never inheriting whatever phase the folder's rule would give it.
+      - path: Widget/PrivacyInfo.xcprivacy
+        buildPhase: resources
+    dependencies:
+      - package: LongbookCore
+        product: LongbookCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.longbook.longbook.widget
+        CODE_SIGN_ENTITLEMENTS: Widget.entitlements
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: 27F9SH746V
+        # An explicit plist: a WidgetKit extension needs NSExtension as a NESTED dictionary,
+        # and INFOPLIST_KEY_* settings can only write flat top-level keys.
+        GENERATE_INFOPLIST_FILE: "NO"
+        INFOPLIST_FILE: WidgetInfo.plist
+        SWIFT_VERSION: "5.10"
+        TARGETED_DEVICE_FAMILY: "1"

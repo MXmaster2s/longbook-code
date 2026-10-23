@@ -1,0 +1,673 @@
+{
+  "images": [
+    {
+      "path": "features/img/iphone-accounts-sm.jpg",
+      "bytes": 49533,
+      "sha256": "05fac90fdf664c263fba5b08397d9efdd38c9a6e4a2b1f1d2197a3c3a7462458"
+    },
+    {
+      "path": "features/img/iphone-accounts.jpg",
+      "bytes": 113242,
+      "sha256": "54e6710c24896bec68a65280853fd3cef0bd469c087110fb4e2ccb083d686c41"
+    },
+    {
+      "path": "features/img/iphone-all-charges-sm.jpg",
+      "bytes": 39774,
+      "sha256": "255966ac076830a20b55cbad45f8e7b10db6b28068861849fca75f0454688b52"
+    },
+    {
+      "path": "features/img/iphone-all-charges.jpg",
+      "bytes": 89073,
+      "sha256": "0f9bd7618840c58929fe389dd826e14330c5eef46f1cd1c3c323af01fe43ae48"
+    },
+    {
+      "path": "features/img/iphone-all-commitments-sm.jpg",
+      "bytes": 43258,
+      "sha256": "6ef709db154c1e8a30e6fa3c41757a7e12fd0769bec606086341a9348e232a60"
+    },
+    {
+      "path": "features/img/iphone-all-commitments.jpg",
+      "bytes": 96926,
+      "sha256": "b95593c81de453071f4a4b0410bd8dc7dbeeb6c9b076a357ac9ffd782cb14cf5"
+    },
+    {
+      "path": "features/img/iphone-automations-sm.jpg",
+      "bytes": 60520,
+      "sha256": "f0fb1df50b5ab251bfd5e83e905363f31013f259e16ccf854e27e5b0c339d027"
+    },
+    {
+      "path": "features/img/iphone-automations.jpg",
+      "bytes": 138792,
+      "sha256": "4525164f93644729f3ccb75d3127b65002a8a4b3f6115e46a4ca388194fbe16e"
+    },
+    {
+      "path": "features/img/iphone-calendar-sm.jpg",
+      "bytes": 39168,
+      "sha256": "c6489486208e67325f1374c91c4222d8b5d3d5bebb64c3c96b77b96a55b730d4"
+    },
+    {
+      "path": "features/img/iphone-calendar.jpg",
+      "bytes": 86189,
+      "sha256": "cff079cb8a36b5391f57066e813bc1ba5a4354a7e8bd3961ba8b5baf9c38ab8b"
+    },
+    {
+      "path": "features/img/iphone-categories-sm.jpg",
+      "bytes": 34980,
+      "sha256": "79565e6759d457991bebd82d96bab75e3ef97932c2bec4c89d548c61b7f0fdd1"
+    },
+    {
+      "path": "features/img/iphone-categories.jpg",
+      "bytes": 80004,
+      "sha256": "e7a569a3711bbff1333a5a84c9f0de16d873111680b04878c9768b4424e99cb8"
+    },
+    {
+      "path": "features/img/iphone-changes-sm.jpg",
+      "bytes": 54225,
+      "sha256": "c2b42bb631be07eb06dd52d64af2b83f4fd7c524475364530f71a3ee70239ead"
+    },
+    {
+      "path": "features/img/iphone-changes.jpg",
+      "bytes": 120366,
+      "sha256": "97f431f216d6071e9531369feddfe8570acc193bf4c5fecdbf3a6142b7f92355"
+    },
+    {
+      "path": "features/img/iphone-dashboard-sm.jpg",
+      "bytes": 47652,
+      "sha256": "437ef3b8fcd59ee56a63e51638e58ca51cef4cd5035bfc8fe32a3d20db2396f5"
+    },
+    {
+      "path": "features/img/iphone-dashboard.jpg",
+      "bytes": 105963,
+      "sha256": "595bdc1d9c027baad227622cfa15011d8375104020e9df37ba9b34737ca1ae0d"
+    },
+    {
+      "path": "features/img/iphone-data-privacy-sm.jpg",
+      "bytes": 47793,
+      "sha256": "e933643b54b89d6436ced65d389c10f95edb4f87cf3b0e5b5e1b49983b3f5b18"
+    },
+    {
+      "path": "features/img/iphone-data-privacy.jpg",
+      "bytes": 112530,
+      "sha256": "dbf11135b90b55f64bf30133a62367832f82bcc6cbd4851d0ff788dc680e5325"
+    },
+    {
+      "path": "features/img/iphone-display-currency-sm.jpg",
+      "bytes": 32076,
+      "sha256": "cacc7f45f6b6f71f5cb58bd3fc15ecfb627fa1366eac9d42a11fd9c8326f538b"
+    },
+    {
+      "path": "features/img/iphone-display-currency.jpg",
+      "bytes": 74125,
+      "sha256": "aa2aaf4c2d928c2f867649d0a9e20414e45b6daf1b7668929d054e6222f45a16"
+    },
+    {
+      "path": "features/img/iphone-import-review-sm.jpg",
+      "bytes": 44549,
+      "sha256": "81f9d7e0b4ff9559cc1c388192ca69911cf6244eb760c9d577d57d0bce75004a"
+    },
+    {
+      "path": "features/img/iphone-import-review.jpg",
+      "bytes": 103231,
+      "sha256": "922033c461f0dd44c8d74a08e881ecb94e528a4cc80ba7a104fb3bf2aba59290"
+    },
+    {
+      "path": "features/img/iphone-insights-sm.jpg",
+      "bytes": 60543,
+      "sha256": "f9a2170be35b2069e281c86eade10c6c4b166394d3053975393244d2f069f552"
+    },
+    {
+      "path": "features/img/iphone-insights.jpg",
+      "bytes": 142605,
+      "sha256": "80fb88fe03d23823275bee7ac295c41732e192c6d2a93714bc89bcc9386f176b"
+    },
+    {
+      "path": "features/img/iphone-members-sm.jpg",
+      "bytes": 46458,
+      "sha256": "413323e202c14c585f22a9876fda06ef0d51fd053a6a5ce6f6ec4c53eeca85bb"
+    },
+    {
+      "path": "features/img/iphone-members.jpg",
+      "bytes": 107747,
+      "sha256": "806f155857db61c0f6f1c4d14b3d0d06f5deca0079007cc6bcda7133d89ec1ae"
+    },
+    {
+      "path": "features/img/iphone-own-ai-sm.jpg",
+      "bytes": 56131,
+      "sha256": "24b2c60934261ccf4d2d88fd30a0ceee93862c20d61b6465c6f34b2e50768460"
+    },
+    {
+      "path": "features/img/iphone-own-ai.jpg",
+      "bytes": 135502,
+      "sha256": "0e1cf73cd5cea828fef4f8ba2d8975abd37bc40e67c445c2942772240d8584f2"
+    },
+    {
+      "path": "features/img/iphone-report-sm.jpg",
+      "bytes": 38992,
+      "sha256": "2c32ffaecd759749c8d3f00106fd8249db20f39b8d02d93db1cb3b20355b6936"
+    },
+    {
+      "path": "features/img/iphone-report.jpg",
+      "bytes": 85134,
+      "sha256": "06bf9d65fce9b741555af735683228bd75cedbe968f848d82430b9466523299a"
+    },
+    {
+      "path": "features/img/mac-accounts-sm.jpg",
+      "bytes": 38519,
+      "sha256": "b74e1d73d488abd766af5628fd1a8976a276f239c14d6a99ee5bc8c70b5ddc2e"
+    },
+    {
+      "path": "features/img/mac-accounts.jpg",
+      "bytes": 111952,
+      "sha256": "11b3e6cccb3d569aa8c2eda7863ecabc68161d6f1c4a1145d78582ecc3b1650e"
+    },
+    {
+      "path": "features/img/mac-automations-sm.jpg",
+      "bytes": 46727,
+      "sha256": "3b258823ed4639e5711ef51dd399f27511551169d518ada4dc4421405056b5f0"
+    },
+    {
+      "path": "features/img/mac-automations.jpg",
+      "bytes": 135258,
+      "sha256": "15e208a484dc94e4d714da259892723889988099d2749e003979c8a9cc9a97a0"
+    },
+    {
+      "path": "features/img/mac-calendar-sm.jpg",
+      "bytes": 20888,
+      "sha256": "249a133f3518e6e389ca1fd41b113845afc2536e96e9ba2a7d091f35482f6891"
+    },
+    {
+      "path": "features/img/mac-calendar.jpg",
+      "bytes": 61011,
+      "sha256": "644006181950fdf4d534b425547026d5475ca9701f822ea8e145224dcb4a9e81"
+    },
+    {
+      "path": "features/img/mac-changes-sm.jpg",
+      "bytes": 38942,
+      "sha256": "995b5d0b2567ab6184cc638a3329173eb9b8290738cb5fb1237f912262c9a0fa"
+    },
+    {
+      "path": "features/img/mac-changes.jpg",
+      "bytes": 111305,
+      "sha256": "b5d4fa8376c54ed85f9fe177b0e44f071f4ae0ebf4bd71ca393a4d643fcc8179"
+    },
+    {
+      "path": "features/img/mac-charges-sm.jpg",
+      "bytes": 34361,
+      "sha256": "4ffdece8aa9560ee0fa74e7c1ec59bb156cb40600b9b8cfe2ce2c788f39462cf"
+    },
+    {
+      "path": "features/img/mac-charges.jpg",
+      "bytes": 92551,
+      "sha256": "8fa64d92d5c4aa97e83aa6c4b7eb281ea1d051110517379863e0480951832dad"
+    },
+    {
+      "path": "features/img/mac-commitments-sm.jpg",
+      "bytes": 35604,
+      "sha256": "788de43e853abdbe211ef7b3dd80f7390c8ec32342b3e3af4c5daca5e2c1b691"
+    },
+    {
+      "path": "features/img/mac-commitments.jpg",
+      "bytes": 98622,
+      "sha256": "c15dfc413168de5bf89b902252b4f11c00e6323774eb73416594561500bf0bf5"
+    },
+    {
+      "path": "features/img/mac-dashboard-sm.jpg",
+      "bytes": 60642,
+      "sha256": "57ade258b33acf737d5404540c40e6a5c24812369f7a55b89ad64f085f6eb87a"
+    },
+    {
+      "path": "features/img/mac-dashboard.jpg",
+      "bytes": 170518,
+      "sha256": "3fbb545ae9c5a00e5a7c51209129438814c6c122c110ac7fabd9d2ffefa33c5a"
+    },
+    {
+      "path": "features/img/mac-data-privacy-sm.jpg",
+      "bytes": 34171,
+      "sha256": "6954715e9641baecd9e063ab6532b9941676ed77f49c7bccc5ebc46bc1f61d7c"
+    },
+    {
+      "path": "features/img/mac-data-privacy.jpg",
+      "bytes": 102608,
+      "sha256": "82001689c49175c5b877b601f64e6036d3e15f56efff87e60d198f0cf4205ab2"
+    },
+    {
+      "path": "features/img/mac-import-review-sm.jpg",
+      "bytes": 47364,
+      "sha256": "386002b70a27e0206a794214672aaebd59edaec28ff09884661c33f7713370dd"
+    },
+    {
+      "path": "features/img/mac-import-review.jpg",
+      "bytes": 136045,
+      "sha256": "cd236118a7c863021c8b4dd35e33cf7cf88eed32f983553b111d7a37c62aa116"
+    },
+    {
+      "path": "features/img/mac-insights-sm.jpg",
+      "bytes": 31764,
+      "sha256": "ed0a03ba0c4caeca9644c24be9a666e8f055159838a50bcfc1ec0d0300a2bd71"
+    },
+    {
+      "path": "features/img/mac-insights.jpg",
+      "bytes": 94251,
+      "sha256": "03d58f871a38fb3d270f80ef6c7037e6f0d3b714de66760440f64f42caecc0f3"
+    },
+    {
+      "path": "features/img/mac-mcp-server-sm.jpg",
+      "bytes": 51290,
+      "sha256": "86bacff9a8e3311b05211be0851e5cb9f118aba3ed757f7cc1842ec0b89ae67d"
+    },
+    {
+      "path": "features/img/mac-mcp-server.jpg",
+      "bytes": 152659,
+      "sha256": "32e612ba3fd255088b26a7ceb72d96cbf4c54c74e6c34b6adc81bb0ad030b67d"
+    },
+    {
+      "path": "features/img/mac-members-sm.jpg",
+      "bytes": 46957,
+      "sha256": "b31bb8b956a3bfe04dd4687a7c4a910651f93e3d57968f9d264b454832727eaf"
+    },
+    {
+      "path": "features/img/mac-members.jpg",
+      "bytes": 138774,
+      "sha256": "62cb9bccd167b3e2d7720e50837327838553b595bad727c5b3a97f8f54dbb6c9"
+    },
+    {
+      "path": "features/img/mac-new-commitment-sm.jpg",
+      "bytes": 39901,
+      "sha256": "1dcbec510bba6228e8341963f8a8449a5e2dcecb0c33d193ad23984ad3770901"
+    },
+    {
+      "path": "features/img/mac-new-commitment.jpg",
+      "bytes": 116557,
+      "sha256": "6c344c99fd631df91a73194f9c17eee95b7f0c8415e7c5a2c69a4d27b2a68eb1"
+    },
+    {
+      "path": "features/img/mac-reports-sm.jpg",
+      "bytes": 36912,
+      "sha256": "27d2f88b9096034c3024c80c89f53d1627f29ad6330381918147387753b0b84c"
+    },
+    {
+      "path": "features/img/mac-reports.jpg",
+      "bytes": 112158,
+      "sha256": "921457286c008752a487e569f87be1bc08b8b53dcf4d814c514c8a2842cef379"
+    }
+  ],
+  "shares": [
+    {
+      "path": "og/automations.jpg",
+      "bytes": 113579,
+      "sha256": "5455b2a903546c60e65584f93d95627dda79b59fc6198a1a08c7d6de04c9fdc1"
+    },
+    {
+      "path": "og/blog.jpg",
+      "bytes": 66274,
+      "sha256": "0db42ca6b2caa33348545f5fde3782cbbcb55163b9bc0302d2d47fc64fcc5d20"
+    },
+    {
+      "path": "og/contact.jpg",
+      "bytes": 59053,
+      "sha256": "d3792c205ff4cd6fd33813c59f090fba6c03e0d1193e521cf4c4857b2d537a71"
+    },
+    {
+      "path": "og/download.jpg",
+      "bytes": 102838,
+      "sha256": "33c1960b2819b10a9bd2d9b935128898aa9d478f86cab391d83acbadb4d2d0c2"
+    },
+    {
+      "path": "og/faq.jpg",
+      "bytes": 78806,
+      "sha256": "be406f43c95d678a3e879e0682d2579115d424aa2b740285a7a23667095c59ae"
+    },
+    {
+      "path": "og/features.jpg",
+      "bytes": 99894,
+      "sha256": "214cc986dc5871e759b0ca17b40340da449f6440970b80ae941088314f60ea3c"
+    },
+    {
+      "path": "og/features/add-longbook-widget-to-your-iphone.jpg",
+      "bytes": 89786,
+      "sha256": "c013ebc1891d19013283c0df8768fad13ac4b43def17bd29a2f6ef6203c67c2f"
+    },
+    {
+      "path": "og/features/add-your-accounts-and-members.jpg",
+      "bytes": 115648,
+      "sha256": "df6efe873f8794a83be5421ae42fe859e7dbd9cbc067e53a3040c059c02279ff"
+    },
+    {
+      "path": "og/features/automate-longbook-with-claude.jpg",
+      "bytes": 126762,
+      "sha256": "7e26691ce83f4138e5efb60c42a07f5c273d6893f84f9ce1baf16779f6a90696"
+    },
+    {
+      "path": "og/features/automate-longbook-with-siri-and-shortcuts.jpg",
+      "bytes": 139012,
+      "sha256": "cc4a1bd9a78c74640c5a3f2ad80de1afe85a62262050eb06ef55cc0e7af938ad"
+    },
+    {
+      "path": "og/features/bookmark-your-favourite-subscription.jpg",
+      "bytes": 116660,
+      "sha256": "6f406141907414fbf74ceeee63e6d47562a9712db429efbf7d00dceac5c7dcfa"
+    },
+    {
+      "path": "og/features/calendar-view-of-your-expenses.jpg",
+      "bytes": 96306,
+      "sha256": "e33c6c5432574b421ac47654538338fdeb3c6a3e737b7606a3b89d0ef9da1c65"
+    },
+    {
+      "path": "og/features/categorise-your-expenses.jpg",
+      "bytes": 103507,
+      "sha256": "5361d056ca3ef4ffd2db50cdfd30a7babfc55747cd3a44ba87fb3387f8bb7429"
+    },
+    {
+      "path": "og/features/create-monthly-expense-reports.jpg",
+      "bytes": 121558,
+      "sha256": "b8696e562dd686f1f7618ebcce27876945bd43093c44580cf12cde7a0c9ed881"
+    },
+    {
+      "path": "og/features/get-insights-about-your-expenses-from-your-ai.jpg",
+      "bytes": 126943,
+      "sha256": "853df026aecc2a22843ad58f649fcf71d4f04ecba2ad8b16771c2e46443f8219"
+    },
+    {
+      "path": "og/features/get-spending-insights.jpg",
+      "bytes": 110806,
+      "sha256": "3b61f4cc34cbf5b5feec67bac53ded850e3ffeb67101d4cb77d03aa5e9a1b29d"
+    },
+    {
+      "path": "og/features/import-your-bank-statements.jpg",
+      "bytes": 111843,
+      "sha256": "15b280d2172d04c91729277abc2e03a5598fc68b3d5738b35c9fe5992b7af0de"
+    },
+    {
+      "path": "og/features/keep-your-longbook-in-your-own-icloud.jpg",
+      "bytes": 119480,
+      "sha256": "9cf92d1ecc373611c8dec4ca9fafcd30092cc8574b1bda1a33417effea1af1c5"
+    },
+    {
+      "path": "og/features/log-expenses-from-gmail.jpg",
+      "bytes": 124603,
+      "sha256": "596b8e53f3366302338cd627060ca211c63022333ff8b3e2f12479057647e3b8"
+    },
+    {
+      "path": "og/features/longbook-npm-package.jpg",
+      "bytes": 128681,
+      "sha256": "98d205d9c804e862ec485cd0d53596c063888330df1aaccbee9286d4b0695b83"
+    },
+    {
+      "path": "og/features/manage-your-expenses.jpg",
+      "bytes": 100447,
+      "sha256": "c8b849687ad9a5cea7c04fee1aec001634a0cd961e8190851d90170e652e2646"
+    },
+    {
+      "path": "og/features/manage-your-subscriptions.jpg",
+      "bytes": 109645,
+      "sha256": "2da5402ec5069cf64a8be3fc9e530e773f500ede342d56b080814e5e7059b979"
+    },
+    {
+      "path": "og/features/review-every-change-your-ai-makes.jpg",
+      "bytes": 131737,
+      "sha256": "0b67712202602c8d18183ae14e73691d882c54d7f72cb0eba93965d57e2c28f5"
+    },
+    {
+      "path": "og/features/see-your-next-payment-in-the-mac-menu-bar.jpg",
+      "bytes": 92190,
+      "sha256": "f77780caf2cf9d7304b0b82af7b566cef17a2755924c0d656960fddbb177a0e0"
+    },
+    {
+      "path": "og/features/share-monthly-expense-reports-with-others.jpg",
+      "bytes": 90735,
+      "sha256": "32b073971e12297a0c0a8daec56dcc0013b8c5c7ed4c2f3faeb9a476bc09f626"
+    },
+    {
+      "path": "og/features/track-multiple-currencies.jpg",
+      "bytes": 103784,
+      "sha256": "30971853a952cc9bbbcadc10ed328989b2cfe77898c774a2ce253c879b2bcf50"
+    },
+    {
+      "path": "og/features/view-expenses-from-multiple-bank-accounts.jpg",
+      "bytes": 122565,
+      "sha256": "d19887b9711aba2577e08d9db23de2a51ae52ee7067c75a6b5c3b9374410ff9b"
+    },
+    {
+      "path": "og/features/what-is-longbook-cloud.jpg",
+      "bytes": 121868,
+      "sha256": "86d4ca6da7191dcb575e6aebcca57eff04d593eea366fa39b23d8d0493fdf30d"
+    },
+    {
+      "path": "og/home.jpg",
+      "bytes": 112614,
+      "sha256": "80c1b92b225546879ee9d3cf8daf9785280f1635d52ad64416af856cb113eefc"
+    },
+    {
+      "path": "og/ios.jpg",
+      "bytes": 92799,
+      "sha256": "d1a66cbd166b29010209dbfa77dbfc2f1ff0247df3e355c8f143ac9b7692d811"
+    },
+    {
+      "path": "og/privacy-policy.jpg",
+      "bytes": 68206,
+      "sha256": "829126489966d0484130751de28abbb56c44959b9abd79cca0d827a783c4d409"
+    },
+    {
+      "path": "og/source.jpg",
+      "bytes": 69993,
+      "sha256": "410b8db5b080464ced4915f350be793fe6b5f93dd8e98615377cb6065d7a7cef"
+    },
+    {
+      "path": "og/terms.jpg",
+      "bytes": 68418,
+      "sha256": "9481e2ab6dc85305f81527a94e20840de2119628a4945d1399064d5a88aaa630"
+    },
+    {
+      "path": "og/upcoming-features.jpg",
+      "bytes": 71533,
+      "sha256": "e70f29556494049eb62951f56c58b77064b5c2d376f949bf81e95089da976cad"
+    },
+    {
+      "path": "og/why-we-built-longbook.jpg",
+      "bytes": 74260,
+      "sha256": "9f695dde3099357ff77806581b85bb7cc6268b934aa81c2fd5f7e789f524d229"
+    }
+  ],
+  "media": [
+    {
+      "path": "blog/media/card-payments/automations.jpg",
+      "bytes": 117949,
+      "sha256": "da0e8be50cc6aad3101c8d1f9287fb4291aff06ad428f7d8be0786e9dd538a64"
+    },
+    {
+      "path": "blog/media/card-payments/calendar.jpg",
+      "bytes": 86405,
+      "sha256": "2b40c2a0702fa9b22fede957666fd46d05d80283bdc8eae7075d30829097d662"
+    },
+    {
+      "path": "blog/media/card-payments/changes.jpg",
+      "bytes": 119350,
+      "sha256": "9afedd0ac2a245ff9ebfa650a8a1bd080f81806bfdb18bc068516c79ca57e21a"
+    },
+    {
+      "path": "blog/media/card-payments/mac-changes.jpg",
+      "bytes": 127917,
+      "sha256": "82f094f795c2fe76d450b42d517770482d360d2c831cedc37961619f967379ae"
+    },
+    {
+      "path": "blog/media/card-payments/share.jpg",
+      "bytes": 104145,
+      "sha256": "f6da23d99757ce027cfccdf6eb4ab6d4cea85b22035e9493a56d93acb86b8086"
+    },
+    {
+      "path": "blog/media/cookieless-analytics/share.jpg",
+      "bytes": 108362,
+      "sha256": "fe3875fa436f3c55f9437e9052f7f243f08c0b7898ef3389ad063453219d76a7"
+    },
+    {
+      "path": "blog/media/cookieless-analytics/usage-switch.jpg",
+      "bytes": 97542,
+      "sha256": "37548ddaafa5507f5ce4b3f67e6dfa4c5502e1e073cdf542523428fcf7f89edf"
+    },
+    {
+      "path": "blog/media/cookieless-analytics/visitor-ids.jpg",
+      "bytes": 103675,
+      "sha256": "2add2f7b91ac90c7203caa3b2cdd15174b6c30e74713b7e134cce9ad63843ba0"
+    },
+    {
+      "path": "blog/media/cookieless-analytics/vocabulary.jpg",
+      "bytes": 111796,
+      "sha256": "7ebca24b2243e7ec22af8e1ec5d70d633606fc0140c9061d5a6023cb14080cb6"
+    },
+    {
+      "path": "blog/media/expenses/alert-to-charge.jpg",
+      "bytes": 94195,
+      "sha256": "2327c146279b53ff1296380c277b9e979170d35e6347e124216233884aca8add"
+    },
+    {
+      "path": "blog/media/expenses/iphone-charges.jpg",
+      "bytes": 108476,
+      "sha256": "c06d5d2e074ed313213e08effee19f0aeb99b69f2b032a0c337b0b915f4174df"
+    },
+    {
+      "path": "blog/media/expenses/mac-charges.jpg",
+      "bytes": 109098,
+      "sha256": "9aa7039f327523ff710f4ff260980e2da1025b71854aeb56dd1365b5fb2c5412"
+    },
+    {
+      "path": "blog/media/expenses/share.jpg",
+      "bytes": 92203,
+      "sha256": "96c89833dad1d71aed80befa4c357158d0d67a267b41cc683270a707530c2186"
+    },
+    {
+      "path": "blog/media/reviews-page/embed.jpg",
+      "bytes": 113720,
+      "sha256": "a5db47e3f842df0af32284ccb2b524b43ef35bdb0b61dd67044c838c3b6ad5a2"
+    },
+    {
+      "path": "blog/media/reviews-page/flow.jpg",
+      "bytes": 155957,
+      "sha256": "264fb3aef2dcaa215345965d4c1047acda9e24ee3435a677880c11f297f1776b"
+    },
+    {
+      "path": "blog/media/reviews-page/longbook-app.jpg",
+      "bytes": 290047,
+      "sha256": "a26dcd52785852d7936c32187081b5b9f72e8469d330e5e94834667f247201c0"
+    },
+    {
+      "path": "blog/media/reviews-page/share.jpg",
+      "bytes": 100873,
+      "sha256": "468470cc2c73ea781bb68a1ee898a7f24e0fe4b6a033ee43867a9dbf0d2ea686"
+    },
+    {
+      "path": "blog/media/reviews-page/site.jpg",
+      "bytes": 345186,
+      "sha256": "871986bb37cb48785e8ed3fb02f658369657a41dc2579deca4bc629ebf6093c2"
+    },
+    {
+      "path": "blog/media/screen-audit/automations.jpg",
+      "bytes": 118898,
+      "sha256": "651101df45926ee0a9b62bd4803375b75d4a5997fe8ecc00a856a60f67271bda"
+    },
+    {
+      "path": "blog/media/screen-audit/commitment-details.jpg",
+      "bytes": 78455,
+      "sha256": "c4a56f194760ca6e616d6c44697044091eda08db1022b6f296089a7ba3a64269"
+    },
+    {
+      "path": "blog/media/screen-audit/dashboard.jpg",
+      "bytes": 94211,
+      "sha256": "e70ce5ea4f553611da260b6924b5641852248dae38e2302101fe6261f90ad769"
+    },
+    {
+      "path": "blog/media/screen-audit/figma-section.jpg",
+      "bytes": 170250,
+      "sha256": "a4cdc809de74ef2920282c2888079cbcf0ad103f7a55cbbacf5fcac1bd9e73b3"
+    },
+    {
+      "path": "blog/media/screen-audit/mac-commitments.jpg",
+      "bytes": 181612,
+      "sha256": "30a475baf4c0751fb7dc552829160ce2a298b869a64387ddb1f8db525e37bda0"
+    },
+    {
+      "path": "blog/media/screen-audit/review-doc.jpg",
+      "bytes": 214921,
+      "sha256": "17f940cf8fdecdf7b7290e45adaadb5f063dc766949da3d58528de24a9c23eb6"
+    },
+    {
+      "path": "blog/media/screen-audit/share.jpg",
+      "bytes": 91210,
+      "sha256": "148e052368e3c56de4236fdf83dc32b1f44623d031940a41b946c606acb17804"
+    },
+    {
+      "path": "blog/media/screen-audit/vault-not-found.jpg",
+      "bytes": 80480,
+      "sha256": "71d79f57cd3cd47d834f07343de805a67365037b2ba9f3df3d80b5c868395286"
+    },
+    {
+      "path": "blog/media/statements-to-data/help.jpg",
+      "bytes": 147984,
+      "sha256": "1b95bf6faf6b81a795fdacc4bd07a913174023b703bdfc0b9009017242ec47aa"
+    },
+    {
+      "path": "blog/media/statements-to-data/pick.jpg",
+      "bytes": 15155,
+      "sha256": "0245a72397932e2843fc83b836aa7171c8dccf5230e931901fcf5c9d55e14fa6"
+    },
+    {
+      "path": "blog/media/statements-to-data/review.jpg",
+      "bytes": 88103,
+      "sha256": "c8934fc930514c2c9e616f4e26787cdb64c7d312787eb6d8b8c5a6b9cd05956a"
+    },
+    {
+      "path": "blog/media/statements-to-data/share.jpg",
+      "bytes": 108044,
+      "sha256": "68215a5dffa8770350b878b199e8c46cb28e4d560136dfd89905f76ec2010d58"
+    },
+    {
+      "path": "features/media/get-spending-insights.jpg",
+      "bytes": 57493,
+      "sha256": "73abd05be8beddad4b2da44bdb5f7b881693ae92cbc596f9d4bec1e719da74e1"
+    },
+    {
+      "path": "features/media/get-spending-insights.mp4",
+      "bytes": 5038702,
+      "sha256": "a9b2cdebb3d5dae03ea801f81fbacdd08c28bf26d6cf807373b768d9701d06d3"
+    },
+    {
+      "path": "features/media/longbook-npm-package.jpg",
+      "bytes": 42674,
+      "sha256": "047c39bdb63bb340de8239f7fd3947a5d070b004ce82b84dcad55f6c3ceceb6c"
+    },
+    {
+      "path": "features/media/longbook-npm-package.mp4",
+      "bytes": 3532256,
+      "sha256": "96a5cc967fed5c29029b16c84614b9d652ad3af0d4018fb46fb0200bc73fbab5"
+    },
+    {
+      "path": "ready-for-the-run/media/longbook-in-15-seconds.jpg",
+      "bytes": 99001,
+      "sha256": "6a01341d5dc01a21c9dce62a45269ffb54abc2bb86a496ccacabb481daaa156b"
+    },
+    {
+      "path": "ready-for-the-run/media/longbook-in-15-seconds.mp4",
+      "bytes": 3872693,
+      "sha256": "0948515567a3cf72dfc1c7c995ef50dd6c7d5f765ad6f8c6462b789b8dc4f870"
+    },
+    {
+      "path": "ready-for-the-run/media/share.jpg",
+      "bytes": 106322,
+      "sha256": "ce60cdcaa6d5dcdc539546eefed6f328061a1f1fe7303abd6501393190cb0395"
+    },
+    {
+      "path": "ready-for-the-run/media/what-longbook-can-do.jpg",
+      "bytes": 70456,
+      "sha256": "76a60cf700ccdc23275d0b0506414c8c421a38680efb8c8b36b1695a039693b5"
+    },
+    {
+      "path": "ready-for-the-run/media/what-longbook-can-do.mp4",
+      "bytes": 11715414,
+      "sha256": "023257fe8d982decc6a701c3e3c8da2db9dc37e8193e609f98cadc9015545d60"
+    },
+    {
+      "path": "reviews/share.jpg",
+      "bytes": 115590,
+      "sha256": "7b22a233709e53a4fb480351ec6a109ff1d1cad257a5967b0dfe2caf47cc5a9f"
+    }
+  ]
+}

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>longbook — Connect your AI</title>
+<style>
+  /* The app's dark tokens, generated from packages/swift-design — see packages/cards. */
+  :root {
+    --lb-canvas: #0D1115; --lb-card: #14171D; --lb-chrome: #1C2028; --lb-hairline: #262B34;
+    --lb-text-primary: #D3D8DE; --lb-text-secondary: #97A0AB; --lb-text-tertiary: #7F8994;
+    --lb-brand: #6D5AE6; --lb-brand-pressed: #4E3DBD; --lb-on-brand: #FBFBFE;
+    --lb-brand-text: #8F82F2; --lb-urgent: #E89A3C; --lb-positive: #4CAF7D;
+    --lb-radius: 16px; --lb-radius-sm: 12px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { background: var(--lb-canvas); }
+  body {
+    font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    color: var(--lb-text-primary);
+    min-height: 100vh; display: grid; place-items: center; padding: 16px;
+  }
+  main {
+    width: 100%; max-width: 420px;
+    background: var(--lb-card); border: 1px solid var(--lb-hairline);
+    border-radius: var(--lb-radius); padding: 28px;
+  }
+  .wordmark { font-size: 22px; font-weight: 650; letter-spacing: -0.2px; margin-bottom: 20px; }
+  h1 { font-size: 18px; font-weight: 600; line-height: 1.35; margin-bottom: 10px; }
+  p { font-size: 14px; line-height: 1.55; color: var(--lb-text-secondary); }
+  p + p { margin-top: 10px; }
+  ul.access { list-style: none; margin: 14px 0; }
+  ul.access li {
+    position: relative; padding-left: 26px; margin-top: 8px;
+    font-size: 14px; line-height: 1.5; color: var(--lb-text-secondary);
+  }
+  ul.access li::before {
+    content: "✓"; position: absolute; left: 2px; top: 0;
+    color: var(--lb-positive); font-weight: 600;
+  }
+  .quiet { font-size: 12.5px; line-height: 1.5; color: var(--lb-text-tertiary); margin-top: 14px; }
+  .urgent-text { color: var(--lb-urgent); font-size: 13px; margin-top: 10px; }
+  .prompt {
+    display: block; user-select: all; margin-top: 14px; padding: 12px 14px;
+    font-size: 13px; line-height: 1.5; color: var(--lb-text-primary);
+    background: var(--lb-chrome); border: 1px solid var(--lb-hairline);
+    border-radius: var(--lb-radius-sm);
+  }
+  input {
+    width: 100%; margin-top: 14px; padding: 12px 14px; font-size: 15px;
+    background: var(--lb-chrome); color: var(--lb-text-primary);
+    border: 1px solid var(--lb-hairline); border-radius: var(--lb-radius-sm);
+  }
+  input:focus { outline: 2px solid var(--lb-brand); outline-offset: 0; }
+  button {
+    width: 100%; margin-top: 12px; padding: 13px; font-size: 15px; font-weight: 600;
+    color: var(--lb-on-brand); background: var(--lb-brand);
+    border: 0; border-radius: var(--lb-radius-sm); cursor: pointer; min-height: 44px;
+  }
+  button:active { background: var(--lb-brand-pressed); }
+  button:disabled { opacity: 0.55; cursor: default; }
+  button.plain {
+    background: none; color: var(--lb-text-secondary); font-weight: 500;
+    border: 1px solid var(--lb-hairline);
+  }
+  .link {
+    background: none; border: 0; width: auto; min-height: 0; padding: 0; margin: 0;
+    color: var(--lb-brand-text); font-size: inherit; font-weight: 500; cursor: pointer;
+  }
+  strong { color: var(--lb-text-primary); font-weight: 600; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <div class="wordmark">longbook</div>
+
+  <section data-state="loading">
+    <p>One moment…</p>
+  </section>
+
+  <section data-state="no-request" hidden>
+    <h1>No pending requests</h1>
+    <p>This page opens automatically when an AI asks to connect to your longbook account.</p>
+    <p>To connect an AI yourself, copy the prompt below and paste it into Claude, ChatGPT, or any assistant that supports MCP connectors:</p>
+    <span class="prompt">I am giving you an MCP server. Please help me connect it step by step: https://longbook.app/mcp. It is my longbook financial memory. If your app supports MCP connectors or custom servers, add it there. Sign-in will open in my browser.</span>
+    <button id="copy-prompt" class="plain">Copy prompt</button>
+    <p class="quiet" id="copy-word"></p>
+  </section>
+
+  <section data-state="signin" hidden>
+    <h1>Sign in to continue</h1>
+    <p>An AI is requesting access to your longbook account. Sign in with your email address to review the request.</p>
+    <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="Email address" autofocus>
+    <button id="send">Send code</button>
+    <p class="quiet">We will email you a one-time code. No password is needed.</p>
+  </section>
+
+  <section data-state="code" hidden>
+    <h1>Check your email</h1>
+    <p>We sent a one-time code to <strong id="code-sent-to"></strong>. It expires in a few minutes and works once.</p>
+    <input id="code" inputmode="numeric" autocomplete="one-time-code" placeholder="One-time code">
+    <button id="verify">Verify and continue</button>
+    <p class="urgent-text" id="code-error"></p>
+  </section>
+
+  <section data-state="consent" hidden>
+    <h1><strong id="client-name"></strong> would like to access your longbook account</h1>
+    <p>If you allow access, <span id="client-name-2"></span> will be able to:</p>
+    <ul class="access">
+      <li>Read your financial memory — commitments, upcoming payments, and cash flow</li>
+      <li>See the email address on your account</li>
+    </ul>
+    <p>Reading is always allowed. Changes can only be suggested, and only when you have switched that on in the app — every suggestion waits in the app's Changes screen for you to keep or undo. You can disconnect at any time from the longbook app.</p>
+    <button id="allow">Allow access</button>
+    <button id="deny" class="plain">Don't allow</button>
+    <p class="quiet">Requested by <span id="client-target"></span> · Signed in as <strong id="who"></strong> — <button id="switch" class="link">Switch account</button></p>
+  </section>
+
+  <section data-state="approved" hidden>
+    <h1>Access granted</h1>
+    <p>Your AI can now read your longbook financial memory. Returning you to it — this can take a few seconds while your AI sets up the connection.</p>
+  </section>
+
+  <section data-state="denied" hidden>
+    <h1>Request denied</h1>
+    <p>Nothing was shared. Returning you to your AI…</p>
+  </section>
+
+  <section data-state="leaving" hidden>
+    <h1>Returning you to your AI…</h1>
+    <p>You can close this tab if it does not close automatically.</p>
+  </section>
+
+  <section data-state="error" hidden>
+    <h1>Something went wrong</h1>
+    <p id="error-text"></p>
+    <p id="error-feedback" hidden><a href="mailto:contact@longbook.app?subject=longbook%20sign-in%20limit">Give feedback</a></p>
+    <p class="quiet">You can close this tab and ask your AI to connect again.</p>
+  </section>
+</main>
+<script src="./consent.js"></script>
+</body>
+</html>

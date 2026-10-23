@@ -1,0 +1,130 @@
+{
+  "updated": "2026-09-23",
+  "updatedLabel": "23 September 2026",
+  "title": "longbook media kit",
+  "lead": "Everything for writing about longbook in one place: descriptions to paste, the facts, logos, screenshots from the Mac and iPhone apps, and the founder.",
+  "usage": "Everything here is free to use when writing about longbook: in articles, reviews and videos.",
+  "credit": "longbook",
+  "rights": "© 2026 longbook",
+  "keywords": ["longbook", "financial commitments", "subscriptions", "bills", "reminders", "Mac", "iPhone", "MCP", "Claude", "ChatGPT"],
+  "email": "contact@longbook.app",
+  "app": { "version": "1.3.3", "price": "38", "currency": "USD", "os": "macOS 14 or later, Apple silicon; iOS 17 or later", "category": "FinanceApplication" },
+  "aboutIntro": "The same description at three lengths, written to be pasted as it is.",
+  "descriptions": [
+    { "id": "one", "label": "One line", "text": "longbook remembers your financial commitments, reminds you before each one is due, and answers all of it to your AI." },
+    { "id": "short", "label": "Short", "text": "longbook remembers and reminds you of your financial commitments: subscriptions, insurance, loans, rent, school fees, anything that costs money and comes back. It is a native app for Mac and iPhone, keeps everything in your own iCloud, and answers all of it to your AI." },
+    { "id": "long", "label": "Long", "text": "longbook is a memory for your financial commitments. It keeps every subscription, insurance premium, loan, rent payment and renewal (the amount, how often it repeats and when it is due next) and reminds you before each one comes round, on iPhone and Mac. Your AI can fill it in: through longbook’s MCP server, Claude or ChatGPT reads the receipts in your email and writes them in, and every change waits in the app for you to keep or undo. Everything lives in a plain file in your own iCloud. longbook is a one-time purchase, $38 for the first 100 buyers, with a 7-day refund." }
+  ],
+  "spelling": { "text": "The name is one word, all lowercase, even at the start of a sentence.", "right": "longbook", "wrong": ["Longbook", "LongBook", "Long Book"] },
+  "facts": [
+    { "key": "Name", "value": "longbook" },
+    { "key": "What it is", "value": "A memory for your financial commitments: subscriptions, insurance, loans, rent, school fees and anything else that costs money and comes back." },
+    { "key": "Platforms", "value": "Mac (macOS 14 or later, Apple silicon) and iPhone (iOS 17 or later). Native apps on both." },
+    { "key": "Availability", "value": "Beta through TestFlight on Mac and iPhone. The App Store release is coming soon." },
+    { "key": "Current version", "value": "1.3.3" },
+    { "key": "Price", "value": "A lifetime license, paid once: $38 for the first 100 buyers, then $98 for the next 250, then $149. It covers every longbook app, on Mac and iPhone now and on iPad, Apple Watch, iPhone Duo and Android as they arrive. A refund can be asked for within 7 days, and 12 months of longbook Cloud are included, for the buyer's Apple family too." },
+    { "key": "Where the data lives", "value": "In a plain JSON file in the person’s own iCloud Drive. It is copied to longbook’s server only if they switch that on." },
+    { "key": "Works with", "value": "Claude, ChatGPT, Cursor, VS Code, Codex CLI and Gemini CLI, through longbook’s MCP server at longbook.app/mcp." },
+    { "key": "Founder", "value": "Rohit Kundliwal" },
+    { "key": "Website", "value": "longbook.app", "href": "https://longbook.app" },
+    { "key": "Press contact", "value": "contact@longbook.app", "href": "mailto:contact@longbook.app" }
+  ],
+  "does": [
+    { "title": "Remembers every commitment", "text": "The amount, how often it repeats and when it is due next, for every subscription, premium, loan and renewal." },
+    { "title": "Lets your AI fill it in", "text": "Connected over MCP, Claude or ChatGPT reads the receipts and renewal notices in your email and writes them into longbook." },
+    { "title": "Keeps every change reviewable", "text": "Every edit an AI makes waits in the Changes section with its author recorded, ready to keep or undo. Earlier versions can be restored." },
+    { "title": "Shows what is next at a glance", "text": "An iPhone widget and a Mac menu bar item show the next payment without opening the app." },
+    { "title": "Turns a month into a report", "text": "A month of spending goes to family as a link that expires, and their comments come back into longbook." }
+  ],
+  "logosIntro": "SVG for anything that scales, PNG for everything else. The logo is the book with the wordmark beside it; the app icon and the book also stand on their own.",
+  "logos": [
+    { "id": "logo-on-dark", "title": "Logo for dark backgrounds", "text": "The one to use first.", "art": "dark", "alt": "The longbook logo with a white wordmark",
+      "files": [ { "label": "SVG", "file": "logo/longbook-logo-on-dark.svg" }, { "label": "PNG", "file": "logo/longbook-logo-on-dark.png" } ] },
+    { "id": "logo-on-light", "title": "Logo for light backgrounds", "text": "For pages and print.", "art": "light", "alt": "The longbook logo with a dark wordmark",
+      "files": [ { "label": "SVG", "file": "logo/longbook-logo-on-light.svg" }, { "label": "PNG", "file": "logo/longbook-logo-on-light.png" } ] },
+    { "id": "app-icon", "title": "App icon", "text": "As it appears on the Mac and iPhone.", "art": "icon", "alt": "The longbook app icon",
+      "files": [ { "label": "1024 px", "file": "logo/longbook-app-icon-1024.png" }, { "label": "512 px", "file": "logo/longbook-app-icon-512.png" }, { "label": "Square SVG", "file": "logo/longbook-app-icon.svg" } ] },
+    { "id": "mark", "title": "The mark", "text": "The book on its own, transparent.", "art": "mark", "alt": "The longbook mark, a book",
+      "files": [ { "label": "SVG", "file": "logo/longbook-mark.svg" }, { "label": "PNG", "file": "logo/longbook-mark.png" } ] },
+    { "id": "mark-one-colour", "title": "One-colour mark", "text": "For small sizes and one-ink print.", "art": "mono", "alt": "The longbook mark in one colour",
+      "files": [ { "label": "Black", "file": "logo/longbook-mark-black.png" }, { "label": "White", "file": "logo/longbook-mark-white.png" } ] }
+  ],
+  "rules": [
+    "Leave space around the logo at least as wide as the mark.",
+    "Below 24 px tall, use the one-colour mark.",
+    "Keep the colour logo off busy photos and off violet; the one-colour mark works there.",
+    "Do not recolour, stretch, rotate, outline or add effects to the mark or the wordmark."
+  ],
+  "misuse": [
+    { "class": "d-stretch", "label": "Stretched", "alt": "The mark stretched sideways" },
+    { "class": "d-colour", "label": "Recoloured", "alt": "The mark recoloured green" },
+    { "class": "d-rotate", "label": "Rotated", "alt": "The mark rotated" },
+    { "class": "d-effect", "label": "Effects added", "alt": "The mark with a glow added" }
+  ],
+  "screensIntro": "From the Mac and iPhone apps, filled with a demo longbook: every name and amount is made up. Each screen comes as the original capture and framed in its device.",
+  "hero": {
+    "title": "Hero image",
+    "text": "The Mac and iPhone dashboards together, as on longbook.app, in light and dark.",
+    "alt": "longbook on a Mac and an iPhone: the dashboard with the next commitment, the thirty days ahead, and the month’s spending and accounts.",
+    "light": "images/media-kit/homepage-stage-light.png",
+    "dark": "images/media-kit/homepage-stage-dark.png"
+  },
+  "screens": {
+    "iphone": [
+      { "slug": "dashboard", "title": "Dashboard", "text": "The next commitment, the thirty days ahead, and what the month has cost so far.", "source": "ios/dashboard.png" },
+      { "slug": "all-commitments", "title": "All commitments", "text": "Every commitment by month, with how often it repeats and the account that pays it.", "source": "ios/commitments.png" },
+      { "slug": "commitment-details", "title": "Commitment details", "text": "One commitment in full: the amount, the cycle, the account, and each charge planned ahead.", "source": "ios/old-versions/03-commitment-detail-v1.png" },
+      { "slug": "calendar", "title": "Calendar", "text": "The month at a glance, and the payments that fall on the chosen day.", "source": "ios/calendar.png" },
+      { "slug": "changes", "title": "Changes", "text": "Every edit an AI makes, with its author recorded, ready to keep or undo.", "source": "ios/old-versions/40-changes-v4.png" },
+      { "slug": "report", "title": "Report", "text": "A month drawn by longbook from your bank statements: the total, and the accounts that paid it.", "source": "ios/old-versions/37-report-july-v1.png" },
+      { "slug": "import-a-statement", "title": "Import a statement", "text": "A bank statement read line by line: correct a name or category, and untick what should not be added.", "source": "ios/15-import-review-v2.png" },
+      { "slug": "setup", "title": "Setup", "text": "Setup in about a minute: tap the commitments you have, and longbook starts from those.", "source": "ios/03-setup-commitments-v2.png" },
+      { "slug": "new-commitment", "title": "New commitment", "text": "Adding one by hand: the name, the amount, how often it repeats, and when it starts.", "source": "ios/old-versions/24-new-commitment-v1.png" },
+      { "slug": "accounts", "title": "Accounts", "text": "Each bank account and card, with its balance, its owner and the commitments it pays.", "source": "ios/old-versions/43-accounts-v2.png" },
+      { "slug": "mcp-server", "title": "MCP server", "text": "The switch that lets Claude or ChatGPT read your longbook, and write to it if you allow.", "source": "ios/old-versions/39-mcp-server-v1.png" },
+      { "slug": "automations", "title": "Automations", "text": "A prompt that has Claude read your email each morning and add the charges it finds.", "source": "ios/old-versions/47-automations-v3.png" }
+    ],
+    "mac": [
+      { "slug": "dashboard", "title": "Dashboard", "text": "The same dashboard on the Mac, with accounts and members in the sidebar.", "source": "mac/dashboard.png" },
+      { "slug": "all-commitments", "title": "All commitments", "text": "Search, and filter by category, account, member, type or status.", "source": "mac/commitments.png" },
+      { "slug": "commitment-details", "title": "Commitment details", "text": "One commitment in full beside the sidebar, with its planned charges and category.", "source": "mac/old-versions/03-commitment-detail-v1.png" },
+      { "slug": "calendar", "title": "Calendar", "text": "The month, with the payments on the chosen day beside it.", "source": "mac/calendar.png" },
+      { "slug": "changes", "title": "Changes", "text": "Proposed charges to keep or undo all at once, and every earlier version below.", "source": "mac/old-versions/23-changes-v4.png" },
+      { "slug": "import-a-statement", "title": "Import a statement", "text": "Every line of a statement read: money in and your own transfers are left out, the rest ticked to add.", "source": "mac/old-versions/18-import-statement-review-v1.png" },
+      { "slug": "setup", "title": "Setup", "text": "The first-run picker, with the commitments people most often have.", "source": "mac/02-picker-v2.png" },
+      { "slug": "accounts", "title": "Accounts", "text": "Accounts side by side, with balances, owners and the cards linked to each.", "source": "mac/old-versions/24-accounts-v2.png" },
+      { "slug": "automations", "title": "Automations", "text": "The morning email prompt for Claude, with Shortcuts actions and Siri commands.", "source": "mac/old-versions/30-automations-v2.png" }
+    ]
+  },
+  "colourIntro": "The colours come from the book and from the apps themselves. Select a colour to copy its hex value.",
+  "colours": [
+    { "name": "longbook violet", "hex": "#6D5AE6", "role": "Buttons, links and whatever is in use." },
+    { "name": "Cover violet", "hex": "#614EB5", "role": "The cover and ribbon of the book." },
+    { "name": "Page cream", "hex": "#F4EFEA", "role": "The pages of the book." },
+    { "name": "Night indigo", "hex": "#3A2C86", "role": "The top of the next-commitment card." },
+    { "name": "Deep indigo", "hex": "#251D4E", "role": "The foot of the next-commitment card." },
+    { "name": "Ink", "hex": "#1C2028", "role": "The Mac sidebar and the apps’ dark surfaces." }
+  ],
+  "type": [
+    { "name": "Fraunces", "face": "serif", "role": "The wordmark, at weight 560, and headings.", "sample": "A memory for your financial commitments.", "href": "https://fonts.google.com/specimen/Fraunces" },
+    { "name": "Public Sans", "face": "sans", "role": "The apps’ interface and running text.", "sample": "Car insurance renews tomorrow: ₹12,700.", "href": "https://fonts.google.com/specimen/Public+Sans" }
+  ],
+  "typeNote": "Both are free under the SIL Open Font License.",
+  "founder": {
+    "name": "Rohit Kundliwal",
+    "role": "Founder of longbook",
+    "photo": "images/media-kit/headshot.png",
+    "faceCentre": 0.43,
+    "alt": "Rohit Kundliwal, the founder of longbook.",
+    "quote": [
+      "I built longbook for myself. I wanted my commitments remembered properly, and I wanted my AI to go through my email and fill them in, so that what is coming shows up on my iPhone and my MacBook without me chasing it.",
+      "I also wanted to know what a month actually costs, and to be able to hand that to my wife rather than explain it. So the reports are in the app too. Every part of it started as something I needed — it is the thing I stopped forgetting."
+    ],
+    "x": "rohthebuilder"
+  },
+  "contact": [
+    "For interviews, questions, or anything this page does not have.",
+    "To try longbook yourself, both apps are in beta through TestFlight: [longbook.app/download](https://longbook.app/download).",
+    "For AI assistants and scripts, this page is also [Markdown](https://longbook.app/media-kit/index.md), and every file is listed with its size, dimensions and checksum in [files.json](https://longbook.app/media-kit/files.json)."
+  ]
+}

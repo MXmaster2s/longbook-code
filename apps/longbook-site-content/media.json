@@ -1,0 +1,231 @@
+{
+  "films": [
+    {
+      "source": "launch-15s.mp4",
+      "out": "ready-for-the-run/media/longbook-in-15-seconds.mp4",
+      "poster": "ready-for-the-run/media/longbook-in-15-seconds.jpg",
+      "posterAt": 12.0,
+      "width": 1280,
+      "bitrate": 2200000,
+      "gainDb": -3
+    },
+    {
+      "source": "can-do-what-60s.mp4",
+      "out": "ready-for-the-run/media/what-longbook-can-do.mp4",
+      "poster": "ready-for-the-run/media/what-longbook-can-do.jpg",
+      "posterAt": 2.0,
+      "width": 1280,
+      "bitrate": 1500000,
+      "gainDb": -3
+    },
+    {
+      "source": "npm-30s.mp4",
+      "out": "features/media/longbook-npm-package.mp4",
+      "poster": "features/media/longbook-npm-package.jpg",
+      "posterAt": 8.5,
+      "width": 1280,
+      "bitrate": 1800000,
+      "gainDb": -3
+    },
+    {
+      "source": "coming-up-25s.mp4",
+      "out": "features/media/get-spending-insights.mp4",
+      "poster": "features/media/get-spending-insights.jpg",
+      "posterAt": 11.4,
+      "width": 1280,
+      "bitrate": 1700000
+    }
+  ],
+  "stills": [
+    {
+      "source": "rftr-share-1200x628.png",
+      "out": "ready-for-the-run/media/share.jpg"
+    },
+    {
+      "source": "blog-audit-share.png",
+      "out": "blog/media/screen-audit/share.jpg",
+      "width": 1200,
+      "height": 630
+    },
+    {
+      "source": "blog-audit-figma-section.png",
+      "out": "blog/media/screen-audit/figma-section.jpg",
+      "width": 1844,
+      "height": 621
+    },
+    {
+      "source": "blog-audit-vault-not-found.png",
+      "out": "blog/media/screen-audit/vault-not-found.jpg",
+      "width": 600,
+      "height": 1304
+    },
+    {
+      "source": "blog-audit-dashboard.png",
+      "out": "blog/media/screen-audit/dashboard.jpg",
+      "width": 600,
+      "height": 1304
+    },
+    {
+      "source": "blog-audit-commitment-details.png",
+      "out": "blog/media/screen-audit/commitment-details.jpg",
+      "width": 600,
+      "height": 1304
+    },
+    {
+      "source": "blog-audit-automations.png",
+      "out": "blog/media/screen-audit/automations.jpg",
+      "width": 600,
+      "height": 1304
+    },
+    {
+      "source": "blog-audit-mac-commitments.png",
+      "out": "blog/media/screen-audit/mac-commitments.jpg",
+      "width": 1920,
+      "height": 1650
+    },
+    {
+      "source": "blog-audit-review-doc.png",
+      "out": "blog/media/screen-audit/review-doc.jpg",
+      "width": 1300,
+      "height": 900
+    },
+    {
+      "source": "blog-statements-share.png",
+      "out": "blog/media/statements-to-data/share.jpg",
+      "width": 1200,
+      "height": 630
+    },
+    {
+      "source": "blog-statements-pick.png",
+      "out": "blog/media/statements-to-data/pick.jpg",
+      "width": 600,
+      "height": 682
+    },
+    {
+      "source": "blog-statements-review.png",
+      "out": "blog/media/statements-to-data/review.jpg",
+      "width": 600,
+      "height": 1304
+    },
+    {
+      "source": "blog-statements-help.png",
+      "out": "blog/media/statements-to-data/help.jpg",
+      "width": 600,
+      "height": 1303
+    },
+    {
+      "source": "blog-cookieless-share.png",
+      "out": "blog/media/cookieless-analytics/share.jpg",
+      "width": 1200,
+      "height": 630
+    },
+    {
+      "source": "blog-cookieless-vocabulary.png",
+      "out": "blog/media/cookieless-analytics/vocabulary.jpg",
+      "width": 1600,
+      "height": 720
+    },
+    {
+      "source": "blog-cookieless-ids.png",
+      "out": "blog/media/cookieless-analytics/visitor-ids.jpg",
+      "width": 1600,
+      "height": 640
+    },
+    {
+      "source": "blog-cards-share.png",
+      "out": "blog/media/card-payments/share.jpg",
+      "width": 1200,
+      "height": 630
+    },
+    {
+      "source": "blog-cards-automations-strip.png",
+      "out": "blog/media/card-payments/automations.jpg",
+      "width": 1920,
+      "height": 732
+    },
+    {
+      "source": "blog-cards-calendar-strip.png",
+      "out": "blog/media/card-payments/calendar.jpg",
+      "width": 1920,
+      "height": 806
+    },
+    {
+      "source": "blog-cards-changes-strip.png",
+      "out": "blog/media/card-payments/changes.jpg",
+      "width": 1920,
+      "height": 950
+    },
+    {
+      "source": "blog-cards-mac-changes-strip.png",
+      "out": "blog/media/card-payments/mac-changes.jpg",
+      "width": 1920,
+      "height": 984
+    },
+    {
+      "source": "blog-cookieless-usage-switch.png",
+      "out": "blog/media/cookieless-analytics/usage-switch.jpg",
+      "width": 1920,
+      "height": 540
+    },
+    {
+      "source": "blog-expenses-share.png",
+      "out": "blog/media/expenses/share.jpg",
+      "width": 1200,
+      "height": 630
+    },
+    {
+      "source": "blog-expenses-alert-to-charge.png",
+      "out": "blog/media/expenses/alert-to-charge.jpg",
+      "width": 1920,
+      "height": 600
+    },
+    {
+      "source": "blog-expenses-mac-charges.png",
+      "out": "blog/media/expenses/mac-charges.jpg",
+      "width": 1920,
+      "height": 1084
+    },
+    {
+      "source": "blog-expenses-iphone-charges.png",
+      "out": "blog/media/expenses/iphone-charges.jpg",
+      "width": 1920,
+      "height": 1144
+    },
+    {
+      "source": "blog-reviews-share.png",
+      "out": "blog/media/reviews-page/share.jpg",
+      "width": 1200,
+      "height": 630
+    },
+    {
+      "source": "blog-reviews-site.png",
+      "out": "blog/media/reviews-page/site.jpg",
+      "width": 1920,
+      "height": 1150
+    },
+    {
+      "source": "blog-reviews-flow.png",
+      "out": "blog/media/reviews-page/flow.jpg",
+      "width": 1600,
+      "height": 720
+    },
+    {
+      "source": "blog-reviews-embed.png",
+      "out": "blog/media/reviews-page/embed.jpg",
+      "width": 1600,
+      "height": 520
+    },
+    {
+      "source": "blog-reviews-longbook-app.png",
+      "out": "blog/media/reviews-page/longbook-app.jpg",
+      "width": 1920,
+      "height": 1306
+    },
+    {
+      "source": "reviews-share.png",
+      "out": "reviews/share.jpg",
+      "width": 1200,
+      "height": 630
+    }
+  ]
+}

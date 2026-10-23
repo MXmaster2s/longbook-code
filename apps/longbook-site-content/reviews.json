@@ -1,0 +1,77 @@
+{
+  "about": "Every review of longbook on longbook.app/reviews/ and longbookreviews.com, quoted as posted. date is the post time in UTC; avatar is a file in apps/longbook-site/reviews/avatars.",
+  "reviews": [
+    {
+      "id": "x-christian-tichy-2110442308965429538",
+      "source": "x",
+      "url": "https://x.com/Christian_Tichy/status/2110442308965429538",
+      "date": "2026-10-14T18:47:11Z",
+      "author": {
+        "name": "Christian Tichy",
+        "handle": "Christian_Tichy",
+        "verified": true,
+        "avatar": "x-christian_tichy.jpg"
+      },
+      "context": "Replying to @Rohthebuilder and 5 others",
+      "text": "Super cool app!"
+    },
+    {
+      "id": "x-shaanush-2109349082884120913",
+      "source": "x",
+      "url": "https://x.com/Shaanush/status/2109349082884120913",
+      "date": "2026-10-11T18:23:05Z",
+      "author": {
+        "name": "Shantanu Sharma",
+        "handle": "Shaanush",
+        "verified": true,
+        "avatar": "x-shaanush.jpg"
+      },
+      "context": "Replying to @Rohthebuilder",
+      "text": "A much needed system for those who want to be more organized on their personal / business finances!\n\nAwesome work @Rohthebuilder"
+    },
+    {
+      "id": "x-thexsami-2109063509615202613",
+      "source": "x",
+      "url": "https://x.com/TheXSami/status/2109063509615202613",
+      "date": "2026-10-10T23:28:19Z",
+      "author": {
+        "name": "Sami",
+        "handle": "TheXSami",
+        "verified": true,
+        "avatar": "x-thexsami.jpg"
+      },
+      "context": "Replying to @Rohthebuilder",
+      "text": "Hey Roh, had a look at Longbook. I like the idea of seeing what's due in a widget instead of getting another notification. I'm building Doodle, my first Android app. Followed along 👋"
+    },
+    {
+      "id": "x-stacklegal-2108873918337650738",
+      "source": "x",
+      "url": "https://x.com/stacklegal_eu/status/2108873918337650738",
+      "date": "2026-10-10T10:54:57Z",
+      "author": {
+        "name": "StackLégal · RGPD pour SaaS",
+        "handle": "stacklegal_eu",
+        "verified": false,
+        "avatar": "x-stacklegal_eu.jpg"
+      },
+      "context": "Replying to @Rohthebuilder and @posthog",
+      "text": "Respect, no cookies is the cleanest setup. Cookieless still means IP and usage data count as personal data, so keep the policy line and PostHog's DPA in place. Sounds like you're already on it."
+    },
+    {
+      "id": "reddit-tellenze-pevfjzt",
+      "source": "reddit",
+      "url": "https://www.reddit.com/r/SaasDevelopers/comments/1x1otp1/comment/pevfjzt/",
+      "date": "2026-10-09T16:03:47Z",
+      "author": {
+        "handle": "Tellenze",
+        "avatar": "reddit-tellenze.jpg"
+      },
+      "context": {
+        "subreddit": "SaasDevelopers",
+        "postTitle": "Not sure what'll happen, but here we go",
+        "score": 2
+      },
+      "text": "I read it, and the part about upcoming payments was clear: what's due, when, and from which account. I'd lead with that when you explain the app."
+    }
+  ]
+}

@@ -1,0 +1,1923 @@
+{
+  "app": "longbook",
+  "version": 3,
+  "commitments": [
+    {
+      "id": "commitment-3",
+      "name": "Adobe",
+      "amount": 1699,
+      "currency": "INR",
+      "billing_cycle": "monthly",
+      "status": "active",
+      "tag": "software",
+      "account_id": "account-1"
+    },
+    {
+      "id": "commitment-4",
+      "name": "Airtel Digital TV",
+      "amount": 899,
+      "currency": "INR",
+      "billing_cycle": "monthly",
+      "status": "active",
+      "tag": "telecom",
+      "notes": "Provider: Airtel",
+      "account_id": "account-2"
+    },
+    {
+      "id": "commitment-5",
+      "name": "Amazon Prime",
+      "amount": 179,
+      "currency": "INR",
+      "billing_cycle": "monthly",
+      "status": "active",
+      "tag": "membership",
+      "account_id": "account-1"
+    },
+    {
+      "id": "commitment-6",
+      "name": "Apollo Pharmacy",
+      "amount": 1240,
+      "currency": "INR",
+      "billing_cycle": "once",
+      "status": "active",
+      "tag": "health & fitness",
+      "account_id": "account-2"
+    },
+    {
+      "id": "commitment-7",
+      "name": "Claude",
+      "amount": 1760,
+      "currency": "INR",
+      "billing_cycle": "monthly",
+      "status": "active",
+      "tag": "ai",
+      "notes": "Billed in INR on the card; the plan is USD 20.",
+      "account_id": "account-1"
+    },
+    {
+      "id": "commitment-8",
+      "name": "GoDaddy domain, three years",
+      "amount": 3597,
+      "currency": "INR",
+      "billing_cycle": "custom",
+      "status": "active",
+      "custom_cycle_days": 1095,
+      "tag": "domain & hosting",
+      "notes": "Registrar: GoDaddy",
+      "account_id": "account-1"
+    },
+    {
+      "id": "commitment-9",
+      "name": "Greenwood society maintenance",
+      "amount": 3500,
+      "currency": "INR",
+      "billing_cycle": "monthly",
+      "status": "active",
+      "tag": "home",
+      "account_id": "account-2"
+    },
+    {
+      "id": "commitment-10",
+      "name": "HDFC Ergo health premium",
+      "amount": 18450,
+      "currency": "INR",
+      "billing_cycle": "yearly",
+      "status": "active",
+      "tag": "insurance",
+      "notes": "Policy number: 88213",
+      "account_id": "account-2"
+    },
+    {
+      "id": "commitment-11",
+      "name": "House rent",
+      "amount": 42000,
+      "currency": "INR",
+      "billing_cycle": "monthly",
+      "status": "active",
+      "tag": "rent",
+      "notes": "Landlord: Mehta Properties",
+      "account_id": "account-2"
+    },
+    {
+      "id": "commitment-12",
+      "name": "IRCTC booking",
+      "amount": 4560,
+      "currency": "INR",
+      "billing_cycle": "once",
+      "status": "active",
+      "tag": "travel",
+      "account_id": "account-2"
+    },
+    {
+      "id": "commitment-13",
+      "name": "LIC term plan premium",
+      "amount": 24600,
+      "currency": "INR",
+      "billing_cycle": "yearly",
+      "status": "active",
+      "tag": "insurance",
+      "account_id": "account-2"
+    },
+    {
+      "id": "commitment-14",
+      "name": "Netflix",
+      "amount": 649,
+      "currency": "INR",
+      "billing_cycle": "monthly",
+      "status": "active",
+      "tag": "streaming",
+      "account_id": "account-2"
+    },
+    {
+      "id": "commitment-15",
+      "name": "Spotify",
+      "amount": 119,
+      "currency": "INR",
+      "billing_cycle": "monthly",
+      "status": "active",
+      "ends_on": "2026-02-12",
+      "tag": "streaming",
+      "notes": "Six charges, September to February, then it stopped.",
+      "account_id": "account-2"
+    },
+    {
+      "id": "commitment-16",
+      "name": "Star Health premium",
+      "amount": 9200,
+      "currency": "INR",
+      "billing_cycle": "custom",
+      "status": "active",
+      "custom_cycle_days": 183,
+      "tag": "insurance",
+      "account_id": "account-2"
+    },
+    {
+      "id": "commitment-17",
+      "name": "Sunita, cook",
+      "amount": 9000,
+      "currency": "INR",
+      "billing_cycle": "monthly",
+      "status": "active",
+      "tag": "salary",
+      "notes": "Role: cook",
+      "account_id": "account-2"
+    },
+    {
+      "id": "commitment-18",
+      "name": "Swiggy",
+      "amount": 640,
+      "currency": "INR",
+      "billing_cycle": "once",
+      "status": "active",
+      "account_id": "account-1"
+    },
+    {
+      "id": "commitment-19",
+      "name": "Swiggy",
+      "amount": 640,
+      "currency": "INR",
+      "billing_cycle": "once",
+      "status": "active",
+      "account_id": "account-1"
+    },
+    {
+      "id": "commitment-20",
+      "name": "Swiggy",
+      "amount": 640,
+      "currency": "INR",
+      "billing_cycle": "once",
+      "status": "active",
+      "account_id": "account-1"
+    },
+    {
+      "id": "commitment-21",
+      "name": "Swiggy",
+      "amount": 640,
+      "currency": "INR",
+      "billing_cycle": "once",
+      "status": "active",
+      "account_id": "account-1"
+    },
+    {
+      "id": "commitment-22",
+      "name": "Tanishq",
+      "amount": 32000,
+      "currency": "INR",
+      "billing_cycle": "once",
+      "status": "active",
+      "tag": "gift",
+      "account_id": "account-2"
+    },
+    {
+      "id": "commitment-23",
+      "name": "Vertex Labs salary",
+      "amount": 214000,
+      "currency": "INR",
+      "billing_cycle": "monthly",
+      "status": "active",
+      "direction": "in",
+      "notes": "Money in, from the HDFC statement: credited on the 28th every month since September 2025. Kept apart from spending.",
+      "account_id": "account-2"
+    }
+  ],
+  "members": [],
+  "accounts": [
+    {
+      "id": "account-1",
+      "name": "Axis card 4402",
+      "name_key": "axis card 4402",
+      "is_incomplete": true
+    },
+    {
+      "id": "account-2",
+      "name": "HDFC savings",
+      "name_key": "hdfc savings",
+      "is_incomplete": true
+    }
+  ],
+  "tags": [
+    {
+      "id": "tag-ai",
+      "kind": "commitment",
+      "name": "ai",
+      "name_key": "ai",
+      "is_default": true,
+      "sort": 12,
+      "icon": "sparkles"
+    },
+    {
+      "id": "tag-domain & hosting",
+      "kind": "commitment",
+      "name": "domain & hosting",
+      "name_key": "domain & hosting",
+      "is_default": true,
+      "sort": 11,
+      "icon": "globe"
+    },
+    {
+      "id": "tag-gift",
+      "kind": "commitment",
+      "name": "gift",
+      "name_key": "gift",
+      "is_default": true,
+      "sort": 6,
+      "icon": "gift"
+    },
+    {
+      "id": "tag-health & fitness",
+      "kind": "commitment",
+      "name": "health & fitness",
+      "name_key": "health & fitness",
+      "is_default": true,
+      "sort": 7,
+      "icon": "heart"
+    },
+    {
+      "id": "tag-home",
+      "kind": "commitment",
+      "name": "home",
+      "name_key": "home",
+      "is_default": true,
+      "sort": 4,
+      "icon": "wrench.and.screwdriver"
+    },
+    {
+      "id": "tag-insurance",
+      "kind": "commitment",
+      "name": "insurance",
+      "name_key": "insurance",
+      "is_default": true,
+      "sort": 5,
+      "icon": "shield.checkered"
+    },
+    {
+      "id": "tag-membership",
+      "kind": "commitment",
+      "name": "membership",
+      "name_key": "membership",
+      "is_default": true,
+      "sort": 10,
+      "icon": "checkmark.seal"
+    },
+    {
+      "id": "tag-rent",
+      "kind": "commitment",
+      "name": "rent",
+      "name_key": "rent",
+      "is_default": true,
+      "sort": 0,
+      "icon": "house"
+    },
+    {
+      "id": "tag-salary",
+      "kind": "commitment",
+      "name": "salary",
+      "name_key": "salary",
+      "is_default": true,
+      "sort": 1,
+      "icon": "banknote"
+    },
+    {
+      "id": "tag-software",
+      "kind": "commitment",
+      "name": "software",
+      "name_key": "software",
+      "is_default": true,
+      "sort": 9,
+      "icon": "app.badge"
+    },
+    {
+      "id": "tag-streaming",
+      "kind": "commitment",
+      "name": "streaming",
+      "name_key": "streaming",
+      "is_default": true,
+      "sort": 3,
+      "icon": "play.tv"
+    },
+    {
+      "id": "tag-telecom",
+      "kind": "commitment",
+      "name": "telecom",
+      "name_key": "telecom",
+      "is_default": true,
+      "sort": 2,
+      "icon": "antenna.radiowaves.left.and.right"
+    },
+    {
+      "id": "tag-travel",
+      "kind": "commitment",
+      "name": "travel",
+      "name_key": "travel",
+      "is_default": true,
+      "sort": 8,
+      "icon": "airplane"
+    }
+  ],
+  "charges": [
+    {
+      "commitment_id": "commitment-10",
+      "date": "2026-03-15",
+      "amount": 18450,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-10",
+      "date": "2027-03-15",
+      "amount": 18450,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-11",
+      "date": "2025-09-01",
+      "amount": 42000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-11",
+      "date": "2025-10-01",
+      "amount": 42000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-11",
+      "date": "2025-11-01",
+      "amount": 42000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-11",
+      "date": "2025-12-01",
+      "amount": 42000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-11",
+      "date": "2026-01-01",
+      "amount": 42000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-11",
+      "date": "2026-02-01",
+      "amount": 42000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-11",
+      "date": "2026-03-01",
+      "amount": 42000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-11",
+      "date": "2026-04-01",
+      "amount": 42000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-11",
+      "date": "2026-05-01",
+      "amount": 42000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-11",
+      "date": "2026-06-01",
+      "amount": 42000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-11",
+      "date": "2026-07-01",
+      "amount": 42000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-11",
+      "date": "2026-08-01",
+      "amount": 42000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-11",
+      "date": "2026-09-01",
+      "amount": 42000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-11",
+      "date": "2026-10-01",
+      "amount": 42000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-11",
+      "date": "2026-11-01",
+      "amount": 42000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-11",
+      "date": "2026-12-01",
+      "amount": 42000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-11",
+      "date": "2027-01-01",
+      "amount": 42000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-11",
+      "date": "2027-02-01",
+      "amount": 42000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-11",
+      "date": "2027-03-01",
+      "amount": 42000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-11",
+      "date": "2027-04-01",
+      "amount": 42000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-11",
+      "date": "2027-05-01",
+      "amount": 42000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-11",
+      "date": "2027-06-01",
+      "amount": 42000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-11",
+      "date": "2027-07-01",
+      "amount": 42000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-11",
+      "date": "2027-08-01",
+      "amount": 42000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-12",
+      "date": "2026-06-10",
+      "amount": 4560,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-13",
+      "date": "2026-05-22",
+      "amount": 24600,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-13",
+      "date": "2027-05-22",
+      "amount": 24600,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-14",
+      "date": "2025-09-05",
+      "amount": 649,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-14",
+      "date": "2025-10-05",
+      "amount": 649,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-14",
+      "date": "2025-11-05",
+      "amount": 649,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-14",
+      "date": "2025-12-05",
+      "amount": 649,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-14",
+      "date": "2026-01-05",
+      "amount": 649,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-14",
+      "date": "2026-02-05",
+      "amount": 649,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-14",
+      "date": "2026-03-05",
+      "amount": 649,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-14",
+      "date": "2026-04-05",
+      "amount": 649,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-14",
+      "date": "2026-05-05",
+      "amount": 649,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-14",
+      "date": "2026-06-05",
+      "amount": 649,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-14",
+      "date": "2026-07-05",
+      "amount": 649,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-14",
+      "date": "2026-08-05",
+      "amount": 649,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-14",
+      "date": "2026-09-05",
+      "amount": 649,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-14",
+      "date": "2026-10-05",
+      "amount": 649,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-14",
+      "date": "2026-11-05",
+      "amount": 649,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-14",
+      "date": "2026-12-05",
+      "amount": 649,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-14",
+      "date": "2027-01-05",
+      "amount": 649,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-14",
+      "date": "2027-02-05",
+      "amount": 649,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-14",
+      "date": "2027-03-05",
+      "amount": 649,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-14",
+      "date": "2027-04-05",
+      "amount": 649,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-14",
+      "date": "2027-05-05",
+      "amount": 649,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-14",
+      "date": "2027-06-05",
+      "amount": 649,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-14",
+      "date": "2027-07-05",
+      "amount": 649,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-14",
+      "date": "2027-08-05",
+      "amount": 649,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-15",
+      "date": "2025-09-12",
+      "amount": 119,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-15",
+      "date": "2025-10-12",
+      "amount": 119,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-15",
+      "date": "2025-11-12",
+      "amount": 119,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-15",
+      "date": "2025-12-12",
+      "amount": 119,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-15",
+      "date": "2026-01-12",
+      "amount": 119,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-15",
+      "date": "2026-02-12",
+      "amount": 119,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-16",
+      "date": "2026-01-12",
+      "amount": 9200,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-16",
+      "date": "2026-07-12",
+      "amount": 9200,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-16",
+      "date": "2027-01-11",
+      "amount": 9200,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-17",
+      "date": "2025-09-01",
+      "amount": 9000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-17",
+      "date": "2025-10-01",
+      "amount": 9000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-17",
+      "date": "2025-11-01",
+      "amount": 9000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-17",
+      "date": "2025-12-01",
+      "amount": 9000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-17",
+      "date": "2026-01-01",
+      "amount": 9000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-17",
+      "date": "2026-02-01",
+      "amount": 9000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-17",
+      "date": "2026-03-01",
+      "amount": 9000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-17",
+      "date": "2026-04-01",
+      "amount": 9000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-17",
+      "date": "2026-05-01",
+      "amount": 9000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-17",
+      "date": "2026-06-01",
+      "amount": 9000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-17",
+      "date": "2026-07-01",
+      "amount": 9000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-17",
+      "date": "2026-08-01",
+      "amount": 9000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-17",
+      "date": "2026-09-01",
+      "amount": 9000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-17",
+      "date": "2026-10-01",
+      "amount": 9000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-17",
+      "date": "2026-11-01",
+      "amount": 9000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-17",
+      "date": "2026-12-01",
+      "amount": 9000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-17",
+      "date": "2027-01-01",
+      "amount": 9000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-17",
+      "date": "2027-02-01",
+      "amount": 9000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-17",
+      "date": "2027-03-01",
+      "amount": 9000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-17",
+      "date": "2027-04-01",
+      "amount": 9000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-17",
+      "date": "2027-05-01",
+      "amount": 9000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-17",
+      "date": "2027-06-01",
+      "amount": 9000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-17",
+      "date": "2027-07-01",
+      "amount": 9000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-17",
+      "date": "2027-08-01",
+      "amount": 9000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-18",
+      "date": "2026-05-18",
+      "amount": 640,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-19",
+      "date": "2026-06-18",
+      "amount": 640,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-20",
+      "date": "2026-07-18",
+      "amount": 640,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-21",
+      "date": "2026-08-18",
+      "amount": 640,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-22",
+      "date": "2026-02-14",
+      "amount": 32000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-23",
+      "date": "2025-09-28",
+      "amount": 214000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-23",
+      "date": "2025-10-28",
+      "amount": 214000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-23",
+      "date": "2025-11-28",
+      "amount": 214000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-23",
+      "date": "2025-12-28",
+      "amount": 214000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-23",
+      "date": "2026-01-28",
+      "amount": 214000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-23",
+      "date": "2026-02-28",
+      "amount": 214000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-23",
+      "date": "2026-03-28",
+      "amount": 214000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-23",
+      "date": "2026-04-28",
+      "amount": 214000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-23",
+      "date": "2026-05-28",
+      "amount": 214000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-23",
+      "date": "2026-06-28",
+      "amount": 214000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-23",
+      "date": "2026-07-28",
+      "amount": 214000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-23",
+      "date": "2026-08-28",
+      "amount": 214000,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-23",
+      "date": "2026-09-28",
+      "amount": 214000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-23",
+      "date": "2026-10-28",
+      "amount": 214000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-23",
+      "date": "2026-11-28",
+      "amount": 214000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-23",
+      "date": "2026-12-28",
+      "amount": 214000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-23",
+      "date": "2027-01-28",
+      "amount": 214000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-23",
+      "date": "2027-02-28",
+      "amount": 214000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-23",
+      "date": "2027-03-28",
+      "amount": 214000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-23",
+      "date": "2027-04-28",
+      "amount": 214000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-23",
+      "date": "2027-05-28",
+      "amount": 214000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-23",
+      "date": "2027-06-28",
+      "amount": 214000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-23",
+      "date": "2027-07-28",
+      "amount": 214000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-23",
+      "date": "2027-08-28",
+      "amount": 214000,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-3",
+      "date": "2026-05-02",
+      "amount": 1699,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-3",
+      "date": "2026-06-02",
+      "amount": 1699,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-3",
+      "date": "2026-07-02",
+      "amount": 1699,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-3",
+      "date": "2026-08-02",
+      "amount": 1699,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-3",
+      "date": "2026-09-02",
+      "amount": 1699,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-3",
+      "date": "2026-10-02",
+      "amount": 1699,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-3",
+      "date": "2026-11-02",
+      "amount": 1699,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-3",
+      "date": "2026-12-02",
+      "amount": 1699,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-3",
+      "date": "2027-01-02",
+      "amount": 1699,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-3",
+      "date": "2027-02-02",
+      "amount": 1699,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-3",
+      "date": "2027-03-02",
+      "amount": 1699,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-3",
+      "date": "2027-04-02",
+      "amount": 1699,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-3",
+      "date": "2027-05-02",
+      "amount": 1699,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-3",
+      "date": "2027-06-02",
+      "amount": 1699,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-3",
+      "date": "2027-07-02",
+      "amount": 1699,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-3",
+      "date": "2027-08-02",
+      "amount": 1699,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-4",
+      "date": "2025-09-03",
+      "amount": 899,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-4",
+      "date": "2025-10-03",
+      "amount": 899,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-4",
+      "date": "2025-11-03",
+      "amount": 899,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-4",
+      "date": "2025-12-03",
+      "amount": 899,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-4",
+      "date": "2026-01-03",
+      "amount": 899,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-4",
+      "date": "2026-02-03",
+      "amount": 899,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-4",
+      "date": "2026-03-03",
+      "amount": 899,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-4",
+      "date": "2026-04-03",
+      "amount": 899,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-4",
+      "date": "2026-05-03",
+      "amount": 899,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-4",
+      "date": "2026-06-03",
+      "amount": 899,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-4",
+      "date": "2026-07-03",
+      "amount": 899,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-4",
+      "date": "2026-08-03",
+      "amount": 899,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-4",
+      "date": "2026-09-03",
+      "amount": 899,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-4",
+      "date": "2026-10-03",
+      "amount": 899,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-4",
+      "date": "2026-11-03",
+      "amount": 899,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-4",
+      "date": "2026-12-03",
+      "amount": 899,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-4",
+      "date": "2027-01-03",
+      "amount": 899,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-4",
+      "date": "2027-02-03",
+      "amount": 899,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-4",
+      "date": "2027-03-03",
+      "amount": 899,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-4",
+      "date": "2027-04-03",
+      "amount": 899,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-4",
+      "date": "2027-05-03",
+      "amount": 899,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-4",
+      "date": "2027-06-03",
+      "amount": 899,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-4",
+      "date": "2027-07-03",
+      "amount": 899,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-4",
+      "date": "2027-08-03",
+      "amount": 899,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-5",
+      "date": "2026-05-09",
+      "amount": 179,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-5",
+      "date": "2026-06-09",
+      "amount": 179,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-5",
+      "date": "2026-07-09",
+      "amount": 179,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-5",
+      "date": "2026-08-09",
+      "amount": 179,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-5",
+      "date": "2026-09-09",
+      "amount": 179,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-5",
+      "date": "2026-10-09",
+      "amount": 179,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-5",
+      "date": "2026-11-09",
+      "amount": 179,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-5",
+      "date": "2026-12-09",
+      "amount": 179,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-5",
+      "date": "2027-01-09",
+      "amount": 179,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-5",
+      "date": "2027-02-09",
+      "amount": 179,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-5",
+      "date": "2027-03-09",
+      "amount": 179,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-5",
+      "date": "2027-04-09",
+      "amount": 179,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-5",
+      "date": "2027-05-09",
+      "amount": 179,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-5",
+      "date": "2027-06-09",
+      "amount": 179,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-5",
+      "date": "2027-07-09",
+      "amount": 179,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-5",
+      "date": "2027-08-09",
+      "amount": 179,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-6",
+      "date": "2026-04-08",
+      "amount": 1240,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-7",
+      "date": "2026-08-02",
+      "amount": 1760,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-7",
+      "date": "2026-09-02",
+      "amount": 1760,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-7",
+      "date": "2026-10-02",
+      "amount": 1760,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-7",
+      "date": "2026-11-02",
+      "amount": 1760,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-7",
+      "date": "2026-12-02",
+      "amount": 1760,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-7",
+      "date": "2027-01-02",
+      "amount": 1760,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-7",
+      "date": "2027-02-02",
+      "amount": 1760,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-7",
+      "date": "2027-03-02",
+      "amount": 1760,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-7",
+      "date": "2027-04-02",
+      "amount": 1760,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-7",
+      "date": "2027-05-02",
+      "amount": 1760,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-7",
+      "date": "2027-06-02",
+      "amount": 1760,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-7",
+      "date": "2027-07-02",
+      "amount": 1760,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-7",
+      "date": "2027-08-02",
+      "amount": 1760,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-8",
+      "date": "2026-07-21",
+      "amount": 3597,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-9",
+      "date": "2025-09-07",
+      "amount": 3500,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-9",
+      "date": "2025-10-07",
+      "amount": 3500,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-9",
+      "date": "2025-11-07",
+      "amount": 3500,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-9",
+      "date": "2025-12-07",
+      "amount": 3500,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-9",
+      "date": "2026-01-07",
+      "amount": 3500,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-9",
+      "date": "2026-02-07",
+      "amount": 3500,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-9",
+      "date": "2026-03-07",
+      "amount": 3500,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-9",
+      "date": "2026-04-07",
+      "amount": 3500,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-9",
+      "date": "2026-05-07",
+      "amount": 3500,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-9",
+      "date": "2026-06-07",
+      "amount": 3500,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-9",
+      "date": "2026-07-07",
+      "amount": 3500,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-9",
+      "date": "2026-08-07",
+      "amount": 3500,
+      "paid": true,
+      "basis": "statement"
+    },
+    {
+      "commitment_id": "commitment-9",
+      "date": "2026-09-07",
+      "amount": 3500,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-9",
+      "date": "2026-10-07",
+      "amount": 3500,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-9",
+      "date": "2026-11-07",
+      "amount": 3500,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-9",
+      "date": "2026-12-07",
+      "amount": 3500,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-9",
+      "date": "2027-01-07",
+      "amount": 3500,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-9",
+      "date": "2027-02-07",
+      "amount": 3500,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-9",
+      "date": "2027-03-07",
+      "amount": 3500,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-9",
+      "date": "2027-04-07",
+      "amount": 3500,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-9",
+      "date": "2027-05-07",
+      "amount": 3500,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-9",
+      "date": "2027-06-07",
+      "amount": 3500,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-9",
+      "date": "2027-07-07",
+      "amount": 3500,
+      "paid": false,
+      "basis": "plan"
+    },
+    {
+      "commitment_id": "commitment-9",
+      "date": "2027-08-07",
+      "amount": 3500,
+      "paid": false,
+      "basis": "plan"
+    }
+  ],
+  "_provenance": {
+    "account-1": {
+      "edited_by": "claude",
+      "source": "documents/hdfc-savings-2025-2026.pdf"
+    },
+    "account-2": {
+      "edited_by": "claude",
+      "source": "documents/hdfc-savings-2025-2026.pdf"
+    },
+    "commitment-10": {
+      "edited_by": "claude",
+      "source": "documents/hdfc-savings-2025-2026.pdf"
+    },
+    "commitment-11": {
+      "edited_by": "claude",
+      "source": "documents/hdfc-savings-2025-2026.pdf"
+    },
+    "commitment-12": {
+      "edited_by": "claude",
+      "source": "documents/hdfc-savings-2025-2026.pdf"
+    },
+    "commitment-13": {
+      "edited_by": "claude",
+      "source": "documents/hdfc-savings-2025-2026.pdf"
+    },
+    "commitment-14": {
+      "edited_by": "claude",
+      "source": "documents/hdfc-savings-2025-2026.pdf"
+    },
+    "commitment-15": {
+      "edited_by": "claude",
+      "source": "documents/hdfc-savings-2025-2026.pdf"
+    },
+    "commitment-16": {
+      "edited_by": "claude",
+      "source": "documents/hdfc-savings-2025-2026.pdf"
+    },
+    "commitment-17": {
+      "edited_by": "claude",
+      "source": "documents/hdfc-savings-2025-2026.pdf"
+    },
+    "commitment-18": {
+      "edited_by": "claude",
+      "source": "documents/hdfc-savings-2025-2026.pdf"
+    },
+    "commitment-19": {
+      "edited_by": "claude",
+      "source": "documents/hdfc-savings-2025-2026.pdf"
+    },
+    "commitment-20": {
+      "edited_by": "claude",
+      "source": "documents/hdfc-savings-2025-2026.pdf"
+    },
+    "commitment-21": {
+      "edited_by": "claude",
+      "source": "documents/hdfc-savings-2025-2026.pdf"
+    },
+    "commitment-22": {
+      "edited_by": "claude",
+      "source": "documents/hdfc-savings-2025-2026.pdf"
+    },
+    "commitment-23": {
+      "edited_by": "claude",
+      "source": "documents/hdfc-savings-2025-2026.pdf"
+    },
+    "commitment-3": {
+      "edited_by": "claude",
+      "source": "documents/hdfc-savings-2025-2026.pdf"
+    },
+    "commitment-4": {
+      "edited_by": "claude",
+      "source": "documents/hdfc-savings-2025-2026.pdf"
+    },
+    "commitment-5": {
+      "edited_by": "claude",
+      "source": "documents/hdfc-savings-2025-2026.pdf"
+    },
+    "commitment-6": {
+      "edited_by": "claude",
+      "source": "documents/hdfc-savings-2025-2026.pdf"
+    },
+    "commitment-7": {
+      "edited_by": "claude",
+      "source": "documents/hdfc-savings-2025-2026.pdf"
+    },
+    "commitment-8": {
+      "edited_by": "claude",
+      "source": "documents/hdfc-savings-2025-2026.pdf"
+    },
+    "commitment-9": {
+      "edited_by": "claude",
+      "source": "documents/hdfc-savings-2025-2026.pdf"
+    }
+  }
+}

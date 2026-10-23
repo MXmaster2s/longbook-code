@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>longbook — frequently asked questions</title>
+<meta name="description" content="What longbook is, what it remembers, where the data lives, how an AI connects, and how the $38 lifetime license and its 7-day refund work.">
+<link rel="canonical" href="https://longbook.app/faq/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="longbook">
+<meta property="og:url" content="https://longbook.app/faq/">
+<meta property="og:title" content="longbook — frequently asked questions">
+<meta property="og:description" content="What longbook is, what it remembers, where the data lives, how an AI connects, and how the $38 lifetime license and its 7-day refund work.">
+<meta property="og:image" content="https://longbook.app/og/faq.jpg?v=be406f43c9">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Frequently asked questions. What longbook remembers, where your data lives, how an AI connects, and what it costs.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@rohthebuilder">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="stylesheet" href="/tokens.css?v=0e82e617aa">
+<script>
+  /* Dark is the default; a visitor's own choice, once made, is what this browser keeps.
+     It runs in the head so the page never paints light first. */
+  (function () {
+    var m = 'dark';
+    try { if (localStorage.getItem('lb-appearance') === 'light') m = 'light'; } catch (e) {}
+    document.documentElement.setAttribute('data-appearance', m);
+  })();
+</script>
+<link rel="stylesheet" href="/site.css?v=d82aefc8f2">
+<style>
+  :root { --sh-1: 0 1px 2px rgba(38,36,31,.05), 0 3px 8px rgba(38,36,31,.05);
+          --sh-2: 0 1px 2px rgba(38,36,31,.04), 0 6px 16px rgba(38,36,31,.06), 0 18px 36px rgba(38,36,31,.06); }
+  :root[data-appearance="dark"] { --sh-1: 0 1px 2px rgba(0,0,0,.35), 0 3px 8px rgba(0,0,0,.30);
+          --sh-2: 0 1px 2px rgba(0,0,0,.35), 0 6px 16px rgba(0,0,0,.35), 0 18px 36px rgba(0,0,0,.35); }
+  .top-in { max-width:880px; margin:0 auto; padding:0 var(--lb-space-s6); height:66px;
+            display:flex; align-items:center; gap:10px; }
+  .wm { font-family:var(--lb-font-serif); font-size:var(--lb-type-number-sm-size); font-weight:560;
+        color:var(--lb-text-primary); text-decoration:none; font-optical-sizing:auto; }
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px;
+         text-decoration:none; font-weight:600; font-size:var(--lb-type-body-size);
+         padding:0 var(--lb-space-s6); min-height:44px; border-radius:var(--lb-radius-sm);
+         border:1px solid transparent; background:var(--lb-text-primary); color:var(--lb-canvas);
+         transition:background .14s ease, color .14s ease, border-color .14s ease; }
+  .dlb { border:0; cursor:pointer; font-family:inherit; }
+  .dlm a { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px;
+           text-decoration:none; color:var(--lb-text-primary); font-size:var(--lb-type-body-sm-size); font-weight:600; }
+  .dlm a:hover { background:var(--lb-brand); color:var(--lb-on-brand); }
+  .wrap { max-width:720px; margin:0 auto; padding:var(--lb-space-s12) var(--lb-space-s6) 96px; }
+  h1 { font-family:var(--lb-font-serif); font-size:var(--lb-type-display-lg-size);
+       font-weight:var(--lb-type-display-lg-weight); font-optical-sizing:auto;
+       margin:0 0 var(--lb-space-s6); line-height:1.15; }
+  h2 { font-family:var(--lb-font-serif); font-size:var(--lb-type-title-lg-size, 22px);
+       font-weight:560; font-optical-sizing:auto; margin:var(--lb-space-s8) 0 var(--lb-space-s3); }
+  p, li { color:var(--lb-text-secondary); }
+  p { margin:0 0 var(--lb-space-s4); }
+  strong { color:var(--lb-text-primary); font-weight:600; }
+  .card { background:var(--lb-card); border:1px solid var(--lb-hairline);
+          border-radius:var(--lb-radius-lg); padding:var(--lb-space-s6);
+          margin:var(--lb-space-s6) 0; box-shadow:var(--sh-1); }
+  .card p:last-child { margin-bottom:0; }
+  .eb { font-size:var(--lb-type-eyebrow-size); font-weight:var(--lb-type-eyebrow-weight);
+        letter-spacing:var(--lb-type-eyebrow-tracking); color:var(--lb-text-tertiary);
+        margin:0 0 var(--lb-space-s3); }
+  code, pre { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:14px; }
+  pre { background:var(--lb-sunken); border:1px solid var(--lb-hairline); border-radius:var(--lb-radius-sm);
+        padding:var(--lb-space-s4); overflow-x:auto; margin:0 0 var(--lb-space-s4); color:var(--lb-text-primary); }
+  .rows { margin:0; padding:0; list-style:none; }
+  .rows li { display:flex; gap:var(--lb-space-s3); align-items:baseline; padding:10px 0;
+             border-top:1px solid var(--lb-hairline); }
+  .rows li:first-child { border-top:0; }
+  .rows .k { flex:0 0 132px; color:var(--lb-text-tertiary); font-size:var(--lb-type-body-sm-size); }
+  .foot { margin-top:var(--lb-space-s12); padding-top:var(--lb-space-s6);
+          border-top:1px solid var(--lb-hairline); color:var(--lb-text-quaternary);
+          font-size:var(--lb-type-footnote-size); }
+  .foot a { color:var(--lb-text-tertiary); }
+  /* Four nav links need about 640px beside the wordmark, so below 680px they give way. */
+  @media (max-width:680px) { .top nav a.nl { display:none; } }
+  @media (max-width:600px) { .rows .k { flex-basis:104px; } }
+  .qa details { border-bottom:1px solid var(--lb-hairline); }
+  .qa summary { list-style:none; cursor:pointer; padding:var(--lb-space-s4) 2px; font-weight:600;
+                color:var(--lb-text-primary);
+                display:flex; justify-content:space-between; gap:var(--lb-space-s6);
+                align-items:center; min-height:44px; transition:color .14s ease; }
+  .qa summary:hover { color:var(--lb-brand-text); }
+  .qa summary::-webkit-details-marker { display:none; }
+  .qa .pl { color:var(--lb-text-quaternary); font-weight:400; flex-shrink:0; }
+  .qa details[open] .pl { display:none; }
+  .qa .ans { padding:0 2px var(--lb-space-s4); color:var(--lb-text-secondary); max-width:640px; }
+  .lb-body { font-size:var(--lb-type-body-size); }
+    .cta { padding:96px 0 0; text-align:center; }
+    .cta p { margin:var(--lb-space-s3) auto var(--lb-space-s6); color:var(--lb-text-secondary); max-width:440px; }
+
+    footer { margin-top:96px; border-top:1px solid var(--lb-hairline); padding:var(--lb-space-s12) 0;
+             background:var(--lb-sunken); }
+  /* Header and footer share the landing measure; the reading column stays narrow. */
+  .top-in, footer .wrap, .cta .wrap { max-width:1080px; }
+  @media (max-width:1000px) { .fcols { grid-template-columns:repeat(4, minmax(0,1fr)); }
+                              .fbrand { grid-column:1 / -1; } }
+  @media (max-width:820px) { .fcols { grid-template-columns:1fr 1fr; } }
+  @media (max-width:540px) { .fcols { grid-template-columns:1fr; } }
+</style>
+<!-- generated head — scripts/gen-site-pages.mts -->
+<link rel="alternate" type="text/markdown" href="https://longbook.app/faq.md">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "FAQPage",
+   "@id": "https://longbook.app/faq/#questions",
+   "url": "https://longbook.app/faq/",
+   "isPartOf": {
+    "@id": "https://longbook.app/#website"
+   },
+   "mainEntity": [
+    {
+     "@type": "Question",
+     "name": "What is longbook?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "longbook is a memory for your financial commitments. It remembers them and reminds you on time, on your iPhone and your Mac. Everything is stored in your own iCloud, and it is open for your AI to talk to — so Claude or ChatGPT always knows what you are committed to. Health insurance, car insurance, rent, EMIs, school fees, subscriptions, credit card fees, domain renewals: if it costs money and comes back, it goes in longbook."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "What can it remember?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Your financial commitments — premiums, rent, instalments, school fees, subscriptions, credit card payment dates — and the expenses you have already made, which appear in the Reports section of the app. Your AI can write into it too: anything it finds in your emails, or anywhere else you point it, longbook remembers and reminds you about. For a quick glance there is an iPhone widget and a Mac menu bar item."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Which devices does it run on?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Mac and iPhone, both native apps. macOS 14 or later, iOS 17 or later. One purchase covers both, and they read the same folder, so a change on one shows up on the other."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Where is my data stored?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "In a file called financial_memory.json, inside your longbook folder in your own iCloud. It is a plain, structured JSON file, readable by any version of longbook, by other apps, and by your AI. The folder also carries a schema and a guide — longbook.schema.json and llms.txt — so your AI knows exactly how to read it and write into it."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Is there a longbook account?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Yes. Your longbook.app account connects your AI to the longbook MCP, so your AI can read and write your commitments even when you are talking to it from your iPhone. It also carries your license, and the report links you share with family."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "How do I connect Claude or ChatGPT?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "longbook connects as a custom connector: https://longbook.app/mcp, added in Claude or ChatGPT and signed in with the longbook account. That address is longbook's MCP server — in a browser it explains itself: the tools your AI can call, and a worked example. On a Mac, the app can also connect Claude to your folder directly, with one click in Settings."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "How do expenses from Gmail get in?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Your AI does it. Connected to your Gmail, it checks the payments from the last month and updates your longbook. It reads the emails, understands how to write into your longbook folder, and files each expense. The next time you open the app, every change is waiting in the Changes section for you to keep or undo."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "What if my AI gets something wrong inside my longbook?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Every change your AI makes appears in the Changes section of the app, with its author on it, and longbook keeps the history of your past versions. Undoing the change or restoring an earlier version is one tap."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Does longbook connect to my bank?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "No — longbook does not need to. It keeps the reminders, the financial commitments and the expenses you record, and holds them in plain view. That is the whole job, done from the records in your own folder."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Can I share my expense report with my family members?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Yes. A report is shared as a link and a password longbook generates; you pass both on — a secure way to share expenses, from any browser. Your family members can comment inside the report too, and your AI can read those comments and update your longbook when you tell it to."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "What do I get with the licence?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "The iPhone app and the Mac app now, and the iPad, Apple Watch, iPhone Duo and Android apps as they arrive, with the iOS widget and the Mac menu bar item, your AI reading and editing your longbook folder on a Mac, and every update. It is one purchase, not a subscription. At launch the first 100 buyers pay $38, the next 250 pay $98, and everyone after pays $149. longbook Cloud, for the features that run on longbook’s server, is a separate $4 a month."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Can I try longbook before paying?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "longbook is bought before you use it, with a 7-day refund instead of a trial. Within 7 days of buying, tap Request a Refund in Account and Apple refunds you. Before buying, you can look around a demo longbook with made-up data, and every license includes 12 months of longbook Cloud."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Is longbook open source?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Yes — longbook is licensed under GPL-3.0. Its source code is public on GitHub at github.com/MXmaster2s/longbook-code: anyone can read it, build it and send a pull request. The work is coordinated on the community Discord."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "How do I contact longbook?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Email: contact@longbook.app. X: @rohthebuilder. The community Discord carries feature requests and the roadmap. Feature suggestions also land on the feedback board, and developers start at Work on the source."
+     }
+    }
+   ]
+  },
+  {
+   "@type": "Organization",
+   "@id": "https://longbook.app/#organization",
+   "name": "longbook",
+   "url": "https://longbook.app/",
+   "logo": "https://longbook.app/apple-touch-icon.png",
+   "email": "contact@longbook.app"
+  },
+  {
+   "@type": "WebSite",
+   "@id": "https://longbook.app/#website",
+   "url": "https://longbook.app/",
+   "name": "longbook",
+   "inLanguage": "en",
+   "publisher": {
+    "@id": "https://longbook.app/#organization"
+   }
+  }
+ ]
+}
+</script>
+<!-- /generated head -->
+<script defer src="/analytics.js"></script>
+</head>
+<body><!--email_off-->
+<!-- chrome:header — generated by scripts/gen-site-pages.mts -->
+<div class="top">
+  <div class="top-in">
+    <img class="mk" src="/mark-52.png" alt="">
+    <a class="wm" href="/">longbook</a>
+    <nav>
+      <a class="nl" href="/features/">Features</a>
+      <a class="nl" href="/automations/">Automations</a>
+      <a class="nl" href="/faq">FAQ</a>
+      <a class="nl" href="/#price">Pricing</a>
+      <button class="thm" type="button" aria-label="Switch between light and dark">
+        <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M18.8 5.2l-1.6 1.6M6.8 17.2l-1.6 1.6"/></svg>
+        <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.4 14.2A8.6 8.6 0 0 1 9.8 3.6a8.6 8.6 0 1 0 10.6 10.6z"/></svg>
+      </button>
+      <div class="dl">
+        <button class="btn sm dlb" type="button" aria-haspopup="menu" aria-expanded="false">Download
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="width:12px;height:12px"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="dlm" role="menu" hidden>
+          <a role="menuitem" href="https://testflight.apple.com/join/g66Nd3Na" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.05 12.04c-.02-2.2 1.8-3.26 1.88-3.31-1.02-1.5-2.61-1.7-3.18-1.72-1.35-.14-2.64.8-3.33.8-.69 0-1.75-.78-2.87-.76-1.48.02-2.84.86-3.6 2.18-1.53 2.66-.39 6.6 1.1 8.76.73 1.06 1.6 2.25 2.74 2.2 1.1-.04 1.51-.71 2.84-.71 1.33 0 1.7.71 2.86.69 1.18-.02 1.93-1.08 2.65-2.14.83-1.23 1.18-2.42 1.2-2.48-.03-.01-2.3-.88-2.32-3.5zM14.9 5.5c.6-.74 1.01-1.76.9-2.78-.87.04-1.93.58-2.56 1.31-.56.65-1.05 1.69-.92 2.68.97.08 1.96-.49 2.58-1.21z"/></svg> Download for Mac</a>
+          <a role="menuitem" href="https://testflight.apple.com/join/g66Nd3Na" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.05 12.04c-.02-2.2 1.8-3.26 1.88-3.31-1.02-1.5-2.61-1.7-3.18-1.72-1.35-.14-2.64.8-3.33.8-.69 0-1.75-.78-2.87-.76-1.48.02-2.84.86-3.6 2.18-1.53 2.66-.39 6.6 1.1 8.76.73 1.06 1.6 2.25 2.74 2.2 1.1-.04 1.51-.71 2.84-.71 1.33 0 1.7.71 2.86.69 1.18-.02 1.93-1.08 2.65-2.14.83-1.23 1.18-2.42 1.2-2.48-.03-.01-2.3-.88-2.32-3.5zM14.9 5.5c.6-.74 1.01-1.76.9-2.78-.87.04-1.93.58-2.56 1.31-.56.65-1.05 1.69-.92 2.68.97.08 1.96-.49 2.58-1.21z"/></svg> Download for iPhone</a>
+        </div>
+      </div>
+      <button class="burger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="bmenu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </nav>
+  </div>
+  <div class="bmenu" id="bmenu" hidden><a href="/features/">Features</a><a href="/automations/">Automations</a><a href="/faq">FAQ</a><a href="/#price">Pricing</a></div>
+</div>
+<style>
+  .burger { display:none; place-items:center; width:36px; height:36px; padding:0; border:1px solid var(--lb-hairline); border-radius:50%; background:var(--lb-card); color:var(--lb-text-secondary); cursor:pointer; }
+  .burger:hover { color:var(--lb-brand-text); border-color:var(--lb-brand); }
+  .burger svg { width:18px; height:18px; }
+  .bmenu { position:absolute; left:0; right:0; top:100%; display:none; flex-direction:column; padding:var(--lb-space-s2) var(--lb-space-s4) var(--lb-space-s4); background:var(--lb-canvas); border-bottom:1px solid var(--lb-hairline); box-shadow:var(--sh-2, 0 8px 24px rgba(0,0,0,.2)); }
+  .bmenu:not([hidden]) { display:flex; }
+  .bmenu a { padding:14px 4px; color:var(--lb-text-primary); text-decoration:none; font-size:var(--lb-type-body-size); font-weight:560; border-bottom:1px solid var(--lb-hairline); }
+  .bmenu a:last-child { border-bottom:0; }
+  .bmenu a:hover { color:var(--lb-brand-text); }
+  @media (max-width:680px) { .top nav > a:not(.btn), .top nav a.nl { display:none; } .burger { display:grid; } }
+  @media (min-width:681px) { .bmenu { display:none !important; } }
+  @media (max-width:380px) { .top-in { padding:0 var(--lb-space-s3); gap:var(--lb-space-s2); } .top nav { gap:var(--lb-space-s2); } .top nav .btn.sm.dlb { padding:0 var(--lb-space-s3); } }
+</style>
+<script>
+(function () {
+  var b = document.querySelector('.burger'), m = document.getElementById('bmenu'); if (!b || !m) return;
+  function set(o) { m.hidden = !o; b.setAttribute('aria-expanded', o ? 'true' : 'false'); }
+  b.addEventListener('click', function (e) { e.stopPropagation(); set(m.hidden); });
+  m.addEventListener('click', function (e) { if (e.target.tagName === 'A') set(false); });
+  document.addEventListener('click', function (e) { if (!m.hidden && !m.contains(e.target)) set(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') set(false); });
+})();
+</script>
+<!-- /chrome:header -->
+<div class="wrap">
+  <h1>Frequently asked questions</h1>
+  <div class="qa">
+      <details><summary class="lb-body">What is longbook?<span class="pl">+</span></summary>
+        <div class="ans">longbook is a memory for your financial commitments. It remembers them and reminds you on time, on your iPhone and your Mac. Everything is stored in your own iCloud, and it is open for your AI to talk to — so Claude or ChatGPT always knows what you are committed to. Health insurance, car insurance, rent, EMIs, school fees, subscriptions, credit card fees, domain renewals: if it costs money and comes back, it goes in longbook.</div></details>
+      <details><summary class="lb-body">What can it remember?<span class="pl">+</span></summary>
+        <div class="ans">Your financial commitments — premiums, rent, instalments, school fees, subscriptions, credit card payment dates — and the expenses you have already made, which appear in the Reports section of the app. Your AI can write into it too: anything it finds in your emails, or anywhere else you point it, longbook remembers and reminds you about. For a quick glance there is an iPhone widget and a Mac menu bar item.</div></details>
+      <details><summary class="lb-body">Which devices does it run on?<span class="pl">+</span></summary>
+        <div class="ans">Mac and iPhone, both native apps. macOS 14 or later, iOS 17 or later. One purchase covers both, and they read the same folder, so a change on one shows up on the other.</div></details>
+      <details><summary class="lb-body">Where is my data stored?<span class="pl">+</span></summary>
+        <div class="ans">In a file called financial_memory.json, inside your longbook folder in your own iCloud. It is a plain, structured JSON file, readable by any version of longbook, by other apps, and by your AI. The folder also carries a schema and a guide — longbook.schema.json and llms.txt — so your AI knows exactly how to read it and write into it.</div></details>
+      <details><summary class="lb-body">Is there a longbook account?<span class="pl">+</span></summary>
+        <div class="ans">Yes. Your longbook.app account connects your AI to the longbook MCP, so your AI can read and write your commitments even when you are talking to it from your iPhone. It also carries your license, and the report links you share with family.</div></details>
+      <details><summary class="lb-body">How do I connect Claude or ChatGPT?<span class="pl">+</span></summary>
+        <div class="ans">longbook connects as a custom connector: https://longbook.app/mcp, added in Claude or ChatGPT and signed in with the longbook account. That address is longbook's MCP server — in a browser it explains itself: the tools your AI can call, and a worked example. On a Mac, the app can also connect Claude to your folder directly, with one click in Settings.</div></details>
+      <details><summary class="lb-body">How do expenses from Gmail get in?<span class="pl">+</span></summary>
+        <div class="ans">Your AI does it. Connected to your Gmail, it checks the payments from the last month and updates your longbook. It reads the emails, understands how to write into your longbook folder, and files each expense. The next time you open the app, every change is waiting in the Changes section for you to keep or undo.</div></details>
+      <details><summary class="lb-body">What if my AI gets something wrong inside my longbook?<span class="pl">+</span></summary>
+        <div class="ans">Every change your AI makes appears in the Changes section of the app, with its author on it, and longbook keeps the history of your past versions. Undoing the change or restoring an earlier version is one tap.</div></details>
+      <details><summary class="lb-body">Does longbook connect to my bank?<span class="pl">+</span></summary>
+        <div class="ans">No — longbook does not need to. It keeps the reminders, the financial commitments and the expenses you record, and holds them in plain view. That is the whole job, done from the records in your own folder.</div></details>
+      <details><summary class="lb-body">Can I share my expense report with my family members?<span class="pl">+</span></summary>
+        <div class="ans">Yes. A report is shared as a link and a password longbook generates; you pass both on — a secure way to share expenses, from any browser. Your family members can comment inside the report too, and your AI can read those comments and update your longbook when you tell it to.</div></details>
+      <details><summary class="lb-body">What do I get with the licence?<span class="pl">+</span></summary>
+        <div class="ans">The iPhone app and the Mac app now, and the iPad, Apple Watch, iPhone Duo and Android apps as they arrive, with the iOS widget and the Mac menu bar item, your AI reading and editing your longbook folder on a Mac, and every update. It is one purchase, not a subscription. At launch the first 100 buyers pay $38, the next 250 pay $98, and everyone after pays $149. longbook Cloud, for the features that run on longbook&rsquo;s server, is a separate $4 a month.</div></details>
+      <details><summary class="lb-body">Can I try longbook before paying?<span class="pl">+</span></summary>
+        <div class="ans">longbook is bought before you use it, with a 7-day refund instead of a trial. Within 7 days of buying, tap Request a Refund in Account and Apple refunds you. Before buying, you can look around a demo longbook with made-up data, and every license includes 12 months of longbook Cloud.</div></details>
+      <details><summary class="lb-body">Is longbook open source?<span class="pl">+</span></summary>
+        <div class="ans">Yes — longbook is licensed under GPL-3.0. Its source code is public on GitHub at <a href="https://github.com/MXmaster2s/longbook-code" rel="noopener">github.com/MXmaster2s/longbook-code</a>: anyone can read it, build it and send a pull request. The work is coordinated on the community Discord.</div></details>
+      <details><summary class="lb-body">How do I contact longbook?<span class="pl">+</span></summary>
+        <div class="ans">Email: contact@longbook.app. X: <a href="https://x.com/rohthebuilder" rel="noopener">@rohthebuilder</a>. The <a href="https://discord.gg/28Dtvbx23q" rel="noopener">community Discord</a> carries feature requests and the roadmap. Feature suggestions also land on the <a href="https://insigh.to/b/longbook" rel="noopener">feedback board</a>, and developers start at <a href="/source">Work on the source</a>.</div></details>
+    </div>
+</div>
+<!-- chrome:footer — generated by scripts/gen-site-pages.mts -->
+<footer>
+  <div class="wrap">
+    <div class="fcols">
+      <div class="fbrand">
+        <div style="display:flex;align-items:center;gap:9px"><img class="mk" src="/mark-52.png" alt=""><span class="wm">longbook</span></div>
+        <p>A memory for your financial commitments.</p>
+        <div class="fsoc">
+          <a href="https://x.com/rohthebuilder" rel="noopener" aria-label="@rohthebuilder on X"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg></a>
+          <a href="https://discord.gg/28Dtvbx23q" rel="noopener" aria-label="Community Discord"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.865-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.058a.082.082 0 0 0 .031.056 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.1 13.1 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.291a.074.074 0 0 1 .078-.011c3.928 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .079.01c.12.099.245.198.372.292a.077.077 0 0 1-.006.128c-.598.349-1.22.65-1.873.891a.077.077 0 0 0-.04.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.029 19.84 19.84 0 0 0 6.002-3.03.077.077 0 0 0 .032-.055c.5-5.177-.838-9.674-3.549-13.66a.06.06 0 0 0-.031-.029ZM8.02 15.331c-1.183 0-2.157-1.086-2.157-2.419s.955-2.419 2.157-2.419c1.21 0 2.176 1.095 2.157 2.419 0 1.333-.956 2.419-2.157 2.419Zm7.975 0c-1.183 0-2.157-1.086-2.157-2.419s.955-2.419 2.157-2.419c1.21 0 2.176 1.095 2.157 2.419 0 1.333-.946 2.419-2.157 2.419Z"/></svg></a>
+          <a href="/github" rel="noopener" aria-label="Source on GitHub"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23a11.5 11.5 0 0 1 3-.405c1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a>
+          <a class="copymail" href="mailto:contact@longbook.app" data-email="contact@longbook.app" aria-label="Copy contact@longbook.app"><span class="tip">contact@longbook.app</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M3 7l9 6.5L21 7"/></svg></a>
+        </div>
+      </div>
+      <div>
+        <h4>PRODUCT</h4>
+        <a href="https://testflight.apple.com/join/g66Nd3Na" rel="noopener">Download for Mac</a>
+        <a href="https://testflight.apple.com/join/g66Nd3Na" rel="noopener">Download for iPhone</a>
+        <a href="/features/">Features</a>
+        <a href="/#price">Pricing</a>
+      </div>
+      <div>
+        <h4>LEARN</h4>
+        <a href="/faq">FAQ</a>
+        <a href="/automations/">Automations</a>
+        <a href="/blog/">Blog</a>
+        <a href="/reviews/">Reviews</a>
+        <a href="/features/upcoming-features/">Upcoming features</a>
+        <a href="/media-kit">Media kit</a>
+      </div>
+      <div>
+        <h4>SUPPORT</h4>
+        <a href="/contact">Contact</a>
+        <a href="https://discord.gg/28Dtvbx23q" rel="noopener">Community Discord</a>
+        <a href="https://insigh.to/b/longbook" rel="noopener">Suggest a feature</a>
+        <a href="/source">Work on the source</a>
+      </div>
+      <div>
+        <h4>LEGAL</h4>
+        <a href="/privacy-policy">Privacy Policy</a>
+        <a href="/terms">Terms of Service</a>
+      </div>
+    </div>
+    <p style="margin:var(--lb-space-s8) 0 0;max-width:72ch;color:var(--lb-text-tertiary);font-size:var(--lb-type-footnote-size)">All third-party logos are trademarks of their respective companies.</p>
+    <div class="fbase">
+      <span>© 2026 longbook</span>
+    </div>
+  </div>
+</footer>
+<!-- /chrome:footer -->
+<script>
+  // The email mark copies the address. Clipboard access can be refused, so the plain
+  // mailto in the href is left to fire when it is — the button is never a dead end.
+  (function () {
+    var btn = document.querySelector('.fsoc .copymail');
+    if (!btn) return;
+    var tip = btn.querySelector('.tip');
+    var addr = btn.getAttribute('data-email');
+    var timer;
+    btn.addEventListener('click', function (e) {
+      var done = function (ok) {
+        if (!ok) return;
+        e.preventDefault();
+        tip.textContent = 'Copied';
+        btn.classList.add('done');
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+          btn.classList.remove('done');
+          tip.textContent = addr;
+        }, 1600);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        e.preventDefault();
+        navigator.clipboard.writeText(addr).then(function () { done(true); }, function () { done(legacy()); });
+        return;
+      }
+      done(legacy());
+    });
+    function legacy() {
+      var t = document.createElement('textarea');
+      t.value = addr;
+      t.setAttribute('readonly', '');
+      t.style.position = 'fixed';
+      t.style.top = '-1000px';
+      document.body.appendChild(t);
+      t.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+      t.parentNode.removeChild(t);
+      return ok;
+    }
+  })();
+
+
+  // Appearance: dark is the default, the toggle flips it, and the choice is kept on this browser.
+  (function () {
+    var KEY = 'lb-appearance';
+    var root = document.documentElement;
+    var btn = document.querySelector('.thm');
+    if (btn) btn.addEventListener('click', function () {
+      var next = root.getAttribute('data-appearance') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-appearance', next);
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  })();
+  (function () {
+    var dl = document.querySelector('.dl'); if (!dl) return;
+    var btn = dl.querySelector('.dlb'), menu = dl.querySelector('.dlm');
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var open = !menu.hidden;
+      menu.hidden = open;
+      btn.setAttribute('aria-expanded', String(!open));
+    });
+    document.addEventListener('click', function () { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); });
+  })();
+</script>
+<!--/email_off--></body>
+</html>

@@ -1,0 +1,333 @@
+[
+  {
+    "version": "1.4.1",
+    "build": 50,
+    "date": "2026-10-22",
+    "changes": [
+      "Importing a statement now looks like Changes: what was read, Discard and Add at the top, then the charges, people and repeats one tab at a time.",
+      "A statement in pounds, dollars or any other currency is read in that currency, not rupees.",
+      "On the Mac, pulling the timeline at its end now shows the button that switches to the next or last 30 payments, instead of hiding it past the edge.",
+      "On the Mac, right-clicking a commitment no longer draws a coloured box around it."
+    ]
+  },
+  {
+    "version": "1.4.1",
+    "build": 49,
+    "date": "2026-10-22",
+    "changes": [
+      "Before longbook first sends a statement to an AI, it asks you to accept the privacy policy, with the policy right there to read.",
+      "At the largest text sizes, screens rearrange so every word reads in full.",
+      "Search finds commitments by what their cards say: Cancelling, Free trial, Yearly, Paid and more.",
+      "A statement you import is kept straight away and filed in History, so Changes no longer asks again.",
+      "Relationship and account type get the same search-or-add list as category.",
+      "On the Mac, sheets open in the middle of the window, and Accounts and People show the rows that name no one."
+    ]
+  },
+  {
+    "version": "1.4.0",
+    "build": 49,
+    "date": "2026-10-20",
+    "changes": [
+      "A clearer way in: two welcome pages with Back, sign-in with Apple first, then Activate your longbook, which leads with the 7-day refund.",
+      "Without iCloud, longbook can keep your longbook on this iPhone instead.",
+      "The repeating payments you tick when reading a statement become commitments, planned ahead, so Coming up fills from the first statement.",
+      "Deleting your account now says what goes and what stays, offers to save a copy of your longbook first, and asks you to type DELETE. An account opened with Apple ends its Apple link too."
+    ]
+  },
+  {
+    "version": "1.4.0",
+    "build": 47,
+    "date": "2026-10-19",
+    "changes": [
+      "longbook is bought before it is used: an account without a licence opens on the purchase screen, with Restore Purchase and a demo to look around first.",
+      "A licence includes 12 months of longbook Cloud, and Account offers Request a Refund for 7 days after buying."
+    ]
+  },
+  {
+    "version": "1.4.0",
+    "build": 46,
+    "date": "2026-10-16",
+    "changes": [
+      "On iPhone, Dark, Light and Automatic take effect at once, without restarting the app.",
+      "Changes says Nothing to review when nothing is waiting, with a way into History."
+    ]
+  },
+  {
+    "version": "1.4.0",
+    "build": 45,
+    "date": "2026-10-16",
+    "changes": [
+      "A long account name picked from the Accounts card's More menu no longer widens the page: the picked account takes a chip of its own.",
+      "Long account names in lists get a second line, and a charge's category and account are no longer cut short.",
+      "Opening a paid or past commitment on the Mac, and a month's No account door, lands on the Past side where it is.",
+      "A person's next commitment opens from their card, and the Needs details card matches the height of the cards beside it."
+    ]
+  },
+  {
+    "version": "1.4.0",
+    "build": 44,
+    "date": "2026-10-16",
+    "changes": [
+      "The Spending and Accounts cards' backs drop the Remaining line and the links at the bottom; tap the month's name to see all of its charges.",
+      "On iPhone the Spending card keeps one size and lists four expenses; the accounts sit on one row with the rest behind More.",
+      "The filter chip and Upcoming / Past switch on Commitments are no longer cut off.",
+      "History downloads its kept versions from iCloud when they are not on the device yet."
+    ]
+  },
+  {
+    "version": "1.4.0",
+    "build": 43,
+    "date": "2026-10-16",
+    "changes": [
+      "On the Mac the Spending and Accounts cards end level, with their links on one line; the accounts fit one row, the rest behind a More menu.",
+      "Reports are drawn only for months with spending, and any report can be deleted from its card's menu.",
+      "History opens at once instead of waiting to read every kept version.",
+      "The Mac sidebar always shows; its hide button is gone."
+    ]
+  },
+  {
+    "version": "1.4.0",
+    "build": 42,
+    "date": "2026-10-16",
+    "changes": [
+      "Every report card shows its days, categories, accounts and people, with the names lined up.",
+      "The dashboard's Next payment keeps to two lines, the flip cards turn at their own height, and the timeline's back arrow is always there.",
+      "The iPhone calendar turns one month at a time again; a busy day shows two dots and a plus."
+    ]
+  },
+  {
+    "version": "1.4.0",
+    "build": 41,
+    "date": "2026-10-16",
+    "changes": [
+      "Reports read as cards: the span, and how many categories, accounts and people it covers.",
+      "Cards keep their three lines; a long account or person is cut short instead of wrapping. The dashboard's cards keep one height when they flip.",
+      "Setup follows the system theme until you choose, with a sun or moon beside Skip; a waiting button says why on hover or tap.",
+      "The category's own symbol on details and tiles; the plan's reach reads under the date; the statement review says items, not entries.",
+      "Small words and alignments across the apps from the launch polish round."
+    ]
+  },
+  {
+    "version": "1.4.0",
+    "build": 40,
+    "date": "2026-10-15",
+    "changes": [
+      "Reorganise my longbook: longbook's AI reads the whole book and proposes names, categories, links and merged doubles, as one change in Changes.",
+      "Pictures on accounts, categories and commitments too, chosen on the Mac and shown everywhere; the calendar scrolls through months, with equal days.",
+      "Mac previews sit in Apple's inspector at one width, with Edit on the card, Recent activity and Upcoming commitments; the sidebar is narrower.",
+      "Changes keeps history behind a clock button with Clear history and the size it frees; segments and pills wear longbook's own colours.",
+      "An older statement never moves a newer balance; the Mac game pauses only on Space; the date picker is the system calendar."
+    ]
+  },
+  {
+    "version": "1.3.6",
+    "build": 39,
+    "date": "2026-10-15",
+    "changes": [
+      "One card for every commitment and charge, on every list, on iPhone and Mac; the dashboard leads with the day of the next payment.",
+      "Needs-details cards as before, with Edit and Remove on each; Changes and the statement review keep a tab per kind.",
+      "Mac lists are cards beside the inspector, with a divider you can drag and a right-click menu; the Mac review types people and categories with suggestions.",
+      "Settings has its own tab; Home currency, Linked to and the Mac sidebar's foot read as before.",
+      "Usage data, when shared, carries the country and city of a record and never the address."
+    ]
+  },
+  {
+    "version": "1.3.6",
+    "build": 38,
+    "date": "2026-10-14",
+    "changes": [
+      "The Home Screen widget follows Light and Dark, in the app's own light page and text colours."
+    ]
+  },
+  {
+    "version": "1.3.6",
+    "build": 37,
+    "date": "2026-10-14",
+    "changes": [
+      "A CSV or Excel statement keeps every amount as printed: amounts between 30,000 and 70,000, such as rent, were being read as dates and lost."
+    ]
+  },
+  {
+    "version": "1.3.6",
+    "build": 36,
+    "date": "2026-10-13",
+    "changes": [
+      "Import up to five statements at once; they are read together, and each lands on its own account.",
+      "Statements are read by Claude, after a check that the file is a statement. Reading on longbook's server no longer needs Cloud; Cloud reads more of them each month.",
+      "Every PDF is rebuilt page by page before it leaves the device, so only the pages travel."
+    ]
+  },
+  {
+    "version": "1.3.6",
+    "build": 35,
+    "date": "2026-10-13",
+    "changes": [
+      "App Review gets a demo account: appreview@longbook.app signs in with a code set before each submission, and no email is sent to it."
+    ]
+  },
+  {
+    "version": "1.3.6",
+    "build": 34,
+    "date": "2026-10-12",
+    "changes": [
+      "Usage counts now carry a random id kept on this device, so a return visit counts as one person rather than a new one. It is never tied to your account, and turning off Share usage and crash data deletes it.",
+      "A sign-in that fails now records whether it was Apple, Google or an emailed code, and the code the provider gave, so the cause can be found."
+    ]
+  },
+  {
+    "version": "1.3.6",
+    "build": 33,
+    "date": "2026-10-12",
+    "changes": [
+      "An account with longbook Cloud granted no longer shows a Subscribe button; it says there is nothing to subscribe to."
+    ]
+  },
+  {
+    "version": "1.3.6",
+    "build": 32,
+    "date": "2026-10-10",
+    "changes": [
+      "Nothing you will see changes in this build; it is the one the App Store pictures are taken from."
+    ]
+  },
+  {
+    "version": "1.3.6",
+    "build": 31,
+    "date": "2026-10-09",
+    "changes": [
+      "On the Mac, the Help menu opens Help & about, and holds the Share Usage and Crash Data switch.",
+      "Usage counts now also say how long the app is open, which errors it handled and who changed your file. Never a name, an amount, a date or a note; Share usage and crash data turns them off.",
+      "On the dashboard, accounts you use keep their colours, and the accounts legend no longer stretches the expenses card.",
+      "Help & about shows which rulebook this build follows and the exact build it is, so any two builds can be told apart."
+    ]
+  },
+  {
+    "version": "1.3.6",
+    "build": 30,
+    "date": "2026-10-08",
+    "changes": [
+      "Siri reads your longbook when the app is closed: it waits for iCloud to bring the file to the phone instead of saying the folder can't be found.",
+      "Siri reads the same folder the app opens, and understands \"What's upcoming in my longbook\" and \"What's coming up in my longbook\"."
+    ]
+  },
+  {
+    "version": "1.3.6",
+    "build": 29,
+    "date": "2026-10-08",
+    "changes": [
+      "Siri hears longbook when you say it as two words, \"long book\", so spoken requests reach the app.",
+      "More ways to ask Siri: \"What do I pay next in my longbook\", \"What's due in my longbook\", \"Add a bill in my longbook\" and \"Record an expense in my longbook\"."
+    ]
+  },
+  {
+    "version": "1.3.6",
+    "build": 28,
+    "date": "2026-10-07",
+    "changes": [
+      "The free trial is 3 days, with Cloud included. Adding new commitments after that needs the license.",
+      "Every prompt in the Automations list names my longbook, so your AI knows which book you mean."
+    ]
+  },
+  {
+    "version": "1.3.6",
+    "build": 27,
+    "date": "2026-10-07",
+    "changes": [
+      "longbook Cloud, $4 a month through Apple: the hosted copy your AI reads, statement reading and shared reports now need it. The 14-day trial covers Cloud. Subscribe, manage or restore from Account.",
+      "Without Cloud, Claude Desktop or Claude Code on your Mac can still use your longbook folder in iCloud, or the local server, at no charge.",
+      "The hosted connection, statement reading and report sharing show a Cloud sheet when there is no subscription; statement reading falls back to your own AI.",
+      "Account shows your Cloud status and renewal date, and says to cancel the subscription in Apple ID settings before deleting the account."
+    ]
+  },
+  {
+    "version": "1.3.6",
+    "build": 26,
+    "date": "2026-10-05",
+    "changes": [
+      "Automations lists longbook's prompts for Claude and ChatGPT by group, each with what it does and a Copy button. New under From your email: find subscriptions, expenses, invoices, insurances, purchases, bills, loans and EMIs, travel bookings and money in.",
+      "Step 3's Copy prompt, the Reports prompt and the own-AI help use the same words as the Automations list.",
+      "Every longbook folder now carries prompts.json beside llms.txt: each prompt with what it does and the steps your AI follows.",
+      "The Waiting screen can show a demo longbook: a made-up household with a year of history, to see how a filled longbook feels before yours is one. Look around, change things, then Leave demo to return to setup.",
+      "No accounts picked in step 2: the milestone says so in your words, with a way back to add them and a quieter way on to step 3.",
+      "The Welcome screen and the step 3 prompts carry the Claude and ChatGPT marks themselves."
+    ]
+  },
+  {
+    "version": "1.3.5",
+    "build": 24,
+    "date": "2026-10-03",
+    "changes": [
+      "A new first run: two welcome screens, then three steps. Step 1 asks what you want to remember, one card at a time; Step 2 asks for your accounts by kind, never a bank name; Step 3 reads a statement or hands over to your Claude or ChatGPT.",
+      "Each card opens after a few seconds of reading, and a card you have already seen opens at once. Tap a chip to pick it; the count follows, and a milestone after each step shows what was added.",
+      "Not now pauses setup on a Waiting screen. Continue setup returns to where you were, on this device or on another signed into the same account.",
+      "You are the first member of your longbook. A person picked on the first card becomes a member and a salary to fill in; an account picked wears its kind as its tag.",
+      "Show my longbook opens once the book holds a few commitments, some charges, an account and a member."
+    ]
+  },
+  {
+    "version": "1.3.4",
+    "build": 23,
+    "date": "2026-10-01",
+    "changes": [
+      "A change made on your other device shows within a few seconds: the app watches your folder and asks iCloud for the newer file instead of checking every 45 seconds.",
+      "The Mac no longer freezes while iCloud is still fetching a history file from your other device; Changes says \"Still coming down from iCloud\" until it arrives, and each device keeps its own copy of the versions it has seen.",
+      "A Date filter on All commitments and All charges: pick a first day and a last.",
+      "Mac: the accounts on the back of the Accounts card can be clicked again.",
+      "Your AI is told to carry a statement's closing balance onto the account after importing it, and the accounts and whoami answers say when a balance is older than the newest charge. Contract revision 33.",
+      "The iCloud-off screen no longer shows a \"Coming soon\" server button.",
+      "Trips: start trip mode or add a past trip, each kept as a report for its days, people and accounts. Ask Claude to create a report in your longbook. Shared reports look like the app's."
+    ]
+  },
+  {
+    "version": "1.3.4",
+    "build": 22,
+    "date": "2026-10-01",
+    "changes": [
+      "Free trial is a tick that only shows the pill. It no longer moves the date, changes the amount or writes a charge.",
+      "In the form, Active, Paused, Cancelled and Free trial sit beside the name; Paid sits beside the amount; the date is called Date, with a Recurrence ×N chip and list where Planned till was.",
+      "A recurring commitment shows its coming charges as a strip under the type. Pick one to edit just that charge; Save asks whether the change is for this occurrence only or this and every one after.",
+      "Pausing or cancelling says how many planned charges it unwrites and that what happened stays. Back to active plans ahead again.",
+      "All commitments and All charges are one list with an Upcoming and a Past side: every charge ahead is listed under its month, so a monthly rent appears in every month. This month and today open on Upcoming, so No account for this month shows what is still ahead.",
+      "Click a bar in Total expenses on the Mac, or tap it twice on the iPhone, to open that day's charges.",
+      "Keep changes on one device keeps them on the other. Deleting a commitment, an account or a member, or undoing a change, no longer asks on your other device.",
+      "Reports have a name, the days they cover and the same cards as the dashboard; a charge can be removed from a report; sharing shows the password once.",
+      "Seven more writing tools for your AI: update_charge, set_planned_count, add_member, add_account, rename_tag, delete_tag and delete_commitment. mark_paid and add_charges can clear a note or the paid-on day. Contract revision 32.",
+      "The sign-in consent page returns you to your AI as soon as you choose."
+    ]
+  },
+  {
+    "version": "1.3.4",
+    "build": 21,
+    "date": "2026-09-30",
+    "changes": [
+      "Signing out ends only the device you are on. Your other devices and connected AI apps stay signed in.",
+      "Sign out opens a screen: sign out this session or all sessions, and see every device, browser and AI connector your account is signed in on, with when each was last used.",
+      "Check for updates shows what changed in each version.",
+      "The app names its device when it signs in, so sessions can be told apart.",
+      "When the hourly limit on sign-in codes is reached, the sign-in screen offers a Give feedback link.",
+      "Free trial is back. Tick it on a commitment and the date names the day the trial ends; nothing is charged until then. All commitments and the commitment details show a Free trial pill.",
+      "A change you make on your other device arrives without a review: it is adopted as yours and listed in History. Deleting a whole commitment still asks. Changes from an AI, an import, Siri or an unknown writer wait in Changes as before.",
+      "Commitment and charge cards show day, category, member and account everywhere, with Add category, Add member or Add account where one is missing.",
+      "The review notice says who proposed how many changes, with Show changes and Keep changes. Undo lives only in the Changes screen.",
+      "Commitments, charges and Changes each wear their own icon.",
+      "Automations lists four phrases for a Claude chat: categorise, the month's report, email invoices, document invoices, each with Copy.",
+      "The Total expenses bars are on a log scale and say so. Point at or tap a bar for the day, its amount and its charge count. With several months chosen, only days with expenses are drawn, each month named under its first bar."
+    ]
+  },
+  {
+    "version": "1.3.3",
+    "build": 18,
+    "date": "2026-09-24",
+    "changes": [
+      "Tap any commitment or charge to edit or delete it; press and hold a commitment to see its details.",
+      "One form edits a commitment or any of its charges: name, amount, date, category, account, member and notes, and how far ahead a recurring one is planned.",
+      "A commitment's notes keep the details that matter, such as a policy number or a plan.",
+      "The dashboard's total expenses, accounts and categories cover one month or several: open the month and choose Select.",
+      "The accounts card turns over to show what each account paid for.",
+      "A report draws the month: its total, the accounts it came from, the categories it fell into, and every charge biggest first. In the app that charge list has a search box and filters.",
+      "In the form, the category, account and member lists each have an add button that opens with the cursor already in the field.",
+      "Check for updates, in Settings and the Mac's app menu, opens the App Store or TestFlight.",
+      "Reports and account balances fall back to your busiest currency when no home currency is chosen."
+    ]
+  }
+]

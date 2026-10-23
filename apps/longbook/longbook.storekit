@@ -1,0 +1,72 @@
+{
+  "identifier" : "7A3C1F2E",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "38.00",
+      "familyShareable" : false,
+      "internalID" : "5B2E9D41",
+      "localizations" : [
+        {
+          "description" : "The app, once, on every platform.",
+          "displayName" : "longbook",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "app.longbook.licence",
+      "referenceName" : "longbook licence",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_developerTeamID" : "27F9SH746V",
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "9C4D7A10",
+      "localizations" : [
+
+      ],
+      "name" : "longbook Cloud",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "4.00",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "3E8F6B27",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "A hosted copy for your AI, statement reading and shared reports.",
+              "displayName" : "longbook Cloud",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "app.longbook.cloud.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "longbook Cloud monthly",
+          "subscriptionGroupID" : "9C4D7A10",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

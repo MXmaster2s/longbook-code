@@ -1,0 +1,67 @@
+[
+  {
+    "name": "a Luhn-valid card number, space-separated",
+    "text": "my card is 4111 1111 1111 1111",
+    "expect_kind": "card_number"
+  },
+  {
+    "name": "a Luhn-valid card number, dash-separated",
+    "text": "5500-0055-5555-5559 is the number",
+    "expect_kind": "card_number"
+  },
+  {
+    "name": "a digit run that fails the Luhn check is not a card number",
+    "text": "order number 4111111111111112",
+    "expect_kind": null
+  },
+  {
+    "name": "an ordinary phone number is too short to be a card number",
+    "text": "call me at 9876543210",
+    "expect_kind": null
+  },
+  {
+    "name": "an expiry date near an expiry keyword",
+    "text": "card expiry 08/29, keep it safe",
+    "expect_kind": "expiry"
+  },
+  {
+    "name": "a bare MM/YY-shaped date with no card context is not an expiry",
+    "text": "renews 08/29 every year",
+    "expect_kind": null
+  },
+  {
+    "name": "a CVV near a CVV keyword",
+    "text": "the cvv is 123, do not share it",
+    "expect_kind": "cvv"
+  },
+  {
+    "name": "a bare 3-digit number with no CVV context is not a CVV",
+    "text": "paid 123 last month",
+    "expect_kind": null
+  },
+  {
+    "name": "an IBAN-shaped string",
+    "text": "transfer to DE89370400440532013000",
+    "expect_kind": "iban"
+  },
+  {
+    "name": "a password key-value pair",
+    "text": "password: hunter2",
+    "expect_kind": "secret"
+  },
+  {
+    "name": "an api key key-value pair",
+    "text": "api_key=sk_live_abc123",
+    "expect_kind": "secret"
+  },
+  {
+    "name": "an ordinary commitment note is clean",
+    "text": "renews every year around my birthday, remember to check the price",
+    "expect_kind": null
+  },
+  {
+    "name": "a payment method name with a last-4 is clean by design",
+    "text": "Visa 9292 — the one ending in 9292",
+    "expect_kind": null
+  }
+]

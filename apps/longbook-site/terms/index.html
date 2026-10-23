@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>longbook — Terms of Service</title>
+<meta name="description" content="The terms governing use of longbook: the one-time licence, the Cloud subscription, buying before use with a 7-day refund, payment, updates, accounts, hosted services, liability and governing law.">
+<link rel="canonical" href="https://longbook.app/terms/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="longbook">
+<meta property="og:url" content="https://longbook.app/terms/">
+<meta property="og:title" content="longbook — Terms of Service">
+<meta property="og:description" content="The terms governing use of longbook: the one-time licence, the Cloud subscription, buying before use with a 7-day refund, payment, updates, accounts, hosted services, liability and governing law.">
+<meta property="og:image" content="https://longbook.app/og/terms.jpg?v=9481e2ab6d">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Terms of Service. The licence, the Cloud subscription, refunds, payment and the rest of the terms.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@rohthebuilder">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="stylesheet" href="/tokens.css?v=0e82e617aa">
+<script>
+  /* Dark is the default; a visitor's own choice, once made, is what this browser keeps.
+     It runs in the head so the page never paints light first. */
+  (function () {
+    var m = 'dark';
+    try { if (localStorage.getItem('lb-appearance') === 'light') m = 'light'; } catch (e) {}
+    document.documentElement.setAttribute('data-appearance', m);
+  })();
+</script>
+<link rel="stylesheet" href="/site.css?v=d82aefc8f2">
+<style>
+  :root { --sh-1: 0 1px 2px rgba(38,36,31,.05), 0 3px 8px rgba(38,36,31,.05);
+          --sh-2: 0 1px 2px rgba(38,36,31,.04), 0 6px 16px rgba(38,36,31,.06), 0 18px 36px rgba(38,36,31,.06); }
+  :root[data-appearance="dark"] { --sh-1: 0 1px 2px rgba(0,0,0,.35), 0 3px 8px rgba(0,0,0,.30);
+          --sh-2: 0 1px 2px rgba(0,0,0,.35), 0 6px 16px rgba(0,0,0,.35), 0 18px 36px rgba(0,0,0,.35); }
+  .top-in { max-width:880px; margin:0 auto; padding:0 var(--lb-space-s6); height:66px;
+            display:flex; align-items:center; gap:10px; }
+  .wm { font-family:var(--lb-font-serif); font-size:var(--lb-type-number-sm-size); font-weight:560;
+        color:var(--lb-text-primary); text-decoration:none; font-optical-sizing:auto; }
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px;
+         text-decoration:none; font-weight:600; font-size:var(--lb-type-body-size);
+         padding:0 var(--lb-space-s6); min-height:44px; border-radius:var(--lb-radius-sm);
+         border:1px solid transparent; background:var(--lb-text-primary); color:var(--lb-canvas);
+         transition:background .14s ease, color .14s ease, border-color .14s ease; }
+  .dlb { border:0; cursor:pointer; font-family:inherit; }
+  .dlm a { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px;
+           text-decoration:none; color:var(--lb-text-primary); font-size:var(--lb-type-body-sm-size); font-weight:600; }
+  .dlm a:hover { background:var(--lb-brand); color:var(--lb-on-brand); }
+  .wrap { max-width:720px; margin:0 auto; padding:var(--lb-space-s12) var(--lb-space-s6) 96px; }
+  h1 { font-family:var(--lb-font-serif); font-size:var(--lb-type-display-lg-size);
+       font-weight:var(--lb-type-display-lg-weight); font-optical-sizing:auto;
+       margin:0 0 var(--lb-space-s6); line-height:1.15; }
+  h2 { font-family:var(--lb-font-serif); font-size:var(--lb-type-title-lg-size, 22px);
+       font-weight:560; font-optical-sizing:auto; margin:var(--lb-space-s8) 0 var(--lb-space-s3); }
+  p, li { color:var(--lb-text-secondary); }
+  p { margin:0 0 var(--lb-space-s4); }
+  strong { color:var(--lb-text-primary); font-weight:600; }
+  .card { background:var(--lb-card); border:1px solid var(--lb-hairline);
+          border-radius:var(--lb-radius-lg); padding:var(--lb-space-s6);
+          margin:var(--lb-space-s6) 0; box-shadow:var(--sh-1); }
+  .card p:last-child { margin-bottom:0; }
+  .eb { font-size:var(--lb-type-eyebrow-size); font-weight:var(--lb-type-eyebrow-weight);
+        letter-spacing:var(--lb-type-eyebrow-tracking); color:var(--lb-text-tertiary);
+        margin:0 0 var(--lb-space-s3); }
+  code, pre { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:14px; }
+  pre { background:var(--lb-sunken); border:1px solid var(--lb-hairline); border-radius:var(--lb-radius-sm);
+        padding:var(--lb-space-s4); overflow-x:auto; margin:0 0 var(--lb-space-s4); color:var(--lb-text-primary); }
+  .rows { margin:0; padding:0; list-style:none; }
+  .rows li { display:flex; gap:var(--lb-space-s3); align-items:baseline; padding:10px 0;
+             border-top:1px solid var(--lb-hairline); }
+  .rows li:first-child { border-top:0; }
+  .rows .k { flex:0 0 132px; color:var(--lb-text-tertiary); font-size:var(--lb-type-body-sm-size); }
+  .foot { margin-top:var(--lb-space-s12); padding-top:var(--lb-space-s6);
+          border-top:1px solid var(--lb-hairline); color:var(--lb-text-quaternary);
+          font-size:var(--lb-type-footnote-size); }
+  .foot a { color:var(--lb-text-tertiary); }
+  /* Four nav links need about 640px beside the wordmark, so below 680px they give way. */
+  @media (max-width:680px) { .top nav a.nl { display:none; } }
+  @media (max-width:600px) { .rows .k { flex-basis:104px; } }
+
+  /* A legal document reads as one: a numbered spine, a contents list, small clause numbers
+     and a measure narrow enough to follow line to line. */
+  .legal .wrap { max-width:760px; }
+  .legal h1 { font-size:var(--lb-type-display-lg-size, 38px); margin-bottom:var(--lb-space-s3); }
+  .intro { color:var(--lb-text-secondary); }
+  .toc { background:var(--lb-sunken); border:1px solid var(--lb-hairline);
+         border-radius:var(--lb-radius-md); padding:var(--lb-space-s4) var(--lb-space-s6);
+         margin:var(--lb-space-s6) 0 var(--lb-space-s8); }
+  .toc p { font-size:var(--lb-type-eyebrow-size); font-weight:var(--lb-type-eyebrow-weight);
+           letter-spacing:var(--lb-type-eyebrow-tracking); color:var(--lb-text-quaternary);
+           margin:0 0 var(--lb-space-s3); }
+  .toc ol { margin:0; padding:0; list-style:none; columns:2; column-gap:var(--lb-space-s8);
+            counter-reset:toc; }
+  .toc li { counter-increment:toc; break-inside:avoid; padding:3px 0; }
+  .toc li a { text-decoration:none; color:var(--lb-text-secondary); font-size:var(--lb-type-body-sm-size); }
+  .toc li a::before { content:counter(toc) ". "; color:var(--lb-text-quaternary);
+                      font-variant-numeric:tabular-nums; }
+  .toc li a:hover { color:var(--lb-brand-text); }
+  .legal section { counter-increment:sec; margin-top:var(--lb-space-s8); scroll-margin-top:86px; }
+  .legal { counter-reset:sec; }
+  .legal section > h2 { font-family:var(--lb-font-sans); font-size:18px; font-weight:700;
+                        letter-spacing:-0.01em; color:var(--lb-text-primary);
+                        margin:0 0 var(--lb-space-s4); padding-bottom:var(--lb-space-s3);
+                        border-bottom:1px solid var(--lb-hairline); }
+  .legal section > h2::before { content:counter(sec) ". "; color:var(--lb-text-tertiary);
+                                font-variant-numeric:tabular-nums; }
+  .legal section { counter-reset:cl; }
+  .legal .cl { counter-increment:cl; display:flex; gap:var(--lb-space-s4);
+               margin:0 0 var(--lb-space-s4); }
+  .legal .cl::before { content:counter(sec) "." counter(cl); flex:0 0 42px;
+                       font-size:var(--lb-type-body-sm-size); font-variant-numeric:tabular-nums;
+                       color:var(--lb-text-quaternary); padding-top:2px; }
+  .legal .cl > div { flex:1; min-width:0; }
+  .legal .cl p { margin:0 0 var(--lb-space-s3); }
+  .legal .cl p:last-child { margin-bottom:0; }
+  .legal .cl ul { margin:var(--lb-space-s2) 0 0; padding-left:20px; }
+  .legal .cl li { margin:0 0 6px; }
+  .legal .caps { text-transform:uppercase; font-size:13.5px; letter-spacing:.02em; }
+  .legal dfn { font-style:normal; color:var(--lb-text-primary); font-weight:600; }
+  .legal .backtop { display:inline-block; margin-top:var(--lb-space-s8);
+                    font-size:var(--lb-type-footnote-size); color:var(--lb-text-tertiary);
+                    text-decoration:none; }
+  @media (max-width:640px) { .toc ol { columns:1; } .legal .cl { gap:var(--lb-space-s3); }
+                             .legal .cl::before { flex-basis:34px; } }
+    .cta { padding:96px 0 0; text-align:center; }
+    .cta p { margin:var(--lb-space-s3) auto var(--lb-space-s6); color:var(--lb-text-secondary); max-width:440px; }
+
+    footer { margin-top:96px; border-top:1px solid var(--lb-hairline); padding:var(--lb-space-s12) 0;
+             background:var(--lb-sunken); }
+  /* Header and footer share the landing measure; the reading column stays narrow. */
+  .top-in, footer .wrap, .cta .wrap { max-width:1080px; }
+  @media (max-width:1000px) { .fcols { grid-template-columns:repeat(4, minmax(0,1fr)); }
+                              .fbrand { grid-column:1 / -1; } }
+  @media (max-width:820px) { .fcols { grid-template-columns:1fr 1fr; } }
+  @media (max-width:540px) { .fcols { grid-template-columns:1fr; } }
+</style>
+<!-- generated head — scripts/gen-site-pages.mts -->
+<link rel="alternate" type="text/markdown" href="https://longbook.app/terms.md">
+<!-- /generated head -->
+<script defer src="/analytics.js"></script>
+</head>
+<body class="legal"><!--email_off-->
+<!-- chrome:header — generated by scripts/gen-site-pages.mts -->
+<div class="top">
+  <div class="top-in">
+    <img class="mk" src="/mark-52.png" alt="">
+    <a class="wm" href="/">longbook</a>
+    <nav>
+      <a class="nl" href="/features/">Features</a>
+      <a class="nl" href="/automations/">Automations</a>
+      <a class="nl" href="/faq">FAQ</a>
+      <a class="nl" href="/#price">Pricing</a>
+      <button class="thm" type="button" aria-label="Switch between light and dark">
+        <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M18.8 5.2l-1.6 1.6M6.8 17.2l-1.6 1.6"/></svg>
+        <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.4 14.2A8.6 8.6 0 0 1 9.8 3.6a8.6 8.6 0 1 0 10.6 10.6z"/></svg>
+      </button>
+      <div class="dl">
+        <button class="btn sm dlb" type="button" aria-haspopup="menu" aria-expanded="false">Download
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="width:12px;height:12px"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="dlm" role="menu" hidden>
+          <a role="menuitem" href="https://testflight.apple.com/join/g66Nd3Na" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.05 12.04c-.02-2.2 1.8-3.26 1.88-3.31-1.02-1.5-2.61-1.7-3.18-1.72-1.35-.14-2.64.8-3.33.8-.69 0-1.75-.78-2.87-.76-1.48.02-2.84.86-3.6 2.18-1.53 2.66-.39 6.6 1.1 8.76.73 1.06 1.6 2.25 2.74 2.2 1.1-.04 1.51-.71 2.84-.71 1.33 0 1.7.71 2.86.69 1.18-.02 1.93-1.08 2.65-2.14.83-1.23 1.18-2.42 1.2-2.48-.03-.01-2.3-.88-2.32-3.5zM14.9 5.5c.6-.74 1.01-1.76.9-2.78-.87.04-1.93.58-2.56 1.31-.56.65-1.05 1.69-.92 2.68.97.08 1.96-.49 2.58-1.21z"/></svg> Download for Mac</a>
+          <a role="menuitem" href="https://testflight.apple.com/join/g66Nd3Na" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.05 12.04c-.02-2.2 1.8-3.26 1.88-3.31-1.02-1.5-2.61-1.7-3.18-1.72-1.35-.14-2.64.8-3.33.8-.69 0-1.75-.78-2.87-.76-1.48.02-2.84.86-3.6 2.18-1.53 2.66-.39 6.6 1.1 8.76.73 1.06 1.6 2.25 2.74 2.2 1.1-.04 1.51-.71 2.84-.71 1.33 0 1.7.71 2.86.69 1.18-.02 1.93-1.08 2.65-2.14.83-1.23 1.18-2.42 1.2-2.48-.03-.01-2.3-.88-2.32-3.5zM14.9 5.5c.6-.74 1.01-1.76.9-2.78-.87.04-1.93.58-2.56 1.31-.56.65-1.05 1.69-.92 2.68.97.08 1.96-.49 2.58-1.21z"/></svg> Download for iPhone</a>
+        </div>
+      </div>
+      <button class="burger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="bmenu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </nav>
+  </div>
+  <div class="bmenu" id="bmenu" hidden><a href="/features/">Features</a><a href="/automations/">Automations</a><a href="/faq">FAQ</a><a href="/#price">Pricing</a></div>
+</div>
+<style>
+  .burger { display:none; place-items:center; width:36px; height:36px; padding:0; border:1px solid var(--lb-hairline); border-radius:50%; background:var(--lb-card); color:var(--lb-text-secondary); cursor:pointer; }
+  .burger:hover { color:var(--lb-brand-text); border-color:var(--lb-brand); }
+  .burger svg { width:18px; height:18px; }
+  .bmenu { position:absolute; left:0; right:0; top:100%; display:none; flex-direction:column; padding:var(--lb-space-s2) var(--lb-space-s4) var(--lb-space-s4); background:var(--lb-canvas); border-bottom:1px solid var(--lb-hairline); box-shadow:var(--sh-2, 0 8px 24px rgba(0,0,0,.2)); }
+  .bmenu:not([hidden]) { display:flex; }
+  .bmenu a { padding:14px 4px; color:var(--lb-text-primary); text-decoration:none; font-size:var(--lb-type-body-size); font-weight:560; border-bottom:1px solid var(--lb-hairline); }
+  .bmenu a:last-child { border-bottom:0; }
+  .bmenu a:hover { color:var(--lb-brand-text); }
+  @media (max-width:680px) { .top nav > a:not(.btn), .top nav a.nl { display:none; } .burger { display:grid; } }
+  @media (min-width:681px) { .bmenu { display:none !important; } }
+  @media (max-width:380px) { .top-in { padding:0 var(--lb-space-s3); gap:var(--lb-space-s2); } .top nav { gap:var(--lb-space-s2); } .top nav .btn.sm.dlb { padding:0 var(--lb-space-s3); } }
+</style>
+<script>
+(function () {
+  var b = document.querySelector('.burger'), m = document.getElementById('bmenu'); if (!b || !m) return;
+  function set(o) { m.hidden = !o; b.setAttribute('aria-expanded', o ? 'true' : 'false'); }
+  b.addEventListener('click', function (e) { e.stopPropagation(); set(m.hidden); });
+  m.addEventListener('click', function (e) { if (e.target.tagName === 'A') set(false); });
+  document.addEventListener('click', function (e) { if (!m.hidden && !m.contains(e.target)) set(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') set(false); });
+})();
+</script>
+<!-- /chrome:header -->
+<div class="wrap">
+<h1>Terms of Service</h1>
+<p class="intro">These Terms form a binding agreement between you and longbook. They should be read together with the <a href="/privacy-policy">Privacy Policy</a>. Section&nbsp;2 defines the capitalised terms used throughout.</p>
+<div class="toc"><p>CONTENTS</p><ol><li><a href="#agreement">Agreement to these Terms</a></li><li><a href="#definitions">Definitions</a></li><li><a href="#licence">Licence</a></li><li><a href="#cloud">Cloud subscription</a></li><li><a href="#trial">Buying before use</a></li><li><a href="#fees">Fees, taxes and payment</a></li><li><a href="#refunds">Refunds</a></li><li><a href="#updates">Updates and versions</a></li><li><a href="#account">Accounts</a></li><li><a href="#data">Your data and the Hosted Services</a></li><li><a href="#use">Acceptable use</a></li><li><a href="#third-party">Third-party services</a></li><li><a href="#source">Source code and open-source licences</a></li><li><a href="#ip">Intellectual property</a></li><li><a href="#advice">No professional advice</a></li><li><a href="#warranty">Disclaimer of warranties</a></li><li><a href="#liability">Limitation of liability</a></li><li><a href="#indemnity">Indemnity</a></li><li><a href="#termination">Term and termination</a></li><li><a href="#changes">Changes to these Terms</a></li><li><a href="#law">Governing law and disputes</a></li><li><a href="#general">General</a></li><li><a href="#operator">The operator, notices and contact</a></li></ol></div>
+<section id="agreement"><h2>Agreement to these Terms</h2><div class="cl"><div><p>These Terms of Service ("<dfn>Terms</dfn>") govern access to and use of the longbook website at longbook.app, the longbook application for macOS, the longbook application for iOS, and the hosted services described in section&nbsp;10 (together, the "<dfn>Service</dfn>").</p></div></div><div class="cl"><div><p>The Service is operated by the person identified in section&nbsp;23 ("<dfn>longbook</dfn>", "<dfn>we</dfn>", "<dfn>us</dfn>"). "<dfn>You</dfn>" means the individual or entity using the Service.</p></div></div><div class="cl"><div><p>Downloading, installing or using the Service constitutes acceptance of these Terms. A person who does not accept them should not use the Service.</p></div></div><div class="cl"><div><p>These Terms incorporate the <a href="/privacy-policy">Privacy Policy</a> by reference.</p></div></div></section><section id="definitions"><h2>Definitions</h2><div class="cl"><div><p>"<dfn>Application</dfn>" means the longbook application for macOS or for iOS.</p></div></div><div class="cl"><div><p>"<dfn>Licence</dfn>" means the one-time paid licence described in section&nbsp;3.</p></div></div><div class="cl"><div><p>"<dfn>Cloud</dfn>" means the longbook Cloud subscription described in section&nbsp;4.</p></div></div><div class="cl"><div><p>"<dfn>Account</dfn>" means the longbook account created with an email address.</p></div></div><div class="cl"><div><p>"<dfn>Memory File</dfn>" means the structured data file the Application stores on your device and in your own iCloud Drive.</p></div></div><div class="cl"><div><p>"<dfn>Hosted Services</dfn>" means the optional server-side features described in section&nbsp;10: the hosted copy used by the longbook MCP server, the access keys that admit an AI to it, statement reading, and shared reports.</p></div></div></section><section id="licence"><h2>Licence</h2><div class="cl"><div><p>Subject to these Terms, we grant you a personal, non-exclusive, non-transferable and revocable licence to install and use the Application on devices you own or control.</p></div></div><div class="cl"><div><p>The Licence is issued to one individual and covers both the macOS Application and the iOS Application.</p></div></div><div class="cl"><div><p>The Licence fee is USD&nbsp;38 in the United States App Store, or the price the App Store shows in your own storefront, payable once. It is not a subscription and does not renew. It does not include Cloud, which is purchased separately under section&nbsp;4.</p></div></div><div class="cl"><div><p>The Licence may not be sold, rented, sublicensed, transferred or shared, and Account credentials may not be shared.</p></div></div><div class="cl"><div><p>All rights not expressly granted in these Terms are reserved.</p></div></div></section><section id="cloud"><h2>Cloud subscription</h2><div class="cl"><div><p>longbook Cloud ("<dfn>Cloud</dfn>") is an auto-renewing subscription that covers every feature of the Service that uses our servers: the hosted copy used by the longbook MCP server and the access keys that admit an AI to it, a larger monthly share of statement reading, and the creation of shared reports. A smaller monthly share of statement reading is included with every Account. Viewing and commenting on a report shared with you require no subscription.</p></div></div><div class="cl"><div><p>The Cloud fee is USD&nbsp;4 a month in the United States App Store, or the price the App Store shows in your own storefront. Cloud is purchased inside the Application and the purchase is processed by Apple through the App Store, under Apple&rsquo;s own terms. The website does not sell Cloud.</p></div></div><div class="cl"><div><p>Payment is charged to your Apple ID account at confirmation of purchase. Cloud renews automatically each month, and the account is charged for the renewal within twenty-four (24) hours before the end of the current period, unless it is cancelled at least twenty-four (24) hours before that period ends. Cloud is managed and cancelled in the subscription settings of your Apple ID. Deleting the Application does not cancel it.</p></div></div><div class="cl"><div><p>A Licence includes Cloud for twelve (12) months from the date of purchase, without charge, for the purchaser&rsquo;s Account and for the Account of each family member who receives the Licence through Apple Family Sharing. This inclusion is longbook&rsquo;s own and not an Apple introductory offer, and subscribing during the twelve months does not extend them. If the Licence is refunded or revoked, the included Cloud ends with it, for the purchaser and for every family member.</p><p>Cloud supports Apple Family Sharing. A Cloud subscription may be shared with the members of the subscriber&rsquo;s Family Sharing group, each using Cloud on their own Account. A member&rsquo;s access ends when the subscription lapses, when sharing is turned off, or when the member leaves the group.</p></div></div><div class="cl"><div><p>Refunds of Cloud fees are handled by Apple under Apple&rsquo;s terms, as section&nbsp;7 states. Cancelling Cloud stops the next renewal; it does not refund the current period, except where Apple&rsquo;s terms or the law provide otherwise.</p></div></div><div class="cl"><div><p>When Cloud lapses &mdash; on expiry, cancellation, refund, revocation or a failed renewal &mdash; the features it covers stop: the hosted copy is no longer served to any AI, new access keys cannot be made, statement reading returns to the share included with every Account, and new shared reports cannot be created. The Application, the Memory File and the Licence are unaffected. The hosted copy is kept for thirty (30) days after the lapse and is deleted if Cloud is not resumed within that time. Reports already shared remain available until their links expire or you revoke them.</p></div></div><div class="cl"><div><p>We may grant Cloud to an Account without charge for a period we state. Such a grant confers no right to renewal.</p></div></div><div class="cl"><div><p>The Cloud fee may change. A changed fee applies from the first renewal after Apple has notified you of it, in the manner and subject to any consent that Apple&rsquo;s terms require.</p></div></div></section><section id="trial"><h2>Buying before use</h2><div class="cl"><div><p>There is no free trial. The Application is used with a Licence, bought inside the Application before first use; an Account without one is shown the purchase screen. A demonstration with sample data can be viewed without a Licence.</p></div></div><div class="cl"><div><p>If a Licence is refunded or revoked, the Application continues to display and export data already recorded. Adding new commitments requires a Licence again, and the Hosted Services require Cloud.</p></div></div></section><section id="fees"><h2>Fees, taxes and payment</h2><div class="cl"><div><p>A Licence and Cloud are purchased inside the Application, on macOS and on iOS alike, and each purchase is processed by Apple through the App Store, under Apple&rsquo;s own terms. The website sells neither.</p></div></div><div class="cl"><div><p>Apple, as the seller of the transaction, calculates, collects and remits applicable sales tax, VAT and GST. The App Store shows the price in your own currency, with the taxes that apply to you.</p></div></div><div class="cl"><div><p>We do not receive or store payment card details.</p></div></div></section><section id="refunds"><h2>Refunds</h2><div class="cl"><div><p><strong>You may request a refund of a Licence fee within seven (7) days of purchase, for any reason, and longbook supports that request.</strong> A Licence bought through the App Store is refunded by Apple: the request is made to Apple, from the Account screen of the Application or through Apple&rsquo;s own refund page, and Apple decides it under Apple&rsquo;s terms. When a refund is made, the Licence, and the Cloud it includes, end.</p></div></div><div class="cl"><div><p>After those seven (7) days, <strong>Licence fees are non-refundable, and Cloud fees are non-refundable, except where Apple&rsquo;s terms or the law provide otherwise</strong>.</p></div></div><div class="cl"><div><p>Clause&nbsp;7.1 does not limit any statutory right to a refund that cannot be waived under the law applying to you.</p></div></div><div class="cl"><div><p>A billing error on an App Store purchase — a duplicate charge, an incorrect amount — is corrected by Apple, which took the payment. For anything Apple cannot resolve, write to <a href="mailto:contact@longbook.app">contact@longbook.app</a>.</p></div></div></section><section id="updates"><h2>Updates and versions</h2><div class="cl"><div><p>A Licence includes every update released for the Application, future major versions included, at no further charge.</p></div></div><div class="cl"><div><p>Features may be added, changed or withdrawn. Where a change materially reduces functionality, it is recorded in the notes published with that version.</p></div></div></section><section id="account"><h2>Accounts</h2><div class="cl"><div><p>An Account is created with an email address and carries the Licence, the status of Cloud, the AI connections and access keys authorised by you, and the report links you have shared.</p></div></div><div class="cl"><div><p>You are responsible for maintaining access to the email address associated with the Account and for activity carried out under it.</p></div></div><div class="cl"><div><p>An Account may be closed at any time from Account details in the Application, or by written request to <a href="mailto:contact@longbook.app">contact@longbook.app</a>. Closing the Account does not cancel Cloud: cancel it in the subscription settings of your Apple ID first, or it renews.</p></div></div></section><section id="data"><h2>Your data and the Hosted Services</h2><div class="cl"><div><p>The Memory File is stored on your device and in your own iCloud Drive. We have no access to it.</p></div></div><div class="cl"><div><p>Two optional features place a copy of data on our servers, and each is enabled by you: (a) the hosted copy used by the longbook MCP server, so an authorised AI can read your records while you are away from your Mac and propose changes that your Application applies; and (b) shared reports, published behind a password longbook generates.</p></div></div><div class="cl"><div><p>The Hosted Services require Cloud, as section&nbsp;4 states, which a Licence includes for its first twelve months. A report shared with you can be viewed and commented on without it.</p></div></div><div class="cl"><div><p>Disabling the MCP server, or revoking a shared report, deletes the corresponding copy at once; an expired shared report is deleted within a day. A hosted copy whose Account has been without Cloud for thirty (30) days is deleted, as clause&nbsp;4.6 states.</p></div></div><div class="cl"><div><p>Importing a statement sends that file through our server to a model provider named in the Privacy Policy for the time it takes to read it; nothing of it is retained by us.</p></div></div><div class="cl"><div><p>You retain all rights in your data. You grant us only the limited rights necessary to store, transmit and display it for the features you have enabled.</p></div></div><div class="cl"><div><p>The handling of personal data is described in the <a href="/privacy-policy">Privacy Policy</a>.</p></div></div></section><section id="use"><h2>Acceptable use</h2><div class="cl"><div><p>You agree not to: (a) use the Service in breach of any law; (b) resell the Hosted Services or provide them to third parties; (c) exceed published rate limits or circumvent technical controls; (d) probe, scan, or interfere with the Service or its infrastructure; or (e) store content you have no right to store.</p></div></div><div class="cl"><div><p>The Hosted Services are subject to fair-use rate limits.</p></div></div><div class="cl"><div><p>Access may be suspended where suspension is necessary to protect the Service, its users, or to comply with law.</p></div></div></section><section id="third-party"><h2>Third-party services</h2><div class="cl"><div><p>The Service interoperates with products operated by others, including Apple iCloud and the AI assistants you choose to connect.</p></div></div><div class="cl"><div><p>Those products are governed by their own terms. We are not responsible for their availability, their content, or changes made to them.</p></div></div><div class="cl"><div><p>Product names and marks shown on the website identify those products. Their use implies no affiliation with, sponsorship by, or endorsement from their owners.</p></div></div></section><section id="source"><h2>Source code and open-source licences</h2><div class="cl"><div><p>The longbook source code is licensed under the GNU General Public License, version&nbsp;3 ("<dfn>GPL-3.0</dfn>"). In respect of that source code, the GPL-3.0 prevails over these Terms to the extent of any conflict.</p></div></div><div class="cl"><div><p>The GPL-3.0 licence does not extend to the longbook name, the longbook logo, or the compiled binaries distributed by us.</p></div></div><div class="cl"><div><p>The source code is published at <a href="https://github.com/MXmaster2s/longbook-code">github.com/MXmaster2s/longbook-code</a>; <a href="/source">longbook.app/source</a> describes how to contribute.</p></div></div></section><section id="ip"><h2>Intellectual property</h2><div class="cl"><div><p>Except for your data and the source code covered by section&nbsp;13, the Service and its contents are owned by us and protected by copyright and other laws.</p></div></div><div class="cl"><div><p>"longbook" and the longbook logo are our trademarks. These Terms grant no right to use them.</p></div></div><div class="cl"><div><p>Suggestions and feedback sent to us may be used without restriction and without obligation to you.</p></div></div></section><section id="advice"><h2>No professional advice</h2><div class="cl"><div><p>longbook records financial commitments and produces reports from the records it is given.</p></div></div><div class="cl"><div><p>The Service does not provide financial, investment, tax, accounting or legal advice. Decisions taken on the basis of information held in the Service are yours alone.</p></div></div></section><section id="warranty"><h2>Disclaimer of warranties</h2><div class="cl"><div><p><span class="caps">The service is provided "as is" and "as available", without warranty of any kind, whether express, implied or statutory, including the implied warranties of merchantability, fitness for a particular purpose, and non-infringement.</span></p></div></div><div class="cl"><div><p>We do not warrant that the Service will be uninterrupted or error-free, or that data will be preserved without loss. Maintaining your own backups remains your responsibility.</p></div></div><div class="cl"><div><p>Some jurisdictions do not allow the exclusion of implied warranties. In those jurisdictions the exclusions in this section apply to the maximum extent permitted.</p></div></div></section><section id="liability"><h2>Limitation of liability</h2><div class="cl"><div><p><span class="caps">To the fullest extent permitted by law, we shall not be liable for any indirect, incidental, special, consequential or exemplary damages, or for any loss of profits, revenue, data or goodwill.</span></p></div></div><div class="cl"><div><p><span class="caps">Our total aggregate liability arising out of or relating to the Service is limited to the amounts paid by you for the Licence and for Cloud in the twelve months preceding the event giving rise to the claim.</span></p></div></div><div class="cl"><div><p>Nothing in these Terms excludes or limits liability that cannot be excluded or limited by law, including liability for death or personal injury caused by negligence, or for fraud.</p></div></div></section><section id="indemnity"><h2>Indemnity</h2><div class="cl"><div><p>You agree to indemnify and hold us harmless against claims, losses and reasonable costs arising from your breach of these Terms or your unlawful use of the Service.</p></div></div></section><section id="termination"><h2>Term and termination</h2><div class="cl"><div><p>These Terms apply for as long as you use the Service.</p></div></div><div class="cl"><div><p>The Licence, Cloud and the Account may be suspended or terminated for material breach of these Terms, with notice where practicable and an opportunity to remedy where the breach is capable of remedy.</p></div></div><div class="cl"><div><p>On termination the Memory File remains yours, in your own storage. Hosted copies are deleted. Termination does not cancel Cloud with Apple: cancel it in the subscription settings of your Apple ID, or it renews.</p></div></div><div class="cl"><div><p>Sections&nbsp;13, 14, 16, 17, 18, 21 and 22 survive termination.</p></div></div></section><section id="changes"><h2>Changes to these Terms</h2><div class="cl"><div><p>These Terms may be amended. The current version and its effective date are published on this page.</p></div></div><div class="cl"><div><p>Material changes may be notified by email or in the Application.</p></div></div><div class="cl"><div><p>Continued use of the Service after the effective date constitutes acceptance of the amended Terms.</p></div></div></section><section id="law"><h2>Governing law and disputes</h2><div class="cl"><div><p>These Terms are governed by the laws of India, without regard to conflict-of-laws rules.</p></div></div><div class="cl"><div><p>The competent courts in India have exclusive jurisdiction over disputes arising out of or in connection with these Terms, subject to clause&nbsp;21.3.</p></div></div><div class="cl"><div><p>A consumer resident in the European Union or the United Kingdom retains the protection of the mandatory provisions of the law of their country of residence and may bring proceedings in the courts of that country.</p></div></div><div class="cl"><div><p>Before commencing proceedings, please write to <a href="mailto:contact@longbook.app">contact@longbook.app</a>. Most matters are resolved that way.</p></div></div></section><section id="general"><h2>General</h2><div class="cl"><div><p>If a provision of these Terms is held unenforceable, the remaining provisions continue in full effect.</p></div></div><div class="cl"><div><p>A failure to enforce a provision is not a waiver of it.</p></div></div><div class="cl"><div><p>You may not assign these Terms. We may assign them as part of a transfer of the business, on notice.</p></div></div><div class="cl"><div><p>These Terms and the Privacy Policy constitute the entire agreement between you and us in relation to the Service and supersede prior understandings.</p></div></div><div class="cl"><div><p>Nothing in these Terms creates a partnership, agency or employment relationship.</p></div></div></section><section id="operator"><h2>The operator, notices and contact</h2><div class="cl"><div><p>The Service is operated by <strong>Rohit Kundliwal</strong>, sole proprietor, established in India.</p></div></div><div class="cl"><div><p>Notices under these Terms are sent to <a href="mailto:contact@longbook.app">contact@longbook.app</a> and, to you, at the email address on your Account.</p></div></div><div class="cl"><div><p>A postal address for the service of legal notices is provided on written request to that address.</p></div></div><div class="cl"><div><p>These Terms take effect on 23&nbsp;October&nbsp;2026 and replace any earlier version. They differ from the version of 19&nbsp;October&nbsp;2026 in publishing the source code openly instead of granting repository access on request (section&nbsp;13). The version of 19&nbsp;October&nbsp;2026 differed from the version of 13&nbsp;October&nbsp;2026 in requiring a Licence before use, with a refund window of seven days in place of a trial (section&nbsp;5); in including twelve months of Cloud with a Licence, also for family members who receive it through Family Sharing; and in extending Cloud to Family Sharing (section&nbsp;4). The version of 13&nbsp;October&nbsp;2026 differed from the version of 6&nbsp;October&nbsp;2026 in including a monthly share of statement reading with every Account, with a larger share under Cloud. The version of 6&nbsp;October&nbsp;2026 differed from the version of 23&nbsp;September&nbsp;2026 in adding section&nbsp;4, the Cloud subscription, with consequential changes to sections&nbsp;2, 3, 5, 6, 7, 9, 10, 17 and 19 and to the cross-references.</p></div></div></section>
+<a class="backtop" href="#top">Back to the top</a>
+</div>
+<!-- chrome:footer — generated by scripts/gen-site-pages.mts -->
+<footer>
+  <div class="wrap">
+    <div class="fcols">
+      <div class="fbrand">
+        <div style="display:flex;align-items:center;gap:9px"><img class="mk" src="/mark-52.png" alt=""><span class="wm">longbook</span></div>
+        <p>A memory for your financial commitments.</p>
+        <div class="fsoc">
+          <a href="https://x.com/rohthebuilder" rel="noopener" aria-label="@rohthebuilder on X"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg></a>
+          <a href="https://discord.gg/28Dtvbx23q" rel="noopener" aria-label="Community Discord"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.865-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.058a.082.082 0 0 0 .031.056 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.1 13.1 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.291a.074.074 0 0 1 .078-.011c3.928 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .079.01c.12.099.245.198.372.292a.077.077 0 0 1-.006.128c-.598.349-1.22.65-1.873.891a.077.077 0 0 0-.04.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.029 19.84 19.84 0 0 0 6.002-3.03.077.077 0 0 0 .032-.055c.5-5.177-.838-9.674-3.549-13.66a.06.06 0 0 0-.031-.029ZM8.02 15.331c-1.183 0-2.157-1.086-2.157-2.419s.955-2.419 2.157-2.419c1.21 0 2.176 1.095 2.157 2.419 0 1.333-.956 2.419-2.157 2.419Zm7.975 0c-1.183 0-2.157-1.086-2.157-2.419s.955-2.419 2.157-2.419c1.21 0 2.176 1.095 2.157 2.419 0 1.333-.946 2.419-2.157 2.419Z"/></svg></a>
+          <a href="/github" rel="noopener" aria-label="Source on GitHub"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23a11.5 11.5 0 0 1 3-.405c1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a>
+          <a class="copymail" href="mailto:contact@longbook.app" data-email="contact@longbook.app" aria-label="Copy contact@longbook.app"><span class="tip">contact@longbook.app</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M3 7l9 6.5L21 7"/></svg></a>
+        </div>
+      </div>
+      <div>
+        <h4>PRODUCT</h4>
+        <a href="https://testflight.apple.com/join/g66Nd3Na" rel="noopener">Download for Mac</a>
+        <a href="https://testflight.apple.com/join/g66Nd3Na" rel="noopener">Download for iPhone</a>
+        <a href="/features/">Features</a>
+        <a href="/#price">Pricing</a>
+      </div>
+      <div>
+        <h4>LEARN</h4>
+        <a href="/faq">FAQ</a>
+        <a href="/automations/">Automations</a>
+        <a href="/blog/">Blog</a>
+        <a href="/reviews/">Reviews</a>
+        <a href="/features/upcoming-features/">Upcoming features</a>
+        <a href="/media-kit">Media kit</a>
+      </div>
+      <div>
+        <h4>SUPPORT</h4>
+        <a href="/contact">Contact</a>
+        <a href="https://discord.gg/28Dtvbx23q" rel="noopener">Community Discord</a>
+        <a href="https://insigh.to/b/longbook" rel="noopener">Suggest a feature</a>
+        <a href="/source">Work on the source</a>
+      </div>
+      <div>
+        <h4>LEGAL</h4>
+        <a href="/privacy-policy">Privacy Policy</a>
+        <a href="/terms">Terms of Service</a>
+      </div>
+    </div>
+    <p style="margin:var(--lb-space-s8) 0 0;max-width:72ch;color:var(--lb-text-tertiary);font-size:var(--lb-type-footnote-size)">All third-party logos are trademarks of their respective companies.</p>
+    <div class="fbase">
+      <span>© 2026 longbook</span>
+    </div>
+  </div>
+</footer>
+<!-- /chrome:footer -->
+<script>
+  // The email mark copies the address. Clipboard access can be refused, so the plain
+  // mailto in the href is left to fire when it is — the button is never a dead end.
+  (function () {
+    var btn = document.querySelector('.fsoc .copymail');
+    if (!btn) return;
+    var tip = btn.querySelector('.tip');
+    var addr = btn.getAttribute('data-email');
+    var timer;
+    btn.addEventListener('click', function (e) {
+      var done = function (ok) {
+        if (!ok) return;
+        e.preventDefault();
+        tip.textContent = 'Copied';
+        btn.classList.add('done');
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+          btn.classList.remove('done');
+          tip.textContent = addr;
+        }, 1600);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        e.preventDefault();
+        navigator.clipboard.writeText(addr).then(function () { done(true); }, function () { done(legacy()); });
+        return;
+      }
+      done(legacy());
+    });
+    function legacy() {
+      var t = document.createElement('textarea');
+      t.value = addr;
+      t.setAttribute('readonly', '');
+      t.style.position = 'fixed';
+      t.style.top = '-1000px';
+      document.body.appendChild(t);
+      t.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+      t.parentNode.removeChild(t);
+      return ok;
+    }
+  })();
+
+
+  // Appearance: dark is the default, the toggle flips it, and the choice is kept on this browser.
+  (function () {
+    var KEY = 'lb-appearance';
+    var root = document.documentElement;
+    var btn = document.querySelector('.thm');
+    if (btn) btn.addEventListener('click', function () {
+      var next = root.getAttribute('data-appearance') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-appearance', next);
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  })();
+  (function () {
+    var dl = document.querySelector('.dl'); if (!dl) return;
+    var btn = dl.querySelector('.dlb'), menu = dl.querySelector('.dlm');
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var open = !menu.hidden;
+      menu.hidden = open;
+      btn.setAttribute('aria-expanded', String(!open));
+    });
+    document.addEventListener('click', function () { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); });
+  })();
+</script>
+<!--/email_off--></body>
+</html>

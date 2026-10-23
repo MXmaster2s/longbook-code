@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "id": "august-2026",
+  "title": "August in review",
+  "subtitle": "Drawn by longbook",
+  "period": "2026-08",
+  "created_at": "2026-08-20",
+  "currency": "INR",
+  "modules": [
+    {
+      "type": "stats",
+      "title": "Total expenses",
+      "stats": [
+        { "label": "Total for August", "amount": 46528, "currency": "INR", "delta_pct": 8.4, "delta_is_good": false },
+        { "label": "Charges", "value": "4" },
+        { "label": "Money in", "amount": 180000, "currency": "INR" }
+      ]
+    },
+    {
+      "type": "donut",
+      "title": "Accounts",
+      "currency": "INR",
+      "slices": [
+        { "label": "HDFC savings", "amount": 42000, "currency": "INR" },
+        { "label": "No account", "amount": 2428, "currency": "INR" },
+        { "label": "Amex 1007", "amount": 2100, "currency": "INR" }
+      ]
+    },
+    {
+      "type": "donut",
+      "title": "Categories",
+      "comment": "The rent is the whole of it.",
+      "currency": "INR",
+      "slices": [
+        { "label": "rent", "amount": 42000, "currency": "INR" },
+        { "label": "No category", "amount": 2428, "currency": "INR" },
+        { "label": "streaming", "amount": 2100, "currency": "INR" }
+      ]
+    },
+    {
+      "type": "transactions",
+      "title": "All charges",
+      "rows": [
+        { "name": "House rent", "date": "2026-08-01", "amount": 42000, "currency": "INR", "category": "rent" },
+        { "name": "Corner shop", "date": "2026-08-12", "amount": 2428, "currency": "INR" },
+        { "name": "Netflix", "date": "2026-08-30", "amount": 2100, "currency": "INR", "category": "streaming" },
+        { "name": "Claude", "date": "2026-08-05", "amount": 20, "currency": "USD", "category": "ai subscription" }
+      ]
+    },
+    {
+      "type": "donut",
+      "title": "Where it went",
+      "currency": "INR",
+      "slices": [
+        { "label": "home and bills", "amount": 44428, "currency": "INR" },
+        { "label": "everything else", "amount": 2100, "currency": "INR" },
+        { "label": "ai subscription", "amount": 20, "currency": "USD" }
+      ]
+    },
+    { "type": "prose", "text": "Spending held steady; the yearly insurances land in March." },
+    {
+      "type": "bars",
+      "title": "Monthly spend",
+      "currency": "INR",
+      "bars": [
+        { "label": "Jun", "amount": 44100 },
+        { "label": "Jul", "amount": 45900 },
+        { "label": "Aug", "amount": 46528 }
+      ]
+    }
+  ]
+}
