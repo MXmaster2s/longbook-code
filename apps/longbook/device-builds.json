@@ -79,6 +79,7 @@
   "51": {
     "version": "1.4.1",
     "commit": "51b448c68b",
-    "installed": "2026-10-23"
+    "installed": "2026-10-23",
+    "testflight": "2026-10-23"
   }
 }
