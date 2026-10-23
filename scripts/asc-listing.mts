@@ -120,7 +120,7 @@ const ABOUT = `longbook is a private memory for recurring payments: subscription
 const REVIEW = {
   contactFirstName: 'Rohit', contactLastName: 'Kundliwal', contactEmail: 'contact@longbook.app',
   demoAccountRequired: true,
-  notes: `A step-by-step PDF with a real screenshot of every step below is attached.
+  notes: `The attached PDF pictures every screen of this walk; with the demo account the purchase screen (its last pages) comes straight after sign-in.
 
 ${ABOUT}
 
@@ -153,7 +153,7 @@ Questions: contact@longbook.app`,
 // The Mac reviewer's walk: the same account and purchases, in the Mac's places.
 const MAC_REVIEW = {
   ...REVIEW,
-  notes: `A step-by-step PDF with a screen of every step below is attached.
+  notes: `The attached PDF pictures every screen; its step 12, the purchase screen, now comes right after sign-in.
 
 ${ABOUT}
 
@@ -314,7 +314,10 @@ if (info) {
 
 const versions = (await call(`/v1/apps/${app.id}/appStoreVersions?fields[appStoreVersions]=platform,versionString,appStoreState&limit=10`)).data ?? []
 for (const platform of ONLY ? [ONLY] : ['IOS', 'MAC_OS']) {
-  let version = versions.find((v: any) => v.attributes.platform === platform && v.attributes.appStoreState === 'PREPARE_FOR_SUBMISSION')
+  // A version Apple sent back is edited in place, as a fresh one is: a new version beside it
+  // would leave the rejected one waiting.
+  const editable = ['PREPARE_FOR_SUBMISSION', 'DEVELOPER_REJECTED', 'REJECTED', 'METADATA_REJECTED', 'INVALID_BINARY']
+  let version = versions.find((v: any) => v.attributes.platform === platform && editable.includes(v.attributes.appStoreState))
   // A version in review is locked; a second one would stand beside it, unasked.
   const reviewing = versions.find((v: any) => v.attributes.platform === platform && ['WAITING_FOR_REVIEW', 'IN_REVIEW'].includes(v.attributes.appStoreState))
   if (!version && reviewing) {
