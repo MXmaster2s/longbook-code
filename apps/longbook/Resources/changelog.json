@@ -1,6 +1,14 @@
 [
   {
     "version": "1.4.1",
+    "build": 51,
+    "date": "2026-10-23",
+    "changes": [
+      "On the Mac, every sheet and Sign in with Apple open in the middle of the window."
+    ]
+  },
+  {
+    "version": "1.4.1",
     "build": 50,
     "date": "2026-10-22",
     "changes": [
