@@ -8,6 +8,7 @@ import { join } from 'node:path'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { PROMPTS, toISO, todayMid } from '@longbook/core'
+import { TOOLS } from '../src/catalog.js'
 import { WRITE_TOOLS, checkProposal } from '../src/proposal.js'
 import { MCP_PROMPTS, mcpPromptMessage } from '../src/prompts.js'
 import { buildServer } from '../src/server.js'
@@ -223,6 +224,17 @@ test('the write tools carry honest annotations: writers, only cancel destructive
   assert.deepEqual(cancel?.annotations, {
     title: 'Cancel a commitment', readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false,
   })
+})
+
+test('every tool lists the fields the hosted door lists, so a client can send them', async () => {
+  const listed = (await (await connected()).listTools()).tools
+  const fields = (schema: unknown) => Object.keys((schema as { properties?: object }).properties ?? {})
+  for (const spec of [...TOOLS, ...WRITE_TOOLS]) {
+    const tool = listed.find((t) => t.name === spec.name)
+    if (!tool) continue
+    const missing = fields(spec.inputSchema).filter((f) => f !== 'idempotency_key' && !fields(tool.inputSchema).includes(f))
+    assert.deepEqual(missing, [], spec.name)
+  }
 })
 
 test('every tool on this door names itself in annotations.title, as the directory reads it', async () => {
