@@ -153,7 +153,7 @@ Questions: contact@longbook.app`,
 // The Mac reviewer's walk: the same account and purchases, in the Mac's places.
 const MAC_REVIEW = {
   ...REVIEW,
-  notes: `The attached PDF pictures every screen of this walk; with the demo account the purchase screen (its step 12) comes straight after sign-in.
+  notes: `The attached PDF pictures every screen; its step 12, the purchase screen, now comes right after sign-in.
 
 ${ABOUT}
 
