@@ -124,7 +124,7 @@ the steps are always the server's current ones.
 
 The plugin runs no code on your machine and sends nothing anywhere else. Privacy:
 https://longbook.app/privacy-policy/. Generated from the longbook prompt catalogue (contract
-revision 43).
+revision 44).
 
 ## More about longbook
 

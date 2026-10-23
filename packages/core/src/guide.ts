@@ -71,3 +71,39 @@ export function guideSection(llms: string, query: string): GuideSection | null {
     null
   )
 }
+
+/** FNV-1a over the words, in base 36: short, the same on every door, and gone when a word changes. */
+function wordsHash(text: string): string {
+  let h = 0x811c9dc5
+  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 0x01000193)
+  return (h >>> 0).toString(36)
+}
+
+/**
+ * The key read_guide hands out with a chapter or a prompt, "importing-statements:44:1x9k2a":
+ * what was read, the rulebook it was read in, and a hash of its words. A write passes it
+ * back, so a write that skipped the guide can be told which chapter to read.
+ */
+export function guideKey(id: string, revision: number | null, words: string): string {
+  return `${id}:${revision ?? 0}:${wordsHash(words)}`
+}
+
+/** A prompt's key: its procedure is what the owner's AI reads, from read_guide or the prompt itself. */
+export function promptGuideKey(prompt: { id: string; procedure: string[] }, revision: number | null): string {
+  return guideKey(prompt.id, revision, prompt.procedure.join('\n'))
+}
+
+/** The whole guide read at once counts for every chapter. */
+export const WHOLE_GUIDE = 'guide'
+
+/**
+ * Every key this guide hands out, to the chapter each one counts for: a chapter's own, a
+ * prompt's chapter (or the prompt itself when it builds on none), and the whole guide's.
+ */
+export function guideKeys(llms: string): Map<string, string> {
+  const revision = contractRevisionOf(llms)
+  const keys = new Map<string, string>([[guideKey(WHOLE_GUIDE, revision, llms), WHOLE_GUIDE]])
+  for (const s of guideSections(llms)) keys.set(guideKey(s.id, revision, s.text), s.id)
+  for (const p of PROMPTS) keys.set(promptGuideKey(p, revision), p.chapter ?? p.id)
+  return keys
+}

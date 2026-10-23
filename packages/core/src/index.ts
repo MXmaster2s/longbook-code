@@ -32,7 +32,7 @@ export { CONTRACT_REVISION, LLMS_TXT, SCHEMA_JSON, LIBRARY_JSON, PROMPTS_JSON } 
 export { RELEASE_VERSION } from './release'
 export { PROMPTS, PROMPT_GROUPS, findPrompt, promptKey, promptPhrase } from './prompts'
 export type { LongbookPrompt, PromptGroup, PromptGroupId } from './prompts'
-export { contractRevisionOf, guideSlug, guideSections, guideSection } from './guide'
+export { contractRevisionOf, guideKey, guideKeys, guideSlug, guideSections, guideSection, promptGuideKey, WHOLE_GUIDE } from './guide'
 export type { GuideSection } from './guide'
 
 // Domain — dates

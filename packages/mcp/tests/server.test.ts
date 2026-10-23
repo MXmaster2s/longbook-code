@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
-import { PROMPTS, toISO, todayMid } from '@longbook/core'
+import { CONTRACT_REVISION, PROMPTS, promptGuideKey, toISO, todayMid } from '@longbook/core'
 import { TOOLS } from '../src/catalog.js'
 import { WRITE_TOOLS, checkProposal } from '../src/proposal.js'
 import { MCP_PROMPTS, mcpPromptMessage } from '../src/prompts.js'
@@ -35,6 +35,9 @@ function seededVaultDir(): string {
   writeFileSync(join(dir, 'longbook.schema.json'), '{"title": "longbook financial memory"}')
   return dir
 }
+
+/** A key read_guide hands out, for writes that followed the guide. */
+const KEY = promptGuideKey(PROMPTS[0]!, CONTRACT_REVISION)
 
 async function connected() {
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair()
@@ -174,7 +177,7 @@ test("this Mac lists the same prompt menu as the hosted door, and hands over a p
   const text = (october.messages[0]!.content as { text: string }).text
   assert.equal(text, mcpPromptMessage('add-a-month-report-in-my-longbook', 'October')!.messages[0]!.content.text, 'both doors say it alike')
   assert.ok(text.startsWith('Add October month report in my longbook\n'))
-  assert.match(text, /The method in full: read_guide\("month-report"\)$/)
+  assert.match(text, /The method in full: read_guide\("month-report"\)\n\nPass guide_key "add-a-month-report-in-my-longbook:\d+:[0-9a-z]+" with every write this procedure makes\.$/)
   const tidy = await client.getPrompt({ name: 'tidy-my-longbook' })
   assert.ok((tidy.messages[0]!.content as { text: string }).text.startsWith('Tidy my longbook\n'))
 
@@ -408,7 +411,7 @@ test('over the wire, an account or person write sending card_name or details is 
   // A key the tool does not take rides through to it, which names it rather than dropping it unseen.
   const typed = await client.callTool({ name: 'update_account', arguments: { id: 'a1', set: { notes: 'Shared card.', type: 'credit card', card_name: '' } } })
   assert.deepEqual(JSON.parse(textOf(typed)).ignored, ['type — the account type is tag', "card_name — a card's name is a line of notes"])
-  const role = await client.callTool({ name: 'update_person', arguments: { id: 'm1', set: { tag: 'family', role: 'sister' } } })
+  const role = await client.callTool({ name: 'update_person', arguments: { id: 'm1', set: { tag: 'family', role: 'sister' }, guide_key: KEY } })
   assert.deepEqual(JSON.parse(textOf(role)), { updated: { id: 'm1', name: 'Diya' }, fields: ['tag'], ignored: ['role — their role is tag'] })
 })
 
@@ -501,7 +504,7 @@ test('over the wire, a custom cycle outside 1 to 36,500 days is refused on the M
 test('over the wire, update_commitment names a key it does not take and writes the rest', async () => {
   const dir = seededDir()
   const client = await connectedTo(dir, 'fixture-client')
-  const result = await client.callTool({ name: 'update_commitment', arguments: { id: 'c1', set: { notes: 'Plan: Premium', cancelling_on: '2026-12-31' } } })
+  const result = await client.callTool({ name: 'update_commitment', arguments: { id: 'c1', set: { notes: 'Plan: Premium', cancelling_on: '2026-12-31' }, guide_key: KEY } })
   assert.notEqual(result.isError, true, textOf(result))
   assert.deepEqual(JSON.parse(textOf(result)), {
     updated: { id: 'c1', name: 'Netflix' },
@@ -546,7 +549,7 @@ test('over the wire, the seven new writes land on this machine and refuse in the
   const client = await connectedTo(dir, 'fixture-client')
   const vault = () => JSON.parse(readFileSync(path, 'utf8'))
   const landed = async (name: string, args: Record<string, unknown>) => {
-    const result = await client.callTool({ name, arguments: args })
+    const result = await client.callTool({ name, arguments: { ...args, guide_key: KEY } })
     assert.notEqual(result.isError, true, `${name}: ${textOf(result)}`)
     return JSON.parse(textOf(result))
   }
@@ -583,4 +586,16 @@ test('over the wire, the seven new writes land on this machine and refuse in the
   assert.equal(textOf(twin), "There's already a person called diya.")
   const taken = await client.callTool({ name: 'update_charge', arguments: { id: 'c1', date: tenth(1), set: { date: tenth(2) } } })
   assert.match(textOf(taken), /^A charge already sits on .*\. Move or remove it first\.$/)
+})
+
+test('on this Mac too, a write without a guide_key is answered with a guide_warning, and lands', async () => {
+  const dir = seededDir()
+  const client = await connectedTo(dir, 'fixture-client')
+  const args = { rows: [{ name: 'Gym', amount: 2000, currency: 'INR', billing_cycle: 'monthly', first_charge: '2026-09-01', plan_months: 2 }] }
+  const skipped = await client.callTool({ name: 'add_commitments', arguments: args })
+  assert.notEqual(skipped.isError, true, textOf(skipped))
+  assert.match(JSON.parse(textOf(skipped)).guide_warning, /^No guide_key/)
+  const guide = JSON.parse(textOf(await client.callTool({ name: 'read_guide', arguments: { section: 'working-method' } })))
+  const followed = await client.callTool({ name: 'add_commitments', arguments: { rows: [{ ...args.rows[0], name: 'Pool' }], guide_key: guide.guide_key } })
+  assert.equal(JSON.parse(textOf(followed)).guide_warning, undefined)
 })

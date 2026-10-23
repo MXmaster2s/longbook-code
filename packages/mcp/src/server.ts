@@ -7,7 +7,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { ErrorCode, GetPromptRequestSchema, McpError } from '@modelcontextprotocol/sdk/types.js'
 import { realpathSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
-import { RELEASE_VERSION } from '@longbook/core'
+import { LLMS_TXT, RELEASE_VERSION } from '@longbook/core'
 import { z } from 'zod'
 import {
   cashflowChart,
@@ -19,6 +19,8 @@ import {
 import { CARD_RESOURCES, RESOURCE_LIBRARY, TOOLS, instructionsFor, titled } from './catalog.js'
 import { MCP_PROMPTS, MONTH_ARGUMENT_DESCRIPTION, mcpPromptMessage } from './prompts.js'
 import { readGuide, whoami } from './rpc.js'
+import { GUIDE_KEY_SCHEMA, guideWarning } from './guideCheck.js'
+import { PROPOSAL_KINDS, isRecord } from './proposal.js'
 import { LIBRARY_FILE, LLMS_FILE, SCHEMA_FILE, VaultReader, resolveVaultDir } from './vault.js'
 import {
   ACCOUNT_NOTES_DESCRIPTION,
@@ -93,6 +95,19 @@ import {
 const optionalArgs = <T extends z.ZodRawShape>(shape: T) =>
   Object.assign(z.object(shape).default({} as never), { shape })
 
+const WRITES = new Set<string>(PROPOSAL_KINDS)
+const guideKeyArg = z.string().trim().max(200).optional().describe(GUIDE_KEY_SCHEMA.description)
+
+/** The write's schema with guide_key beside its own fields, defaulted or not. */
+function withGuideKey<C extends { inputSchema?: unknown }>(config: C): C {
+  const schema = config.inputSchema
+  if (schema instanceof z.ZodDefault && 'shape' in schema) {
+    return { ...config, inputSchema: optionalArgs({ ...(schema.shape as z.ZodRawShape), guide_key: guideKeyArg }) }
+  }
+  if (schema instanceof z.ZodObject) return { ...config, inputSchema: schema.extend({ guide_key: guideKeyArg }) }
+  return config
+}
+
 // Names, titles and descriptions come from catalog.ts — the hosted server offers the
 // same words, so the words live once.
 const spec = (name: string) => {
@@ -122,7 +137,23 @@ export function buildServer(reader: VaultReader): McpServer {
     { instructions: instructionsFor(safeLoad()) },
   )
   const registerTool = ((name: string, config: Parameters<McpServer['registerTool']>[1], cb: never) =>
-    server.registerTool(name, titled(config), cb)) as McpServer['registerTool']
+    server.registerTool(name, titled(WRITES.has(name) ? withGuideKey(config) : config), WRITES.has(name) ? guided(cb) : cb)) as McpServer['registerTool']
+
+  // A write lists guide_key, and its answer says beside the result when the key is missing or wrong.
+  const guided = (cb: (args: Record<string, unknown>, extra: unknown) => unknown) =>
+    (async (args: Record<string, unknown>, extra: unknown) => {
+      const { guide_key: _key, ...rest } = args ?? {}
+      const result = (await cb(rest, extra)) as { content: { type: 'text'; text: string }[]; isError?: boolean }
+      let llms = LLMS_TXT
+      try {
+        llms = reader.readContractFile(LLMS_FILE)
+      } catch {}
+      const guide_warning = guideWarning(llms, args ?? {})
+      if (!guide_warning || result.isError) return result
+      const said = JSON.parse(result.content[0]!.text) as unknown
+      if (!isRecord(said)) return result
+      return { ...result, content: [{ type: 'text' as const, text: JSON.stringify({ ...said, guide_warning }, null, 2) }] }
+    }) as never
 
   // Tool answers are computed fresh against the file on disk, so an edit made in the
   // app between two questions is already in the second answer.
