@@ -1,6 +1,14 @@
 [
   {
     "version": "1.4.1",
+    "build": 52,
+    "date": "2026-10-23",
+    "changes": [
+      "On the Mac, an AI connected to longbook on this computer now sees every choice its tools offer, such as listing cancelled commitments or reading one chapter of the guide."
+    ]
+  },
+  {
+    "version": "1.4.1",
     "build": 51,
     "date": "2026-10-23",
     "changes": [
