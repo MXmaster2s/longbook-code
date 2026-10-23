@@ -87,6 +87,12 @@ import {
   upcoming,
 } from './tools.js'
 
+// The SDK lists a tool's fields only when it sees an object's shape, and a bare
+// .default({}) hides them all; the shape rides along so the listing names every field.
+// Every field these tools take is optional, so {} is always valid.
+const optionalArgs = <T extends z.ZodRawShape>(shape: T) =>
+  Object.assign(z.object(shape).default({} as never), { shape })
+
 // Names, titles and descriptions come from catalog.ts — the hosted server offers the
 // same words, so the words live once.
 const spec = (name: string) => {
@@ -141,7 +147,7 @@ export function buildServer(reader: VaultReader): McpServer {
     'upcoming',
     {
       ...spec('upcoming'),
-      inputSchema: z.object({ days: z.number().int().min(1).max(365).default(30) }).default({}),
+      inputSchema: optionalArgs({ days: z.number().int().min(1).max(365).default(30) }),
     },
     ({ days }) => answer(() => upcoming(reader.load(), days)),
   )
@@ -150,11 +156,11 @@ export function buildServer(reader: VaultReader): McpServer {
     'cashflow',
     {
       ...spec('cashflow'),
-      inputSchema: z.object({
+      inputSchema: optionalArgs({
         currency: z.string().trim().toUpperCase().length(3).optional(),
         months_back: z.number().int().min(0).max(24).default(0),
         months_forward: z.number().int().min(0).max(24).default(12),
-      }).default({}),
+      }),
     },
     ({ currency, months_back, months_forward }) =>
       answer(() => cashflow(reader.load(), months_back, months_forward, currency)),
@@ -162,19 +168,19 @@ export function buildServer(reader: VaultReader): McpServer {
 
   registerTool(
     'spending_by_category',
-    { ...spec('spending_by_category'), inputSchema: z.object({ from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional() }).default({}) },
+    { ...spec('spending_by_category'), inputSchema: optionalArgs({ from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional() }) },
     ({ from, to }) => answer(() => spendingByCategory(reader.load(), from, to)),
   )
 
   registerTool(
     'spending_by_account',
-    { ...spec('spending_by_account'), inputSchema: z.object({ from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional() }).default({}) },
+    { ...spec('spending_by_account'), inputSchema: optionalArgs({ from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional() }) },
     ({ from, to }) => answer(() => spendingByAccount(reader.load(), from, to)),
   )
 
   registerTool(
     'spending_by_person',
-    { ...spec('spending_by_person'), inputSchema: z.object({ from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional() }).default({}) },
+    { ...spec('spending_by_person'), inputSchema: optionalArgs({ from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional() }) },
     ({ from, to }) => answer(() => spendingByMember(reader.load(), from, to)),
   )
 
@@ -182,13 +188,13 @@ export function buildServer(reader: VaultReader): McpServer {
     'charges',
     {
       ...spec('charges'),
-      inputSchema: z.object({
+      inputSchema: optionalArgs({
         id: z.string().optional(),
         name: z.string().optional(),
         from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
         to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
         paid: z.boolean().optional(),
-      }).default({}),
+      }),
     },
     (args) => answer(() => charges(reader.load(), args)),
   )
@@ -197,7 +203,7 @@ export function buildServer(reader: VaultReader): McpServer {
     'commitments',
     {
       ...spec('commitments'),
-      inputSchema: z.object({ status: z.enum(['active', 'paused', 'cancelled', 'all']).default('active') }).default({}),
+      inputSchema: optionalArgs({ status: z.enum(['active', 'paused', 'cancelled', 'all']).default('active') }),
     },
     ({ status }) => answer(() => commitments(reader.load(), status)),
   )
@@ -420,7 +426,7 @@ export function buildServer(reader: VaultReader): McpServer {
     'reports',
     {
       ...REPORTS_SPEC,
-      inputSchema: z.object({ id: z.string().trim().min(1).optional() }).default({}),
+      inputSchema: optionalArgs({ id: z.string().trim().min(1).optional() }),
     },
     (args) => answer(() => reports(reader.dir, args)),
   )
@@ -467,11 +473,11 @@ export function buildServer(reader: VaultReader): McpServer {
     'cancel_commitment',
     {
       ...CANCEL_COMMITMENT_SPEC,
-      inputSchema: z.object({
+      inputSchema: optionalArgs({
         id: z.string().optional(),
         name: z.string().optional(),
         source: source,
-      }).default({}),
+      }),
     },
     (args) => answer(() => cancelCommitment(reader.dir, editedBy(), args)),
   )
@@ -614,7 +620,7 @@ export function buildServer(reader: VaultReader): McpServer {
     'read_guide',
     {
       ...spec('read_guide'),
-      inputSchema: z.object({ section: z.string().optional() }).default({}),
+      inputSchema: optionalArgs({ section: z.string().optional() }),
     },
     (args) => answer(() => readGuide(reader.readContractFile(LLMS_FILE), args.section)),
   )
