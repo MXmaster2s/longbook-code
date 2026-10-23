@@ -159,6 +159,24 @@ const watchSections = (): void => {
 // dashboards read the same: the address, where the visit came from, the browser, system, device
 // type and time zone, one id for this page view, and the user-agent the server's daily hash needs.
 const pageviewId = crypto.randomUUID?.() ?? String(Math.random()).slice(2)
+
+// The country, and the city when Cloudflare names one, from the site's own /visit-place,
+// under PostHog's names: its cookieless mode looks up no location itself. Asked once a page.
+let whereFrom: Record<string, string> = {}
+const placeKnown: Promise<void> = live && !declined
+  ? fetch('/visit-place', { cache: 'no-store' })
+      .then((answer) => (answer.ok ? answer.json() : {}))
+      .then((found: Record<string, unknown>) => {
+        const text = (value: unknown): string | undefined =>
+          typeof value === 'string' && value.length <= 80 ? value : undefined
+        const code = text(found.country_code)
+        if (!code || !/^[A-Z]{2}$/.test(code)) return
+        whereFrom = { $geoip_country_code: code, $geoip_country_name: text(found.country) ?? code }
+        const city = text(found.city)
+        if (city) whereFrom.$geoip_city_name = city
+      })
+      .catch(() => {})
+  : Promise.resolve()
 const standard = (): Record<string, unknown> => {
   const agent = navigator.userAgent
   const [os, osVersion] = detectOS(agent)
@@ -191,6 +209,7 @@ const standard = (): Record<string, unknown> => {
     $pageview_id: pageviewId,
     $insert_id: Math.random().toString(36).slice(2, 18),
     $time: Date.now() / 1000,
+    ...whereFrom,
   }
 }
 const event = (name: string, properties: Record<string, unknown>): Record<string, unknown> =>
@@ -301,7 +320,9 @@ const whenReady = (run: () => void): void => {
 }
 
 if (live && !declined) {
-  capture('$pageview', { title: document.title })
+  // The page view waits a moment for its place; later events carry whatever arrived.
+  const title = document.title
+  Promise.race([placeKnown, new Promise((done) => setTimeout(done, 800))]).then(() => capture('$pageview', { title }))
   document.addEventListener('click', onClick, { capture: true, passive: true })
   document.addEventListener('click', onAnyClick, { capture: true, passive: true })
   document.addEventListener('toggle', onToggle, { capture: true })
