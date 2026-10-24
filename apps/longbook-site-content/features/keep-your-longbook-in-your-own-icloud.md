@@ -42,7 +42,7 @@ A record of every payment is personal, and it outlasts any one app. longbook kee
 
 ### Does anything leave the folder?
 
-Only what a feature needs. The hosted copy for AI connectors exists while the longbook MCP server is on, and turning the server off deletes it. A shared report stays online until it expires or sharing stops. An imported statement is read by an OpenAI model through longbook's server, with storage off. Each tag's kind, name and icon is kept in your account, never a commitment's name, amount, date or note. An AI you connect reads what it asks for, under its own provider's terms.
+Only what a feature needs. The hosted copy for AI connectors exists while the longbook MCP server is on, and turning the server off deletes it. A shared report stays online until it expires or sharing stops. An imported statement is read by Anthropic's Claude through longbook's server, with OpenAI only when Claude can't answer, and neither keeps it. Each tag's kind, name and icon is kept in your account, never a commitment's name, amount, date or note. An AI you connect reads what it asks for, under its own provider's terms.
 
 ### Does longbook need iCloud?
 
