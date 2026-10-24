@@ -70,7 +70,7 @@ struct CommitmentDetailView: View {
         }
         .lbClosesOnOutsideClick { onClose?() }
         .modifier(DetailTitle(embedded: embedded) {
-            Button("Edit") { editing = true }
+            Button("Edit") { Measure.used("edit"); editing = true }
                 .accessibilityHint("Opens the edit sheet.")
         })
     }
@@ -113,7 +113,7 @@ struct CommitmentDetailView: View {
             editButton
             #endif
             if let onClose {
-                Button(action: onClose) {
+                Button(action: { Measure.used("close"); onClose() }) {
                     Image(systemName: "xmark")
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(LBColor.textSecondary.color)
@@ -241,7 +241,7 @@ struct CommitmentDetailView: View {
     private func historyRow(_ sub: Subscription) -> some View {
         if let history = history(sub) {
             let noun = sub.isTransfer ? "transfer" : "charge"
-            Button { showingHistory = true } label: {
+            Button { Measure.used("clock_arrow_circlepath"); showingHistory = true } label: {
                 HStack(spacing: LBSpacing.s3) {
                     Image(systemName: "clock.arrow.circlepath")
                         .font(.system(size: 13, weight: .medium))
@@ -342,6 +342,7 @@ struct CommitmentDetailView: View {
                     value
                     if Self.clamps(row) {
                         Button(notesOpen ? "Show less" : "Show more") {
+                            Measure.used("show_less")
                             withAnimation(.snappy(duration: 0.2)) { notesOpen.toggle() }
                         }
                         .buttonStyle(.plain)
@@ -394,7 +395,7 @@ struct CommitmentDetailView: View {
     }
 
     private func actionButton(_ title: String, symbol: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        Button(action: { Measure.used("commitment_action"); action() }) {
             HStack(spacing: LBSpacing.s1) {
                 Image(systemName: symbol)
                     .font(.system(size: 12, weight: .semibold))
@@ -414,7 +415,7 @@ struct CommitmentDetailView: View {
 
     /// In the header, beside the close control, so it is in reach without scrolling.
     private var editButton: some View {
-        Button { editing = true } label: {
+        Button { Measure.used("edit"); editing = true } label: {
             Text("Edit")
                 .lbText(.body)
                 .foregroundStyle(LBColor.brandText.color)
@@ -483,7 +484,7 @@ struct CommitmentHistoryView: View {
                     .foregroundStyle(LBColor.textPrimary.color)
                     .lineLimit(1)
                 Spacer()
-                Button("Done", action: onDone)
+                Button("Done", action: { Measure.used("done"); onDone() })
                     .foregroundStyle(LBColor.brandText.color)
                     .keyboardShortcut(.defaultAction)
             }
@@ -491,7 +492,7 @@ struct CommitmentHistoryView: View {
             List {
                 Section {
                     ForEach(past) { charge in
-                        Button { editing = charge } label: {
+                        Button { Measure.used("editing"); editing = charge } label: {
                             LBListRow(
                                 LB.longDate(charge.date),
                                 secondary: charge.row.note,

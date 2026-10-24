@@ -88,6 +88,7 @@ struct HelpAboutView: View {
             VStack(spacing: 0) {
                 ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
                     Button {
+                        Measure.used("arrow_up_right")
                         if let url = row.url { openURL(url) }
                     } label: {
                         SettingsRowLabel(
@@ -120,7 +121,7 @@ struct HelpAboutView: View {
                 rule
                 fact("Statements", "Sent through longbook’s server to Anthropic, whose Claude model first checks it is a statement and then reads it with your category, person and account names. longbook keeps none of it.")
                 // Withdrawing is turning this off: the next statement or Reorganise asks again.
-                Toggle(isOn: $statementsConsent) {
+                Toggle(isOn: $statementsConsent.measured("let_an_ai_read_statements_and_reorganise")) {
                     Text("Let an AI read statements and Reorganise")
                         .lbText(.bodySM)
                         .foregroundStyle(LBColor.textPrimary.color)
@@ -138,7 +139,7 @@ struct HelpAboutView: View {
                         shareUsage = on
                         Telemetry.shared.setEnabled(on)
                     }
-                )) {
+                ).measured("share_usage_and_crash_data")) {
                     Text("Share usage and crash data")
                         .lbText(.bodySM)
                         .foregroundStyle(LBColor.textPrimary.color)

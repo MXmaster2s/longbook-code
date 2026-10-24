@@ -54,7 +54,7 @@ struct DateRangePickerView: View {
                     .foregroundStyle(LBColor.textTertiary.color)
             }
             Spacer()
-            Button(action: onDone) {
+            Button(action: { Measure.used("close"); onDone() }) {
                 Image(systemName: "xmark")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(LBColor.textSecondary.color)
@@ -73,6 +73,7 @@ struct DateRangePickerView: View {
     private var clearButton: some View {
         let empty = from == nil && to == nil
         return Button {
+            Measure.used("clear_range")
             LBHaptics.tap()
             from = nil
             to = nil

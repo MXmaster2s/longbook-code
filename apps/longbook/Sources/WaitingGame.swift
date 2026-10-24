@@ -94,6 +94,7 @@ struct WaitingGame: View {
                 .lbText(.footnote)
                 .foregroundStyle(LBColor.textSecondary.color)
             Button {
+                Measure.used("play")
                 started = true
                 paused = false
                 game.start()
@@ -117,6 +118,7 @@ struct WaitingGame: View {
 
     private var pauseButton: some View {
         Button {
+            Measure.used("play_fill")
             paused.toggle()
             if paused { game.stop() } else { game.start() }
         } label: {

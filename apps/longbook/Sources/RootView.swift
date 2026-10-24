@@ -687,6 +687,7 @@ struct RootView: View {
         if path.count > 1 || path.last.map({ !$0.isSidebarRoot }) == true {
             HStack {
                 Button {
+                    Measure.used("back")
                     path.removeLast()
                 } label: {
                     HStack(spacing: LBSpacing.s1) {
@@ -740,6 +741,7 @@ struct RootView: View {
             tabItem("square.grid.2x2.fill", "Dashboard", active: tab == .dashboard) { path = []; self.tab = .dashboard }
             tabItem("calendar", "Calendar", active: tab == .calendar) { path = []; self.tab = .calendar }
             Button {
+                Measure.used("add")
                 addingRenewal = true
             } label: {
                 VStack(spacing: 2) {
@@ -775,7 +777,7 @@ struct RootView: View {
     private func tabItem(
         _ symbol: String, _ label: String, active: Bool, action: @escaping () -> Void
     ) -> some View {
-        Button(action: action) {
+        Button(action: { Measure.used("tab_item"); action() }) {
             VStack(spacing: 2) {
                 Image(systemName: symbol)
                     .font(.system(size: 20, weight: .medium))

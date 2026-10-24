@@ -31,6 +31,7 @@ struct ReviewCard: View {
                 .accessibilityElement(children: .combine)
                 HStack(spacing: LBSpacing.s2) {
                     Button {
+                        Measure.used("show_changes")
                         // The Mac sidebar replaces the path; the phone pushes onto its tab.
                         #if os(macOS)
                         path = [.changes]
@@ -43,6 +44,7 @@ struct ReviewCard: View {
                     .buttonStyle(.plain)
                     .accessibilityHint("Opens the Changes screen.")
                     Button {
+                        Measure.used("keep_changes")
                         if model.keepOutsideChange() {
                             refusal = nil
                             Telemetry.shared.send("app.proposal_reviewed", ["decision": "kept"])

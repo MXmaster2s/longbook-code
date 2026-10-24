@@ -122,6 +122,7 @@ struct SignOutScreenView: View {
                 .foregroundStyle(LBColor.textSecondary.color)
                 .fixedSize(horizontal: false, vertical: true)
             Button {
+                Measure.used("try_again")
                 Task { await load() }
             } label: {
                 Text("Try Again")

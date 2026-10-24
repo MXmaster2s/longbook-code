@@ -61,10 +61,11 @@ struct EntityListView: View {
                 titleVisibility: .visible, presenting: deleting
             ) { target in
                 Button("Delete", role: .destructive) {
+                    Measure.used("delete")
                     model.deleteEntity(kind, id: target.id)
                     selection = nil
                 }
-                Button("Keep", role: .cancel) {}
+                Button("Keep", role: .cancel) { Measure.used("keep") }
             } message: { target in
                 Text(EntityCopy.removalNote(kind, use: model.entityUse(kind, id: target.id)))
             }
@@ -176,7 +177,7 @@ struct EntityListView: View {
         }
         .lbGroupedList()
         .lbScreenTitle(screenTitle) {
-            Button(action: startNaming) {
+            Button(action: { Measure.used("add_new"); startNaming() }) {
                 Image(systemName: "plus")
             }
             .accessibilityLabel("Add \(word)")
@@ -264,9 +265,9 @@ struct EntityListView: View {
             HStack(alignment: .firstTextBaseline, spacing: LBSpacing.s2) {
                 LBPageTitle(screenTitle)
                 Spacer()
-                Button("Add Commitment") { if let real { addingFor = target(real) } }
+                Button("Add Commitment") { Measure.used("add_commitment"); if let real { addingFor = target(real) } }
                     .disabled(real == nil)
-                Button(action: startNaming) {
+                Button(action: { Measure.used("add"); startNaming() }) {
                     Label("Add \(word.capitalized)", systemImage: "plus")
                 }
                 .buttonStyle(.borderedProminent)
@@ -346,10 +347,10 @@ struct EntityListView: View {
             .lbText(.body)
             .contextMenu(forSelectionType: String.self) { ids in
                 if let id = ids.first, let row = rows.first(where: { $0.id == id }), row.card.isReal {
-                    Button("Edit") { editing = target(row.card) }
-                    Button("Add Commitment") { addingFor = target(row.card) }
+                    Button("Edit") { Measure.used("edit", .contextMenu); editing = target(row.card) }
+                    Button("Add Commitment") { Measure.used("add_commitment", .contextMenu); addingFor = target(row.card) }
                     Divider()
-                    Button("Delete", role: .destructive) { deleting = target(row.card) }
+                    Button("Delete", role: .destructive) { Measure.used("delete", .contextMenu); deleting = target(row.card) }
                 }
             } primaryAction: { ids in
                 if let id = ids.first, let row = rows.first(where: { $0.id == id }), row.card.isReal {
@@ -384,7 +385,7 @@ struct EntityListView: View {
                             .foregroundStyle(LBColor.textTertiary.color)
                         Spacer()
                         if card.isReal {
-                            Button("Edit") { editing = target(card) }
+                            Button("Edit") { Measure.used("edit"); editing = target(card) }
                                 .buttonStyle(.plain)
                                 .lbText(.label)
                                 .foregroundStyle(LBColor.brandText.color)
@@ -458,7 +459,7 @@ struct EntityDetailView: View {
                         }
                     }
                     if card.isReal {
-                        Button(role: .destructive) { deleting = true } label: {
+                        Button(role: .destructive) { Measure.used("delete"); deleting = true } label: {
                             Text("Delete \(EntityCopy.word(kind).capitalized)")
                                 .lbText(.body)
                                 .foregroundStyle(LBColor.danger.color)
@@ -478,7 +479,7 @@ struct EntityDetailView: View {
         }
         .background(LBColor.canvas.color)
         .lbScreenTitle(title, large: false) {
-            if isReal { Button("Edit") { editing = true } }
+            if isReal { Button("Edit") { Measure.used("edit"); editing = true } }
         }
         .measured("entity_list_editing", .sheet, when: editing)
         .sheet(isPresented: $editing) {
@@ -495,9 +496,10 @@ struct EntityDetailView: View {
         .measured("entity_list_deleting", .dialog, when: deleting)
         .confirmationDialog("Delete \(title)?", isPresented: $deleting, titleVisibility: .visible) {
             Button("Delete", role: .destructive) {
+                Measure.used("delete")
                 if model.deleteEntity(kind, id: id) { dismiss() }
             }
-            Button("Keep", role: .cancel) {}
+            Button("Keep", role: .cancel) { Measure.used("keep") }
         } message: {
             Text(EntityCopy.removalNote(kind, use: model.entityUse(kind, id: id)))
         }
@@ -556,13 +558,13 @@ private struct EntityNameCard: View {
                 .foregroundStyle(LBColor.textTertiary.color)
                 .fixedSize(horizontal: false, vertical: true)
             HStack(spacing: LBSpacing.s2) {
-                Button(action: addNamed) {
+                Button(action: { Measure.used("add"); addNamed() }) {
                     EntityActionLabel(title: "Add \(word.capitalized)", symbol: "plus", prominent: true, fills: true)
                 }
                 .buttonStyle(.plain)
                 .disabled(cleanName.isEmpty)
                 .opacity(cleanName.isEmpty ? 0.5 : 1)
-                Button(action: cancel) {
+                Button(action: { Measure.used("cancel"); cancel() }) {
                     EntityActionLabel(title: "Cancel", symbol: "xmark", prominent: false, fills: true)
                 }
                 .buttonStyle(.plain)

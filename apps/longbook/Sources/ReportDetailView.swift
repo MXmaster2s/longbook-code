@@ -319,7 +319,7 @@ struct ReportDetailView: View {
     private func legendRow(
         name: String, ink: Int?, amountText: String, share: Double?, picked: Bool, tap: @escaping () -> Void
     ) -> some View {
-        Button(action: tap) {
+        Button(action: { Measure.used("pick_slice"); tap() }) {
             HStack(spacing: LBSpacing.s2) {
                 Group {
                     if let ink {
@@ -364,6 +364,7 @@ struct ReportDetailView: View {
             HStack(spacing: LBSpacing.s2) {
                 ForEach(Array(ring.scoped.enumerated()), id: \.offset) { rank, slice in
                     Button {
+                        Measure.used("narrowing")
                         narrowing.category = narrowing.category == slice.label ? nil : slice.label
                     } label: {
                         categoryTile(
@@ -432,6 +433,7 @@ struct ReportDetailView: View {
                 .fixedSize(horizontal: false, vertical: true)
             if long {
                 Button {
+                    Measure.used("less")
                     if open { openProse.remove(index) } else { openProse.insert(index) }
                 } label: {
                     Text(open ? "Less" : "More")
@@ -605,17 +607,20 @@ struct ReportDetailView: View {
                 if let rowId = row.id {
                     if removed {
                         Button {
+                            Measure.used("put_back", .contextMenu)
                             model.setReportRow(rowId, in: report.id, to: .kept)
                         } label: {
                             Label("Put back", systemImage: "arrow.uturn.backward")
                         }
                         Button(role: .destructive) {
+                            Measure.used("remove_for_good", .contextMenu)
                             model.setReportRow(rowId, in: report.id, to: .hidden)
                         } label: {
                             Label("Remove for good", systemImage: "trash")
                         }
                     } else {
                         Button(role: .destructive) {
+                            Measure.used("remove_from_report", .contextMenu)
                             model.setReportRow(rowId, in: report.id, to: .removed)
                         } label: {
                             Label("Remove from report", systemImage: "minus.circle")
@@ -712,7 +717,7 @@ struct ReportDetailView: View {
     }
 
     private func chip(_ title: String, symbol: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        Button(action: { Measure.used("report_chip"); action() }) {
             HStack(spacing: LBSpacing.s1) {
                 Image(systemName: symbol)
                     .font(.system(size: 11, weight: .medium))
@@ -803,7 +808,7 @@ private struct ReportShareJump: View {
     let jump: () -> Void
 
     var body: some View {
-        Button(action: jump) {
+        Button(action: { Measure.used("sharing"); jump() }) {
             #if os(macOS)
             Label(live ? "Sharing" : "Share", systemImage: live ? "link" : "square.and.arrow.up")
             #else

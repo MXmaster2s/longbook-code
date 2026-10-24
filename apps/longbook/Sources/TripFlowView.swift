@@ -82,7 +82,7 @@ struct TripFlowView: View {
                     .lbText(.screenTitle)
                     .foregroundStyle(LBColor.textPrimary.color)
                 Spacer()
-                Button(action: onClose) {
+                Button(action: { Measure.used("close"); onClose() }) {
                     Image(systemName: "xmark")
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(LBColor.textSecondary.color)
@@ -105,7 +105,7 @@ struct TripFlowView: View {
             }
             if position > 0 {
                 HStack {
-                    Button(action: back) {
+                    Button(action: { Measure.used("arrow_left"); back() }) {
                         Image(systemName: "arrow.left")
                             .font(.system(size: 13, weight: .medium))
                             .foregroundStyle(LBColor.textSecondary.color)
@@ -285,6 +285,7 @@ struct TripFlowView: View {
             }
             let finishing = step == .name
             Button {
+                Measure.used("start_trip")
                 advance()
             } label: {
                 Text(finishing ? (mode == .start ? "Start Trip" : "Add Trip") : "Continue")

@@ -19,7 +19,7 @@ struct PlaceholderCard: View {
     var body: some View {
         // Two siblings, never a button inside a button: the face is the Edit button and
         // Remove lies over it in its own place, so a tap on Remove cannot reach Edit.
-        Button(action: onEdit) { face }
+        Button(action: { Measure.used("edit_placeholder"); onEdit() }) { face }
             .buttonStyle(.plain)
             .lbTapHaptic()
             .accessibilityLabel("Edit \(placeholder.name)")
@@ -60,7 +60,7 @@ struct PlaceholderCard: View {
         HStack(spacing: LBSpacing.s3) {
             if live {
                 word("Edit").hidden()
-                Button(action: onRemove) { word("Remove") }
+                Button(action: { Measure.used("remove"); onRemove() }) { word("Remove") }
                     .buttonStyle(.plain)
                     .lbTapHaptic()
                     .accessibilityLabel("Remove \(placeholder.name)")

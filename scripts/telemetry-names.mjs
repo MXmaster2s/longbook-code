@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Usage-count names in the app must be fixed snake_case words written in the code. Exit 1 on any
-// other name. --coverage lists each file's controls and popups that send nothing; --strict fails on them.
+// other name. --coverage lists controls and popups that send nothing; --strict fails on any.
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 
@@ -33,12 +33,20 @@ for (const path of swiftFiles(SOURCES)) {
     else if (!NAME.test(literal[1])) problems.push(`${file}: "${literal[1]}" is not ${NAME}`)
   }
   if (!COVERAGE) continue
-  const controls = [...text.matchAll(/(?<![A-Za-z0-9_.])(?:Button\s*[({]|Toggle\s*\()/g)].length
-  const measuredControls = [...text.matchAll(/Measure\.used\(|\.measured\("[^"]*"\)/g)].length
-  const popups = [...text.matchAll(/\.(?:sheet|fullScreenCover|popover|alert|confirmationDialog)\(/g)].length
-  const measuredPopups = [...text.matchAll(/\.measured\("[^"]*", \./g)].length
-  const left = Math.max(0, controls - measuredControls) + Math.max(0, popups - measuredPopups)
-  if (left) rows.push({ file, controls, measuredControls, popups, measuredPopups, left })
+  // A control counts when its own action, before the next control, calls Measure; a popup when
+  // the line above it is a .measured modifier. Declarations of helpers are not controls.
+  const controls = [...text.matchAll(/(?<![A-Za-z0-9_.])(?:Button\s*[({]|Toggle\s*\()/g)]
+    .filter((m) => !/(?:func|struct|var)\s*$/.test(text.slice(Math.max(0, m.index - 40), m.index)))
+  const missed = controls.filter((m, i) => {
+    const end = Math.min(controls[i + 1]?.index ?? text.length, m.index + 400)
+    return !/Measure\.used\(|\.measured\(/.test(text.slice(m.index, end))
+  })
+  const lines = text.split('\n')
+  const popups = lines.filter((line, i) => /^\s*(?:content)?\.(?:sheet|fullScreenCover|popover|alert|confirmationDialog)\(/.test(line)
+    && !/\.measured\("/.test(lines[i - 1] ?? ''))
+  const lineOf = (index) => text.slice(0, index).split('\n').length
+  const left = [...missed.map((m) => `control at line ${lineOf(m.index)}`), ...popups.map((line) => `popup: ${line.trim().slice(0, 60)}`)]
+  if (left.length) rows.push({ file, left })
 }
 
 if (problems.length) {
@@ -47,11 +55,8 @@ if (problems.length) {
 }
 console.log('telemetry-names: every name is a fixed snake_case word')
 if (COVERAGE) {
-  rows.sort((a, b) => b.left - a.left)
-  for (const r of rows) {
-    console.log(`${String(r.left).padStart(4)} unmeasured  ${r.file}  (controls ${r.measuredControls}/${r.controls}, popups ${r.measuredPopups}/${r.popups})`)
-  }
-  const total = rows.reduce((n, r) => n + r.left, 0)
+  for (const r of rows) for (const what of r.left) console.log(`unmeasured  ${r.file}: ${what}`)
+  const total = rows.reduce((n, r) => n + r.left.length, 0)
   console.log(`telemetry-coverage: ${total} controls and popups send nothing, in ${rows.length} files`)
   if (STRICT && total) process.exit(1)
 }

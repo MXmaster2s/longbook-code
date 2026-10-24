@@ -92,7 +92,7 @@ struct CategoryEditView: View {
                     .foregroundStyle(LBColor.textTertiary.color)
             }
             Spacer()
-            Button(action: onDone) {
+            Button(action: { Measure.used("close"); onDone() }) {
                 Image(systemName: "xmark")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(LBColor.textSecondary.color)
@@ -138,6 +138,7 @@ struct CategoryEditView: View {
             }
             ForEach(rows) { sub in
                 Button {
+                    Measure.used("open_commitment")
                     viewingCommitment = Row(id: sub.id)
                 } label: {
                     HStack(spacing: LBSpacing.s2) {
@@ -176,7 +177,7 @@ struct CategoryEditView: View {
         tone: LBColorValue,
         action: @escaping () -> Void
     ) -> some View {
-        Button(action: action) {
+        Button(action: { Measure.used("category_action"); action() }) {
             Image(systemName: symbol)
                 .font(.system(size: 9, weight: .semibold))
                 .foregroundStyle(tone.color)
@@ -189,7 +190,7 @@ struct CategoryEditView: View {
 
     private var actions: some View {
         VStack(spacing: LBSpacing.s3) {
-            Button(action: save) {
+            Button(action: { Measure.used("save"); save() }) {
                 Text("Save")
                     .lbText(.label)
                     .foregroundStyle(changed ? LBColor.onBrand.color : LBColor.textTertiary.color)

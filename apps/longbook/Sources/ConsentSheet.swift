@@ -70,12 +70,12 @@ struct ConsentSheet: View {
     private var buttons: some View {
         #if os(macOS)
         HStack(spacing: LBSpacing.s2) {
-            Button("Read the Privacy Policy") { openURL(Self.policyURL) }
+            Button("Read the Privacy Policy") { Measure.used("read_the_privacy_policy"); openURL(Self.policyURL) }
                 .buttonStyle(.link)
             Spacer(minLength: LBSpacing.s3)
-            Button("Not Now", action: onDecline)
+            Button("Not Now", action: { Measure.used("not_now"); onDecline() })
                 .keyboardShortcut(.cancelAction)
-            Button("Accept", action: onAccept)
+            Button("Accept", action: { Measure.used("accept"); onAccept() })
                 .keyboardShortcut(.defaultAction)
                 .tint(LBColor.brand.color)
                 .buttonStyle(.borderedProminent)
@@ -85,7 +85,7 @@ struct ConsentSheet: View {
         VStack(spacing: LBSpacing.s2) {
             filled("Accept", primary: true, action: onAccept)
             filled("Not Now", primary: false, action: onDecline)
-            Button("Read the Privacy Policy") { openURL(Self.policyURL) }
+            Button("Read the Privacy Policy") { Measure.used("read_the_privacy_policy"); openURL(Self.policyURL) }
                 .lbText(.label)
                 .foregroundStyle(LBColor.brandText.color)
                 .padding(.top, LBSpacing.s1)
@@ -94,7 +94,7 @@ struct ConsentSheet: View {
     }
 
     private func filled(_ title: String, primary: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        Button(action: { Measure.used("consent_choice"); action() }) {
             Text(title)
                 .lbText(.body)
                 .foregroundStyle(primary ? LBColor.onBrand.color : LBColor.textPrimary.color)

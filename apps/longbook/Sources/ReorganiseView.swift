@@ -63,7 +63,7 @@ struct ReorganiseView: View {
                 .foregroundStyle(LBColor.textPrimary.color)
             Spacer()
             if stage != .running {
-                Button("Done", action: onDone)
+                Button("Done", action: { Measure.used("done"); onDone() })
                     .buttonStyle(.plain)
                     .lbText(.label)
                     .foregroundStyle(LBColor.brandText.color)
@@ -161,7 +161,7 @@ struct ReorganiseView: View {
     }
 
     private func primary(_ title: String, enabled: Bool = true, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        Button(action: { Measure.used("reorganise_primary"); action() }) {
             Text(title)
                 .lbText(.body)
                 .foregroundStyle(LBColor.onBrand.color)

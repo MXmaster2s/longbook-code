@@ -76,6 +76,7 @@ struct DeleteAccountSheet: View {
                         .overlay(RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous).strokeBorder(LBColor.hairline.color, lineWidth: 1))
                 }
                 Button {
+                    Measure.used("deleting")
                     busy = true
                     let leaving = auth.email
                     Task {
@@ -114,7 +115,7 @@ struct DeleteAccountSheet: View {
                         .foregroundStyle(LBColor.danger.color)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                Button("Keep My Account", action: onClose)
+                Button("Keep My Account", action: { Measure.used("keep_my_account"); onClose() })
                     .buttonStyle(.plain)
                     .lbText(.label)
                     .foregroundStyle(LBColor.brandText.color)

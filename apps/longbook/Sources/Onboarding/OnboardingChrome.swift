@@ -70,7 +70,7 @@ struct OnboardingCloseButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button(action: { Measure.used("close"); action() }) {
             Image(systemName: "xmark")
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(LBColor.textSecondary.color)
@@ -89,7 +89,7 @@ struct OnboardingCancelButton: View {
 
     var body: some View {
         if let action {
-            Button(action: action) {
+            Button(action: { Measure.used("cancel"); action() }) {
                 Text("Cancel")
                     .lbText(.body)
                     .foregroundStyle(LBColor.textPrimary.color)
@@ -114,7 +114,7 @@ struct OnboardingPrimaryButton: View {
     @State private var hinting = false
 
     var body: some View {
-        Button(action: action) {
+        Button(action: { Measure.used("onboarding_primary"); action() }) {
             Text(title)
                 .lbText(.body)
                 .foregroundStyle(enabled ? LBColor.onBrand.color : LBColor.textTertiary.color)
@@ -161,7 +161,7 @@ struct OnboardingSecondaryButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button(action: { Measure.used("onboarding_secondary"); action() }) {
             Text(title)
                 .lbText(.body)
                 .foregroundStyle(LBColor.textPrimary.color)
@@ -223,7 +223,7 @@ struct OnboardingPill: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button(action: { Measure.used("onboarding_pill"); action() }) {
             Text(title)
                 .lbText(.bodySM)
                 .fontWeight(.medium)
@@ -246,6 +246,7 @@ struct OnboardingThemeButton: View {
 
     var body: some View {
         Button {
+            Measure.used("sun_max")
             appearance = (colorScheme == .dark ? LBAppearance.light : LBAppearance.dark).rawValue
         } label: {
             Image(systemName: colorScheme == .dark ? "sun.max" : "moon")
@@ -265,7 +266,7 @@ struct OnboardingTextButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button(action: { Measure.used("onboarding_quiet"); action() }) {
             Text(title)
                 .lbText(.bodySM)
                 .foregroundStyle(LBColor.textSecondary.color)

@@ -31,7 +31,7 @@ struct ChangeKindTab: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button(action: { Measure.used("change_action"); action() }) {
             HStack(spacing: LBSpacing.s2) {
                 if let symbol {
                     Image(systemName: symbol)
@@ -70,7 +70,7 @@ struct ChangeHeaderButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button(action: { Measure.used("change_icon_action"); action() }) {
             Image(systemName: symbol)
                 .font(.system(size: 13, weight: .medium))
                 .foregroundStyle(active ? LBColor.onBrandTint.color : LBColor.brandText.color)

@@ -82,7 +82,7 @@ struct DemoLongbookView: View {
                 .lbText(.label)
                 .foregroundStyle(LBColor.textPrimary.color)
                 .fixedSize(horizontal: false, vertical: true)
-            Button("Exit Demo", action: onLeave)
+            Button("Exit Demo", action: { Measure.used("exit_demo"); onLeave() })
                 .buttonStyle(.bordered)
                 .keyboardShortcut(.cancelAction)
             Spacer(minLength: LBSpacing.s2)
@@ -137,6 +137,7 @@ struct DemoLongbookView: View {
         if !path.isEmpty {
             HStack {
                 Button {
+                    Measure.used("back")
                     path.removeLast()
                 } label: {
                     HStack(spacing: LBSpacing.s1) {

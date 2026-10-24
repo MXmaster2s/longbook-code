@@ -1137,7 +1137,7 @@ struct CommitmentsView: View {
                     deletingItem = CommitmentRef(id: charge.subId, name: charge.name)
                 }
             case .commitment(let item):
-                Button(bookmarkWord(item.id).title) { toggleBookmark(item.id) }
+                Button(bookmarkWord(item.id).title) { Measure.used("toggle_bookmark"); toggleBookmark(item.id) }
                 Button("Edit") { Measure.used("edit"); formTarget = .edit(item.id) }
                 Divider()
                 Button("Delete Commitment", role: .destructive) {
@@ -1145,7 +1145,7 @@ struct CommitmentsView: View {
                     deletingItem = CommitmentRef(id: item.id, name: item.name)
                 }
             case .placeholder(let placeholder):
-                Button("Fill In") { formTarget = .fill(placeholder) }
+                Button("Fill In") { Measure.used("fill_in"); formTarget = .fill(placeholder) }
                 Divider()
                 Button("Remove", role: .destructive) { Measure.used("remove"); removingPlaceholder = placeholder }
             }

@@ -59,8 +59,8 @@ struct SignInView: View {
         // two still carry the note rather than a question.
         .measured("sign_in_confirming_folder_account", .dialog, when: confirmingFolderAccount)
         .confirmationDialog(Self.folderAccountTitle, isPresented: $confirmingFolderAccount, titleVisibility: .visible) {
-            Button("Continue") { Task { await send(confirmed: true) } }
-            Button("Cancel", role: .cancel) {}
+            Button("Continue") { Measure.used("continue"); Task { await send(confirmed: true) } }
+            Button("Cancel", role: .cancel) { Measure.used("cancel") }
         } message: {
             if let folderAccount {
                 Text(Self.folderAccountDetail(folderAccount))
@@ -112,6 +112,7 @@ struct SignInView: View {
     /// Apple's door first and filled, in Apple's own black (white in dark mode).
     private var appleButton: some View {
         Button {
+            Measure.used("apple_logo")
             Task { await continueWith(.apple) }
         } label: {
             HStack(spacing: LBSpacing.s2) {
@@ -135,6 +136,7 @@ struct SignInView: View {
     /// A nil provider is the email door, which opens the address step instead of a sheet.
     private func providerRow(_ provider: AuthViewModel.Provider?, _ mark: Image, _ title: String) -> some View {
         Button {
+            Measure.used("sign_in_provider")
             if let provider {
                 Task { await continueWith(provider) }
             } else {
@@ -210,7 +212,7 @@ struct SignInView: View {
                 Task { await verify() }
             }
             HStack(spacing: LBSpacing.s4) {
-                Button { Task { await send(resending: true) } } label: {
+                Button { Measure.used("resend_in_s"); Task { await send(resending: true) } } label: {
                     Text(resendCooldown > 0 ? "Resend in \(resendCooldown)s" : "Send Another Code")
                         .lbText(.footnote)
                         .foregroundStyle(LBColor.brandText.color)
@@ -219,7 +221,7 @@ struct SignInView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(busy || resendCooldown > 0)
-                Button { stage = .email; typedCode = ""; clearError() } label: {
+                Button { Measure.used("use_a_different_email"); stage = .email; typedCode = ""; clearError() } label: {
                     Text("Use a Different Email")
                         .lbText(.footnote)
                         .foregroundStyle(LBColor.brandText.color)
@@ -236,7 +238,7 @@ struct SignInView: View {
     // MARK: pieces
 
     private func backButton(_ action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        Button(action: { Measure.used("arrow_left"); action() }) {
             Image(systemName: "arrow.left")
                 .font(.system(size: 13, weight: .medium))
                 .foregroundStyle(LBColor.textSecondary.color)
@@ -300,7 +302,7 @@ struct SignInView: View {
     }
 
     private func primaryButton(_ title: String, enabled: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        Button(action: { Measure.used("sign_in_primary"); action() }) {
             Text(title)
                 .lbText(.body)
                 .foregroundStyle(enabled ? LBColor.onBrand.color : LBColor.textTertiary.color)

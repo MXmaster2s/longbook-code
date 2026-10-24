@@ -34,12 +34,16 @@ struct TipsView: View {
             }
             .buttonStyle(.plain)
         case .link(let url):
-            Button { openURL(url) } label: {
+            Button {
+                Measure.used("open_tip_link")
+                openURL(url)
+            } label: {
                 TipsTicker.card(tip, chevron: true)
             }
             .buttonStyle(.plain)
         case .importStatement:
             Button {
+                Measure.used("tip_import_statement")
                 if let importStatement { importStatement() } else { openURL(TipsTicker.statementsPage) }
             } label: {
                 TipsTicker.card(tip, chevron: true)

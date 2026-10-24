@@ -77,13 +77,14 @@ struct LongbookApp: App {
                 Text(tray.menuLine)
                 Divider()
                 Button("Open longbook") {
+                    Measure.used("open_longbook")
                     // Activation alone raises a process that may have no window left.
                     openWindow(id: LongbookWindow.main)
                     NSApp.activate(ignoringOtherApps: true)
                 }
-                Button("Refresh") { tray.refresh() }
+                Button("Refresh") { Measure.used("refresh"); tray.refresh() }
                 Divider()
-                Button("Quit longbook") { NSApplication.shared.terminate(nil) }
+                Button("Quit longbook") { Measure.used("quit_longbook"); NSApplication.shared.terminate(nil) }
             }
             // Opening the menu re-reads the vault, so the line is never a stale answer.
             .onAppear { tray.refresh() }

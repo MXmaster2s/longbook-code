@@ -292,9 +292,9 @@ struct EntityCardView: View {
 
     @ViewBuilder
     private func menu(_ actions: Actions) -> some View {
-        Button(action: actions.edit) { Label("Edit", systemImage: "pencil") }
-        Button(action: actions.addCommitment) { Label("Add Commitment", systemImage: "plus") }
-        Button(role: .destructive, action: actions.delete) { Label("Delete", systemImage: "trash") }
+        Button(action: { Measure.used("edit"); actions.edit() }) { Label("Edit", systemImage: "pencil") }
+        Button(action: { Measure.used("add_commitment"); actions.addCommitment() }) { Label("Add Commitment", systemImage: "plus") }
+        Button(role: .destructive, action: { Measure.used("delete"); actions.delete() }) { Label("Delete", systemImage: "trash") }
     }
 
     private var cardBody: some View {
@@ -555,7 +555,7 @@ struct EntityCardView: View {
             if style == .list, let open = actions?.open {
                 // The phone's card is reached by a pushed page, where a value link would
                 // reopen the page itself; the commitment opens as a sheet instead.
-                Button { open(next.commitmentId) } label: {
+                Button { Measure.used("open_commitment"); open(next.commitmentId) } label: {
                     EntityMomentRow(moment: next)
                 }
                 .buttonStyle(.plain)
@@ -631,7 +631,7 @@ struct EntityCardView: View {
     }
 
     private func addButton(_ actions: Actions, fills: Bool) -> some View {
-        Button(action: actions.addCommitment) {
+        Button(action: { Measure.used("add_commitment"); actions.addCommitment() }) {
             EntityActionLabel(title: "Add Commitment", symbol: "plus", prominent: true, fills: fills)
         }
         .buttonStyle(.plain)
@@ -639,7 +639,7 @@ struct EntityCardView: View {
     }
 
     private func editButton(_ actions: Actions, fills: Bool) -> some View {
-        Button(action: actions.edit) {
+        Button(action: { Measure.used("edit"); actions.edit() }) {
             EntityActionLabel(title: "Edit", symbol: "pencil", prominent: false, fills: fills)
         }
         .buttonStyle(.plain)

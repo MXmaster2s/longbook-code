@@ -100,7 +100,7 @@ struct OwnAIHelp: View {
             connectCard
             #endif
             if context == .setup, let onFinish {
-                Button(action: onFinish) {
+                Button(action: { Measure.used("go_to_my_dashboard"); onFinish() }) {
                     Text("Go to My Dashboard")
                         .lbText(.body)
                         .foregroundStyle(LBColor.onBrand.color)
@@ -118,7 +118,7 @@ struct OwnAIHelp: View {
                 MCPServerView(model: model, auth: auth)
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
-                            Button("Done") { connecting = false }
+                            Button("Done") { Measure.used("done"); connecting = false }
                         }
                     }
             }
@@ -144,6 +144,7 @@ struct OwnAIHelp: View {
                     .foregroundStyle(LBColor.brandText.color)
                 } else {
                     Button {
+                        Measure.used("enabling")
                         enable()
                     } label: {
                         Text(enabling ? "Enabling…" : "Enable")
@@ -167,7 +168,7 @@ struct OwnAIHelp: View {
                         .foregroundStyle(LBColor.textTertiary.color)
                         .fixedSize(horizontal: false, vertical: true)
                 } else {
-                    Button("Learn More") { withAnimation(.easeOut(duration: 0.2)) { showingTerms = true } }
+                    Button("Learn More") { Measure.used("learn_more"); withAnimation(.easeOut(duration: 0.2)) { showingTerms = true } }
                         .lbText(.footnote)
                         .foregroundStyle(LBColor.brandText.color)
                         .buttonStyle(.plain)
@@ -280,6 +281,7 @@ struct OwnAIHelp: View {
     /// The tick for the connector step, since the app cannot see it done.
     private var markDone: some View {
         Button {
+            Measure.used("mark_connector_done")
             withAnimation(.easeOut(duration: 0.2)) { markedURL.toggle() }
             LBHaptics.tap()
         } label: {
@@ -324,6 +326,7 @@ struct OwnAIHelp: View {
                     .foregroundStyle(LBColor.textPrimary.color)
                     .fixedSize(horizontal: false, vertical: true)
                 Button {
+                    Measure.used("copy_prompt")
                     copy(prompt)
                 } label: {
                     HStack(spacing: LBSpacing.s2) {
@@ -344,6 +347,7 @@ struct OwnAIHelp: View {
 
     private func copyLine(_ value: String, label: String) -> some View {
         Button {
+            Measure.used("copy_line")
             copy(value)
         } label: {
             HStack(spacing: LBSpacing.s1) {
@@ -362,7 +366,7 @@ struct OwnAIHelp: View {
     /// For an AI that cannot write into the folder — one that lives in a browser — the
     /// hosted door is the other way in.
     private var connectCard: some View {
-        Button { connecting = true } label: {
+        Button { Measure.used("point_3_connected_trianglepath_dotted"); connecting = true } label: {
             HStack(spacing: LBSpacing.s2) {
                 Image(systemName: "point.3.connected.trianglepath.dotted")
                     .font(.system(size: 12, weight: .medium))

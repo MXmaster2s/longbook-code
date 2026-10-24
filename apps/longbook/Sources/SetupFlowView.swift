@@ -251,7 +251,7 @@ struct SetupFlowView: View {
             }
             VStack(spacing: LBSpacing.s3) {
                 Rectangle().fill(LBColor.hairline.color).frame(height: 1)
-                Button(action: advance) {
+                Button(action: { Measure.used("continue"); advance() }) {
                     Text("Continue")
                         .lbText(.body)
                         .foregroundStyle(LBColor.onBrand.color)
@@ -322,7 +322,7 @@ struct SetupFlowView: View {
             if step != .commitments || replay {
                 HStack {
                     if step != .commitments {
-                        Button(action: back) {
+                        Button(action: { Measure.used("arrow_left"); back() }) {
                             Image(systemName: "arrow.left")
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundStyle(LBColor.textSecondary.color)
@@ -334,7 +334,7 @@ struct SetupFlowView: View {
                     }
                     Spacer()
                     if replay {
-                        Button(action: onDone) {
+                        Button(action: { Measure.used("close"); onDone() }) {
                             Image(systemName: "xmark")
                                 .font(.system(size: 12, weight: .semibold))
                                 .foregroundStyle(LBColor.textSecondary.color)

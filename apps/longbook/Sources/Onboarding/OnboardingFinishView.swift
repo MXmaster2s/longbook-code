@@ -140,7 +140,7 @@ struct OnboardingFinishView: View {
 
     /// One option as a row: the whole row is the tap, and the chevron says it goes somewhere.
     private func optionRow(symbol: String, title: String, detail: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        Button(action: { Measure.used("finish_option"); action() }) {
             HStack(spacing: LBSpacing.s3) {
                 Image(systemName: symbol)
                     .font(.system(size: 18, weight: .medium))
@@ -178,7 +178,7 @@ struct OnboardingFinishView: View {
                     .lbText(.headline)
                     .foregroundStyle(LBColor.textPrimary.color)
                 Spacer()
-                Button("Done") { showingAI = false }
+                Button("Done") { Measure.used("done"); showingAI = false }
                     .lbText(.body)
                     .foregroundStyle(LBColor.brandText.color)
             }
@@ -291,6 +291,7 @@ struct OnboardingFinishView: View {
     /// A pill that copies its prompt and says so in place; the AI's own mark leads it until then.
     private func copyPill(_ title: String, copied done: String, text: String, mark: AIPartner? = nil) -> some View {
         Button {
+            Measure.used("copy")
             copy(text)
             withAnimation(.easeOut(duration: 0.2)) { _ = copied.insert(title) }
         } label: {

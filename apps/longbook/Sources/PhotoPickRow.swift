@@ -60,7 +60,7 @@ struct PhotoPickRow: View {
     var body: some View {
         HStack(spacing: LBSpacing.s3) {
             preview
-            Button(has ? "Change Photo…" : "Choose Photo…") { choosing = true }
+            Button(has ? "Change Photo…" : "Choose Photo…") { Measure.used("change_photo"); choosing = true }
                 .buttonStyle(.plain)
                 .lbText(.label)
                 .foregroundStyle(LBColor.brandText.color)
@@ -71,7 +71,7 @@ struct PhotoPickRow: View {
                     if let data = try? Data(contentsOf: url) { picked = data; removing = false }
                 }
             if has {
-                Button("Remove") { picked = nil; removing = true }
+                Button("Remove") { Measure.used("remove"); picked = nil; removing = true }
                     .buttonStyle(.plain)
                     .lbText(.label)
                     .foregroundStyle(LBColor.textSecondary.color)

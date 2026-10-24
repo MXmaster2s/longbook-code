@@ -33,7 +33,7 @@ struct TripsView: View {
             Section {
                 // Start is offered only while no trip runs; a past trip can be added at any time.
                 if model.openTripId == nil {
-                    Button { flow = .start } label: {
+                    Button { Measure.used("start_a_trip"); flow = .start } label: {
                         LBListRow("Start a trip", secondary: "Collects charges until you end it.", chevron: true) {
                             tile("airplane.departure", ink: 7)
                         }
@@ -41,7 +41,7 @@ struct TripsView: View {
                     .buttonStyle(.plain)
                     .lbListRowBackground()
                 }
-                Button { flow = .past } label: {
+                Button { Measure.used("add_a_past_trip"); flow = .past } label: {
                     LBListRow("Add a past trip", chevron: true) { tile("calendar.badge.plus", ink: 2) }
                 }
                 .buttonStyle(.plain)
@@ -98,8 +98,8 @@ struct TripsView: View {
         }
         .measured("trips_confirming_end", .dialog, when: confirmingEnd)
         .confirmationDialog("End this trip?", isPresented: $confirmingEnd, titleVisibility: .visible) {
-            Button("End Trip") { model.endTrip() }
-            Button("Cancel", role: .cancel) {}
+            Button("End Trip") { Measure.used("end_trip"); model.endTrip() }
+            Button("Cancel", role: .cancel) { Measure.used("cancel") }
         } message: {
             Text("The report keeps the days from the trip’s first day to today.")
         }
@@ -166,12 +166,14 @@ struct TripsView: View {
             }
             HStack(spacing: LBSpacing.s3) {
                 Button {
+                    Measure.used("open_report")
                     path.append(.report(id: trip.id))
                 } label: {
                     capsule("Open Report", filled: true)
                 }
                 .buttonStyle(.borderless)
                 Button {
+                    Measure.used("end_trip")
                     confirmingEnd = true
                 } label: {
                     capsule("End Trip", filled: false)

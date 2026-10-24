@@ -59,7 +59,7 @@ struct CurrencyPickerView: View {
                 .lbText(.label)
                 .foregroundStyle(LBColor.textPrimary.color)
             Spacer()
-            Button(action: onDone) {
+            Button(action: { Measure.used("close"); onDone() }) {
                 Image(systemName: "xmark")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(LBColor.textSecondary.color)
@@ -97,6 +97,7 @@ struct CurrencyPickerView: View {
     private func tile(_ entry: (code: String, name: String)) -> some View {
         let taken = already.contains(entry.code)
         return Button {
+            Measure.used("guard")
             guard !taken else { return }
             LBHaptics.tap()
             onPick(entry.code)
