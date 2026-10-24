@@ -59,6 +59,9 @@ export const headingId = (text: string): string =>
 // optionally the caption under it.
 export function parseBlocks(lines: string[], file: string): PostBlock[] {
   const out: PostBlock[] = []
+  // A ### belongs to the ## above it, so its id carries that one's: two versions on a page can each
+  // have an "On the Mac" and an old link to one still finds it when a newer version is added.
+  let section = ''
   let run: string[] = []
   const flush = (): void => {
     if (run.length) out.push(blockOf(run, file))
@@ -88,7 +91,9 @@ export function parseBlocks(lines: string[], file: string): PostBlock[] {
     const h = /^(##|###) (.+)$/.exec(line)
     if (h) {
       flush()
-      out.push({ kind: h[1] === '##' ? 'h2' : 'h3', text: h[2]!.trim(), id: headingId(h[2]!) })
+      const id = headingId(h[2]!)
+      if (h[1] === '##') section = id
+      out.push({ kind: h[1] === '##' ? 'h2' : 'h3', text: h[2]!.trim(), id: h[1] === '###' && section ? `${section}-${id}` : id })
     } else if (line) run.push(line)
     else flush()
   }

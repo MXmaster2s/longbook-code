@@ -485,6 +485,18 @@
   Content-Type: text/markdown; charset=utf-8
   Link: <https://longbook.app/reviews/>; rel="canonical"
 
+/blog/release-notes.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/blog/release-notes/>; rel="canonical"
+
+/blog/release-notes/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/blog/release-notes/>; rel="canonical"
+
+/blog/release-notes/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/blog/release-notes/>; rel="canonical"
+
 /blog/how-to-show-reviews-about-your-product-to-the-world.md
   Content-Type: text/markdown; charset=utf-8
   Link: <https://longbook.app/blog/how-to-show-reviews-about-your-product-to-the-world/>; rel="canonical"

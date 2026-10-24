@@ -103,6 +103,8 @@ https://longbook-app.netlify.app/*  https://longbook.app/:splat  301!
 /blog/index.html.md                                                               /blog.md                                                               200
 /reviews/index.md                                                                 /reviews.md                                                            200
 /reviews/index.html.md                                                            /reviews.md                                                            200
+/blog/release-notes/index.md                                                      /blog/release-notes.md                                                 200
+/blog/release-notes/index.html.md                                                 /blog/release-notes.md                                                 200
 /blog/how-to-show-reviews-about-your-product-to-the-world/index.md                /blog/how-to-show-reviews-about-your-product-to-the-world.md           200
 /blog/how-to-show-reviews-about-your-product-to-the-world/index.html.md           /blog/how-to-show-reviews-about-your-product-to-the-world.md           200
 /blog/using-claude-to-record-your-expenses/index.md                               /blog/using-claude-to-record-your-expenses.md                          200
