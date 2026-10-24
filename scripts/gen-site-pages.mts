@@ -13,6 +13,7 @@ import { stampChrome, stampHead, wrapped, emailsReadable, HEADER_BEGIN, HEADER_E
 import { htmlToMarkdown } from './site-pages/html-md.mts'
 import { jpegSize, readMetadata } from './site-pages/jpeg.mts'
 import { readBuilt, sha256, BUILT_LIST } from './site-pages/built.mts'
+import { loadHelp, validateHelp, helpPage, helpIndexPage, helpMarkdown, helpIndexMarkdown, helpJsonld, helpIndexJsonld, helpUrl, HELP_URL } from './site-pages/help.mts'
 import { loadPosts, validatePosts, postPage, postMarkdown, postJsonld, postPictures, postUrl, blogIndexPage, blogIndexMarkdown, blogJsonld, BLOG_URL, type BlogFilms, type Still } from './site-pages/blog.mts'
 import { loadReviews, validateReviews, reviewsPage, reviewsMarkdown, reviewsJsonld, REVIEWS_URL, REVIEWS_SHARE } from './site-pages/reviews.mts'
 import { PROMPTS, PROMPT_GROUPS } from '../packages/core/src/prompts'
@@ -57,6 +58,7 @@ const lockFile = join(CONTENT, 'screens.lock.json')
 const lock = (existsSync(lockFile) ? JSON.parse(read(lockFile)) : {}) as Record<string, LockEntry>
 problems.push(...validate(features, screens))
 const posts = loadPosts(join(CONTENT, 'blog'))
+const help = loadHelp(join(CONTENT, 'help'))
 const reviews = loadReviews(join(CONTENT, 'reviews.json'))
 problems.push(...validateReviews(reviews, SITE))
 
@@ -124,6 +126,7 @@ const stills = new Map<string, Still>((mediaList.stills ?? []).filter((s) => s.w
   .map((s) => [`/${s.out}`, { width: s.width!, height: s.height! }]))
 const blogFilms: BlogFilms = new Map(mediaList.films.map((f) => [`/${f.out}`, { poster: `/${f.poster}` }]))
 problems.push(...validatePosts(posts, stills, slugs, blogFilms))
+problems.push(...validateHelp(help))
 if (reviews.length && !stills.has(REVIEWS_SHARE)) problems.push(`reviews: media.json builds no ${REVIEWS_SHARE}`)
 
 if (LINT) {
@@ -175,6 +178,12 @@ out.set('automations.md', automationsMarkdown(automations, ctx, catalogue))
 for (const m of promptsOmitted(out.get('automations/index.html')!, out.get('automations.md')!, catalogue)) problems.push(`automations: ${m}`)
 out.set('blog/index.html', blogIndexPage(posts, ctx, blogJsonld(posts)))
 out.set('blog.md', blogIndexMarkdown(posts, ctx))
+out.set('help/index.html', helpIndexPage(help, ctx, helpIndexJsonld(help)))
+out.set('help.md', helpIndexMarkdown(help, ctx))
+for (const a of help) {
+  out.set(`help/${a.slug}/index.html`, helpPage(a, ctx, helpJsonld(a)))
+  out.set(`help/${a.slug}.md`, helpMarkdown(a))
+}
 if (reviews.length) {
   out.set('reviews/index.html', reviewsPage(reviews, ctx, reviewsJsonld(reviews)))
   out.set('reviews.md', reviewsMarkdown(reviews, ctx))
@@ -194,6 +203,7 @@ const mdPages: MdPage[] = [...LISTED.map(([loc]) => ({
   canonical: `${ORIGIN}${loc}`,
   ...(OWN_MD[loc] ? { variants: [`${loc.slice(0, -1)}.md`, `${loc}index.html.md`] } : {}),
 })), { md: '/automations.md', canonical: AUTOMATIONS_URL }, { md: '/blog.md', canonical: BLOG_URL },
+  { md: '/help.md', canonical: HELP_URL }, ...help.map((a) => ({ md: `/help/${a.slug}.md`, canonical: helpUrl(a.slug) })),
   ...(reviews.length ? [{ md: '/reviews.md', canonical: REVIEWS_URL }] : []),
   ...posts.map((p) => ({ md: `/blog/${p.slug}.md`, canonical: postUrl(p.slug) }))]
 function pageMarkdown(html: string, loc: string): string {
@@ -317,6 +327,8 @@ const entries: SitemapEntry[] = [
   })),
   ...(reviews.length ? [{ loc: REVIEWS_URL, lastmod: lastmod('reviews/index.html', [join(CONTENT, 'reviews.json'), join(CONTENT, 'about.md')]),
     images: [`${ORIGIN}${REVIEWS_SHARE}`] }] : []),
+  { loc: HELP_URL, lastmod: lastmod('help/index.html', [join(CONTENT, 'help')]), images: [] },
+  ...help.map((a) => ({ loc: helpUrl(a.slug), lastmod: lastmod(`help/${a.slug}/index.html`, [join(CONTENT, 'help')]), images: [] })),
   ...(posts.length ? [{ loc: BLOG_URL, lastmod: lastmod('blog/index.html', [join(CONTENT, 'blog')]), images: [] }] : []),
   ...posts.map((p) => ({
     loc: postUrl(p.slug),

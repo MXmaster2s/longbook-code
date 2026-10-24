@@ -485,6 +485,414 @@
   Content-Type: text/markdown; charset=utf-8
   Link: <https://longbook.app/blog/>; rel="canonical"
 
+/help.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/>; rel="canonical"
+
+/help/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/>; rel="canonical"
+
+/help/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/>; rel="canonical"
+
+/help/what-longbook-is-and-what-it-costs.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/what-longbook-is-and-what-it-costs/>; rel="canonical"
+
+/help/what-longbook-is-and-what-it-costs/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/what-longbook-is-and-what-it-costs/>; rel="canonical"
+
+/help/what-longbook-is-and-what-it-costs/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/what-longbook-is-and-what-it-costs/>; rel="canonical"
+
+/help/getting-started-on-iphone-and-mac.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/getting-started-on-iphone-and-mac/>; rel="canonical"
+
+/help/getting-started-on-iphone-and-mac/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/getting-started-on-iphone-and-mac/>; rel="canonical"
+
+/help/getting-started-on-iphone-and-mac/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/getting-started-on-iphone-and-mac/>; rel="canonical"
+
+/help/import-a-bank-statement.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/import-a-bank-statement/>; rel="canonical"
+
+/help/import-a-bank-statement/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/import-a-bank-statement/>; rel="canonical"
+
+/help/import-a-bank-statement/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/import-a-bank-statement/>; rel="canonical"
+
+/help/connect-claude-or-chatgpt.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/connect-claude-or-chatgpt/>; rel="canonical"
+
+/help/connect-claude-or-chatgpt/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/connect-claude-or-chatgpt/>; rel="canonical"
+
+/help/connect-claude-or-chatgpt/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/connect-claude-or-chatgpt/>; rel="canonical"
+
+/help/refunds-restoring-a-purchase-and-family-sharing.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/refunds-restoring-a-purchase-and-family-sharing/>; rel="canonical"
+
+/help/refunds-restoring-a-purchase-and-family-sharing/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/refunds-restoring-a-purchase-and-family-sharing/>; rel="canonical"
+
+/help/refunds-restoring-a-purchase-and-family-sharing/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/refunds-restoring-a-purchase-and-family-sharing/>; rel="canonical"
+
+/help/what-longbook-cloud-adds.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/what-longbook-cloud-adds/>; rel="canonical"
+
+/help/what-longbook-cloud-adds/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/what-longbook-cloud-adds/>; rel="canonical"
+
+/help/what-longbook-cloud-adds/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/what-longbook-cloud-adds/>; rel="canonical"
+
+/help/signing-in-and-your-account.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/signing-in-and-your-account/>; rel="canonical"
+
+/help/signing-in-and-your-account/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/signing-in-and-your-account/>; rel="canonical"
+
+/help/signing-in-and-your-account/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/signing-in-and-your-account/>; rel="canonical"
+
+/help/your-privacy-in-support.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/your-privacy-in-support/>; rel="canonical"
+
+/help/your-privacy-in-support/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/your-privacy-in-support/>; rel="canonical"
+
+/help/your-privacy-in-support/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/your-privacy-in-support/>; rel="canonical"
+
+/help/what-each-screen-in-longbook-is-for.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/what-each-screen-in-longbook-is-for/>; rel="canonical"
+
+/help/what-each-screen-in-longbook-is-for/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/what-each-screen-in-longbook-is-for/>; rel="canonical"
+
+/help/what-each-screen-in-longbook-is-for/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/what-each-screen-in-longbook-is-for/>; rel="canonical"
+
+/help/add-a-commitment-or-an-expense.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/add-a-commitment-or-an-expense/>; rel="canonical"
+
+/help/add-a-commitment-or-an-expense/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/add-a-commitment-or-an-expense/>; rel="canonical"
+
+/help/add-a-commitment-or-an-expense/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/add-a-commitment-or-an-expense/>; rel="canonical"
+
+/help/categories.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/categories/>; rel="canonical"
+
+/help/categories/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/categories/>; rel="canonical"
+
+/help/categories/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/categories/>; rel="canonical"
+
+/help/people-and-accounts.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/people-and-accounts/>; rel="canonical"
+
+/help/people-and-accounts/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/people-and-accounts/>; rel="canonical"
+
+/help/people-and-accounts/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/people-and-accounts/>; rel="canonical"
+
+/help/currencies.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/currencies/>; rel="canonical"
+
+/help/currencies/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/currencies/>; rel="canonical"
+
+/help/currencies/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/currencies/>; rel="canonical"
+
+/help/the-dashboard.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/the-dashboard/>; rel="canonical"
+
+/help/the-dashboard/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/the-dashboard/>; rel="canonical"
+
+/help/the-dashboard/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/the-dashboard/>; rel="canonical"
+
+/help/the-calendar-and-bookmarks.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/the-calendar-and-bookmarks/>; rel="canonical"
+
+/help/the-calendar-and-bookmarks/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/the-calendar-and-bookmarks/>; rel="canonical"
+
+/help/the-calendar-and-bookmarks/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/the-calendar-and-bookmarks/>; rel="canonical"
+
+/help/monthly-reports-and-sharing-them.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/monthly-reports-and-sharing-them/>; rel="canonical"
+
+/help/monthly-reports-and-sharing-them/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/monthly-reports-and-sharing-them/>; rel="canonical"
+
+/help/monthly-reports-and-sharing-them/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/monthly-reports-and-sharing-them/>; rel="canonical"
+
+/help/proposals-review-what-your-ai-writes.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/proposals-review-what-your-ai-writes/>; rel="canonical"
+
+/help/proposals-review-what-your-ai-writes/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/proposals-review-what-your-ai-writes/>; rel="canonical"
+
+/help/proposals-review-what-your-ai-writes/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/proposals-review-what-your-ai-writes/>; rel="canonical"
+
+/help/where-your-data-lives-and-what-leaves-your-device.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/where-your-data-lives-and-what-leaves-your-device/>; rel="canonical"
+
+/help/where-your-data-lives-and-what-leaves-your-device/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/where-your-data-lives-and-what-leaves-your-device/>; rel="canonical"
+
+/help/where-your-data-lives-and-what-leaves-your-device/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/where-your-data-lives-and-what-leaves-your-device/>; rel="canonical"
+
+/help/the-widget-and-the-mac-menu-bar.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/the-widget-and-the-mac-menu-bar/>; rel="canonical"
+
+/help/the-widget-and-the-mac-menu-bar/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/the-widget-and-the-mac-menu-bar/>; rel="canonical"
+
+/help/the-widget-and-the-mac-menu-bar/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/the-widget-and-the-mac-menu-bar/>; rel="canonical"
+
+/help/siri-and-shortcuts.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/siri-and-shortcuts/>; rel="canonical"
+
+/help/siri-and-shortcuts/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/siri-and-shortcuts/>; rel="canonical"
+
+/help/siri-and-shortcuts/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/siri-and-shortcuts/>; rel="canonical"
+
+/help/connect-your-ai-to-longbook-mcp.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/connect-your-ai-to-longbook-mcp/>; rel="canonical"
+
+/help/connect-your-ai-to-longbook-mcp/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/connect-your-ai-to-longbook-mcp/>; rel="canonical"
+
+/help/connect-your-ai-to-longbook-mcp/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/connect-your-ai-to-longbook-mcp/>; rel="canonical"
+
+/help/what-your-ai-can-do-in-longbook.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/what-your-ai-can-do-in-longbook/>; rel="canonical"
+
+/help/what-your-ai-can-do-in-longbook/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/what-your-ai-can-do-in-longbook/>; rel="canonical"
+
+/help/what-your-ai-can-do-in-longbook/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/what-your-ai-can-do-in-longbook/>; rel="canonical"
+
+/help/run-longbook-s-server-on-your-computer.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/run-longbook-s-server-on-your-computer/>; rel="canonical"
+
+/help/run-longbook-s-server-on-your-computer/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/run-longbook-s-server-on-your-computer/>; rel="canonical"
+
+/help/run-longbook-s-server-on-your-computer/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/run-longbook-s-server-on-your-computer/>; rel="canonical"
+
+/help/prompts-to-set-up-and-keep-longbook-current.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/prompts-to-set-up-and-keep-longbook-current/>; rel="canonical"
+
+/help/prompts-to-set-up-and-keep-longbook-current/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/prompts-to-set-up-and-keep-longbook-current/>; rel="canonical"
+
+/help/prompts-to-set-up-and-keep-longbook-current/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/prompts-to-set-up-and-keep-longbook-current/>; rel="canonical"
+
+/help/prompts-to-ask-report-and-tidy.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/prompts-to-ask-report-and-tidy/>; rel="canonical"
+
+/help/prompts-to-ask-report-and-tidy/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/prompts-to-ask-report-and-tidy/>; rel="canonical"
+
+/help/prompts-to-ask-report-and-tidy/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/prompts-to-ask-report-and-tidy/>; rel="canonical"
+
+/help/log-expenses-from-gmail-every-morning.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/log-expenses-from-gmail-every-morning/>; rel="canonical"
+
+/help/log-expenses-from-gmail-every-morning/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/log-expenses-from-gmail-every-morning/>; rel="canonical"
+
+/help/log-expenses-from-gmail-every-morning/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/log-expenses-from-gmail-every-morning/>; rel="canonical"
+
+/help/notes-from-your-ai-insights.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/notes-from-your-ai-insights/>; rel="canonical"
+
+/help/notes-from-your-ai-insights/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/notes-from-your-ai-insights/>; rel="canonical"
+
+/help/notes-from-your-ai-insights/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/notes-from-your-ai-insights/>; rel="canonical"
+
+/help/what-longbook-does-not-do.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/what-longbook-does-not-do/>; rel="canonical"
+
+/help/what-longbook-does-not-do/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/what-longbook-does-not-do/>; rel="canonical"
+
+/help/what-longbook-does-not-do/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/what-longbook-does-not-do/>; rel="canonical"
+
+/help/trips.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/trips/>; rel="canonical"
+
+/help/trips/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/trips/>; rel="canonical"
+
+/help/trips/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/trips/>; rel="canonical"
+
+/help/back-up-export-and-delete-your-data.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/back-up-export-and-delete-your-data/>; rel="canonical"
+
+/help/back-up-export-and-delete-your-data/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/back-up-export-and-delete-your-data/>; rel="canonical"
+
+/help/back-up-export-and-delete-your-data/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/back-up-export-and-delete-your-data/>; rel="canonical"
+
+/help/mac-keyboard-shortcuts.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/mac-keyboard-shortcuts/>; rel="canonical"
+
+/help/mac-keyboard-shortcuts/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/mac-keyboard-shortcuts/>; rel="canonical"
+
+/help/mac-keyboard-shortcuts/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/mac-keyboard-shortcuts/>; rel="canonical"
+
+/help/troubleshooting-and-common-questions.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/troubleshooting-and-common-questions/>; rel="canonical"
+
+/help/troubleshooting-and-common-questions/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/troubleshooting-and-common-questions/>; rel="canonical"
+
+/help/troubleshooting-and-common-questions/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/troubleshooting-and-common-questions/>; rel="canonical"
+
+/help/glossary.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/glossary/>; rel="canonical"
+
+/help/glossary/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/glossary/>; rel="canonical"
+
+/help/glossary/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/glossary/>; rel="canonical"
+
 /reviews.md
   Content-Type: text/markdown; charset=utf-8
   Link: <https://longbook.app/reviews/>; rel="canonical"

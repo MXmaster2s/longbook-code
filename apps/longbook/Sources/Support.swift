@@ -237,6 +237,18 @@ struct HelpArticleView: View {
         article.body.components(separatedBy: "\n").compactMap { raw in
             let line = raw.trimmingCharacters(in: .whitespaces)
             if line.isEmpty { return nil }
+            // A table row reads as its cells side by side; the rule under the header is dropped.
+            if line.hasPrefix("|") {
+                let cells = line.trimmingCharacters(in: CharacterSet(charactersIn: "|")).components(separatedBy: "|").map { $0.trimmingCharacters(in: .whitespaces) }
+                if cells.allSatisfy({ $0.allSatisfy { "-: ".contains($0) } }) { return nil }
+                return AnyView(HStack(alignment: .firstTextBaseline, spacing: LBSpacing.s3) {
+                    ForEach(Array(cells.enumerated()), id: \.offset) { index, cell in
+                        Text(inline(cell))
+                            .foregroundStyle(index == 0 ? LBColor.textPrimary.color : LBColor.textSecondary.color)
+                            .frame(minWidth: index == 0 ? 72 : 0, alignment: .leading)
+                    }
+                }.lbText(.bodySM))
+            }
             if line.hasPrefix("#") {
                 let words = line.drop { $0 == "#" }.trimmingCharacters(in: .whitespaces)
                 return AnyView(Text(inline(words)).lbText(.headline).foregroundStyle(LBColor.textPrimary.color).padding(.top, LBSpacing.s2))

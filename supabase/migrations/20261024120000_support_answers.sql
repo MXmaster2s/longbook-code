@@ -21,13 +21,14 @@ alter table public.support_answers enable row level security;
 revoke all on public.support_asks, public.support_answers from public, anon, authenticated;
 
 -- One question counted, as an increment: two asked together must both count. Returns the
--- day's count after this one.
+-- day's count after this one. Counts older than yesterday go on the way, as the policy says.
 create function public.support_ask(p_asker text)
 returns integer
 language sql
 security definer
 set search_path = public
 as $$
+  delete from public.support_asks where day < current_date - 1;
   insert into public.support_asks (asker, day, asks) values (p_asker, current_date, 1)
   on conflict (asker, day) do update set asks = public.support_asks.asks + 1
   returning asks;
