@@ -36,7 +36,7 @@ Recurring payments are only part of what goes out. A repair, a flight or a gift 
 
 ### Where do expenses come from?
 
-They are typed in on the commitment form as **One-time** or recurring, read from a [bank statement](https://longbook.app/features/import-your-bank-statements.md), found in [Gmail](https://longbook.app/features/log-expenses-from-gmail.md) by Claude, or added by [Siri](https://longbook.app/features/automate-longbook-with-siri-and-shortcuts.md) with "Add an expense in my longbook". Everything imported, and everything an AI or Siri adds, waits in **Changes**. longbook never connects to a bank.
+They are typed in on the commitment form as **One-time** or recurring, read from a [bank statement](https://longbook.app/features/import-your-bank-statements.md), found in [Gmail](https://longbook.app/features/log-expenses-from-gmail.md) by Claude, or added by [Siri](https://longbook.app/features/automate-longbook-with-siri-and-shortcuts.md) with "Add an expense in my longbook". Everything imported, and everything an AI or Siri adds, waits in **Proposals**. longbook never connects to a bank.
 
 ### Does longbook set a budget?
 
@@ -57,7 +57,7 @@ Yes. Editing a charge changes that charge alone. A different amount on a recurri
 
 longbook is a memory for your financial commitments: subscriptions, insurance, rent, loans and every other payment that comes back. It runs on iPhone and Mac and keeps its records as plain files in your own iCloud.
 
-The next payment stays in view on the iPhone widget and in the Mac menu bar. Your AI can read your longbook and update it through longbook's MCP server, and every change it makes shows in Changes, to keep or undo.
+The next payment stays in view on the iPhone widget and in the Mac menu bar. Your AI can read your longbook and update it through longbook's MCP server, and every change it makes shows in Proposals, to keep or undo.
 
 - Download for Mac: https://testflight.apple.com/join/g66Nd3Na
 - Download for iPhone: https://testflight.apple.com/join/g66Nd3Na

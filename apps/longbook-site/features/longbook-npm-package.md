@@ -28,7 +28,7 @@ It reads the files in your longbook folder on the computer it runs on. Nothing g
 
 ### The same answers and the same rules
 
-It is the server the Mac app runs. It answers what is due, what renews and what a month cost, reads the statements in your documents folder. Every change it makes is written to your folder at once and shows in **Changes** with the AI's name on it, to keep or undo.
+It is the server the Mac app runs. It answers what is due, what renews and what a month cost, reads the statements in your documents folder. Every change it makes is written to your folder at once and shows in **Proposals** with the AI's name on it, to keep or undo.
 
 ### Any computer that has your folder
 
@@ -64,14 +64,14 @@ Add a server named longbook with the command `npx` and the arguments `-y` and `@
 
 - [Automate longbook with Claude](https://longbook.app/features/automate-longbook-with-claude.md): Claude reads your longbook and keeps it up to date through longbook's MCP server.
 - [Keep your longbook in your own iCloud](https://longbook.app/features/keep-your-longbook-in-your-own-icloud.md): Plain JSON files in a longbook folder in your own iCloud Drive, synced by Apple to your iPhone and Mac.
-- [Review every change your AI makes](https://longbook.app/features/review-every-change-your-ai-makes.md): Every row your AI, Siri or an import writes shows in Changes, to keep, edit or undo.
+- [Review every change your AI makes](https://longbook.app/features/review-every-change-your-ai-makes.md): Every row your AI, Siri or an import writes shows in Proposals, to keep, edit or undo.
 - [All features of longbook](https://longbook.app/features.md)
 
 ## About longbook
 
 longbook is a memory for your financial commitments: subscriptions, insurance, rent, loans and every other payment that comes back. It runs on iPhone and Mac and keeps its records as plain files in your own iCloud.
 
-The next payment stays in view on the iPhone widget and in the Mac menu bar. Your AI can read your longbook and update it through longbook's MCP server, and every change it makes shows in Changes, to keep or undo.
+The next payment stays in view on the iPhone widget and in the Mac menu bar. Your AI can read your longbook and update it through longbook's MCP server, and every change it makes shows in Proposals, to keep or undo.
 
 - Download for Mac: https://testflight.apple.com/join/g66Nd3Na
 - Download for iPhone: https://testflight.apple.com/join/g66Nd3Na

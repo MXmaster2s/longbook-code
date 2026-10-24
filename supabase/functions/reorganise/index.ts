@@ -1,6 +1,6 @@
 // "Reorganise my longbook": the app sends the book, Claude reads it with the guide's own
 // chapter and answers proposals, sieved here by the same validator both doors use. The
-// app applies them as one change in Changes. A run counts against a monthly share.
+// app applies them as one change in Proposals. A run counts against a monthly share.
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { hasCloud } from '../_shared/has-cloud.ts'
 import { shareFor, withinShare } from '../_shared/statement-shares.ts'

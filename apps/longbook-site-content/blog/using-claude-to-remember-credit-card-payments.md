@@ -55,13 +55,13 @@ One-time passwords, sign-in alerts and offers are skipped. The last four digits 
 
 ## Step 5: Review what Claude added
 
-Every row waits in **Changes** with Claude named as its writer. **Keep all** accepts the round as it stands and **Undo all** writes back the state from before it. Before that, any row can be edited or deleted. Open longbook after a round and the new rows are there.
+Every row waits in **Proposals** with Claude named as its writer. **Keep all** accepts the round as it stands and **Undo all** writes back the state from before it. Before that, any row can be edited or deleted. Open longbook after a round and the new rows are there.
 
-![The top of longbook's iPhone Changes screen, with its tabs, the Keep all and Undo all buttons and the first charge Claude suggested](/blog/media/card-payments/changes.jpg "Changes on iPhone: what Claude added, waiting to keep or undo.")
+![The top of longbook's iPhone Proposals screen, with its tabs, the Keep all and Undo all buttons and the first charge Claude suggested](/blog/media/card-payments/changes.jpg "Proposals on iPhone: what Claude added, waiting to keep or undo.")
 
-On a Mac, Changes also keeps a history, so an earlier version of your longbook can be written back.
+On a Mac, Proposals also keeps a history, so an earlier version of your longbook can be written back.
 
-![The top of longbook's Mac Changes screen, with its tabs, the Keep all and Undo all buttons and the charges Claude suggested](/blog/media/card-payments/mac-changes.jpg "Changes on Mac, with the same Keep all and Undo all.")
+![The top of longbook's Mac Proposals screen, with its tabs, the Keep all and Undo all buttons and the charges Claude suggested](/blog/media/card-payments/mac-changes.jpg "Proposals on Mac, with the same Keep all and Undo all.")
 
 Claude reads the mail it can see. A bill that never reached your inbox is not found, and a statement that Claude misreads shows up here, where you can fix it. [Every change your AI makes](/features/review-every-change-your-ai-makes/) is reviewed before you keep it.
 

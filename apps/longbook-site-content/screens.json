@@ -152,14 +152,14 @@
   "iphone-changes": {
     "platform": "iphone",
     "source": "ios/40-changes",
-    "title": "Changes on iPhone",
-    "description": "The Changes screen of longbook on iPhone: charges, a commitment, an account and a member suggested by Claude, with Keep all and Undo all."
+    "title": "Proposals on iPhone",
+    "description": "The Proposals screen of longbook on iPhone: charges, a commitment, an account and a member suggested by Claude, with Keep all and Undo all."
   },
   "mac-changes": {
     "platform": "mac",
     "source": "mac/23-changes",
-    "title": "Changes on Mac",
-    "description": "The Changes screen of longbook on Mac: charges proposed by Claude with Keep all and Undo all, and the history of earlier versions."
+    "title": "Proposals on Mac",
+    "description": "The Proposals screen of longbook on Mac: charges proposed by Claude with Keep all and Undo all, and the history of earlier versions."
   },
   "iphone-insights": {
     "platform": "iphone",

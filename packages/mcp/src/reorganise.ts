@@ -1,6 +1,6 @@
 // "Reorganise my longbook": the whole book once over, by longbook's own AI on the server.
 // This file is the pure part — the digest the model reads, the shape it answers in, and
-// the sieve that turns its answer into proposals the app's Changes screen can apply.
+// the sieve that turns its answer into proposals the app's Proposals screen can apply.
 import { LIBRARY_JSON, nameKey } from '@longbook/core'
 import type { LoadedData } from '@longbook/core'
 import { VaultWriteError } from './errors.js'
@@ -108,7 +108,7 @@ export function reorganiseInstructions(chapter: string, today: string): string {
   const tools = WRITE_TOOLS.filter((t) => (REORGANISE_KINDS as readonly string[]).includes(t.name))
     .map((t) => `${t.name}: ${JSON.stringify(t.inputSchema)}`)
   return [
-    'You reorganise one person\'s longbook for them: a financial memory of commitments, charges, people and accounts, given below as a digest with every row\'s id. You answer with proposals; the owner\'s app applies them, and every one waits in Changes where the owner keeps or undoes it. There is nobody to ask: decide, and say why in a few words.',
+    'You reorganise one person\'s longbook for them: a financial memory of commitments, charges, people and accounts, given below as a digest with every row\'s id. You answer with proposals; the owner\'s app applies them, and every one waits in Proposals where the owner keeps or undoes it. There is nobody to ask: decide, and say why in a few words.',
     chapter.trim(),
     'The tools you may propose, and the arguments each takes (address every row by its id):',
     ...tools,

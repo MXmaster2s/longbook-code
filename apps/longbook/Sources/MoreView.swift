@@ -25,7 +25,7 @@ struct MoreView: View {
                 #if os(iOS)
                 // The phone has no sidebar, so More is its one standing route to these.
                 group("longbook", [
-                    Row(LBGlyph.change, 5, "Changes", "", .opens(.changes)),
+                    Row(LBGlyph.change, 5, "Proposals", "", .opens(.changes)),
                     Row("lightbulb", 6, "Insights", "", .opens(.insights)),
                     Row("bookmark", 3, "Bookmarks", "", .opens(.commitments(ListFilter(bookmarked: true)))),
                     Row(LBGlyph.account, 4, "Accounts", "", .opens(.accounts)),

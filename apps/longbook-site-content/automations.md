@@ -5,11 +5,11 @@ description: Claude and ChatGPT through longbook's MCP server, prompts to copy, 
 features: automate-longbook-with-claude, longbook-npm-package, log-expenses-from-gmail, automate-longbook-with-siri-and-shortcuts, get-insights-about-your-expenses-from-your-ai, review-every-change-your-ai-makes
 ---
 
-longbook can keep itself up to date. Your AI reads your email and records the charges it finds, Siri adds expenses by voice, and every change waits in Changes for you to keep or undo.
+longbook can keep itself up to date. Your AI reads your email and records the charges it finds, Siri adds expenses by voice, and every change waits in Proposals for you to keep or undo.
 
 ## Reorganise my longbook
 
-One pass over the whole book, the way you would keep it if you had an afternoon: names as you would say them, every row in a category, people and accounts linked, doubles merged, nothing lost. Amounts and dates are never touched. The pass lands in [Changes](/features/review-every-change-your-ai-makes/) as one change, to keep or undo at once.
+One pass over the whole book, the way you would keep it if you had an afternoon: names as you would say them, every row in a category, people and accounts linked, doubles merged, nothing lost. Amounts and dates are never touched. The pass lands in [Proposals](/features/review-every-change-your-ai-makes/) as one change, to keep or undo at once.
 
 In the app, **Reorganise my longbook** on the AI Connections screen runs it with longbook's own AI: your longbook goes to longbook's server for the one pass and is not kept, and Anthropic's Claude reads it. Twice a month without longbook Cloud, more with it. With your own AI connected, paste the prompt **Reorganise my longbook** instead; it follows the same written method, as often as you like.
 
@@ -77,13 +77,13 @@ Add a server named longbook that runs this command:
 
 ## Prompts for your AI
 
-Paste a prompt into Claude or ChatGPT with the longbook connector on. Each one has written steps your AI reads from longbook, so the same words get the same result, and what it adds or changes in your commitments and charges waits in [Changes](/features/review-every-change-your-ai-makes/).
+Paste a prompt into Claude or ChatGPT with the longbook connector on. Each one has written steps your AI reads from longbook, so the same words get the same result, and what it adds or changes in your commitments and charges waits in [Proposals](/features/review-every-change-your-ai-makes/).
 
 The same list, with every step, is at [longbook.app/prompts.json](https://longbook.app/prompts.json).
 
 ## All of the MCP server's tools
 
-Every write goes through the same validator the apps use and lands in [Changes](/features/review-every-change-your-ai-makes/) with its writer named. The folder also carries a schema and a guide, `longbook.schema.json` and `llms.txt`, so any AI reads and writes it correctly.
+Every write goes through the same validator the apps use and lands in [Proposals](/features/review-every-change-your-ai-makes/) with its writer named. The folder also carries a schema and a guide, `longbook.schema.json` and `llms.txt`, so any AI reads and writes it correctly.
 
 ### Reading
 
@@ -131,4 +131,4 @@ The statements in the folder, and the reports longbook drew there with the comme
 - `delete_commitment`
 - `create_report`
 
-`create_report` asks longbook to draw a report over the days, accounts, people and categories you name. It appears on the Reports screen the next time the app is open, not in Changes.
+`create_report` asks longbook to draw a report over the days, accounts, people and categories you name. It appears on the Reports screen the next time the app is open, not in Proposals.

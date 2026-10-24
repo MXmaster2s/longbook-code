@@ -42,7 +42,7 @@ each change.
 
 Attachments: none.
 
-Writes to the longbook: yes; it waits in the app's Changes screen.
+Writes to the longbook: yes; it waits in the app's Proposals screen.
 
 ### Reorganise my longbook
 
@@ -51,11 +51,11 @@ Name: `reorganise-my-longbook`
 The user says: "Reorganise my longbook".
 
 Result: Your whole longbook, once over: names as you would say them, every row categorised,
-people and accounts linked, doubles merged, nothing lost. The whole pass waits in Changes.
+people and accounts linked, doubles merged, nothing lost. The whole pass waits in Proposals.
 
 Attachments: none.
 
-Writes to the longbook: yes; it waits in the app's Changes screen.
+Writes to the longbook: yes; it waits in the app's Proposals screen.
 
 ### Set up a morning brief
 

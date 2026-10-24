@@ -36,7 +36,7 @@ The **Record a charge from a message** action reads a bank's message on the devi
 
 ## Why it exists
 
-Many payments are made away from a computer: a cab fare, a shop bill, a transfer from the phone. Siri and the Shortcuts action record them there, without opening longbook. Everything they add shows in [Changes](/features/review-every-change-your-ai-makes/) under the name Siri or bank message, to keep or undo.
+Many payments are made away from a computer: a cab fare, a shop bill, a transfer from the phone. Siri and the Shortcuts action record them there, without opening longbook. Everything they add shows in [Proposals](/features/review-every-change-your-ai-makes/) under the name Siri or bank message, to keep or undo.
 
 ## Questions
 

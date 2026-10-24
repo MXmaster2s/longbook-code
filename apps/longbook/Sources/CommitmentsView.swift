@@ -215,7 +215,7 @@ struct CommitmentsView: View {
                 }
                 Button("Cancel", role: .cancel) { Measure.used("cancel") }
             } message: { _ in
-                Text("Its charges are removed with it. The version before stays in Changes.")
+                Text("Its charges are removed with it. The version before stays in Proposals.")
             }
             .measured("commitments_deleting_charge", .alert, when: deletingCharge != nil)
             .alert("Delete this charge?",

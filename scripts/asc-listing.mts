@@ -33,7 +33,7 @@ const WORDS = {
     'Your longbook is a private memory of your money. Remember what you pay, to whom & from which account - without connecting your bank. Lifetime license & family sharing.',
   description: `longbook remembers every subscription, bill, insurance premium, EMI, rent and school fee, and reminds you before it charges you. On iPhone and Mac, with your data in your own iCloud.
 
-Connect Claude or ChatGPT and your AI keeps it current: it reads your mail and bank statements, adds every charge it finds, and nothing lands until you keep it in the Changes screen.
+Connect Claude or ChatGPT and your AI keeps it current: it reads your mail and bank statements, adds every charge it finds, and nothing lands until you keep it in the Proposals screen.
 
 WHAT LONGBOOK DOES
 • Shows your next commitment, the 30 days ahead, and a calendar of every day money leaves
@@ -50,7 +50,7 @@ LET YOUR AI DO THE DATA ENTRY
 • Ask it anything: "What do I pay next?", "What renews this year?", "What did I spend in May?"
 
 NOTHING CHANGES WITHOUT YOU
-• Every edit your AI makes waits in Changes for you to keep or undo
+• Every edit your AI makes waits in Proposals for you to keep or undo
 • Full history of what was proposed, kept and undone
 
 PRIVATE BY DESIGN
@@ -78,7 +78,7 @@ const MAC_WORDS = {
   keywords: 'recurring,expense,manager,insurance,premium,EMI,rent,reminder,calendar,budget,money,MCP,menu bar',
   description: `longbook remembers every subscription, bill, insurance premium, EMI, rent and school fee, and reminds you before it charges you. On Mac and iPhone, with your data in your own iCloud.
 
-Connect Claude or ChatGPT and your AI keeps it current: it reads your mail and bank statements, adds every charge it finds, and nothing lands until you keep it in the Changes screen.
+Connect Claude or ChatGPT and your AI keeps it current: it reads your mail and bank statements, adds every charge it finds, and nothing lands until you keep it in the Proposals screen.
 
 WHAT LONGBOOK DOES
 • Shows your next commitment, the 30 days ahead, and a calendar of every day money leaves
@@ -95,7 +95,7 @@ LET YOUR AI DO THE DATA ENTRY
 • Ask it anything: "What do I pay next?", "What renews this year?", "What did I spend in May?"
 
 NOTHING CHANGES WITHOUT YOU
-• Every edit your AI makes waits in Changes for you to keep or undo
+• Every edit your AI makes waits in Proposals for you to keep or undo
 • Full history of what was proposed, kept and undone
 
 PRIVATE BY DESIGN

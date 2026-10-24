@@ -54,7 +54,7 @@ struct TipsTicker: View {
             Tip(number: 4, title: "Ask your AI",
                 detail: "Connect Claude to ask about your money.", door: .screen(.mcpServer)),
             Tip(number: 5, title: "Every change is undoable",
-                detail: "What a statement or an AI writes waits in Changes. Keep it or undo it in one tap.", door: .screen(.changes)),
+                detail: "What a statement or an AI writes waits in Proposals. Keep it or undo it in one tap.", door: .screen(.changes)),
         ]
     }()
 

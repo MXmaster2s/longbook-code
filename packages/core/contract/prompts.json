@@ -1,5 +1,5 @@
 {
-  "contract_revision": 44,
+  "contract_revision": 45,
   "groups": [
     {
       "id": "setup",
@@ -41,7 +41,7 @@
         "Setup my longbook"
       ],
       "attachments": "bank and card statements, ideally the last 12 months, as a PDF with text, an .xlsx or a CSV. Card statements matter too: a bank statement shows only the card bill payment, not what the card was spent on.",
-      "result": "Your longbook filled from your statements: every charge on record, the names you picked in setup filled in where your statements or your answers show them, each account's closing balance set, the charges that clearly repeat planned ahead, and the rest set to repeat once you confirm them. It waits in the Changes screen for you to keep.",
+      "result": "Your longbook filled from your statements: every charge on record, the names you picked in setup filled in where your statements or your answers show them, each account's closing balance set, the charges that clearly repeat planned ahead, and the rest set to repeat once you confirm them. It waits in the Proposals screen for you to keep.",
       "writes": true,
       "chapter": "first-run",
       "procedure": [
@@ -65,7 +65,7 @@
         "15. After the user answers:",
         "   1. Apply the corrections and additions in one pass. Undo a repeat the user says is not one.",
         "   2. Set each further repeat the user confirms to continue, planned 24 months ahead unless they say otherwise. Through a sign-in or a key, set the repeats you listed too, once the rows are in the longbook; if they are not there yet, ask the user to open longbook first.",
-        "   3. Tell the user it is done: how many commitments, what repeats and how far ahead it is planned, how many months of reports longbook will draw, the balances set, what was skipped and why, and the two or three things you noticed they may want to change. Say it is waiting in the Changes screen.",
+        "   3. Tell the user it is done: how many commitments, what repeats and how far ahead it is planned, how many months of reports longbook will draw, the balances set, what was skipped and why, and the two or three things you noticed they may want to change. Say it is waiting in the Proposals screen.",
         "   4. Suggest what comes next, leaving out what the user already uses: the other prompts in the Automations section; keeping statements in the longbook documents folder, which their AI can read through the Mac connection; the Siri phrases \"Add an expense in my longbook\", \"Add a commitment in my longbook\" and \"What's my next commitment in my longbook\"; the longbook widget on their iPhone, which shows the next payment; and the longbook Mac app, which shows the next payment in the menu bar."
       ]
     },
@@ -109,7 +109,7 @@
         "   1. Apply the answers in one pass. Undo a repeat the user says is not one.",
         "   2. Set each further repeat the user confirms to continue, planned 24 months ahead unless they say otherwise. Through a sign-in or a key, set the repeats you listed too, once the rows are in the longbook; if they are not there yet, ask the user to open longbook first.",
         "   3. Report how many charges were added, what now repeats and how far ahead it is planned, what was skipped and why, and the balance set, or that the statement printed none.",
-        "   4. Say it is waiting in the Changes screen."
+        "   4. Say it is waiting in the Proposals screen."
       ]
     },
     {
@@ -130,11 +130,11 @@
         "4. Where the name says what it is, set it: Netflix is streaming, Airtel is telecom, a person paid on the 1st of each month is a salary.",
         "5. Intelligently guess a category for the rest or the ones that do not fit.",
         "6. In the end, when responding:",
-        "   1. Say which ones you set, and that they are waiting in the Changes screen.",
+        "   1. Say which ones you set, and that they are waiting in the Proposals screen.",
         "   2. Send one table of the categories you guessed: name, date, amount, and the category you chose. Ask the user to correct any that are wrong, and recommend they answer by voice.",
         "7. After the user answers:",
         "   1. Apply the corrections in one pass. Keep a category the user names in their own words.",
-        "   2. Say it is waiting in the Changes screen."
+        "   2. Say it is waiting in the Proposals screen."
       ]
     },
     {
@@ -160,7 +160,7 @@
         "8. In the end, when responding:",
         "   1. Say what was added and what was confirmed.",
         "   2. Say longbook draws the month's report the next time the app opens, with \"Not yet confirmed\" beside the total until every passed charge in the month is confirmed.",
-        "   3. Say it is waiting in the Changes screen."
+        "   3. Say it is waiting in the Proposals screen."
       ]
     },
     {
@@ -197,7 +197,7 @@
         "8. In the end, when responding:",
         "   1. Say how many charges were added, and which mails were skipped and why, in a line.",
         "   2. Say what needs the user's word: something that looks recurring, or an account the longbook does not hold.",
-        "   3. Say it is waiting in the Changes screen."
+        "   3. Say it is waiting in the Proposals screen."
       ]
     },
     {
@@ -224,15 +224,15 @@
         "2. Check that you can read the user's mail. If not, say a mail connector is needed, and stop.",
         "3. Create a scheduled task that runs every day at 6 in the morning, in the user's time zone. Its instruction: read longbook's daily email round method from the longbook connector, then do one round. Each morning then follows the method as it stands that day.",
         "4. If your app has no scheduled tasks, say so, and offer to run the round whenever the user asks.",
-        "5. Run the first round now, so the user sees in the Changes screen what a morning looks like.",
+        "5. Run the first round now, so the user sees in the Proposals screen what a morning looks like.",
         "6. Each round:",
         "   1. First fix anything from an earlier round that the app could not apply, using the real names in the longbook, and file it again in place of the failed one.",
         "   2. Read the last day of mail, 36 hours to be safe, and record it as in \"Add email invoices in my longbook\".",
         "   3. Only add, and mark paid what a mail proves. Never cancel, never change a price unless the notice comes from the payee itself, and never decide that something repeats; propose those in the report.",
         "   4. When a mail marks a charge paid and nothing is planned after it, plan the next one, one cycle on, at its current price, and say so in the report.",
-        "   5. End with a short report: what was added, what was skipped, what needs the user's word, and that it is waiting in the Changes screen. Then stop.",
+        "   5. End with a short report: what was added, what was skipped, what needs the user's word, and that it is waiting in the Proposals screen. Then stop.",
         "7. In the end, when responding:",
-        "   1. Say the round is set for 6 every morning, show what the first round added, and say it is waiting in the Changes screen."
+        "   1. Say the round is set for 6 every morning, show what the first round added, and say it is waiting in the Proposals screen."
       ]
     },
     {
@@ -255,7 +255,7 @@
         "6. Name the file in the charge's notes. Never copy its contents.",
         "7. In the end, when responding:",
         "   1. List what was added or updated.",
-        "   2. Say it is waiting in the Changes screen."
+        "   2. Say it is waiting in the Proposals screen."
       ]
     },
     {
@@ -280,7 +280,7 @@
         "6. Add the three details that matter for its kind, as listed in the Notes chapter of longbook's guide, as far as the user stated them.",
         "7. In the end, when responding:",
         "   1. Say what was added, and how far ahead it is planned.",
-        "   2. Say it is waiting in the Changes screen."
+        "   2. Say it is waiting in the Proposals screen."
       ]
     },
     {
@@ -413,7 +413,7 @@
         "4. Ask longbook to draw the report, once. Never state its figures yourself.",
         "5. In the end, when responding:",
         "   1. Say it appears on the Reports screen the next time the app is open, counting confirmed charges only, like every report.",
-        "   2. Say nothing waits in the Changes screen. To change what the report says, fix the charges behind it, and longbook redraws it."
+        "   2. Say nothing waits in the Proposals screen. To change what the report says, fix the charges behind it, and longbook redraws it."
       ]
     },
     {
@@ -466,7 +466,7 @@
         "   1. For one charge recorded twice, keep the copy on the commitment the longbook already holds, give it the better name and note, and remove the other.",
         "   2. For one payee under two names, give both the user's name, or copy the twin's charges onto the main one exactly as they are, then delete the twin only when the user says so, naming its paid charges first.",
         "   3. Never lose a charge that happened.",
-        "   4. Say it is waiting in the Changes screen."
+        "   4. Say it is waiting in the Proposals screen."
       ]
     },
     {
@@ -481,7 +481,7 @@
         "Clean up my longbook"
       ],
       "attachments": "none.",
-      "result": "Your whole longbook, once over: names as you would say them, every row categorised, people and accounts linked, doubles merged, nothing lost. The whole pass waits in Changes.",
+      "result": "Your whole longbook, once over: names as you would say them, every row categorised, people and accounts linked, doubles merged, nothing lost. The whole pass waits in Proposals.",
       "writes": true,
       "chapter": "reorganise-my-longbook",
       "procedure": [
@@ -489,10 +489,10 @@
         "2. Read everything: every commitment with status \"all\", the charges over a wide window, the people, the accounts and the tags.",
         "3. Follow the guide's \"Reorganise my longbook\" chapter in its order: names the user would say, a category on every row from the book's words then the library's, people and accounts linked only where a row names them, doubles merged without losing a charge, notes rid of card and account numbers.",
         "4. Change no amount, date, cycle, status or planned count, and leave alone what is already right.",
-        "5. Write it as one batched pass, without asking first: the user keeps or undoes the whole pass in Changes.",
+        "5. Write it as one batched pass, without asking first: the user keeps or undoes the whole pass in Proposals.",
         "6. In the end, when responding:",
         "   1. Say in a few plain sentences what you renamed, categorised, linked and merged, and what you left as it was.",
-        "   2. Say it is waiting in the Changes screen, to keep or undo at once."
+        "   2. Say it is waiting in the Proposals screen, to keep or undo at once."
       ]
     },
     {
@@ -515,7 +515,7 @@
         "2. Ask what time the user wants the brief, and create a scheduled task for that time in their time zone. If your app has no scheduled tasks, say so, and offer to give the brief whenever the user asks.",
         "3. Each morning:",
         "   1. Read what is due today and in the next 30 days, and give the lines the user asked for: the next payment, the large charges this week, any plan running short.",
-        "   2. Through a sign-in or a key, say how many suggestions are waiting for the app to pick them up, and name any it could not apply, with the reason. Through the Mac connection, say anything waiting is already in the Changes screen.",
+        "   2. Through a sign-in or a key, say how many suggestions are waiting for the app to pick them up, and name any it could not apply, with the reason. Through the Mac connection, say anything waiting is already in the Proposals screen.",
         "   3. Write nothing.",
         "4. In the end, when responding:",
         "   1. Say what time the brief is set for, and give today's brief once, so the user sees what it looks like."
@@ -549,11 +549,11 @@
         "8. In the end, when responding:",
         "   1. Send one table of what was added, grouped by category, with the names and categories you guessed and the repeats you set, and one line on what was skipped and why.",
         "   2. Ask, in one message, about anything you could not place, and how often each one seen once or twice comes round, with your guesses. Recommend the user answer by voice.",
-        "   3. Say it is waiting in the Changes screen.",
+        "   3. Say it is waiting in the Proposals screen.",
         "9. After the user answers:",
         "   1. Apply the answers in one pass.",
         "   2. Set each further repeat the user confirms to continue, planned 24 months ahead unless they say otherwise. Through a sign-in or a key, set the repeats you listed too, once the rows are in the longbook; if they are not there yet, ask the user to open longbook first.",
-        "   3. Say it is waiting in the Changes screen."
+        "   3. Say it is waiting in the Proposals screen."
       ]
     },
     {
@@ -584,11 +584,11 @@
         "8. In the end, when responding:",
         "   1. Send one table of what was added, grouped by category, with the names and categories you guessed and the repeats you set, and one line on what was skipped and why.",
         "   2. Ask, in one message, about anything you could not place, and how often each one seen once or twice comes round, with your guesses. Recommend the user answer by voice.",
-        "   3. Say it is waiting in the Changes screen.",
+        "   3. Say it is waiting in the Proposals screen.",
         "9. After the user answers:",
         "   1. Apply the answers in one pass.",
         "   2. Set each further repeat the user confirms to continue, planned 24 months ahead unless they say otherwise. Through a sign-in or a key, set the repeats you listed too, once the rows are in the longbook; if they are not there yet, ask the user to open longbook first.",
-        "   3. Say it is waiting in the Changes screen."
+        "   3. Say it is waiting in the Proposals screen."
       ]
     },
     {
@@ -619,11 +619,11 @@
         "8. In the end, when responding:",
         "   1. Send one table of what was added, grouped by category, with the names and categories you guessed and the repeats you set, and one line on what was skipped and why.",
         "   2. Ask, in one message, about anything you could not place, and how often each one seen once or twice comes round, with your guesses. Recommend the user answer by voice.",
-        "   3. Say it is waiting in the Changes screen.",
+        "   3. Say it is waiting in the Proposals screen.",
         "9. After the user answers:",
         "   1. Apply the answers in one pass.",
         "   2. Set each further repeat the user confirms to continue, planned 24 months ahead unless they say otherwise. Through a sign-in or a key, set the repeats you listed too, once the rows are in the longbook; if they are not there yet, ask the user to open longbook first.",
-        "   3. Say it is waiting in the Changes screen."
+        "   3. Say it is waiting in the Proposals screen."
       ]
     },
     {
@@ -654,11 +654,11 @@
         "8. In the end, when responding:",
         "   1. Send one table of what was added, grouped by category, with the names and categories you guessed and the repeats you set, and one line on what was skipped and why.",
         "   2. Ask, in one message, about anything you could not place, and how often each one seen once or twice comes round, with your guesses. Recommend the user answer by voice.",
-        "   3. Say it is waiting in the Changes screen.",
+        "   3. Say it is waiting in the Proposals screen.",
         "9. After the user answers:",
         "   1. Apply the answers in one pass.",
         "   2. Set each further repeat the user confirms to continue, planned 24 months ahead unless they say otherwise. Through a sign-in or a key, set the repeats you listed too, once the rows are in the longbook; if they are not there yet, ask the user to open longbook first.",
-        "   3. Say it is waiting in the Changes screen."
+        "   3. Say it is waiting in the Proposals screen."
       ]
     },
     {
@@ -689,11 +689,11 @@
         "8. In the end, when responding:",
         "   1. Send one table of what was added, grouped by category, with the names and categories you guessed and the repeats you set, and one line on what was skipped and why.",
         "   2. Ask, in one message, about anything you could not place, and how often each one seen once or twice comes round, with your guesses. Recommend the user answer by voice.",
-        "   3. Say it is waiting in the Changes screen.",
+        "   3. Say it is waiting in the Proposals screen.",
         "9. After the user answers:",
         "   1. Apply the answers in one pass.",
         "   2. Set each further repeat the user confirms to continue, planned 24 months ahead unless they say otherwise. Through a sign-in or a key, set the repeats you listed too, once the rows are in the longbook; if they are not there yet, ask the user to open longbook first.",
-        "   3. Say it is waiting in the Changes screen."
+        "   3. Say it is waiting in the Proposals screen."
       ]
     },
     {
@@ -724,11 +724,11 @@
         "8. In the end, when responding:",
         "   1. Send one table of what was added, grouped by category, with the names and categories you guessed and the repeats you set, and one line on what was skipped and why.",
         "   2. Ask, in one message, about anything you could not place, and how often each one seen once or twice comes round, with your guesses. Recommend the user answer by voice.",
-        "   3. Say it is waiting in the Changes screen.",
+        "   3. Say it is waiting in the Proposals screen.",
         "9. After the user answers:",
         "   1. Apply the answers in one pass.",
         "   2. Set each further repeat the user confirms to continue, planned 24 months ahead unless they say otherwise. Through a sign-in or a key, set the repeats you listed too, once the rows are in the longbook; if they are not there yet, ask the user to open longbook first.",
-        "   3. Say it is waiting in the Changes screen."
+        "   3. Say it is waiting in the Proposals screen."
       ]
     },
     {
@@ -759,11 +759,11 @@
         "8. In the end, when responding:",
         "   1. Send one table of what was added, grouped by category, with the names and categories you guessed and the repeats you set, and one line on what was skipped and why.",
         "   2. Ask, in one message, about anything you could not place, and how often each one seen once or twice comes round, with your guesses. Recommend the user answer by voice.",
-        "   3. Say it is waiting in the Changes screen.",
+        "   3. Say it is waiting in the Proposals screen.",
         "9. After the user answers:",
         "   1. Apply the answers in one pass.",
         "   2. Set each further repeat the user confirms to continue, planned 24 months ahead unless they say otherwise. Through a sign-in or a key, set the repeats you listed too, once the rows are in the longbook; if they are not there yet, ask the user to open longbook first.",
-        "   3. Say it is waiting in the Changes screen."
+        "   3. Say it is waiting in the Proposals screen."
       ]
     },
     {
@@ -794,11 +794,11 @@
         "8. In the end, when responding:",
         "   1. Send one table of what was added, grouped by category, with the names and categories you guessed and the repeats you set, and one line on what was skipped and why.",
         "   2. Ask, in one message, about anything you could not place, and how often each one seen once or twice comes round, with your guesses. Recommend the user answer by voice.",
-        "   3. Say it is waiting in the Changes screen.",
+        "   3. Say it is waiting in the Proposals screen.",
         "9. After the user answers:",
         "   1. Apply the answers in one pass.",
         "   2. Set each further repeat the user confirms to continue, planned 24 months ahead unless they say otherwise. Through a sign-in or a key, set the repeats you listed too, once the rows are in the longbook; if they are not there yet, ask the user to open longbook first.",
-        "   3. Say it is waiting in the Changes screen."
+        "   3. Say it is waiting in the Proposals screen."
       ]
     },
     {
@@ -829,11 +829,11 @@
         "8. In the end, when responding:",
         "   1. Send one table of what was added, grouped by category, with the names and categories you guessed and the repeats you set, and one line on what was skipped and why.",
         "   2. Ask, in one message, about anything you could not place, and how often each one seen once or twice comes round, with your guesses. Recommend the user answer by voice.",
-        "   3. Say it is waiting in the Changes screen.",
+        "   3. Say it is waiting in the Proposals screen.",
         "9. After the user answers:",
         "   1. Apply the answers in one pass.",
         "   2. Set each further repeat the user confirms to continue, planned 24 months ahead unless they say otherwise. Through a sign-in or a key, set the repeats you listed too, once the rows are in the longbook; if they are not there yet, ask the user to open longbook first.",
-        "   3. Say it is waiting in the Changes screen."
+        "   3. Say it is waiting in the Proposals screen."
       ]
     }
   ]

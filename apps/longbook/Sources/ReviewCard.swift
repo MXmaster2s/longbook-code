@@ -39,10 +39,10 @@ struct ReviewCard: View {
                         path.append(.changes)
                         #endif
                     } label: {
-                        capsule("Show changes", ink: LBColor.onBrand, fill: LBColor.brand)
+                        capsule("Show proposal", ink: LBColor.onBrand, fill: LBColor.brand)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityHint("Opens the Changes screen.")
+                    .accessibilityHint("Opens the Proposals screen.")
                     Button {
                         Measure.used("keep_changes")
                         if model.keepOutsideChange() {
@@ -52,10 +52,10 @@ struct ReviewCard: View {
                             refusal = model.saveError
                         }
                     } label: {
-                        capsule("Keep changes", ink: LBColor.textSecondary, fill: LBColor.chrome)
+                        capsule("Keep proposal", ink: LBColor.textSecondary, fill: LBColor.chrome)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityHint("Adopts the change as it stands, on every device.")
+                    .accessibilityHint("Adopts the proposal as it stands, on every device.")
                 }
                 if let refusal {
                     Text(refusal)
@@ -84,7 +84,7 @@ struct ReviewCard: View {
             .contentShape(Capsule())
     }
 
-    /// Who proposed how much, counted as the Changes screen counts its lines: a plan is one,
+    /// Who proposed how much, counted as the Proposals screen counts its lines: a plan is one,
     /// a one-time commitment and its charge are one. The writer is named when one outside
     /// hand signed every row; only its first letter is raised, the rest reads as signed.
     private func headline(_ diff: [EntityDiff]) -> String {
@@ -97,7 +97,7 @@ struct ReviewCard: View {
         // Only added rows are new items; a changed or removed row among them makes changes.
         let allNew = diff.allSatisfy { $0.removed.isEmpty && $0.changed.isEmpty }
         return allNew
-            ? "\(count) new item\(plural) proposed in Changes"
-            : "\(count) change\(plural) proposed in Changes"
+            ? "\(count) new item\(plural) proposed"
+            : "\(count) change\(plural) proposed"
     }
 }

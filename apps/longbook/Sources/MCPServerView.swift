@@ -126,7 +126,7 @@ struct MCPServerView: View {
                 // before anything is hosted, and the switch waits on the answer.
                 if confirmingEnable {
                     VStack(alignment: .leading, spacing: LBSpacing.s3) {
-                        Text("Your AI agents — ChatGPT or Claude — will be able to read and write your longbook. What they write waits in Changes for you to keep or undo.")
+                        Text("Your AI agents — ChatGPT or Claude — will be able to read and write your longbook. What they write waits in Proposals for you to keep or undo.")
                             .lbText(.bodySM)
                             .foregroundStyle(LBColor.textSecondary.color)
                             .fixedSize(horizontal: false, vertical: true)
@@ -254,7 +254,7 @@ struct MCPServerView: View {
     /// off, an agent reads and nothing more. Enforced by the server, not by hiding tools.
     private var writePanel: some View {
         LBPanel {
-            switchRow("Allow suggested changes", detail: "You review them in Changes.",
+            switchRow("Allow proposals", detail: "You review them in Proposals.",
                       isOn: Binding(get: { webPropose }, set: { _ in toggleWrite() }))
                 .disabled(webProposeBusy)
         }

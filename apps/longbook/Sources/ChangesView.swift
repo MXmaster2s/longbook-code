@@ -60,7 +60,7 @@ struct ChangesView: View {
             macBody(review, groups: groups, proxy: proxy)
             #else
             phoneList(review, groups: groups)
-                .lbScreenTitle("Changes") {
+                .lbScreenTitle("Proposals") {
                     Button {
                         Measure.used("how_it_works")
                         withAnimation(.snappy(duration: 0.25)) { showingHow.toggle() }
@@ -141,7 +141,7 @@ struct ChangesView: View {
     /// screen keeps.
     private func subtitle(_ review: Review?) -> String {
         guard let review else { return Self.howItWorks[0] }
-        return "Changes from \(writerName(review) ?? "your AI"). Keep or undo them."
+        return "A proposal from \(writerName(review) ?? "your AI"). Keep or undo it."
     }
 
     /// The one outside hand that signed the pending rows; nil when none or several did.
@@ -159,7 +159,7 @@ struct ChangesView: View {
 
     private static let howItWorks = [
         "Every version of your memory is kept. Review what changed, who wrote it, and bring any version back.",
-        "Keep All adopts the change as it stands, on every device. Undo All writes the state before this change back, including anything you edited since.",
+        "Keep All adopts the proposal as it stands, on every device. Undo All writes the state before this proposal back, including anything you edited since.",
         rowHelp,
         "Restoring a version from history writes it back as a new change. Nothing is deleted.",
     ]
@@ -345,7 +345,7 @@ struct ChangesView: View {
     private func macBar(_ review: Review?, proxy: ScrollViewProxy) -> some View {
         HStack(alignment: .center, spacing: LBSpacing.s3) {
             VStack(alignment: .leading, spacing: 2) {
-                LBPageTitle("Changes")
+                LBPageTitle("Proposals")
                 Text(subtitle(review))
                     .lbText(.bodySM)
                     .foregroundStyle(LBColor.textSecondary.color)
@@ -441,7 +441,7 @@ struct ChangesView: View {
                     .font(.system(size: 22, weight: .medium))
                     .foregroundStyle(LBColor.textQuaternary.color)
                     .accessibilityHidden(true)
-                Text(review == nil ? "Select a version to see what it changed." : "Select a change to see it in full.")
+                Text(review == nil ? "Select a version to see what it changed." : "Select a proposal to see it in full.")
                     .lbText(.bodySM)
                     .foregroundStyle(LBColor.textTertiary.color)
             }
@@ -634,7 +634,7 @@ struct ChangesView: View {
     /// What Delete would drop, or nil where the model offers no single write for it: a
     /// category, or a changed or removed row.
     private func deleteTarget(kind: String, group: RowGroup, money: String?) -> DeleteTarget? {
-        let rest = "The rest of this change stays for you to keep or undo."
+        let rest = "The rest of this proposal stays for you to keep or undo."
         switch kind {
         case "commitments":
             return DeleteTarget(row: .commitment(group.id), question: "Delete \(group.name)?",
@@ -806,7 +806,7 @@ struct ChangesView: View {
                         .lbText(.headline)
                         .foregroundStyle(LBColor.textPrimary.color)
                 }
-                Text("When your AI or a statement writes to your longbook, the change waits here for you to keep or undo. Every version stays in History.")
+                Text("When your AI or a statement writes to your longbook, the proposal waits here for you to keep or undo. Every version stays in History.")
                     .lbText(.bodySM)
                     .foregroundStyle(LBColor.textSecondary.color)
                     .fixedSize(horizontal: false, vertical: true)
@@ -984,7 +984,7 @@ struct ChangesView: View {
                 ChangeActionLabel(title: "Keep All", symbol: "checkmark.circle.fill", filled: true, wide: wide)
             }
             .buttonStyle(.plain)
-            .accessibilityHint("Adopts the change as it stands, on every device.")
+            .accessibilityHint("Adopts the proposal as it stands, on every device.")
         }
     }
 

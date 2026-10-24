@@ -117,14 +117,14 @@ the steps are always the server's current ones.
 ## What it connects to
 
 - **longbook** (https://longbook.app/mcp), signed in with your longbook account. Claude reads
-  your longbook through it; what Claude writes waits in the longbook app's Changes screen, where
-  you keep it or undo it.
+  your longbook through it; what Claude writes waits in the longbook app's Proposals screen,
+  where you keep it or undo it.
 - **Gmail** (https://gmailmcp.googleapis.com/mcp/v1), signed in with your Google account. Only
   the email prompts read it, to find payments, bills and receipts.
 
 The plugin runs no code on your machine and sends nothing anywhere else. Privacy:
 https://longbook.app/privacy-policy/. Generated from the longbook prompt catalogue (contract
-revision 44).
+revision 45).
 
 ## More about longbook
 

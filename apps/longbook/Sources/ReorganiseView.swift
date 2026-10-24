@@ -78,7 +78,7 @@ struct ReorganiseView: View {
                 .lbText(.body)
                 .foregroundStyle(LBColor.textPrimary.color)
                 .fixedSize(horizontal: false, vertical: true)
-            Text("Your longbook is sent to longbook's server for this one pass and not kept. Everything lands in Changes as one change, to keep or undo at once.")
+            Text("Your longbook is sent to longbook's server for this one pass and not kept. Everything lands in Proposals as one proposal, to keep or undo at once.")
                 .lbText(.footnote)
                 .foregroundStyle(LBColor.textTertiary.color)
                 .fixedSize(horizontal: false, vertical: true)
@@ -119,7 +119,7 @@ struct ReorganiseView: View {
                 .foregroundStyle(LBColor.textSecondary.color)
                 .fixedSize(horizontal: false, vertical: true)
             if applied > 0 {
-                Text("Keep or undo it in Changes.")
+                Text("Keep or undo it in Proposals.")
                     .lbText(.footnote)
                     .foregroundStyle(LBColor.textTertiary.color)
             }
@@ -129,7 +129,7 @@ struct ReorganiseView: View {
 
     /// What landed, in the owner's words; a skipped one is said without blame.
     private var count: String {
-        var words = applied == 0 ? "Nothing needed changing." : applied == 1 ? "One change waits in Changes." : "\(applied) changes wait in Changes, as one."
+        var words = applied == 0 ? "Nothing needed changing." : applied == 1 ? "One change waits in Proposals." : "\(applied) changes wait in Proposals, as one proposal."
         if skipped > 0 { words += skipped == 1 ? " One suggestion did not fit your file and was left out." : " \(skipped) suggestions did not fit your file and were left out." }
         return words
     }

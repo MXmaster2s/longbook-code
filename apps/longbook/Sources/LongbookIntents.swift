@@ -90,7 +90,7 @@ struct NextCommitmentIntent: AppIntent {
 /// repeat is the form's step, where the rhythm is a choice, never an assumption.
 struct AddCommitmentIntent: AppIntent {
     static var title: LocalizedStringResource = "Add a commitment"
-    static var description = IntentDescription("Adds a one-time commitment due on a day to longbook. It waits in Changes.")
+    static var description = IntentDescription("Adds a one-time commitment due on a day to longbook. It waits in Proposals.")
 
     @Parameter(title: "Name", requestValueDialog: "What is the commitment called?")
     var name: String
@@ -116,14 +116,14 @@ struct AddCommitmentIntent: AppIntent {
             "billing_cycle": "once", "date": LB.toISO(day), "paid": false,
         ]
         try await IntentBook.apply(IntentBook.write(kind: "add_commitments", payload: ["rows": [row]], signedBy: "Siri"))
-        return .result(dialog: IntentDialog(stringLiteral: "\(clean), \(fmtMoney(money.amount, money.currency)) due \(LB.longDate(day)), added. It waits in Changes."))
+        return .result(dialog: IntentDialog(stringLiteral: "\(clean), \(fmtMoney(money.amount, money.currency)) due \(LB.longDate(day)), added. It waits in Proposals."))
     }
 }
 
 /// An expense that already happened: a one-time row, paid, on the day it was paid.
 struct AddExpenseIntent: AppIntent {
     static var title: LocalizedStringResource = "Add an expense"
-    static var description = IntentDescription("Records an expense already paid in longbook. It waits in Changes.")
+    static var description = IntentDescription("Records an expense already paid in longbook. It waits in Proposals.")
 
     @Parameter(title: "Name", requestValueDialog: "What was it for?")
     var name: String
@@ -149,7 +149,7 @@ struct AddExpenseIntent: AppIntent {
             "billing_cycle": "once", "date": LB.toISO(day), "paid": true, "basis": "user",
         ]
         try await IntentBook.apply(IntentBook.write(kind: "add_commitments", payload: ["rows": [row]], signedBy: "Siri"))
-        return .result(dialog: IntentDialog(stringLiteral: "\(clean), \(fmtMoney(money.amount, money.currency)) on \(LB.longDate(day)), recorded. It waits in Changes."))
+        return .result(dialog: IntentDialog(stringLiteral: "\(clean), \(fmtMoney(money.amount, money.currency)) on \(LB.longDate(day)), recorded. It waits in Proposals."))
     }
 }
 
@@ -160,7 +160,7 @@ struct AddExpenseIntent: AppIntent {
 /// handed over twice records nothing new.
 struct RecordBankMessageIntent: AppIntent {
     static var title: LocalizedStringResource = "Record a charge from a message"
-    static var description = IntentDescription("Reads a bank’s messages and records each charge in longbook, where it waits in Changes.")
+    static var description = IntentDescription("Reads a bank’s messages and records each charge in longbook, where it waits in Proposals.")
 
     @Parameter(title: "Messages")
     var messages: [String]
@@ -186,11 +186,11 @@ struct RecordBankMessageIntent: AppIntent {
         try await IntentBook.apply(IntentBook.write(kind: "add_commitments", payload: ["rows": rows], signedBy: "bank message"))
         if fresh.count == 1, let one = fresh.first {
             let what = one.isIncome ? "Money in of" : "A charge of"
-            return .result(dialog: IntentDialog(stringLiteral: "\(what) \(fmtMoney(one.amount, one.currency)), \(one.name), recorded. It waits in Changes."))
+            return .result(dialog: IntentDialog(stringLiteral: "\(what) \(fmtMoney(one.amount, one.currency)), \(one.name), recorded. It waits in Proposals."))
         }
         let skipped = read.count - fresh.count
         let tail = skipped == 0 ? "" : " \(skipped) already in longbook."
-        return .result(dialog: IntentDialog(stringLiteral: "\(fresh.count) charges recorded. They wait in Changes.\(tail)"))
+        return .result(dialog: IntentDialog(stringLiteral: "\(fresh.count) charges recorded. They wait in Proposals.\(tail)"))
     }
 
     private static func row(for read: BankMessage, in vault: Vault) -> [String: Any] {

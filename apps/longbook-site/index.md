@@ -30,7 +30,7 @@ Organise all your Accounts in one place. Add each Member of your life. Connect t
 
 Tired of typing in every payment? Connect longbook to your Claude or ChatGPT, and use our [prompt library](https://longbook.app/automations/) to automate everything!
 
-Every edit your AI makes to your commitments and charges waits in the app's [Changes](https://longbook.app/features/review-every-change-your-ai-makes/) section, where you can keep or undo it. The full list of automations and prompts is at [longbook.app/automations](https://longbook.app/automations/).
+Every edit your AI makes to your commitments and charges waits in the app's [Proposals](https://longbook.app/features/review-every-change-your-ai-makes/) section, where you can keep or undo it. The full list of automations and prompts is at [longbook.app/automations](https://longbook.app/automations/).
 
 ## A place for you to be reminded, but not by another notification!
 
@@ -58,7 +58,7 @@ longbook is added to Claude or ChatGPT as a connector, with a longbook account.
 
 ### Let your AI fill it
 
-Your AI reads your email and statements and adds commitments, which appear in Changes to keep, edit or undo.
+Your AI reads your email and statements and adds commitments, which appear in Proposals to keep, edit or undo.
 
 [Download for Mac](https://testflight.apple.com/join/g66Nd3Na) [Download for iPhone](https://testflight.apple.com/join/g66Nd3Na)
 
@@ -178,11 +178,11 @@ longbook connects as a custom connector: https://longbook.app/mcp, added in Clau
 
 ### How do charges from email get in?
 
-Your AI does it. With email access that you grant in your AI (Gmail, for example), your AI reads the receipts and renewal notices in a date range you set and adds charges and commitments to your longbook. Each change appears in the Changes section to keep or undo.
+Your AI does it. With email access that you grant in your AI (Gmail, for example), your AI reads the receipts and renewal notices in a date range you set and adds charges and commitments to your longbook. Each change appears in the Proposals section to keep or undo.
 
 ### What if my AI gets something wrong inside my longbook?
 
-Every change your AI makes appears in the Changes section of the app, with its author on it, and longbook keeps the history of your past versions. Undoing the change or restoring an earlier version is one tap.
+Every change your AI makes appears in the Proposals section of the app, with its author on it, and longbook keeps the history of your past versions. Undoing the change or restoring an earlier version is one tap.
 
 ### Does longbook connect to my bank?
 

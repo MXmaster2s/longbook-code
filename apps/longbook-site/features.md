@@ -24,14 +24,14 @@
 ## Import
 
 - [Import your bank statements](https://longbook.app/features/import-your-bank-statements.md): Bank statements read into charges, repeating payments and people, five at once, every line reviewed first. (iPhone and Mac)
-- [Log expenses from Gmail](https://longbook.app/features/log-expenses-from-gmail.md): Claude reads your email every morning and records the charges it finds, each one waiting in Changes. (iPhone and Mac)
+- [Log expenses from Gmail](https://longbook.app/features/log-expenses-from-gmail.md): Claude reads your email every morning and records the charges it finds, each one waiting in Proposals. (iPhone and Mac)
 
 ## Automations & AI
 
 - [Automate longbook with Claude](https://longbook.app/features/automate-longbook-with-claude.md): Claude reads your longbook and keeps it up to date through longbook's MCP server. (iPhone and Mac)
 - [Automate longbook with Siri and Shortcuts](https://longbook.app/features/automate-longbook-with-siri-and-shortcuts.md): Siri adds expenses and commitments by voice; a Shortcuts action records charges from a bank's messages. (iPhone and Mac)
 - [Get insights about your expenses from your AI](https://longbook.app/features/get-insights-about-your-expenses-from-your-ai.md): Short notes from your AI, shown beside the dashboard, account or member card each one is about. (iPhone and Mac)
-- [Review every change your AI makes](https://longbook.app/features/review-every-change-your-ai-makes.md): Every row your AI, Siri or an import writes shows in Changes, to keep, edit or undo. (iPhone and Mac)
+- [Review every change your AI makes](https://longbook.app/features/review-every-change-your-ai-makes.md): Every row your AI, Siri or an import writes shows in Proposals, to keep, edit or undo. (iPhone and Mac)
 - [Use your longbook in any AI app on your computer](https://longbook.app/features/longbook-npm-package.md): One command lets Cursor, VS Code, Claude Code and other AI apps on your computer read your longbook, free and private. (Mac)
 
 ## iPhone and Mac
@@ -49,7 +49,7 @@
 
 longbook is a memory for your financial commitments: subscriptions, insurance, rent, loans and every other payment that comes back. It runs on iPhone and Mac and keeps its records as plain files in your own iCloud.
 
-The next payment stays in view on the iPhone widget and in the Mac menu bar. Your AI can read your longbook and update it through longbook's MCP server, and every change it makes shows in Changes, to keep or undo.
+The next payment stays in view on the iPhone widget and in the Mac menu bar. Your AI can read your longbook and update it through longbook's MCP server, and every change it makes shows in Proposals, to keep or undo.
 
 - Download for Mac: https://testflight.apple.com/join/g66Nd3Na
 - Download for iPhone: https://testflight.apple.com/join/g66Nd3Na

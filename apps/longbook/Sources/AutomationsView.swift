@@ -109,7 +109,7 @@ struct AutomationsView: View {
                             .background(LBColor.brand.color, in: Capsule())
                     }
                     .buttonStyle(.plain)
-                    Text("Lands in Changes as one change.")
+                    Text("Lands in Proposals as one proposal.")
                         .lbText(.footnote)
                         .foregroundStyle(LBColor.textTertiary.color)
                 }
@@ -214,7 +214,7 @@ struct AutomationsView: View {
                         }
                     }
                 }
-                Text("What your AI writes waits in Changes. A report it makes appears in Reports.")
+                Text("What your AI writes waits in Proposals. A report it makes appears in Reports.")
                     .lbText(.footnote)
                     .foregroundStyle(LBColor.textTertiary.color)
                     .fixedSize(horizontal: false, vertical: true)
