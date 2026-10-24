@@ -101,7 +101,7 @@ struct LongbookCommands: Commands {
             Button("Commitments") { Measure.used("commitments", .menuItem); go([.commitments(ListFilter())]) }
                 .keyboardShortcut("4", modifiers: .command).disabled(!menu.shellReady)
             Button("Insights") { Measure.used("insights", .menuItem); go([.insights]) }.keyboardShortcut("5", modifiers: .command).disabled(!menu.shellReady)
-            Button("Changes") { Measure.used("changes", .menuItem); go([.changes]) }.keyboardShortcut("6", modifiers: .command).disabled(!menu.shellReady)
+            Button("Proposals") { Measure.used("changes", .menuItem); go([.changes]) }.keyboardShortcut("6", modifiers: .command).disabled(!menu.shellReady)
             Button("Trips") { Measure.used("trips", .menuItem); go([.trips]) }.keyboardShortcut("7", modifiers: .command).disabled(!menu.shellReady)
             Divider()
             Button("Back") {

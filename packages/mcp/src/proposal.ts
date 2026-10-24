@@ -234,7 +234,7 @@ export function linkedTo(set: Pick<AccountSet, 'linked_to' | 'parent' | 'parent_
 }
 
 const REVIEW =
-  `Writes are schema-validated and provenance-stamped, and land in the app's Changes screen ` +
+  `Writes are schema-validated and provenance-stamped, and land in the app's Proposals screen ` +
   `where the owner keeps or undoes the whole batch. Card numbers, CVVs and credentials are ` +
   `refused by the validator, which names the row. \`source\` ("documents/hdfc-2026.pdf", ` +
   `"gmail:18c2…") records where a row came from in the diff.`
@@ -683,7 +683,7 @@ export const CREATE_REPORT_SPEC = {
     `category" untagged ones; any other name the memory does not hold is refused with the ` +
     `real names, and nothing is ever created. longbook draws the report on its Reports screen ` +
     `the next time the app is open, counting confirmed charges only; nothing waits in ` +
-    `Changes. The same name, days and scope asked again redraws the same report.`,
+    `Proposals. The same name, days and scope asked again redraws the same report.`,
   annotations: { ...WRITER, idempotentHint: true },
 }
 

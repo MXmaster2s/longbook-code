@@ -957,7 +957,7 @@ struct StatementImportView: View {
                     .lbText(.bodySM)
                     .foregroundStyle(LBColor.textSecondary.color)
             }
-            Text("Keep or undo it in Changes.")
+            Text("Keep or undo it in Proposals.")
                 .lbText(.footnote)
                 .foregroundStyle(LBColor.textTertiary.color)
             Spacer(minLength: 0)

@@ -92,7 +92,7 @@ struct OwnAIHelp: View {
             #if os(iOS)
             phoneSteps
             #else
-            Text("Your AI reads your statements, asks you a few questions, and fills the folder in. It lands in Changes, where you keep or undo it.")
+            Text("Your AI reads your statements, asks you a few questions, and fills the folder in. It lands in Proposals, where you keep or undo it.")
                 .lbText(.footnote)
                 .foregroundStyle(LBColor.textTertiary.color)
                 .fixedSize(horizontal: false, vertical: true)

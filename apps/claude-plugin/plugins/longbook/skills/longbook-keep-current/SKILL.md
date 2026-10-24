@@ -47,7 +47,7 @@ Attachments: none. The user's mail must be connected to their AI.
 
 Needs: the user's mail connected to their AI.
 
-Writes to the longbook: yes; it waits in the app's Changes screen.
+Writes to the longbook: yes; it waits in the app's Proposals screen.
 
 ### Set up a daily longbook email round
 
@@ -64,7 +64,7 @@ tasks.
 
 Needs: the user's mail connected to their AI, and scheduled tasks in the AI's app.
 
-Writes to the longbook: yes; it waits in the app's Changes screen.
+Writes to the longbook: yes; it waits in the app's Proposals screen.
 
 ### Add document invoices in my longbook
 
@@ -80,7 +80,7 @@ Attachments: invoices, receipts and bills: attached in the chat, or kept in the 
 documents folder as a PDF with text, an .xlsx or a CSV. A photo or a scanned receipt can be
 read only when attached in the chat.
 
-Writes to the longbook: yes; it waits in the app's Changes screen.
+Writes to the longbook: yes; it waits in the app's Proposals screen.
 
 ### Add a commitment or an expense
 
@@ -94,4 +94,4 @@ the person you name.
 
 Attachments: none. A receipt or a sign-up mail helps, if the user has one.
 
-Writes to the longbook: yes; it waits in the app's Changes screen.
+Writes to the longbook: yes; it waits in the app's Proposals screen.

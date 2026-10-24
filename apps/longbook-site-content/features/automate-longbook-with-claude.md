@@ -11,7 +11,7 @@ iphone: iphone-own-ai
 mac: mac-mcp-server
 aliases: automate-your-longbook-with-your-claude, connect-claude-to-longbook, longbook-mcp-server
 related: review-every-change-your-ai-makes, log-expenses-from-gmail, get-insights-about-your-expenses-from-your-ai
-labels: Let AI Read My longbook, Set Up Claude Desktop, Copy configuration, Allow suggested changes
+labels: Let AI Read My longbook, Set Up Claude Desktop, Copy configuration, Allow proposals
 ---
 
 Claude reads your longbook and writes into it through longbook's MCP server. It answers what is due and what a month cost, and adds the charges it finds.
@@ -28,7 +28,7 @@ Claude calls longbook's tools to answer: the next payment, what is due in the ne
 
 ### Writes that wait for you
 
-Claude can add commitments and charges, mark a charge paid, cancel a commitment or leave an insight. Each change is checked against longbook's format and shows in **Changes**, to keep or undo.
+Claude can add commitments and charges, mark a charge paid, cancel a commitment or leave an insight. Each change is checked against longbook's format and shows in **Proposals**, to keep or undo.
 
 ### Two ways to connect
 
@@ -46,7 +46,7 @@ Claude, ChatGPT and any other assistant that supports MCP connectors. Claude Des
 
 ### Can Claude change my longbook without me knowing?
 
-No. Every change Claude makes shows in Changes with Claude named as its author. Through the hosted connector, a signed-in Claude can only suggest changes, and only after **Allow suggested changes** is turned on in the app.
+No. Every change Claude makes shows in Proposals with Claude named as its author. Through the hosted connector, a signed-in Claude can only suggest changes, and only after **Allow proposals** is turned on in the app.
 
 ### What does the hosted copy hold?
 

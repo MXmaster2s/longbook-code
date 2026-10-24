@@ -34,7 +34,7 @@ It reads the files in your longbook folder on the computer it runs on. Nothing g
 
 ### The same answers and the same rules
 
-It is the server the Mac app runs. It answers what is due, what renews and what a month cost, reads the statements in your documents folder. Every change it makes is written to your folder at once and shows in **Changes** with the AI's name on it, to keep or undo.
+It is the server the Mac app runs. It answers what is due, what renews and what a month cost, reads the statements in your documents folder. Every change it makes is written to your folder at once and shows in **Proposals** with the AI's name on it, to keep or undo.
 
 ### Any computer that has your folder
 

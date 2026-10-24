@@ -41,7 +41,7 @@ screen the next time the app is open. It counts confirmed charges only.
 
 Attachments: none.
 
-Writes to the longbook: yes; it waits in the app's Changes screen.
+Writes to the longbook: yes; it waits in the app's Proposals screen.
 
 ### Make a report of my trip
 
@@ -54,4 +54,4 @@ charges are confirmed.
 
 Attachments: none.
 
-Writes to the longbook: yes; it waits in the app's Changes screen.
+Writes to the longbook: yes; it waits in the app's Proposals screen.

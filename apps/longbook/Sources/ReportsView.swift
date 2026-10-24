@@ -19,6 +19,7 @@ struct ReportsView: View {
         page
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(LBColor.canvas.color)
+            .screenTutorial(.reports)
             .onAppear {
                 model.applyLocalRequests()
                 model.drawMonthlyReports()
@@ -160,11 +161,15 @@ struct ReportsView: View {
         if listed.reports.isEmpty {
             askYourAI("No reports yet. \(rule)")
         } else {
+            let years = Self.byYear(listed.reports)
             VStack(alignment: .leading, spacing: LBSpacing.s4) {
-                ForEach(Self.byYear(listed.reports), id: \.year) { group in
+                ForEach(years, id: \.year) { group in
                     VStack(alignment: .leading, spacing: LBSpacing.s2) {
                         LBSectionHeader(group.year)
                             .padding(.horizontal, LBSpacing.s3)
+                            #if os(iOS)
+                            .tutorialTarget(group.year == years.dropFirst().first?.year ? .reportsEarlier : nil)
+                            #endif
                         // Cards on their own, as Commitments lists them; each one can be deleted.
                         VStack(spacing: LBSpacing.s2) {
                             ForEach(group.reports, id: \.id) { report in
@@ -172,10 +177,16 @@ struct ReportsView: View {
                                     .contextMenu {
                                         Button("Delete Report…", role: .destructive) { Measure.used("delete_report", .contextMenu); deleting = report }
                                     }
+                                    #if os(iOS)
+                                    .tutorialTarget(report.id == listed.reports.first?.id ? .reportsList : nil)
+                                    #endif
                             }
                         }
                     }
                 }
+                #if os(macOS)
+                .tutorialTarget(.reportsList)
+                #endif
                 Text(footer)
                     .lbText(.footnote)
                     .foregroundStyle(LBColor.textTertiary.color)

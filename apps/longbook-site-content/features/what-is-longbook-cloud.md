@@ -24,7 +24,7 @@ longbook Cloud is an optional subscription, $4 a month through Apple, for the fe
 
 ### A hosted copy for your AI
 
-Claude on the web or the phone, and ChatGPT, run on someone else's computers, so they cannot open the longbook folder in your iCloud. Cloud keeps a copy of your longbook on longbook's server and serves it at longbook.app/mcp, so those assistants can read it and suggest changes, each one shown in Changes to keep or undo.
+Claude on the web or the phone, and ChatGPT, run on someone else's computers, so they cannot open the longbook folder in your iCloud. Cloud keeps a copy of your longbook on longbook's server and serves it at longbook.app/mcp, so those assistants can read it and suggest changes, each one shown in Proposals to keep or undo.
 
 ### More statement reading
 

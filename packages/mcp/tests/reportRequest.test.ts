@@ -106,7 +106,7 @@ test('the tool says what longbook does and what the owner is asked first', () =>
   assert.match(spec.description, /draw a report from the ledger over the days and scope named/)
   assert.match(spec.description, /narrow it — left out or empty means all/)
   assert.doesNotMatch(spec.description, /Ask the owner/)
-  assert.match(spec.description, /nothing waits in Changes/)
+  assert.match(spec.description, /nothing waits in Proposals/)
   assert.deepEqual(spec.annotations, { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false })
   assert.deepEqual((spec.inputSchema as { required: string[] }).required, ['title', 'start_date', 'end_date'])
 })
@@ -161,7 +161,7 @@ test('the local door leaves exactly one request file, in the shape the app appli
     title: ' Goa ', start_date: '2026-09-28', end_date: '2026-09-30', accounts: ['coral 9292'], members: ['Diya'], categories: ['travel'], source: 'chat', idempotency_key: 'k1',
   }) as Record<string, unknown>
   assert.equal(out.note, REPORT_ASKED_NOTE)
-  assert.equal(REPORT_ASKED_NOTE, 'Asked. longbook draws the report on its Reports screen the next time the app is open — tell the owner so, and stop here. Nothing waits in Changes.')
+  assert.equal(REPORT_ASKED_NOTE, 'Asked. longbook draws the report on its Reports screen the next time the app is open — tell the owner so, and stop here. Nothing waits in Proposals.')
 
   const files = readdirSync(join(dir, 'requests'))
   assert.equal(files.length, 1, 'one file, no temp left behind')

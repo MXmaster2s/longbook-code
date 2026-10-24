@@ -38,7 +38,7 @@ A total shows how much; it does not say which charge made the difference, or tha
 
 No. longbook draws the figures on each card; every note comes from an AI you connect, such as Claude or ChatGPT, through longbook's MCP server. The setup is on [Automate longbook with Claude](https://longbook.app/features/automate-longbook-with-claude.md).
 
-### Do notes wait in Changes?
+### Do notes wait in Proposals?
 
 No. A note changes no commitment or charge, so it goes to its card without a review. A note left through the hosted connector at `longbook.app/mcp` reaches its card the next time longbook is open and signed in.
 
@@ -50,14 +50,14 @@ Then no mark appears. A card shows the mark only when a note exists for it.
 
 - [Automate longbook with Claude](https://longbook.app/features/automate-longbook-with-claude.md): Claude reads your longbook and keeps it up to date through longbook's MCP server.
 - [Get spending insights](https://longbook.app/features/get-spending-insights.md): The next payment, the month's total expenses, and the split by account and by category.
-- [Review every change your AI makes](https://longbook.app/features/review-every-change-your-ai-makes.md): Every row your AI, Siri or an import writes shows in Changes, to keep, edit or undo.
+- [Review every change your AI makes](https://longbook.app/features/review-every-change-your-ai-makes.md): Every row your AI, Siri or an import writes shows in Proposals, to keep, edit or undo.
 - [All features of longbook](https://longbook.app/features.md)
 
 ## About longbook
 
 longbook is a memory for your financial commitments: subscriptions, insurance, rent, loans and every other payment that comes back. It runs on iPhone and Mac and keeps its records as plain files in your own iCloud.
 
-The next payment stays in view on the iPhone widget and in the Mac menu bar. Your AI can read your longbook and update it through longbook's MCP server, and every change it makes shows in Changes, to keep or undo.
+The next payment stays in view on the iPhone widget and in the Mac menu bar. Your AI can read your longbook and update it through longbook's MCP server, and every change it makes shows in Proposals, to keep or undo.
 
 - Download for Mac: https://testflight.apple.com/join/g66Nd3Na
 - Download for iPhone: https://testflight.apple.com/join/g66Nd3Na

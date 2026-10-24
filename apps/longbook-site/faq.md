@@ -32,11 +32,11 @@ longbook connects as a custom connector: https://longbook.app/mcp, added in Clau
 
 ### How do expenses from Gmail get in?
 
-Your AI does it. Connected to your Gmail, it checks the payments from the last month and updates your longbook. It reads the emails, understands how to write into your longbook folder, and files each expense. The next time you open the app, every change is waiting in the Changes section for you to keep or undo.
+Your AI does it. Connected to your Gmail, it checks the payments from the last month and updates your longbook. It reads the emails, understands how to write into your longbook folder, and files each expense. The next time you open the app, every change is waiting in the Proposals section for you to keep or undo.
 
 ### What if my AI gets something wrong inside my longbook?
 
-Every change your AI makes appears in the Changes section of the app, with its author on it, and longbook keeps the history of your past versions. Undoing the change or restoring an earlier version is one tap.
+Every change your AI makes appears in the Proposals section of the app, with its author on it, and longbook keeps the history of your past versions. Undoing the change or restoring an earlier version is one tap.
 
 ### Does longbook connect to my bank?
 

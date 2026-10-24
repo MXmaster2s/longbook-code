@@ -72,7 +72,7 @@ struct SidebarView: View {
                     navRow(LBGlyph.commitment, "Commitments", active: isCommitments) { path = [.commitments(ListFilter())] }
                     navRow("lightbulb", "Insights", active: shown == .insights) { path = [.insights] }
                     navRow(
-                        LBGlyph.change, "Changes", active: shown == .changes,
+                        LBGlyph.change, "Proposals", active: shown == .changes,
                         attention: model.outsideChangeFrom != nil
                     ) { path = [.changes] }
 
@@ -101,6 +101,7 @@ struct SidebarView: View {
             Rectangle().fill(LBColor.hairline.color).frame(height: 1)
             VStack(alignment: .leading, spacing: LBSpacing.s2) {
                 navRow("plus.circle.fill", "Add commitment", active: false) { addCommitment() }
+                    .tutorialTarget(.addCommitment)
                 // Settings keeps the row; the two quick doors sit at its right edge.
                 HStack(spacing: LBSpacing.s1) {
                     navRow("gearshape", "Settings", active: isSettings) { path = [.more] }

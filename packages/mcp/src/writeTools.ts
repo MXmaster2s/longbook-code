@@ -641,7 +641,7 @@ export function addCommitments(dir: string, editedBy: string, input: AddCommitme
         tags_registered: created.tags,
         planned_months_default: DEFAULT_PLAN_MONTHS,
         ...(balance_note ? { balance_note } : {}),
-        note: 'The owner reviews this batch in the app, on the Changes screen. A recurring row is planned plan_months ahead, 24 when unsaid: tell the owner, who can change any charge, or ask you to.',
+        note: 'The owner reviews this batch in the app, on the Proposals screen. A recurring row is planned plan_months ahead, 24 when unsaid: tell the owner, who can change any charge, or ask you to.',
       },
     }
   })

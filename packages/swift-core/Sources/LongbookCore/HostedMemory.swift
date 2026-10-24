@@ -56,7 +56,7 @@ public enum HostedMemory {
         public var explanation: String {
             self == .read
                 ? "It can read your memory and answer questions about it."
-                : "It can also suggest changes, which wait for your review in Changes the next time you open longbook."
+                : "It can also suggest changes, which wait for your review in Proposals the next time you open longbook."
         }
         var stored: [String] { self == .read ? ["memory:read"] : ["memory:read", "memory:propose"] }
     }

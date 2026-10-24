@@ -209,7 +209,7 @@ const userIdentity = (
   failed_to_apply_count: inbox.failedCount,
   rate_limit: { calls_per_minute: 30 },
   note: mayPropose
-    ? 'Signed in as the owner. Changes you write are suggestions: they wait for the owner\'s app and land in its Changes screen, to keep or undo.'
+    ? 'Signed in as the owner. Changes you write are suggestions: they wait for the owner\'s app and land in its Proposals screen, to keep or undo.'
     : 'A signed-in AI reads the hosted copy. The owner has not turned on suggestions from the web.',
 })
 

@@ -46,11 +46,11 @@ Claude never writes a card number, an account number, a one-time password or a t
 
 Before it writes, Claude reads what longbook already holds: your accounts, members, commitments and the charges of the month. A mail whose amount and day are already recorded is skipped. A mail for a commitment you already hold goes on that commitment, and does not become a second copy.
 
-Anything that still slips through shows up in Changes, where you can undo it.
+Anything that still slips through shows up in Proposals, where you can undo it.
 
-## Step 5: Review the round in Changes
+## Step 5: Review the round in Proposals
 
-Every row Claude adds waits in **Changes** with Claude named as its writer. **Keep all** accepts the round as it stands and **Undo all** writes back the state from before it. Before that, any row can be edited or deleted. [Every change your AI makes](/features/review-every-change-your-ai-makes/) is reviewed before you keep it.
+Every row Claude adds waits in **Proposals** with Claude named as its writer. **Keep all** accepts the round as it stands and **Undo all** writes back the state from before it. Before that, any row can be edited or deleted. [Every change your AI makes](/features/review-every-change-your-ai-makes/) is reviewed before you keep it.
 
 Claude's morning report says how many charges it added, which mails it skipped and why, and what needs your word. It does not cancel a commitment or decide that something repeats, and it changes a price only when the notice comes from the payee itself. It proposes the rest in the report and leaves it to you.
 

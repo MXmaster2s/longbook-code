@@ -115,7 +115,7 @@ function skill(group: PromptGroupId, title: string): string {
     lines.push(wrap(`Result: ${p.result}`), '')
     lines.push(wrap(`Attachments: ${p.attachments}`), '')
     if (p.needs?.length) lines.push(wrap(`Needs: ${p.needs.map((n) => NEEDS[n]).join(', and ')}.`), '')
-    lines.push(p.writes ? 'Writes to the longbook: yes; it waits in the app\'s Changes screen.' : 'Writes to the longbook: no.')
+    lines.push(p.writes ? 'Writes to the longbook: yes; it waits in the app\'s Proposals screen.' : 'Writes to the longbook: no.')
     return lines.join('\n')
   })
   return `---
@@ -329,7 +329,7 @@ ${wrap("Each skill and command asks the longbook server for the prompt's procedu
 
 ## What it connects to
 
-${wrap(`- **longbook** (${MCP_URL}), signed in with your longbook account. Claude reads your longbook through it; what Claude writes waits in the longbook app's Changes screen, where you keep it or undo it.`).replace(/\n/g, '\n  ')}
+${wrap(`- **longbook** (${MCP_URL}), signed in with your longbook account. Claude reads your longbook through it; what Claude writes waits in the longbook app's Proposals screen, where you keep it or undo it.`).replace(/\n/g, '\n  ')}
 ${wrap(`- **Gmail** (${GMAIL_URL}), signed in with your Google account. Only the email prompts read it, to find payments, bills and receipts.`).replace(/\n/g, '\n  ')}
 
 ${wrap('The plugin runs no code on your machine and sends nothing anywhere else. Privacy: ' + PRIVACY_URL + '. Generated from the longbook prompt catalogue (contract revision ' + CONTRACT_REVISION + ').')}

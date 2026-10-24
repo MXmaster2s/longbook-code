@@ -46,14 +46,14 @@ longbook cannot show it again. **Stop sharing**, then **Share report** once more
 
 - [Create monthly expense reports](https://longbook.app/features/create-monthly-expense-reports.md): A report for every month with a confirmed charge: the total, accounts, categories and every charge.
 - [Add your accounts and members](https://longbook.app/features/add-your-accounts-and-members.md): The people your commitments are for, and the accounts that pay them.
-- [Review every change your AI makes](https://longbook.app/features/review-every-change-your-ai-makes.md): Every row your AI, Siri or an import writes shows in Changes, to keep, edit or undo.
+- [Review every change your AI makes](https://longbook.app/features/review-every-change-your-ai-makes.md): Every row your AI, Siri or an import writes shows in Proposals, to keep, edit or undo.
 - [All features of longbook](https://longbook.app/features.md)
 
 ## About longbook
 
 longbook is a memory for your financial commitments: subscriptions, insurance, rent, loans and every other payment that comes back. It runs on iPhone and Mac and keeps its records as plain files in your own iCloud.
 
-The next payment stays in view on the iPhone widget and in the Mac menu bar. Your AI can read your longbook and update it through longbook's MCP server, and every change it makes shows in Changes, to keep or undo.
+The next payment stays in view on the iPhone widget and in the Mac menu bar. Your AI can read your longbook and update it through longbook's MCP server, and every change it makes shows in Proposals, to keep or undo.
 
 - Download for Mac: https://testflight.apple.com/join/g66Nd3Na
 - Download for iPhone: https://testflight.apple.com/join/g66Nd3Na

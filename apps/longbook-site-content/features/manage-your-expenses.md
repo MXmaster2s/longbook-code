@@ -42,7 +42,7 @@ Recurring payments are only part of what goes out. A repair, a flight or a gift 
 
 ### Where do expenses come from?
 
-They are typed in on the commitment form as **One-time** or recurring, read from a [bank statement](/features/import-your-bank-statements/), found in [Gmail](/features/log-expenses-from-gmail/) by Claude, or added by [Siri](/features/automate-longbook-with-siri-and-shortcuts/) with "Add an expense in my longbook". Everything imported, and everything an AI or Siri adds, waits in **Changes**. longbook never connects to a bank.
+They are typed in on the commitment form as **One-time** or recurring, read from a [bank statement](/features/import-your-bank-statements/), found in [Gmail](/features/log-expenses-from-gmail/) by Claude, or added by [Siri](/features/automate-longbook-with-siri-and-shortcuts/) with "Add an expense in my longbook". Everything imported, and everything an AI or Siri adds, waits in **Proposals**. longbook never connects to a bank.
 
 ### Does longbook set a budget?
 

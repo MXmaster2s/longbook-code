@@ -50,4 +50,4 @@ No. A commitment carries one category, and every charge takes it. Commitments wi
 
 ### Can my AI set categories?
 
-Yes. Through [longbook's MCP server](/features/automate-longbook-with-claude/), your AI reads the categories in use and sets one on what it adds or updates. Each change waits in **Changes**.
+Yes. Through [longbook's MCP server](/features/automate-longbook-with-claude/), your AI reads the categories in use and sets one on what it adds or updates. Each change waits in **Proposals**.

@@ -1,6 +1,6 @@
 // The longbook MCP server: the financial memory over stdio. Fourteen read tools, the
 // document and report readers, and eighteen write tools — every edit validated, signed and
-// landing in the app's Changes screen; a report request waits for the app to draw. The
+// landing in the app's Proposals screen; a report request waits for the app to draw. The
 // hosted twin files the same writes as proposals.
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
@@ -254,7 +254,7 @@ export function buildServer(reader: VaultReader): McpServer {
   // Provenance names who asked: the client the owner connected, as its initialize
   // handshake introduced itself. Registered here and only here — never in catalog.ts
   // or rpc.ts, so the hosted engine cannot carry a write path.
-  // Signed as Changes shows it: known AIs by the hosted door's names, others as given.
+  // Signed as Proposals shows it: known AIs by the hosted door's names, others as given.
   const editedBy = () => {
     const name = (server.server.getClientVersion()?.name ?? '').trim()
     const lower = name.toLowerCase()
@@ -675,7 +675,7 @@ export function buildServer(reader: VaultReader): McpServer {
           server: 'longbook (this Mac)',
           vault: reader.dir,
           connected_as: editedBy(),
-          writes: 'straight to the folder — every batch lands in the app\'s Changes screen for review',
+          writes: 'straight to the folder — every batch lands in the app\'s Proposals screen for review',
         }),
       }),
     ),

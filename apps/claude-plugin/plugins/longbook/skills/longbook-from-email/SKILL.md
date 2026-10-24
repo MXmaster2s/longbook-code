@@ -48,7 +48,7 @@ Attachments: none. The user's mail must be connected to their AI.
 
 Needs: the user's mail connected to their AI.
 
-Writes to the longbook: yes; it waits in the app's Changes screen.
+Writes to the longbook: yes; it waits in the app's Proposals screen.
 
 ### Find expenses from my email
 
@@ -63,7 +63,7 @@ Attachments: none. The user's mail must be connected to their AI.
 
 Needs: the user's mail connected to their AI.
 
-Writes to the longbook: yes; it waits in the app's Changes screen.
+Writes to the longbook: yes; it waits in the app's Proposals screen.
 
 ### Find invoices from my email
 
@@ -78,7 +78,7 @@ Attachments: none. The user's mail must be connected to their AI.
 
 Needs: the user's mail connected to their AI.
 
-Writes to the longbook: yes; it waits in the app's Changes screen.
+Writes to the longbook: yes; it waits in the app's Proposals screen.
 
 ### Find insurances from my email
 
@@ -93,7 +93,7 @@ Attachments: none. The user's mail must be connected to their AI.
 
 Needs: the user's mail connected to their AI.
 
-Writes to the longbook: yes; it waits in the app's Changes screen.
+Writes to the longbook: yes; it waits in the app's Proposals screen.
 
 ### Find purchases from my email
 
@@ -108,7 +108,7 @@ Attachments: none. The user's mail must be connected to their AI.
 
 Needs: the user's mail connected to their AI.
 
-Writes to the longbook: yes; it waits in the app's Changes screen.
+Writes to the longbook: yes; it waits in the app's Proposals screen.
 
 ### Find bills from my email
 
@@ -123,7 +123,7 @@ Attachments: none. The user's mail must be connected to their AI.
 
 Needs: the user's mail connected to their AI.
 
-Writes to the longbook: yes; it waits in the app's Changes screen.
+Writes to the longbook: yes; it waits in the app's Proposals screen.
 
 ### Find loans and EMIs from my email
 
@@ -138,7 +138,7 @@ Attachments: none. The user's mail must be connected to their AI.
 
 Needs: the user's mail connected to their AI.
 
-Writes to the longbook: yes; it waits in the app's Changes screen.
+Writes to the longbook: yes; it waits in the app's Proposals screen.
 
 ### Find travel bookings from my email
 
@@ -153,7 +153,7 @@ Attachments: none. The user's mail must be connected to their AI.
 
 Needs: the user's mail connected to their AI.
 
-Writes to the longbook: yes; it waits in the app's Changes screen.
+Writes to the longbook: yes; it waits in the app's Proposals screen.
 
 ### Find money in from my email
 
@@ -168,4 +168,4 @@ Attachments: none. The user's mail must be connected to their AI.
 
 Needs: the user's mail connected to their AI.
 
-Writes to the longbook: yes; it waits in the app's Changes screen.
+Writes to the longbook: yes; it waits in the app's Proposals screen.

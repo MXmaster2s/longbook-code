@@ -51,7 +51,7 @@ Salary, rent received, interest, refunds and cashback get their own list beside 
 - Record a salary once and longbook remembers its amount, day and account.
 - Every payment in is kept with the account it was paid into.
 - See the month’s income by account, next to what you spent.
-- Your AI adds income from statements and email, and each one waits in Changes to keep or undo.
+- Your AI adds income from statements and email, and each one waits in Proposals to keep or undo.
 
 ![A design of the Income screen: a month of payments that came in, with salary, rent, interest and a refund, and a total by account.](https://longbook.app/features/upcoming-features/money-in.jpg)
 

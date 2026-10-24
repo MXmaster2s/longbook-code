@@ -227,7 +227,7 @@ function writtenBalanceNote(proposal: Proposal, data: LoadedData | null, today: 
 
 /** A report request reaches no review: the app draws the report, on its Reports screen. */
 export const REPORT_FILED_NOTE =
-  'Filed. longbook draws the report on its Reports screen the next time the owner opens the app — tell them so, and stop here. A report is drawn from the rows; nothing waits in Changes.'
+  'Filed. longbook draws the report on its Reports screen the next time the owner opens the app — tell them so, and stop here. A report is drawn from the rows; nothing waits in Proposals.'
 
 /** A write, held to the shared contract and then handed to whichever door this is. */
 async function callWrite(name: string, args: Record<string, unknown>, ctx: RpcContext, id: RpcMessage['id']) {
@@ -283,7 +283,7 @@ async function callWrite(name: string, args: Record<string, unknown>, ctx: RpcCo
         ? 'This exact write was already filed, so nothing was added again.'
         : proposal.kind === 'create_report'
           ? REPORT_FILED_NOTE
-          : 'Filed for review. It reaches the owner\'s Changes screen the next time they open longbook — tell them so, and stop here.'
+          : 'Filed for review. It reaches the owner\'s Proposals screen the next time they open longbook — tell them so, and stop here.'
             + (proposal.kind === 'add_commitments' ? ' A recurring row is planned plan_months ahead, 24 when unsaid: say so, and that the owner can change any charge, or ask you to.' : ''),
     }))
   } catch (error) {

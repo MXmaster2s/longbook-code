@@ -25,7 +25,7 @@ const nextPkg = {
   // The npm registry cuts a description at 255 characters, so the claim line must sit inside that.
   description:
     'The longbook MCP server: your longbook folder, readable by the AI you already use. Real arithmetic on what is ' +
-    'due and what renews; changes go through the app\'s Changes screen. ' +
+    'due and what renews; changes go through the app\'s Proposals screen. ' +
     // mcprush.com reads this line from the registry to verify the claim; keep it until they confirm.
     'mcprush.com-claim-longbook-mcp-5dd29bf58ce121bd23d37ac6',
   ...Object.fromEntries(Object.entries(rest).filter(([k]) => !['name', 'version', 'mcpName', 'license', 'description'].includes(k))),

@@ -67,6 +67,8 @@ enum Destination: Hashable {
     case updates
     /// Trips: start one from today, or add one that is over; each is a report.
     case trips
+    /// Every screen's tutorial, with Replay: a pushed page on the phone, a Settings tab on the Mac.
+    case tutorials
 
     /// The case name alone, for usage counts: never an id, a day, a month or a category.
     var screenName: String {
@@ -91,6 +93,7 @@ enum Destination: Hashable {
         case .signOut: "signOut"
         case .updates: "updates"
         case .trips: "trips"
+        case .tutorials: "tutorials"
         }
     }
 
@@ -211,6 +214,7 @@ struct RootView: View {
         case "signout": return .signOut
         case "updates": return .updates
         case "trips", "addtrip", "starttrip": return .trips
+        case "tutorials": return .tutorials
         default: return nil
         }
     }
@@ -542,6 +546,11 @@ struct RootView: View {
             #endif
         }
         .background(LBColor.canvas.color)
+        // A screen's tutorial stands over the whole window, tab bar and sidebar included.
+        .overlay { TutorialOverlay() }
+        .onReceive(NotificationCenter.default.publisher(for: .longbookOpenTutorial)) { note in
+            if let screen = note.object as? ScreenTutorial { open(screen) }
+        }
         // The app opens on the dashboard without announcing it; its controls are counted on it.
         .onAppear { Telemetry.shared.cameBack(to: Tab.dashboard.screenName) }
         // Coming back to the app re-reads the file, so an edit made elsewhere — another
@@ -680,6 +689,24 @@ struct RootView: View {
         )
     }
 
+    /// A replay from Settings > Tutorials: the screen opens as its tab or sidebar row opens
+    /// it, and its tutorial starts there.
+    private func open(_ screen: ScreenTutorial) {
+        #if os(iOS)
+        // A tab holds the first four at its root; the rest are pushed on the tab they belong to.
+        switch screen {
+        case .dashboard: tab = .dashboard; path = []
+        case .calendar: tab = .calendar; path = []
+        case .reports: tab = .reports; path = []
+        case .settings: tab = .more; path = []
+        case .commitments: tab = .dashboard; path = screen.destination.map { [$0] } ?? []
+        case .accounts, .people, .insights, .changes: tab = .more; path = screen.destination.map { [$0] } ?? []
+        }
+        #else
+        path = screen.destination.map { [$0] } ?? []
+        #endif
+    }
+
     /// Settings' Optimize your data, from whichever window holds it: the commitment and
     /// account cards, whose picks the book keeps as hints for reading statements.
     private func setUpAgain() {
@@ -738,7 +765,7 @@ struct RootView: View {
         guard let root = path.first else { return tab }
         switch root {
         case .changes, .insights, .accounts, .members, .mcpServer, .accountDetails, .billing, .display, .privacy, .more, .tips,
-             .helpAbout, .signOut, .updates, .trips:
+             .helpAbout, .signOut, .updates, .trips, .tutorials:
             return .more
         case .reports, .report:
             return .reports
@@ -778,6 +805,7 @@ struct RootView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .tutorialTarget(.addCommitment)
             .accessibilityLabel("Add a commitment")
             .accessibilityShowsLargeContentViewer { Label("Add", systemImage: "plus.circle.fill") }
             tabItem("chart.bar.fill", "Reports", active: tab == .reports) { path = []; self.tab = .reports }

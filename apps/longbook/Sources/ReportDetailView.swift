@@ -107,6 +107,7 @@ struct ReportDetailView: View {
             Spacer(minLength: LBSpacing.s3)
             if let auth {
                 ReportShareJump(model: model, auth: auth, reportId: id, revision: shareRevision, jump: jump)
+                    .tutorialTarget(.reportsShare)
             }
             #endif
         }
@@ -150,6 +151,10 @@ struct ReportDetailView: View {
         switch module {
         case .stats(let stats):
             section(stats.title) { annotated(stats.comment) { LBPanel { statsView(stats) } } }
+                #if os(macOS)
+                // The Reports tutorial lights the report's lead figure beside the list.
+                .tutorialTarget(index == report.modules.firstIndex { if case .stats = $0 { true } else { false } } ? .reportsTotal : nil)
+                #endif
         case .prose(let prose):
             section(prose.title) { annotated(prose.comment) { LBPanel { proseView(prose, at: index) } } }
         case .donut(let donut):

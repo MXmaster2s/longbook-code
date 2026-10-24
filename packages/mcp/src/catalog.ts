@@ -39,7 +39,7 @@ export const INSTRUCTIONS =
   `it, paid. Direction rides along a promotion. Tags from the library first; members only ` +
   `when the owner named them. When commitments answers with to_fill_in, those names come first. accounts and members list ` +
   `what the memory holds; update_account and update_person change them. Write in one batch, then ` +
-  `stop and say "review it in the app's Changes screen" — the owner keeps or undoes it ` +
+  `stop and say "review it in the app's Proposals screen" — the owner keeps or undoes it ` +
   `there; never loop write-review-rewrite. Never write a card number, CVV, ` +
   `expiry, PIN or credential; the validator refuses and names the row. longbook draws a ` +
   `report for every month holding a confirmed charge — one dated today or earlier whose ` +
@@ -47,7 +47,7 @@ export const INSTRUCTIONS =
   `categories, every confirmed charge. reports reads them with the comments left on them, ` +
   `so a question about a month is answered from the report and fixed in that month's rows. ` +
   `create_report asks longbook to draw one over other days, narrowed to accounts, people or ` +
-  `categories; it shows on the Reports screen, never in Changes. Statements ` +
+  `categories; it shows on the Reports screen, never in Proposals. Statements ` +
   `live in the vault's documents folder (list_documents, read_document); read_guide returns ` +
   `any chapter of llms.txt by name — "importing-statements" before an import, ` +
   `"reading-reports" before a report question, "notes" before you write one. The owner may ` +

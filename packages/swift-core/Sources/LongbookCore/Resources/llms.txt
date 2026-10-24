@@ -1,4 +1,4 @@
-longbook llms.txt — contract revision 44.
+longbook llms.txt — contract revision 45.
 Hello. If you are an AI reading this, you are probably helping someone with longbook.
 This is the contract, plainly stated. Read it once; the working method is short and the
 examples are there so you never have to guess.
@@ -39,7 +39,7 @@ digits of a card are the most that ever leaves a statement for this file.
 
 **If you have longbook's tools** (an MCP server called "longbook"), use them. They are the
 same arithmetic the app uses, and every write goes through the same validator and lands in
-the owner's Changes screen as one reviewable batch, which they can keep or undo whole. The
+the owner's Proposals screen as one reviewable batch, which they can keep or undo whole. The
 tools: `next_payment`, `upcoming`, `charges`, `cashflow`, `spending_by_category`,
 `spending_by_account`, `spending_by_person`, `commitments`, `search`, `accounts`,
 `people`, `tags` and `whoami` to read; `list_documents` and `read_document` for the
@@ -48,7 +48,7 @@ statements in the documents folder, and `reports` for the reports longbook has d
 `update_charge`, `set_planned_count`, `cancel_commitment`, `delete_commitment`,
 `promote_to_recurring`, `add_account`, `update_account`, `add_person`, `update_person`,
 `rename_tag`, `delete_tag`, `leave_insight` to write; `create_report` to ask longbook to
-draw a report, which shows on its Reports screen rather than in Changes;
+draw a report, which shows on its Reports screen rather than in Proposals;
 `read_guide` to pull any chapter of this text back when you need it. The servers also offer
 the owner's prompts — "Set up my longbook", "Add my statement" and the rest in `Prompts`
 below — each with its procedure.
@@ -58,7 +58,7 @@ There are three doors, and `whoami` says which one you are standing at:
 1. **This machine.** The server built into the longbook app, running on the owner's own
    computer (Set up Claude Desktop or Copy configuration, on the Mac). It reads the folder
    and the documents inside it, and its writes go into the file at once, standing in
-   Changes for review. `write_mode: "direct"`.
+   Proposals for review. `write_mode: "direct"`.
 2. **Signed in on the web.** claude.ai, or any client the owner signed into with their own
    account. It reads the hosted copy the app pushes. Its writes are suggestions, and only
    after the owner ticks "Let signed-in AIs suggest changes" on the app's Automations
@@ -67,7 +67,7 @@ There are three doors, and `whoami` says which one you are standing at:
    app's Automations screen. "Read only" reads; "Read and suggest changes" may also file
    suggestions. Named, revocable at once, with an optional expiry `whoami` warns about.
 
-**One memory, one review.** All three doors end at the same Changes screen, every batch
+**One memory, one review.** All three doors end at the same Proposals screen, every batch
 signed with its author — the client's name on door 1, "web session" on door 2, the key's
 name on door 3 — so the owner always knows whose hand did what. The two hosted doors share
 ONE inbox and one idempotency space: a suggestion filed through the key shows in the
@@ -141,7 +141,7 @@ statements hold:
 
 - **If the statements do not reach far enough** — a yearly premium outside the window, a
   name with no line at all — ask for older or longer statements before you guess. A guess
-  written as a fact is the one mistake the owner cannot see in the Changes screen.
+  written as a fact is the one mistake the owner cannot see in the Proposals screen.
 
 **Setup's accounts and people come first too.** Setup also wrote accounts named by their kind
 — "Savings account", "Credit card" — and people named by their role — "Maid", "Cook" — beside
@@ -234,7 +234,7 @@ noticed that they may want to change.
    reason to write `once`.
 4. **Write in one batch, then stop.** `add_commitments` takes up to 200 rows in one call;
    a whole year of statements is one or two calls. Then say: "Review the change in the app's
-   Changes screen — keep it or undo it there." Do not re-read and rewrite to "check your
+   Proposals screen — keep it or undo it there." Do not re-read and rewrite to "check your
    work"; the owner reviews, not you.
 5. **Facts first, then what clearly repeats, then the question.** Write what the statement
    proves; `promote_to_recurring` a payee it shows at least three times, a steady month,
@@ -267,7 +267,7 @@ Automations section of the app and the website, and copies the prompt from there
   "Set up my longbook". Your longbook filled from your statements: every charge on record, the
   names you picked in setup filled in where your statements or your answers show them, each
   account's closing balance set, the charges that clearly repeat planned ahead, and the rest
-  set to repeat once you confirm them. It waits in the Changes screen for you to keep. Builds
+  set to repeat once you confirm them. It waits in the Proposals screen for you to keep. Builds
   on "first-run".
 - **Add my statement** — "Add my statement in my longbook", or "Update my longbook from my
   statements", or "Add my statement". Every charge on the statement recorded as paid, money in
@@ -336,7 +336,7 @@ Automations section of the app and the website, and copies the prompt from there
   categories found, and fixed once you approve each change. Builds on "working-method".
 - **Reorganise my longbook** — "Reorganise my longbook". Your whole longbook, once over: names
   as you would say them, every row categorised, people and accounts linked, doubles merged,
-  nothing lost. The whole pass waits in Changes. Builds on "reorganise-my-longbook".
+  nothing lost. The whole pass waits in Proposals. Builds on "reorganise-my-longbook".
 - **Set up a morning brief** — "Set up a morning brief for my longbook", or "Set yourself up
   for a longbook morning brief". A short summary every morning of what is due today and in the
   next 30 days. Nothing in your longbook changes. Needs scheduled tasks in their AI's app.
@@ -558,7 +558,7 @@ The summary to the owner once the answers are in, in shape:
 > stopped in April and is on record that way. Twelve salary credits are in as money in,
 > kept apart from spending. Skipped: two card bill payments — the memory held no bill row
 > for either — and three ATM withdrawals. HDFC savings now stands at ₹1,23,456 as of
-> 30 June, the statement's closing balance. Review it in the Changes screen — keep or undo
+> 30 June, the statement's closing balance. Review it in the Proposals screen — keep or undo
 > it there.
 
 ### Statements that arrive as Excel or CSV
@@ -711,7 +711,7 @@ name and what the row has been paying, and write your guess. One batched
 `update_commitment` pass, each with its `tag`; then show every guess in one table —
 name, date, amount, the category you chose — ask the owner to correct any that are wrong,
 and say a spoken answer is fine. Apply the corrections in one more pass, and stop: "review it
-in Changes". A tag the owner names is theirs, in their words.
+in Proposals". A tag the owner names is theirs, in their words.
 
 ## Reorganise my longbook — the whole book, once over
 
@@ -719,7 +719,7 @@ in Changes". A tag the owner names is theirs, in their words.
 they had an afternoon: names as they would say them, every row in a category, people and
 accounts linked, doubles merged, nothing lost. longbook's own AI runs it from the app's
 Automations screen; the owner's AI runs it from the prompt; both follow this chapter, and
-every change waits in Changes, where the owner keeps or undoes the whole pass at once.
+every change waits in Proposals, where the owner keeps or undoes the whole pass at once.
 
 Read everything first: `commitments` with status "all", `charges` over a wide window,
 `people`, `accounts`, `tags`. Then, in this order:
@@ -746,7 +746,7 @@ Read everything first: `commitments` with status "all", `charges` over a wide wi
 What a reorganisation never changes: an amount, a date, a cycle, a status, an ends_on, a
 planned count, a balance, a charge that happened. A row already right is left alone. One
 pass, batched; then stop, and say in plain words what was renamed, categorised, linked and
-merged, and that it all waits in Changes.
+merged, and that it all waits in Proposals.
 
 ## People and accounts
 
@@ -828,7 +828,7 @@ as printed. `search` the payee first: a charge already written from a mail or a 
 for that amount and day is the same money, and the invoice gives it the better name and
 note — update it, never a twin. When the payee is a commitment the memory holds, the
 invoice is that commitment's charge: `add_charges` on it. One batch, then stop: it waits
-in Changes.
+in Proposals.
 
 ## Notes — the three details that matter
 
@@ -872,7 +872,7 @@ The rules:
    which can read as a card's expiry.
 4. **The present, not a log.** When the commitment changes — its price, its cycle, its
    member, what you learned about it — rewrite the note so it describes the commitment as
-   it now stands. Never append "updated on…" lines: the Changes screen keeps every version,
+   it now stands. Never append "updated on…" lines: the Proposals screen keeps every version,
    and `_provenance` keeps who wrote what and from where.
 5. **A document is named, never pasted** — by its path in `documents/`.
 
@@ -1073,7 +1073,7 @@ Make ONE `create_report` call — `title`, `start_date`, `end_date`, and `accoun
 `members` or `categories` only where the owner narrowed it; on a hosted door, with an
 `idempotency_key`. Then say that longbook draws it on its Reports screen the next time the
 app is open, counting confirmed charges only as every report does, and stop. Nothing waits in
-Changes. The same name, days and scope asked again redraws the same report, so a retry is
+Proposals. The same name, days and scope asked again redraws the same report, so a retry is
 harmless.
 
 To change what it says, fix the rows — the charge and commitment tools — and longbook redraws
@@ -1124,12 +1124,12 @@ added because nobody is there to catch a mistake:
   file again under the same `idempotency_key`, so the corrected proposal replaces the
   failed one; never resend the same payload.
 - **Both doors write; they land differently.** On the owner's own machine the local server
-  writes the file, and the batch appears in Changes at once. From the cloud — either signed
+  writes the file, and the batch appears in Proposals at once. From the cloud — either signed
   in as the owner, or carrying a key with `memory:propose` — a write is a **proposal**:
   nothing out there touches the memory, and the owner's app applies it, on their Mac or
-  their iPhone, whichever they open next, where it stands in Changes to keep or undo like
+  their iPhone, whichever they open next, where it stands in Proposals to keep or undo like
   any other outside edit. `write_mode` in whoami says which door you are at. The honest
-  sentence to the owner is "it will be waiting in Changes the next time you open longbook",
+  sentence to the owner is "it will be waiting in Proposals the next time you open longbook",
   never "done".
 - **If the write tools refuse with `insufficient_scope`, read `how_to_enable` and say it.**
   Suggestions from a signed-in AI are off until the owner turns them on ("Let signed-in AIs
@@ -1179,7 +1179,7 @@ lines the owner wants read out → for each receipt or notice in the mail: `sear
 then `add_commitments` (or `update_commitment` for a price change, `mark_paid` for a
 "payment received", plus the next cycle's charge when the plan ended with it) with `source`
 and `idempotency_key` → one `leave_insight` if something is worth saying → report to the
-owner what was filed and that it is waiting in Changes.
+owner what was filed and that it is waiting in Proposals.
 
 ## The daily email round — a scheduled look at the owner's mail
 
@@ -1198,7 +1198,7 @@ this chapter is the method.
    do "Each run" as that chapter says — so every morning reads the method as it stands that
    day. If your app has no scheduled tasks, say so, and offer to run the round whenever the
    owner asks for it.
-4. Run the first round now, so the owner sees in Changes what a morning looks like.
+4. Run the first round now, so the owner sees in Proposals what a morning looks like.
 
 **One month, on request.** "Add email invoices in my longbook" is the same reading, once,
 over the calendar month so far — no scheduled task. `whoami`, then steps 2 to 7 of "Each
@@ -1237,7 +1237,7 @@ as they stand, a bill due ahead included at its due date. Report once and stop.
    `basis: "email"`, paid or unpaid as its kind below says.
 7. End with one short report: how many rows, which mails you skipped and why in a line,
    what needs the owner's word (a row that looks recurring, an account the memory does not
-   hold), and that it is waiting in Changes. Then stop.
+   hold), and that it is waiting in Proposals. Then stop.
 
 **The kinds of mail, and what each becomes.**
 
