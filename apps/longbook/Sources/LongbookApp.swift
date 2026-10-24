@@ -244,7 +244,7 @@ private struct SnapshotScreenHost: View {
             case "editcommitment": SnapshotCommitmentEdit(model: model)
             case "editcharge": SnapshotChargeEdit(model: model)
             case "tips": TipsView()
-            case "welcome": WelcomeView(onDone: {})
+            case "welcome": SignInView(auth: auth)
             case "waiting": OnboardingWaitingView(commitments: 2, accounts: 0, onResume: {}, onDemo: {})
             case "demo": DemoLongbookView(auth: auth, onLeave: {})
             case "picker", "setupmembers", "setupaccounts", "setupsummary", "setupstatement":
@@ -253,7 +253,7 @@ private struct SnapshotScreenHost: View {
                                                               replay: ProcessInfo.processInfo.environment["LONGBOOK_SNAPSHOT_REPLAY"] != nil),
                                    replay: ProcessInfo.processInfo.environment["LONGBOOK_SNAPSHOT_REPLAY"] != nil, onDone: {})
             case "vaultchoice": VaultChoiceView(model: model, auth: auth)
-            case "signin": SignInView(auth: auth, onBack: {})
+            case "signin": SignInView(auth: auth)
             case "deleteaccount": DeleteAccountSheet(auth: auth, onClose: {})
             default: DashboardView(model: model, auth: auth, path: .constant([]))
             }

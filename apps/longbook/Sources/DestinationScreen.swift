@@ -84,7 +84,7 @@ final class AppSession {
 }
 
 /// The Settings window (⌘,): a toolbar of tabs, as a Mac app's settings are. What is not a
-/// setting lives in the menus: Import in File, Set Up Again and Tips in Help, Check for
+/// setting lives in the menus: Import in File, Optimize Your Data and Tips in Help, Check for
 /// Updates in the app menu, Trips in Go.
 struct SettingsWindowView: View {
     @ObservedObject private var auth = AppSession.shared.auth

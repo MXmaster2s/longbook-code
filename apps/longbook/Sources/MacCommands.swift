@@ -27,7 +27,7 @@ extension Notification.Name {
     static let longbookBack = Notification.Name("longbook.back")
     /// The statement importer, over the main window.
     static let longbookImport = Notification.Name("longbook.import")
-    /// Set Up Again, asked of the main window from the Help menu.
+    /// Optimize Your Data, asked of the main window from the Help menu or Settings.
     static let longbookSetUpAgain = Notification.Name("longbook.setUpAgain")
 }
 
@@ -80,8 +80,8 @@ struct LongbookCommands: Commands {
                 NotificationCenter.default.post(name: .longbookPush, object: Destination.tips)
             }
             .disabled(!menu.shellReady)
-            Button("Set Up Again…") {
-                Measure.used("set_up_again", .menuItem)
+            Button("Optimize Your Data…") {
+                Measure.used("optimize_your_data", .menuItem)
                 NotificationCenter.default.post(name: .longbookSetUpAgain, object: nil)
             }
             .disabled(!menu.shellReady)
