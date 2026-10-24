@@ -156,10 +156,9 @@ struct RootView: View {
     @State private var setupReplay = false
     /// The demo longbook, opened from Settings over the book.
     @State private var showingDemo = false
-    /// The two welcome pages, once per device, before the first sign-in.
-    @AppStorage("longbook.welcomeSeen") private var welcomeSeen = false
-    /// Set when sign-in's Back reopens the welcome, so it opens on its second page.
-    @State private var welcomeBack = false
+    /// The mark the way in shares between its steps, so it holds still while the words move.
+    @Namespace private var onboardingMark
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// Whether the first loaded vault has had the cloud queue applied to it.
     @State private var appliedOnFirstLoad = false
     /// How often the front window looks for an edit made elsewhere: one stat, nothing read.
@@ -365,27 +364,36 @@ struct RootView: View {
 
     /// An account comes first: longbook is not usable signed out. The wait state exists so
     /// someone already signed in never sees the sign-in screen flash past.
+    /// Each step of the way in pushes in from the trailing edge, as a navigation push does.
     @ViewBuilder
     private var gate: some View {
-        if Self.picturesPaywall {
-            if ProcessInfo.processInfo.environment["LONGBOOK_SNAPSHOT_SCREEN"] == "purchase" {
-                PurchaseView(auth: auth, entitlement: entitlement)
+        ZStack {
+            if Self.picturesPaywall {
+                if ProcessInfo.processInfo.environment["LONGBOOK_SNAPSHOT_SCREEN"] == "purchase" {
+                    PurchaseView(auth: auth, entitlement: entitlement, namespace: onboardingMark)
+                } else {
+                    CloudPaywallView(auth: auth).environmentObject(entitlement)
+                }
+            } else if Self.skipsAuth {
+                signedIn
+            } else if auth.isSignedIn {
+                licensed
+            } else if auth.checked {
+                SignInView(auth: auth, namespace: onboardingMark)
+                    .transition(OnboardingMotion.push(reduceMotion: reduceMotion))
             } else {
-                CloudPaywallView(auth: auth).environmentObject(entitlement)
+                waiting
             }
-        } else if Self.skipsAuth {
-            signedIn
-        } else if auth.isSignedIn {
-            licensed
-        } else if auth.checked {
-            if welcomeSeen {
-                SignInView(auth: auth) { welcomeBack = true; welcomeSeen = false }
-            } else {
-                WelcomeView(startPage: welcomeBack ? 1 : 0) { welcomeSeen = true }
-            }
-        } else {
-            waiting
         }
+        .animation(reduceMotion ? .easeOut(duration: 0.2) : OnboardingMotion.step, value: gateStep)
+    }
+
+    /// Where the way in stands, for the transition between its steps.
+    private var gateStep: String {
+        guard auth.checked else { return "checking" }
+        guard auth.isSignedIn else { return "signIn" }
+        if entitlement.state.signedIn && !entitlement.state.hasLicence { return "purchase" }
+        return "app"
     }
 
     /// Then a licence: longbook is bought before use. The wait screen stands in until the
@@ -394,7 +402,12 @@ struct RootView: View {
     @ViewBuilder
     private var licensed: some View {
         if entitlement.state.signedIn {
-            if entitlement.state.hasLicence { signedIn } else { PurchaseView(auth: auth, entitlement: entitlement) }
+            if entitlement.state.hasLicence {
+                signedIn.transition(OnboardingMotion.push(reduceMotion: reduceMotion))
+            } else {
+                PurchaseView(auth: auth, entitlement: entitlement, namespace: onboardingMark)
+                    .transition(OnboardingMotion.push(reduceMotion: reduceMotion))
+            }
         } else if entitlement.known {
             signedIn
         } else {
@@ -429,15 +442,19 @@ struct RootView: View {
                 VaultChoiceView(model: model, auth: auth)
             case .loaded:
                 if let onboarding {
-                    // The first run stands in front of the book until it is one: commitments
-                    // and accounts by kind, then the history, with a Waiting screen between.
+                    // The first run stands in front of the book until a statement is kept or
+                    // skipped; Optimize your data replays the commitment and account cards.
                     OnboardingFlowView(model: model, auth: auth, session: onboarding, replay: setupReplay) {
-                        self.onboarding = nil
-                        setupReplay = false
-                        setupDone = true
+                        withAnimation(reduceMotion ? .easeOut(duration: 0.2) : OnboardingMotion.step) {
+                            self.onboarding = nil
+                            setupReplay = false
+                            setupDone = true
+                        }
                     }
+                    .transition(OnboardingMotion.push(reduceMotion: reduceMotion))
                 } else {
                     replayable
+                        .transition(OnboardingMotion.arrive(reduceMotion: reduceMotion))
                 }
             }
         }
@@ -479,27 +496,27 @@ struct RootView: View {
         return model.isEmptyVault ? "empty" : "full"
     }
 
-    /// A run begun and not finished resumes on the Waiting screen, wherever it was begun;
-    /// an empty book never asked opens the first card. The account is asked too, since a
-    /// device may know of a run before the folder does.
+    /// The way in ends at the first statement: a new book, a run left unfinished on any
+    /// device, or an empty book never asked opens the Import step. The account is asked too,
+    /// since a device may know of a run before the folder does.
     private func openOnboardingIfDue() async {
         guard case .loaded = model.state, onboarding == nil, !setupDone else { return }
         if model.madeFreshVault {
             model.madeFreshVault = false
-            onboarding = OnboardingSession(start: .commitments(card: 0), paused: false, model: model)
+            onboarding = OnboardingSession(start: .finish, paused: false, model: model)
             return
         }
         if let stage = model.onboardingStage {
-            if stage != .done { onboarding = OnboardingSession(start: stage, paused: true, model: model) }
+            if stage != .done { onboarding = OnboardingSession(start: .finish, paused: false, model: model) }
             return
         }
         guard model.isEmptyVault, !model.commitmentsAsked else { return }
         if let progress = await OnboardingSync.pull(), let stage = OnboardingStage(raw: progress.stage),
            stage != .done, progress.device != OnboardingDevice.id {
-            if onboarding == nil { onboarding = OnboardingSession(start: stage, paused: true, model: model) }
+            if onboarding == nil { onboarding = OnboardingSession(start: .finish, paused: false, model: model) }
             return
         }
-        if onboarding == nil { onboarding = OnboardingSession(start: .commitments(card: 0), paused: false, model: model) }
+        if onboarding == nil { onboarding = OnboardingSession(start: .finish, paused: false, model: model) }
     }
 
     private var vaultLoaded: Bool {
@@ -663,7 +680,8 @@ struct RootView: View {
         )
     }
 
-    /// More's Set up again, from whichever window holds it: the first card, over the book.
+    /// Settings' Optimize your data, from whichever window holds it: the commitment and
+    /// account cards, whose picks the book keeps as hints for reading statements.
     private func setUpAgain() {
         setupReplay = true
         onboarding = OnboardingSession(start: .commitments(card: 0), paused: false, model: model, replay: true)

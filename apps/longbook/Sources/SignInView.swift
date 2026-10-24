@@ -2,12 +2,14 @@ import DesignSystem
 import LongbookCore
 import SwiftUI
 
-/// The first screen anyone sees, and the only way in: longbook needs an account. The account
-/// holds identity and licence; the vault itself stays in the owner's own folder.
+/// The first screen anyone sees, and the only way in: the welcome and the sign-in in one
+/// step, since longbook needs an account. The account holds identity and licence; the vault
+/// itself stays in the owner's own folder.
 struct SignInView: View {
     @ObservedObject var auth: AuthViewModel
-    /// Back to the welcome pages; nil where sign-in is the first thing shown.
-    var onBack: (() -> Void)? = nil
+    /// Shared with the licence step, so the mark keeps its place between the two.
+    var namespace: Namespace.ID? = nil
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private enum Stage {
         case welcome, email, code
@@ -38,9 +40,10 @@ struct SignInView: View {
     }
 
     var body: some View {
-        Group {
+        ZStack {
             if stage == .welcome {
                 welcome
+                    .transition(OnboardingMotion.push(reduceMotion: reduceMotion))
             } else {
                 ScrollView {
                     VStack(spacing: LBSpacing.s4) {
@@ -50,8 +53,10 @@ struct SignInView: View {
                     .frame(maxWidth: 460)
                     .frame(maxWidth: .infinity)
                 }
+                .transition(OnboardingMotion.push(reduceMotion: reduceMotion))
             }
         }
+        .animation(reduceMotion ? .easeOut(duration: 0.2) : OnboardingMotion.step, value: stage)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(LBColor.canvas.color)
         // Raised from the email door, where the typed address can be compared with the
@@ -82,18 +87,11 @@ struct SignInView: View {
     // MARK: welcome
 
     private var welcome: some View {
-        OnboardingScaffold(dot: 2, secondary: onBack == nil ? nil : "Back", onSecondary: { onBack?() }) {
-            Color.clear.frame(height: 50)
-        } content: {
-            welcomeContent
-        }
-    }
-
-    private var welcomeContent: some View {
-        VStack(spacing: LBSpacing.s4) {
-            OnboardingTitle(title: "longbook", line: "Remember your money")
-                .padding(.bottom, LBSpacing.s4)
+        OnboardingStep(dot: 0, namespace: namespace) {
+            OnboardingWords(title: "longbook", line: "Thank you for installing longbook",
+                            note: "Keep your bank statement ready", noteInk: LBColor.danger, noteStrong: true)
             folderAccountNote
+        } actions: {
             // Apple's door on both: the Mac build carries the applesignin entitlement too.
             appleButton
             providerRow(.google, Image("GoogleMark").resizable(), "Continue with Google")
@@ -106,7 +104,6 @@ struct SignInView: View {
                  ? "Signing in creates your account if you don’t have one yet."
                  : "Another address signs you into a second account. The commitments in this folder open either way.")
         }
-        .frame(maxWidth: .infinity)
     }
 
     /// Apple's door first and filled, in Apple's own black (white in dark mode).
@@ -126,7 +123,7 @@ struct SignInView: View {
             .contentShape(Rectangle())
             .opacity(opening == nil || opening == .apple ? 1 : 0.5)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(OnboardingPressStyle())
         .disabled(opening != nil)
         .accessibilityLabel(opening == .apple ? "Opening…" : "Continue with Apple")
     }
@@ -164,7 +161,7 @@ struct SignInView: View {
             .contentShape(Rectangle())
             .opacity(opening == nil || opening == provider ? 1 : 0.5)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(OnboardingPressStyle())
         .disabled(opening != nil)
         .accessibilityLabel(provider != nil && opening == provider ? "Opening…" : title)
     }
@@ -219,7 +216,7 @@ struct SignInView: View {
                         .padding(.vertical, LBSpacing.s2)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(OnboardingPressStyle())
                 .disabled(busy || resendCooldown > 0)
                 Button { Measure.used("use_a_different_email"); stage = .email; typedCode = ""; clearError() } label: {
                     Text("Use a Different Email")
@@ -228,7 +225,7 @@ struct SignInView: View {
                         .padding(.vertical, LBSpacing.s2)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(OnboardingPressStyle())
             }
             Spacer(minLength: LBSpacing.s8)
         }
@@ -245,7 +242,7 @@ struct SignInView: View {
                 .frame(width: 44, height: 44)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(OnboardingPressStyle())
         .accessibilityLabel("Go back")
     }
 
@@ -313,7 +310,7 @@ struct SignInView: View {
                     in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous)
                 )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(OnboardingPressStyle())
         .disabled(!enabled)
     }
 

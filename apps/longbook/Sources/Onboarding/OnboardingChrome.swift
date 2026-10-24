@@ -77,7 +77,7 @@ struct OnboardingCloseButton: View {
                 .frame(width: 36, height: 36)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(OnboardingPressStyle())
         .accessibilityLabel("Close setup")
     }
 }
@@ -98,7 +98,7 @@ struct OnboardingCancelButton: View {
                     .background(LBColor.chrome.color, in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(OnboardingPressStyle())
             .accessibilityLabel("Cancel and close setup")
         }
     }
@@ -124,7 +124,7 @@ struct OnboardingPrimaryButton: View {
                             in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(OnboardingPressStyle())
         .disabled(!enabled)
         .animation(.easeOut(duration: 0.2), value: enabled)
         .help(enabled ? "" : hint)
@@ -170,7 +170,7 @@ struct OnboardingSecondaryButton: View {
                 .background(LBColor.chrome.color, in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(OnboardingPressStyle())
     }
 }
 
@@ -233,7 +233,7 @@ struct OnboardingPill: View {
                 .background(ready ? LBColor.brand.color : LBColor.hairline.color, in: Capsule())
                 .contentShape(Capsule())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(OnboardingPressStyle())
         .animation(.easeOut(duration: 0.2), value: ready)
     }
 }
@@ -255,7 +255,7 @@ struct OnboardingThemeButton: View {
                 .frame(width: 44, height: 44)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(OnboardingPressStyle())
         .accessibilityLabel(colorScheme == .dark ? "Switch to the light appearance" : "Switch to the dark appearance")
     }
 }
@@ -274,7 +274,7 @@ struct OnboardingTextButton: View {
                 .frame(minHeight: 44)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(OnboardingPressStyle())
     }
 }
 
@@ -298,20 +298,165 @@ enum OnboardingWidth {
 }
 
 /// Where the reader is on the way in: two welcome pages, sign-in, then the purchase.
+/// Three steps on the way in: welcome and sign-in, the licence, the first statement. The
+/// current dot stretches into a capsule, as a page control does, and springs to the next.
 struct OnboardingDots: View {
-    static let total = 4
+    static let total = 3
     let current: Int
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         HStack(spacing: LBSpacing.s2) {
             ForEach(0..<Self.total, id: \.self) { dot in
-                Circle()
+                Capsule()
                     .fill(dot == current ? LBColor.brand.color : LBColor.hairline.color)
-                    .frame(width: 7, height: 7)
+                    .frame(width: dot == current ? 18 : 7, height: 7)
             }
         }
+        .animation(reduceMotion ? nil : OnboardingMotion.step, value: current)
         .accessibilityElement()
         .accessibilityLabel("Step \(current + 1) of \(Self.total)")
+    }
+}
+
+/// The way in moves as the system does: a spring push between steps, a spring for what
+/// opens in place, a quick settle for a press. Reduce Motion keeps the fades only.
+enum OnboardingMotion {
+    static let step = Animation.smooth(duration: 0.5)
+    static let reveal = Animation.snappy(duration: 0.35)
+    static let press = Animation.snappy(duration: 0.18)
+    static let mark = "onboarding.mark"
+
+    /// Forward between steps: the next slides in from the trailing edge as the last leaves.
+    static func push(reduceMotion: Bool) -> AnyTransition {
+        reduceMotion ? .opacity : .asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity),
+                                              removal: .move(edge: .leading).combined(with: .opacity))
+    }
+
+    /// Into the book once the way in is done: a short zoom and fade, as an app opens.
+    static func arrive(reduceMotion: Bool) -> AnyTransition {
+        reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.96))
+    }
+}
+
+/// A press that answers the finger: the button settles a little and a light tap is felt.
+struct OnboardingPressStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.97 : 1)
+            .opacity(configuration.isPressed ? 0.88 : 1)
+            .animation(OnboardingMotion.press, value: configuration.isPressed)
+            .sensoryFeedback(.impact(weight: .light), trigger: configuration.isPressed) { _, pressed in pressed }
+    }
+}
+
+/// What sits at the top of a step: the longbook mark, or a symbol for what the step asks for.
+enum OnboardingMark {
+    case app
+    case symbol(String)
+}
+
+/// One step on the way in, laid out as Apple's own setup screens: the mark and the words
+/// centred, the actions and the dots pinned at the foot. The mark keeps its place between
+/// steps when a namespace is passed, so only the words move.
+struct OnboardingStep<Content: View, Actions: View>: View {
+    let dot: Int
+    var mark: OnboardingMark = .app
+    var namespace: Namespace.ID?
+    @ViewBuilder let content: Content
+    @ViewBuilder let actions: Actions
+
+    var body: some View {
+        VStack(spacing: 0) {
+            GeometryReader { space in
+                ScrollView {
+                    VStack(spacing: LBSpacing.s4) {
+                        markView
+                        content
+                    }
+                    .padding(.horizontal, LBSpacing.s6)
+                    .padding(.vertical, LBSpacing.s8)
+                    .frame(maxWidth: .infinity, minHeight: space.size.height)
+                }
+                .scrollBounceBehavior(.basedOnSize)
+            }
+            VStack(spacing: LBSpacing.s3) {
+                actions
+                OnboardingDots(current: dot)
+                    .padding(.top, LBSpacing.s1)
+            }
+            .padding(.horizontal, LBSpacing.s4)
+            .padding(.bottom, LBSpacing.s4)
+        }
+        .frame(maxWidth: Self.width)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(LBColor.canvas.color)
+    }
+
+    #if os(macOS)
+    private static var width: CGFloat { 440 }
+    private static var markSize: CGFloat { 64 }
+    #else
+    private static var width: CGFloat { 560 }
+    private static var markSize: CGFloat { 72 }
+    #endif
+
+    @ViewBuilder
+    private var markView: some View {
+        switch mark {
+        case .app:
+            if let namespace {
+                appMark.matchedGeometryEffect(id: OnboardingMotion.mark, in: namespace)
+            } else {
+                appMark
+            }
+        case .symbol(let name):
+            Image(systemName: name)
+                .font(.system(size: Self.markSize * 0.62, weight: .regular))
+                .foregroundStyle(LBColor.brandText.color)
+                .frame(width: Self.markSize, height: Self.markSize)
+                .accessibilityHidden(true)
+        }
+    }
+
+    private var appMark: some View {
+        Image("SidebarMark")
+            .resizable()
+            .scaledToFit()
+            .frame(width: Self.markSize, height: Self.markSize)
+            .accessibilityHidden(true)
+    }
+}
+
+/// The words of a step: the title, its line, and an optional short note under them.
+struct OnboardingWords: View {
+    let title: String
+    var line: String?
+    var note: String?
+    var noteInk: LBColorValue = LBColor.textTertiary
+    var noteStrong = false
+
+    var body: some View {
+        VStack(spacing: LBSpacing.s2) {
+            Text(title)
+                .lbText(.displayLG)
+                .foregroundStyle(LBColor.textPrimary.color)
+            if let line {
+                Text(line)
+                    .lbText(.body)
+                    .foregroundStyle(LBColor.textSecondary.color)
+            }
+            if let note {
+                Text(note)
+                    .lbText(noteStrong ? LBTextStyle.label : LBTextStyle.footnote)
+                    .foregroundStyle(noteInk.color)
+                    .padding(.top, LBSpacing.s1)
+            }
+        }
+        .multilineTextAlignment(.center)
+        .fixedSize(horizontal: false, vertical: true)
     }
 }
 

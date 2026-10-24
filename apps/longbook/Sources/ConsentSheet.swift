@@ -16,7 +16,7 @@ enum AIConsent: String {
     var sentence: String {
         switch self {
         case .statements:
-            "To read your statement, longbook sends it to Anthropic’s Claude. Nothing is kept. The details are in the privacy policy."
+            "longbook does not store or use your personal financial data.\nlongbook uses Anthropic’s AI services."
         }
     }
 }
@@ -70,7 +70,7 @@ struct ConsentSheet: View {
     private var buttons: some View {
         #if os(macOS)
         HStack(spacing: LBSpacing.s2) {
-            Button("Read the Privacy Policy") { Measure.used("read_the_privacy_policy"); openURL(Self.policyURL) }
+            Button("Read on web") { Measure.used("read_on_web"); openURL(Self.policyURL) }
                 .buttonStyle(.link)
             Spacer(minLength: LBSpacing.s3)
             Button("Not Now", action: { Measure.used("not_now"); onDecline() })
@@ -85,7 +85,7 @@ struct ConsentSheet: View {
         VStack(spacing: LBSpacing.s2) {
             filled("Accept", primary: true, action: onAccept)
             filled("Not Now", primary: false, action: onDecline)
-            Button("Read the Privacy Policy") { Measure.used("read_the_privacy_policy"); openURL(Self.policyURL) }
+            Button("Read on web") { Measure.used("read_on_web"); openURL(Self.policyURL) }
                 .lbText(.label)
                 .foregroundStyle(LBColor.brandText.color)
                 .padding(.top, LBSpacing.s1)
@@ -103,7 +103,7 @@ struct ConsentSheet: View {
                             in: RoundedRectangle(cornerRadius: LBRadius.md, style: .continuous))
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(OnboardingPressStyle())
     }
 }
 

@@ -67,6 +67,7 @@ struct OnboardingFlowView: View {
     /// Opened again from More over a book that already holds something: a way out shows.
     let replay: Bool
     let onDone: () -> Void
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ZStack {
@@ -82,6 +83,7 @@ struct OnboardingFlowView: View {
                                       onClose: close)
             } else {
                 stageView
+                    .transition(OnboardingMotion.push(reduceMotion: reduceMotion))
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -132,7 +134,7 @@ struct OnboardingFlowView: View {
                                     rows: accountRows, buttonTitle: "Continue", onContinue: { go(.finish) },
                                     onBack: { go(.accounts(card: OnboardingCards.accounts.count - 1)) }, onClose: close)
         case .finish, .done:
-            OnboardingFinishView(model: model, auth: auth, clock: session.clock, onDone: finish, onNotNow: { pause(.finish) },
+            OnboardingFinishView(model: model, auth: auth, clock: session.clock, onDone: finish, onNotNow: finish,
                                  onBack: { go(.accountsDone(empty: session.chosenAccounts.isEmpty)) }, onClose: close,
                                  onDemo: { withAnimation(.easeOut(duration: 0.3)) { session.showingDemo = true } })
         }
@@ -210,7 +212,7 @@ struct OnboardingFlowView: View {
 
     private func go(_ next: OnboardingStage) {
         model.setOnboardingStage(next)
-        withAnimation(.easeOut(duration: 0.35)) { session.stage = next }
+        withAnimation(OnboardingMotion.step) { session.stage = next }
     }
 
     private func pause(_ at: OnboardingStage) {

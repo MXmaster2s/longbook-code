@@ -9,7 +9,7 @@ struct MoreView: View {
     let model: DashboardModel
     @ObservedObject var auth: AuthViewModel
     let onTutorial: () -> Void
-    /// The demo longbook over the book, from the same group as Set up again.
+    /// The demo longbook over the book, from the same group as Optimize your data.
     var onDemo: (() -> Void)? = nil
     @State private var importing = false
     @Environment(\.openURL) private var openURL
@@ -46,7 +46,7 @@ struct MoreView: View {
                     Row("lock", 11, "Data & privacy", "", .opens(.privacy)),
                 ])
                 group("Support", [
-                    Row("play.circle", 10, "Set up again", "", .does(onTutorial)),
+                    Row("slider.horizontal.3", 10, "Optimize your data", "", .does(onTutorial)),
                 ] + (onDemo.map { demo in [Row("sparkles", 12, "Try the demo", "", .does(demo))] } ?? []) + [
                     Row("lightbulb.max", 1, "Tips", "", .opens(.tips)),
                     Row("questionmark.circle", 8, "Help & about", "", .opens(.helpAbout)),

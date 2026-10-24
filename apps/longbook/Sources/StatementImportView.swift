@@ -18,6 +18,8 @@ struct StatementImportView: View {
     var context: SetupPrompt.Context?
     /// Setup's step before this one; a swipe to the right goes there.
     var onBack: (() -> Void)?
+    /// Opened from a button that already said Upload: the consent, then the picker, at once.
+    var picksOnOpen = false
     let onDone: () -> Void
 
     private enum Stage: Equatable { case pick, working(String), locked, ready, review, added(Int, Int, Int) }
@@ -178,6 +180,10 @@ struct StatementImportView: View {
         .onAppear {
             // With no home currency, the phone's own region: a London phone starts in pounds.
             currency = model.homeCurrency ?? Locale.current.currency?.identifier ?? "INR"
+            // After the sheet has risen, so the consent or the picker is not refused mid-presentation.
+            if picksOnOpen, stage == .pick {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) { withConsent { picking = true } }
+            }
             #if DEBUG
             // The snapshot harness names a saved answer to show, so the review can be pictured.
             if let path = ProcessInfo.processInfo.environment["LONGBOOK_SNAPSHOT_PREPARED"], stage == .pick,

@@ -295,6 +295,9 @@ struct DataPrivacyView: View {
             #endif
             yourLongbook
             if let folder = model.vaultFolderURL, !inICloud(folder) { movePane(folder) }
+            #if os(macOS)
+            optimizeSection
+            #endif
             backupSection
             SwiftUI.Section {
                 Text("longbook never stores a full card number, CVV, expiry, PIN or password: a save carrying one is refused.")
@@ -432,7 +435,7 @@ struct DataPrivacyView: View {
                         .lbText(.body)
                         .foregroundStyle(LBColor.brandText.color)
                 }
-                .buttonStyle(.borderless)
+                .lbActionButtonStyle()
                 .lbListRowBackground()
             }
         } header: {
@@ -443,6 +446,23 @@ struct DataPrivacyView: View {
                 .foregroundStyle(LBColor.textTertiary.color)
         }
     }
+
+    #if os(macOS)
+    /// The first-run cards again, whose picks the book keeps as hints for reading statements.
+    private var optimizeSection: some View {
+        SwiftUI.Section {
+            Button("Optimize…") { Measure.used("optimize_your_data"); NotificationCenter.default.post(name: .longbookSetUpAgain, object: nil) }
+                .lbActionButtonStyle()
+                .lbListRowBackground()
+        } header: {
+            LBSectionHeader("Optimize your data")
+        } footer: {
+            Text("Your commitments, accounts and people, kept in your longbook as hints for reading statements, by longbook’s AI or yours.")
+                .lbText(.footnote)
+                .foregroundStyle(LBColor.textTertiary.color)
+        }
+    }
+    #endif
 
     /// The Mac moves the folder to the Bin, asking first; the phone says where to delete it.
     @ViewBuilder
@@ -521,7 +541,7 @@ struct DataPrivacyView: View {
                     .lbText(.body)
                     .foregroundStyle(LBColor.brandText.color)
             }
-            .buttonStyle(.borderless)
+            .lbActionButtonStyle()
             .disabled(moving)
             .opacity(moving ? 0.45 : 1)
             .lbListRowBackground()
@@ -615,5 +635,18 @@ struct DataPrivacyView: View {
     private var historyWord: String {
         let count = model.historyCount()
         return count == 0 ? "Starts with the first change" : "\(count) version\(count == 1 ? "" : "s") kept"
+    }
+}
+
+extension View {
+    /// An action in a settings list: a bordered button sized to its words on the Mac, where a
+    /// borderless row reads as text; the phone's row stays a row.
+    @ViewBuilder
+    func lbActionButtonStyle() -> some View {
+        #if os(macOS)
+        buttonStyle(.bordered).controlSize(.regular)
+        #else
+        buttonStyle(.borderless)
+        #endif
     }
 }

@@ -15,18 +15,18 @@ struct BuyButton: View {
         VStack(alignment: .leading, spacing: LBSpacing.s1) {
             Button(action: { Measure.used("buy"); buy() }) {
                 Text(store.busy ? "Opening…" : label)
-                    .lbText(.label)
+                    .lbText(fullWidth ? .body : .label)
                     .foregroundStyle(LBColor.onBrand.color)
-                    .frame(maxWidth: fullWidth ? .infinity : nil)
+                    .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: fullWidth ? 46 : nil)
                     .padding(.horizontal, LBSpacing.s3)
-                    .padding(.vertical, fullWidth ? LBSpacing.s3 : 6)
+                    .padding(.vertical, fullWidth ? 0 : 6)
                     .background(
                         LBColor.brand.color,
                         in: RoundedRectangle(cornerRadius: fullWidth ? LBRadius.sm : 999, style: .continuous)
                     )
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(OnboardingPressStyle())
             .disabled(store.busy)
             if let failure = store.failure {
                 Text(failure)
