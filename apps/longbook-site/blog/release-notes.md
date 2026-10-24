@@ -1,4 +1,4 @@
-# longbook release notes
+# 1.4.1 Release Notes
 
 > longbook is a memory for your financial commitments, on iPhone and Mac. This page lists what each version brings, newest first, starting with 1.4.1, the first release on the App Store.
 
