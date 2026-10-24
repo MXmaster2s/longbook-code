@@ -20,7 +20,7 @@ enum AIConsent: String {
         case .statements:
             "longbook does not store or use your personal financial data.\nlongbook uses Anthropic’s AI services."
         case .support:
-            "Your messages go to chat.sh, where an AI answers first from our help articles. The details are in the privacy policy."
+            "Your questions go to longbook's server and to Anthropic's Claude, which answers from our help articles. Our server doesn't keep them. The details are in the privacy policy."
         }
     }
 }
