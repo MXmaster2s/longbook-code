@@ -189,7 +189,7 @@
         b.setAttribute('aria-label', t[2]);
         b.onclick = function () {
           thumbs.querySelectorAll('button').forEach(function (x) { x.disabled = true; x.setAttribute('aria-pressed', String(x === b)); });
-          post({ action: 'feedback', answer_id: e.id, rating: t[0] });
+          post({ action: 'feedback', answer_id: e.id, key: e.key, rating: t[0] });
           if (t[0] === 'down') reviewCard();
         };
         thumbs.appendChild(b);

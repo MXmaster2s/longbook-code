@@ -20,7 +20,7 @@ public enum SupportCloud {
 
     public enum Event: Sendable {
         case text(String)
-        case done(id: Int?, sources: [Source], email: Bool)
+        case done(id: Int?, key: String?, sources: [Source], email: Bool)
     }
 
     public enum Failure: Error, Sendable {
@@ -39,6 +39,7 @@ public enum SupportCloud {
         let text: String?
         let done: Bool?
         let id: Int?
+        let key: String?
         let articles: [Source]?
         let email: Bool?
         let error: String?
@@ -77,8 +78,8 @@ public enum SupportCloud {
     }
 
     /// A thumbs up or down on one answer. Best effort: a lost rating is not worth an error.
-    public static func rate(answer id: Int, up: Bool, askerId: String, token: String?) async {
-        _ = try? await post(["action": "feedback", "answer_id": id, "rating": up ? "up" : "down"], askerId: askerId, token: token)
+    public static func rate(answer id: Int, key: String, up: Bool, askerId: String, token: String?) async {
+        _ = try? await post(["action": "feedback", "answer_id": id, "key": key, "rating": up ? "up" : "down"], askerId: askerId, token: token)
     }
 
     /// A six-digit code to the address, so the team's reply can go there.
@@ -131,7 +132,7 @@ public enum SupportCloud {
                         guard let event = try? JSONDecoder().decode(Line.self, from: Data(line.dropFirst(6).utf8)) else { continue }
                         if let words = event.error { throw Failure.busy(words) }
                         if let text = event.text { continuation.yield(.text(text)) }
-                        if event.done == true { continuation.yield(.done(id: event.id, sources: event.articles ?? [], email: event.email ?? false)) }
+                        if event.done == true { continuation.yield(.done(id: event.id, key: event.key, sources: event.articles ?? [], email: event.email ?? false)) }
                     }
                     continuation.finish()
                 } catch let failure as Failure {

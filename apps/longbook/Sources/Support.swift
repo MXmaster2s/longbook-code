@@ -119,8 +119,8 @@ final class SupportCenter: ObservableObject {
                 for try await event in SupportCloud.ask(turns, askerId: askerId, token: token) {
                     switch event {
                     case .text(let words): update(answer.id) { $0.text += words }
-                    case .done(let id, let sources, let email):
-                        update(answer.id) { $0.serverId = id; $0.sources = sources }
+                    case .done(let id, let key, let sources, let email):
+                        update(answer.id) { $0.serverId = id; $0.serverKey = key; $0.sources = sources }
                         // An answer that ends on the offer gets its buttons, whatever the server said.
                         if email || (messages.last?.text.contains("reply to you by email") ?? false) { replyStep = .offered }
                     }
@@ -211,7 +211,7 @@ final class SupportCenter: ObservableObject {
     func rate(_ message: SupportMessage, up: Bool, token: String?) {
         update(message.id) { $0.rating = up }
         save()
-        if let id = message.serverId { Task { await SupportCloud.rate(answer: id, up: up, askerId: askerId, token: token) } }
+        if let id = message.serverId, let key = message.serverKey { Task { await SupportCloud.rate(answer: id, key: key, up: up, askerId: askerId, token: token) } }
         if up {
             // The App Store is asked about once, after the first answer that helped.
             if !UserDefaults.standard.bool(forKey: Self.reviewAskedKey) { follow = .appStore }
@@ -245,6 +245,8 @@ struct SupportMessage: Codable, Identifiable, Equatable {
     var sources: [SupportCloud.Source] = []
     /// The server's record of this answer, which a rating names.
     var serverId: Int?
+    /// The key that lets this device, and only it, rate the answer.
+    var serverKey: String?
     var rating: Bool?
     var failed = false
 }

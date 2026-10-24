@@ -84,11 +84,31 @@ interface Body {
   kind?: unknown
   rating?: unknown
   answer_id?: unknown
+  key?: unknown
   app?: unknown
   screenshot?: unknown
 }
 
 type Service = ReturnType<typeof createClient>
+
+/** The caller's address as the platform saw it: Cloudflare's own header, which a client
+ *  cannot set through Cloudflare, else the last x-forwarded-for hop, which the platform
+ *  appended. The leftmost hop is whatever the client sent, so it is never used. */
+function clientAddress(req: Request): string {
+  const cf = req.headers.get('cf-connecting-ip')?.trim()
+  if (cf) return cf
+  const hops = (req.headers.get('x-forwarded-for') ?? '').split(',').map((h) => h.trim()).filter(Boolean)
+  if (!loggedSource) {
+    // Which source answered, once per instance, so the choice can be checked after deploy.
+    console.log('address', hops.length ? `xff:${hops.length}` : 'none')
+    loggedSource = true
+  }
+  return hops.at(-1) ?? 'none'
+}
+let loggedSource = false
+
+/** At most this many codes a day to any one address, whoever asks for them. */
+const CODES_PER_ADDRESS = 3
 
 function turnsOf(messages: unknown): Turn[] {
   const turns = (Array.isArray(messages) ? messages : [])
@@ -130,6 +150,10 @@ async function sendCode(service: Service, body: Body, asker: string, network: st
   const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''
   if (!EMAIL.test(email) || email.length > 200) return json({ error: "That doesn't look like an email address." }, 400)
   if (!await mayMail(service, asker, network)) return json({ error: "That's all the codes for today. Write to contact@longbook.app instead.", code: 'limit' }, 429)
+  // An address that has had its codes today gets no more, but the answer reads the same, so
+  // nobody learns from it whether the address exists or has been sent to.
+  const toAddress = await service.rpc('support_ask', { p_asker: `mail:to:${await sha(`email:${email}`)}` })
+  if (toAddress.error || Number(toAddress.data ?? 0) > CODES_PER_ADDRESS) return json({ sent: true })
   const code = String(crypto.getRandomValues(new Uint32Array(1))[0]! % 1_000_000).padStart(6, '0')
   const { error } = await service.from('support_codes').upsert({
     email_hash: await sha(`email:${email}`), code_hash: await sha(`code:${email}:${code}`),
@@ -179,12 +203,14 @@ async function sendConversation(service: Service, body: Body, turns: Turn[], acc
   return sent ? json({ sent: true, email: email ?? null }) : json({ error: "It couldn't be sent just now. Try again in a minute." }, 502)
 }
 
-/** A thumbs up or down on one answer, by the id its closing event carried. */
+/** A thumbs up or down on one answer, by the id and key its closing event carried. */
 async function feedback(service: Service, body: Body): Promise<Response> {
   const id = Number(body.answer_id)
   const rating = body.rating === 'up' || body.rating === 'down' ? body.rating : null
-  if (!Number.isInteger(id) || id <= 0 || !rating) return json({ error: 'That rating could not be read.' }, 400)
-  const { error } = await service.from('support_answers').update({ rating }).eq('id', id).is('rating', null)
+  const rateKey = typeof body.key === 'string' ? body.key : ''
+  if (!Number.isInteger(id) || id <= 0 || !rating || !rateKey) return json({ error: 'That rating could not be read.' }, 400)
+  const { error } = await service.from('support_answers').update({ rating })
+    .eq('id', id).eq('rate_key', await sha(`rate:${rateKey}`)).is('rating', null)
   if (error) console.error('rating', error.message)
   return json({ ok: true })
 }
@@ -210,7 +236,7 @@ Deno.serve(async (req: Request) => {
   const install = typeof body.install_id === 'string' && /^[A-Za-z0-9-]{8,64}$/.test(body.install_id) ? body.install_id : ''
   if (!user && !install) return json({ error: 'The question could not be read.' }, 400)
   const asker = user ? await key('account', user.id) : await key('install', install)
-  const network = await key('network', (req.headers.get('x-forwarded-for') ?? '').split(',')[0]!.trim() || 'none')
+  const network = await key('network', clientAddress(req))
 
   const service = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
   if (body.action === 'feedback') return feedback(service, body)
@@ -284,9 +310,12 @@ Deno.serve(async (req: Request) => {
         const mark = answer.indexOf(MARK)
         const { articles, gap } = settle(mark < 0 ? '' : answer.slice(mark))
         // The record first, so the closing event can carry its id for a rating.
-        const { data: row, error } = await service.from('support_answers').insert({ answered: gap === null, articles, gap }).select('id').single()
+        // A random key, kept only as a hash, lets the asker of this answer rate it, and no one else.
+        const rateKey = crypto.randomUUID()
+        const { data: row, error } = await service.from('support_answers')
+          .insert({ answered: gap === null, articles, gap, rate_key: await sha(`rate:${rateKey}`) }).select('id').single()
         if (error) console.error('answers', error.message)
-        send({ done: true, id: row?.id ?? null, articles: articles.map((slug) => ({ slug, title: TITLES.get(slug) })), email: gap !== null })
+        send({ done: true, id: row?.id ?? null, key: row ? rateKey : null, articles: articles.map((slug) => ({ slug, title: TITLES.get(slug) })), email: gap !== null })
       } catch {
         console.error('stream', 'broken')
         send({ error: "Support lost the answer partway. Try again, or ask for a reply by email.", code: 'busy' })

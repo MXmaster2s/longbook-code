@@ -14,7 +14,9 @@ create table public.support_answers (
   answered boolean not null,
   articles text[] not null default '{}',
   gap text,
-  rating text check (rating in ('up', 'down'))
+  rating text check (rating in ('up', 'down')),
+  -- The hash of a key only the asker's app or page holds, so only they can rate the answer.
+  rate_key text
 );
 
 -- A code is kept only as a hash, for ten minutes, and goes the moment it is used.
