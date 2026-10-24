@@ -24,9 +24,12 @@ for (const path of swiftFiles(SOURCES)) {
   const file = relative(SOURCES, path)
   // The helpers themselves pass a name along; every other file must give a literal.
   if (file === 'Measure.swift') continue
-  for (const m of text.matchAll(/(?:Measure\.(?:used|toggled)|\.measured)\(\s*([^,)\s]*)/g)) {
-    const literal = /^"([^"\\]*)"$/.exec(m[1])
-    if (!literal) problems.push(`${file}: a name that is not a plain literal: ${m[1]}`)
+  for (const m of text.matchAll(/(?:Measure\.(?:used|toggled)|\.measured)\(\s*([^,)\s]*)|measure:\s*("[^"]*")/g)) {
+    const given = m[1] ?? m[2]
+    const literal = /^"([^"\\]*)"$/.exec(given)
+    // A name handed on is fine when it is declared StaticString: the compiler admits only literals.
+    if (!literal && new RegExp(`\\b${given}: StaticString\\b`).test(text)) continue
+    if (!literal) problems.push(`${file}: a name that is not a plain literal: ${given}`)
     else if (!NAME.test(literal[1])) problems.push(`${file}: "${literal[1]}" is not ${NAME}`)
   }
   if (!COVERAGE) continue

@@ -595,7 +595,7 @@ struct RenewalFormView: View {
         if !isEditing || anchorISO != nil { whenNext } else if let lastCharge { lastChargeRow(lastCharge) }
         if showsPaidToggle { paidRow }
         if showsFreeTrial {
-            FormToggleRow(title: "Free trial", isOn: $edit.freeTrial)
+            FormToggleRow(title: "Free trial", isOn: $edit.freeTrial, measure: "free_trial")
         }
         moreDetails
         // A one-time commitment is offered no end day, but one it already carries stays in
@@ -877,7 +877,7 @@ struct RenewalFormView: View {
     /// The mark on the form's charge, written in the same Save, as the list's swipe marks it.
     @ViewBuilder
     private var paidRow: some View {
-        FormToggleRow(title: isEditing ? "Paid" : "Already paid", isOn: $paid)
+        FormToggleRow(title: isEditing ? "Paid" : "Already paid", isOn: $paid, measure: "paid")
         // A spending charge behind today counts whatever its row's mark says; stated while the
         // mark is off. Money in and a transfer are in no spending total, marked or not.
         if !paid, LB.dayOf(day) < LB.todayMid(), spends {

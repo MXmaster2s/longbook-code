@@ -525,6 +525,8 @@ struct RootView: View {
             #endif
         }
         .background(LBColor.canvas.color)
+        // The app opens on the dashboard without announcing it; its controls are counted on it.
+        .onAppear { Telemetry.shared.cameBack(to: Tab.dashboard.screenName) }
         // Coming back to the app re-reads the file, so an edit made elsewhere — another
         // device, the owner's AI — is noticed the moment the app is.
         .onChange(of: scenePhase) { _, phase in

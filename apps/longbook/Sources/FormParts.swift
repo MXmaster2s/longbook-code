@@ -281,6 +281,8 @@ struct FormToggleRow: View {
     @Environment(\.lbFormGrouped) private var grouped
     let title: String
     @Binding var isOn: Bool
+    /// The switch's fixed name in usage counts.
+    let measure: StaticString
 
     var body: some View {
         #if os(macOS)
@@ -288,7 +290,7 @@ struct FormToggleRow: View {
             FormRow {
                 FormQuestion(title)
             } content: {
-                Toggle(title, isOn: $isOn.measured("form_switch"))
+                Toggle(title, isOn: $isOn.measured(measure))
                     .labelsHidden()
                     .toggleStyle(.switch)
                     .tint(LBColor.brand.color)
@@ -303,7 +305,7 @@ struct FormToggleRow: View {
 
     private var field: some View {
         FormField {
-            Toggle(isOn: $isOn.measured("form_switch")) {
+            Toggle(isOn: $isOn.measured(measure)) {
                 Text(title)
                     .lbText(.body)
                     .foregroundStyle(LBColor.textPrimary.color)
