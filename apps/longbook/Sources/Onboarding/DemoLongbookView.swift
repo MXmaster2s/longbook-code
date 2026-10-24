@@ -52,6 +52,9 @@ struct DemoLongbookView: View {
         }
         .background(LBColor.canvas.color)
         .task { open() }
+        // The demo's screens are not the owner's: no tutorial starts, here or behind it.
+        .onAppear { TutorialCenter.shared.hold(true) }
+        .onDisappear { TutorialCenter.shared.hold(false) }
     }
 
     private func stack(_ model: DashboardModel) -> some View {

@@ -67,6 +67,8 @@ struct DestinationScreen: View {
             TripsView(model: model, path: $path)
         case .more:
             MoreView(model: model, auth: auth, onTutorial: setUpAgain, onDemo: showDemo)
+        case .tutorials:
+            TutorialsView()
         }
     }
 }
@@ -135,6 +137,7 @@ struct SettingsTabs: View {
         (.accountDetails, "Account", "person.crop.circle"),
         (.mcpServer, "AI", "sparkles"),
         (.privacy, "Data", "lock"),
+        (.tutorials, "Tutorials", "hand.point.up.left"),
     ]
 
     var body: some View {

@@ -31,6 +31,7 @@ struct CalendarView: View {
         content
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(LBColor.canvas.color)
+            .screenTutorial(.calendar)
             .onAppear { if selected == nil, offset == 0 { selected = Self.todayId } }
             .lbScreenTitle("Calendar") {
                 if let month = shownMonth {
@@ -58,7 +59,9 @@ struct CalendarView: View {
                     monthStream
                 }
                 .frame(minWidth: 420, maxWidth: .infinity)
+                .tutorialTarget(.calendarMonth)
                 detailsPanel.frame(width: 300)
+                    .tutorialTarget(.calendarDay)
             }
         }
         .lbPageColumn(.wide)
@@ -74,7 +77,9 @@ struct CalendarView: View {
                         .accessibilityAddTraits(.isHeader)
                     weekdayRow
                     grid(month)
+                        .tutorialTarget(.calendarMonth)
                     dayContent(month)
+                        .tutorialTarget(.calendarDay)
                 }
             }
             .lbPageColumn(.wide)

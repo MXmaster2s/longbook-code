@@ -20,6 +20,8 @@ struct InsightsView: View {
                 } else {
                     ForEach(areas) { area in
                         areaSection(area)
+                            .tutorialTarget(area.id == areas.first?.id ? .insightsFirst
+                                            : ["accounts", "members"].contains(area.id) ? .insightsEntities : nil)
                     }
                 }
             }
@@ -28,6 +30,7 @@ struct InsightsView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(LBColor.canvas.color)
+        .screenTutorial(.insights)
         .lbScreenTitle("Insights")
     }
 
