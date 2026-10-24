@@ -138,7 +138,7 @@ struct SetupBanksView: View {
 
     private func bankTile(_ bank: Bank) -> some View {
         let picked = chosen.contains { $0.id == bank.id }
-        return Button { toggle(bank) } label: {
+        return Button { Measure.used("pick_bank_tile"); toggle(bank) } label: {
             VStack(spacing: LBSpacing.s2) {
                 BankMark(bank: bank, size: 40)
                 Text(bank.short)
@@ -163,7 +163,7 @@ struct SetupBanksView: View {
 
     /// The whole list, the search and a name of one's own, behind one full-width button.
     private var moreButton: some View {
-        Button { showingAll = true } label: {
+        Button { Measure.used("ellipsis"); showingAll = true } label: {
             HStack(spacing: LBSpacing.s3) {
                 Image(systemName: "ellipsis")
                     .font(.system(size: 16, weight: .semibold))
@@ -213,7 +213,7 @@ struct SetupBanksView: View {
             #if os(macOS)
             VStack(spacing: LBSpacing.s3) {
                 Rectangle().fill(LBColor.hairline.color).frame(height: 1)
-                Button { showingAll = false } label: {
+                Button { Measure.used("done"); showingAll = false } label: {
                     Text("Done")
                         .lbText(.body)
                         .foregroundStyle(LBColor.onBrand.color)
@@ -232,7 +232,7 @@ struct SetupBanksView: View {
         .safeAreaInset(edge: .top, spacing: 0) {
             HStack {
                 Spacer()
-                Button { showingAll = false } label: {
+                Button { Measure.used("done"); showingAll = false } label: {
                     Text("Done")
                         .lbText(.label)
                         .foregroundStyle(LBColor.brandText.color)
@@ -271,7 +271,7 @@ struct SetupBanksView: View {
                 .submitLabel(.done)
                 .onSubmit { addFirstResult() }
             if !query.isEmpty {
-                Button { query = "" } label: {
+                Button { Measure.used("clear_search"); query = "" } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 14))
                         .foregroundStyle(LBColor.textQuaternary.color)
@@ -310,7 +310,7 @@ struct SetupBanksView: View {
                     .submitLabel(.done)
                     .onSubmit(addTypedBank)
                     .accessibilityLabel("Bank name")
-                Button(action: addTypedBank) {
+                Button(action: { Measure.used("add"); addTypedBank() }) {
                     Text("Add")
                         .lbText(.label)
                         .foregroundStyle(LBColor.brandText.color)
@@ -323,6 +323,7 @@ struct SetupBanksView: View {
             .background(LBColor.card.color, in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
         } else {
             Button {
+                Measure.used("add_bank")
                 typedBank = ""
                 addingBank = true
             } label: {
@@ -349,7 +350,7 @@ struct SetupBanksView: View {
 
     private func bankRow(_ bank: Bank) -> some View {
         let picked = chosen.contains { $0.id == bank.id }
-        return Button { toggle(bank) } label: {
+        return Button { Measure.used("pick_bank_row"); toggle(bank) } label: {
             HStack(spacing: LBSpacing.s3) {
                 BankMark(bank: bank, size: 32)
                 Text(bank.name)
@@ -371,6 +372,7 @@ struct SetupBanksView: View {
 
     private func customRow(_ bank: Chosen) -> some View {
         Button {
+            Measure.used("building_columns")
             LBHaptics.tap()
             chosen.removeAll { $0.id == bank.id }
         } label: {
@@ -423,6 +425,7 @@ struct SetupBanksView: View {
                     .lineLimit(1)
                 Spacer(minLength: LBSpacing.s2)
                 Button {
+                    Measure.used("remove")
                     LBHaptics.tap()
                     chosen.removeAll { $0.id == bank.id }
                 } label: {
@@ -523,7 +526,7 @@ struct SetupBanksView: View {
                     .lbText(.bodySM)
                     .foregroundStyle(LBColor.textSecondary.color)
                 Spacer()
-                Button(action: onSkip) {
+                Button(action: { Measure.used("skip"); onSkip() }) {
                     Text("Skip")
                         .lbText(.label)
                         .foregroundStyle(LBColor.textTertiary.color)
@@ -540,6 +543,7 @@ struct SetupBanksView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             Button {
+                Measure.used("continue")
                 onDone(placeholders)
             } label: {
                 Text("Continue")

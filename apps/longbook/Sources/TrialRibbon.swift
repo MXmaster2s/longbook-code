@@ -39,7 +39,7 @@ struct TrialRibbon: View {
                     BuyButton(auth: auth, entitlement: entitlement)
                 }
                 if !locked {
-                    Button { dismissed = true } label: {
+                    Button { Measure.used("dismiss_ribbon"); dismissed = true } label: {
                         Image(systemName: "xmark")
                             .font(.system(size: 10, weight: .semibold))
                             .foregroundStyle(LBColor.textQuaternary.color)

@@ -156,6 +156,7 @@ struct SidebarView: View {
     /// A section label that folds its rows: the chevron says which way it stands.
     private func foldLabel(_ text: String, folded: Binding<Bool>) -> some View {
         Button {
+            Measure.used("fold_section")
             folded.wrappedValue.toggle()
         } label: {
             HStack(spacing: LBSpacing.s1) {
@@ -180,7 +181,7 @@ struct SidebarView: View {
     private func iconButton(
         _ symbol: String, _ label: String, active: Bool, action: @escaping () -> Void
     ) -> some View {
-        Button(action: action) {
+        Button(action: { Measure.used("sidebar_item"); action() }) {
             Image(systemName: symbol)
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(active ? LBColor.onBrandTint.color : LBColor.textSecondary.color)
@@ -199,7 +200,7 @@ struct SidebarView: View {
         _ symbol: String, _ title: String, active: Bool, attention: Bool = false,
         action: @escaping () -> Void
     ) -> some View {
-        Button(action: action) {
+        Button(action: { Measure.used("waiting_for_review"); action() }) {
             HStack(spacing: LBSpacing.s2) {
                 Image(systemName: symbol).font(.system(size: 12, weight: .medium))
                 Text(title).lbText(.bodySM)
@@ -227,7 +228,7 @@ struct SidebarView: View {
     /// One account or member, straight to its filtered commitments — the same door the
     /// cards on Accounts and Members already open.
     private func entityRow(_ row: DashboardData.SidebarEntity, destination: Destination) -> some View {
-        Button { path = [destination] } label: {
+        Button { Measure.used("path"); path = [destination] } label: {
             HStack(spacing: LBSpacing.s2) {
                 Circle()
                     .fill(LBColor.dataInk(rank: row.ink).color)

@@ -86,6 +86,7 @@ struct UpdatesView: View {
             let earlier = versions.filter { $0.version != currentVersion }
             if !earlier.isEmpty {
                 Button {
+                    Measure.used("earlier_versions")
                     withAnimation(.easeOut(duration: 0.2)) { showingEarlier.toggle() }
                 } label: {
                     HStack(spacing: LBSpacing.s1) {
@@ -115,6 +116,7 @@ struct UpdatesView: View {
             }
             LBSectionHeader("Get the latest")
             Button {
+                Measure.used("open_url")
                 openURL(AppUpdates.url(for: place))
             } label: {
                 Text(AppUpdates.button(for: place))

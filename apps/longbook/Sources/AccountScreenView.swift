@@ -141,7 +141,7 @@ struct AccountScreenView: View {
         }
         if let refund {
             // The 7-day refund, the terms' promise: Apple's own refund sheet, two taps away.
-            Button { refunding = true } label: {
+            Button { Measure.used("request_a_refund"); refunding = true } label: {
                 Text("Request a Refund")
                     .lbText(.label)
                     .foregroundStyle(LBColor.brandText.color)
@@ -165,6 +165,7 @@ struct AccountScreenView: View {
         // The App Store's own way back: a purchase made on another device or before
         // a reinstall is told to the server again.
         Button {
+            Measure.used("checking")
             Task { await store.restore(auth: auth, entitlement: entitlement) }
         } label: {
             Text(store.busy ? "Checking…" : "Restore Purchase")
@@ -216,6 +217,7 @@ struct AccountScreenView: View {
 
     private var cloudButton: some View {
         Button {
+            Measure.used("manage_longbook_cloud")
             paywall = true
         } label: {
             Text(subscribed ? "Manage longbook Cloud" : "Subscribe to longbook Cloud")
@@ -241,7 +243,7 @@ struct AccountScreenView: View {
         // The account is deletable from inside the app because signing in is the only way
         // in: an account someone cannot leave is one they were never free to make. It sits
         // apart from Sign out so the two are not one tap's distance from each other.
-        Button { deleting = true } label: {
+        Button { Measure.used("delete_account"); deleting = true } label: {
             Text("Delete Account…")
                 .lbText(.label)
                 .foregroundStyle(LBColor.danger.color)
@@ -265,14 +267,14 @@ struct AccountScreenView: View {
     @ViewBuilder
     private var signOutButton: some View {
         #if os(macOS)
-        Button { signingOut = true } label: { plainLabel("Sign Out…") }
+        Button { Measure.used("sign_out"); signingOut = true } label: { plainLabel("Sign Out…") }
             .buttonStyle(.plain)
             .measured("account_screen_signing_out", .sheet, when: signingOut)
             .sheet(isPresented: $signingOut) {
                 VStack(spacing: 0) {
                     HStack {
                         Spacer()
-                        Button("Done") { signingOut = false }
+                        Button("Done") { Measure.used("done"); signingOut = false }
                             .keyboardShortcut(.cancelAction)
                     }
                     .padding(LBSpacing.s3)

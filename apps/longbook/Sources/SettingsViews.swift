@@ -361,6 +361,7 @@ struct DataPrivacyView: View {
                 valueRow("Preferences", WorkspaceStore.fileName)
             }
             Button {
+                Measure.used("hide_files")
                 withAnimation(.easeOut(duration: 0.2)) { showingFiles.toggle() }
             } label: {
                 Text(showingFiles ? "Hide Files" : "Show Files")
@@ -390,7 +391,7 @@ struct DataPrivacyView: View {
 
     /// Show in Finder on the Mac, beside the path; Open in Files on the phone, a row of its own.
     private func revealButton(_ folder: URL) -> some View {
-        Button { reveal(folder) } label: {
+        Button { Measure.used("reveal"); reveal(folder) } label: {
             Text(revealWord)
                 .lbText(.body)
                 .foregroundStyle(LBColor.brandText.color)
@@ -426,7 +427,7 @@ struct DataPrivacyView: View {
                 }
                 .lbListRowBackground()
             } else {
-                Button { backup = model.exportBackup() } label: {
+                Button { Measure.used("back_up_now"); backup = model.exportBackup() } label: {
                     Text("Back Up Now")
                         .lbText(.body)
                         .foregroundStyle(LBColor.brandText.color)
@@ -449,7 +450,7 @@ struct DataPrivacyView: View {
         #if os(macOS)
         if let folder = model.vaultFolderURL {
             SwiftUI.Section {
-                Button { confirmingDelete = true } label: {
+                Button { Measure.used("delete_longbook"); confirmingDelete = true } label: {
                     Text("Delete longbook…")
                         .lbText(.body)
                         .foregroundStyle(LBColor.danger.color)
@@ -458,8 +459,8 @@ struct DataPrivacyView: View {
                 .lbListRowBackground()
                 .measured("settings_confirming_delete", .dialog, when: confirmingDelete)
                 .confirmationDialog("Move your longbook to the Bin?", isPresented: $confirmingDelete, titleVisibility: .visible) {
-                    Button("Move to Bin", role: .destructive) { deleteFolder(folder) }
-                    Button("Cancel", role: .cancel) {}
+                    Button("Move to Bin", role: .destructive) { Measure.used("move_to_bin"); deleteFolder(folder) }
+                    Button("Cancel", role: .cancel) { Measure.used("cancel") }
                 } message: {
                     Text(inICloud(folder)
                         ? "The folder at \(placeWords(folder)) moves to the Bin and leaves every device that syncs it. Until you empty the Bin you can put it back."
@@ -515,7 +516,7 @@ struct DataPrivacyView: View {
 
     private func movePane(_ folder: URL) -> some View {
         SwiftUI.Section {
-            Button { move(folder) } label: {
+            Button { Measure.used("moving"); move(folder) } label: {
                 Text(moving ? "Moving…" : "Move to iCloud")
                     .lbText(.body)
                     .foregroundStyle(LBColor.brandText.color)

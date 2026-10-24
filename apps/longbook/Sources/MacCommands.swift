@@ -45,10 +45,11 @@ struct LongbookCommands: Commands {
         // Beside About, where a Mac app keeps it. It opens the App Store or TestFlight page,
         // asking first; the store does the updating.
         CommandGroup(after: .appInfo) {
-            Button("Check for Updates…") { AppUpdates.askFromMenu() }
+            Button("Check for Updates…") { Measure.used("check_for_updates", .menuItem); AppUpdates.askFromMenu() }
         }
         CommandGroup(replacing: .newItem) {
             Button("New Commitment") {
+                Measure.used("new_commitment", .menuItem)
                 NotificationCenter.default.post(name: .longbookAdd, object: nil)
             }
             .keyboardShortcut("n", modifiers: .command)
@@ -58,6 +59,7 @@ struct LongbookCommands: Commands {
         CommandGroup(after: .newItem) {
             Divider()
             Button("Import Statement…") {
+                Measure.used("import_statement", .menuItem)
                 NotificationCenter.default.post(name: .longbookImport, object: nil)
             }
             .keyboardShortcut("i", modifiers: .command)
@@ -67,16 +69,19 @@ struct LongbookCommands: Commands {
         // Help Book. The usage switch sits here too, so it can be found without opening Settings.
         CommandGroup(replacing: .help) {
             Button("longbook Help") {
+                Measure.used("longbook_help", .menuItem)
                 NotificationCenter.default.post(name: .longbookPush, object: Destination.helpAbout)
             }
             .keyboardShortcut("?", modifiers: .command)
             .disabled(!menu.shellReady)
             // Not settings, so not in the Settings window: what longbook can do, and setup again.
             Button("Tips") {
+                Measure.used("tips", .menuItem)
                 NotificationCenter.default.post(name: .longbookPush, object: Destination.tips)
             }
             .disabled(!menu.shellReady)
             Button("Set Up Again…") {
+                Measure.used("set_up_again", .menuItem)
                 NotificationCenter.default.post(name: .longbookSetUpAgain, object: nil)
             }
             .disabled(!menu.shellReady)
@@ -87,19 +92,20 @@ struct LongbookCommands: Commands {
                     shareUsage = on
                     Telemetry.shared.setEnabled(on)
                 }
-            ))
+            ).measured("share_usage_and_crash_data"))
         }
         CommandMenu("Go") {
-            Button("Dashboard") { go([]) }.keyboardShortcut("1", modifiers: .command).disabled(!menu.shellReady)
-            Button("Reports") { go([.reports]) }.keyboardShortcut("2", modifiers: .command).disabled(!menu.shellReady)
-            Button("Calendar") { go([.calendar]) }.keyboardShortcut("3", modifiers: .command).disabled(!menu.shellReady)
-            Button("Commitments") { go([.commitments(ListFilter())]) }
+            Button("Dashboard") { Measure.used("dashboard", .menuItem); go([]) }.keyboardShortcut("1", modifiers: .command).disabled(!menu.shellReady)
+            Button("Reports") { Measure.used("reports", .menuItem); go([.reports]) }.keyboardShortcut("2", modifiers: .command).disabled(!menu.shellReady)
+            Button("Calendar") { Measure.used("calendar", .menuItem); go([.calendar]) }.keyboardShortcut("3", modifiers: .command).disabled(!menu.shellReady)
+            Button("Commitments") { Measure.used("commitments", .menuItem); go([.commitments(ListFilter())]) }
                 .keyboardShortcut("4", modifiers: .command).disabled(!menu.shellReady)
-            Button("Insights") { go([.insights]) }.keyboardShortcut("5", modifiers: .command).disabled(!menu.shellReady)
-            Button("Changes") { go([.changes]) }.keyboardShortcut("6", modifiers: .command).disabled(!menu.shellReady)
-            Button("Trips") { go([.trips]) }.keyboardShortcut("7", modifiers: .command).disabled(!menu.shellReady)
+            Button("Insights") { Measure.used("insights", .menuItem); go([.insights]) }.keyboardShortcut("5", modifiers: .command).disabled(!menu.shellReady)
+            Button("Changes") { Measure.used("changes", .menuItem); go([.changes]) }.keyboardShortcut("6", modifiers: .command).disabled(!menu.shellReady)
+            Button("Trips") { Measure.used("trips", .menuItem); go([.trips]) }.keyboardShortcut("7", modifiers: .command).disabled(!menu.shellReady)
             Divider()
             Button("Back") {
+                Measure.used("back", .menuItem)
                 NotificationCenter.default.post(name: .longbookBack, object: nil)
             }
             .keyboardShortcut("[", modifiers: .command)

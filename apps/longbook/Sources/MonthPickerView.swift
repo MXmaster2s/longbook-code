@@ -119,7 +119,7 @@ struct MonthPickerView: View {
                 // On the Mac a sheet swallows every click outside it, so a picker with no
                 // close control is a trap: the only way out was choosing a month.
                 #if os(macOS)
-                Button(action: onDone) {
+                Button(action: { Measure.used("close"); onDone() }) {
                     Image(systemName: "xmark")
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(LBColor.textSecondary.color)
@@ -143,6 +143,7 @@ struct MonthPickerView: View {
     /// The way back to this month alone, from any year and any selection.
     private var currentButton: some View {
         Button {
+            Measure.used("this_month")
             LBHaptics.tap()
             selecting = false
             selection = MonthSelection()
@@ -170,6 +171,7 @@ struct MonthPickerView: View {
     /// Select gathers several months; Done closes the sheet on whatever is chosen.
     private var selectButton: some View {
         Button {
+            Measure.used("done")
             LBHaptics.tap()
             if selecting {
                 onDone()
@@ -192,6 +194,7 @@ struct MonthPickerView: View {
         let next = year + delta
         let open = (1...12).contains { month in offset(month, in: next).map(range.contains) ?? false }
         return Button {
+            Measure.used("step_year")
             LBHaptics.tap()
             shown = next
         } label: {
@@ -222,6 +225,7 @@ struct MonthPickerView: View {
         // In Select mode a month that opens is a switch: a tap puts it in or takes it out.
         let toggles = selecting && open && !gated
         return Button {
+            Measure.used("add_data")
             guard let off, open else { return }
             if selecting {
                 // Several months together: an empty one has nothing to add to the sum,

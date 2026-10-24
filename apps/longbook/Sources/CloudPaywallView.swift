@@ -140,7 +140,7 @@ struct CloudPaywallView: View {
 
     /// The same manner as BuyButton's full-width door, for the subscription.
     private func brandButton(_ title: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        Button(action: { Measure.used("cloud_primary"); action() }) {
             Text(title)
                 .lbText(.label)
                 .foregroundStyle(LBColor.onBrand.color)
@@ -155,7 +155,7 @@ struct CloudPaywallView: View {
     }
 
     private func quietButton(_ title: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        Button(action: { Measure.used("cloud_quiet"); action() }) {
             Text(title)
                 .lbText(.label)
                 .foregroundStyle(LBColor.brandText.color)
@@ -166,7 +166,7 @@ struct CloudPaywallView: View {
     }
 
     private func link(_ title: String, _ url: URL) -> some View {
-        Button { openURL(url) } label: {
+        Button { Measure.used("arrow_up_right"); openURL(url) } label: {
             HStack(spacing: LBSpacing.s1) {
                 Text(title)
                     .lbText(.footnote)

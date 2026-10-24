@@ -34,12 +34,12 @@ struct CalendarView: View {
             .onAppear { if selected == nil, offset == 0 { selected = Self.todayId } }
             .lbScreenTitle("Calendar") {
                 if let month = shownMonth {
-                    Button("Today") { goToday() }
+                    Button("Today") { Measure.used("today"); goToday() }
                         .disabled(atToday)
-                    Button { step(-1, in: month) } label: { Image(systemName: "chevron.left") }
+                    Button { Measure.used("previous_month"); step(-1, in: month) } label: { Image(systemName: "chevron.left") }
                         .disabled(month.atStart)
                         .accessibilityLabel("Previous month")
-                    Button { step(1, in: month) } label: { Image(systemName: "chevron.right") }
+                    Button { Measure.used("next_month"); step(1, in: month) } label: { Image(systemName: "chevron.right") }
                         .disabled(month.atEnd)
                         .accessibilityLabel("Next month")
                 }
@@ -157,7 +157,7 @@ struct CalendarView: View {
                 .lbText(.title)
                 .foregroundStyle(LBColor.textSecondary.color)
             Spacer()
-            Button("Today") { goToday() }
+            Button("Today") { Measure.used("today"); goToday() }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
                 .disabled(atToday)
@@ -167,7 +167,7 @@ struct CalendarView: View {
     }
 
     private func stepButton(_ symbol: String, disabled: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        Button(action: { Measure.used("step_month"); action() }) {
             Image(systemName: symbol)
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(disabled ? LBColor.textQuaternary.color : LBColor.textSecondary.color)
@@ -232,6 +232,7 @@ struct CalendarView: View {
     private func cell(_ day: DashboardModel.CalendarDay) -> some View {
         if day.inMonth {
             Button {
+                Measure.used("pick_day")
                 selected = selected == day.id ? nil : day.id
             } label: {
                 cellBody(day)
@@ -527,6 +528,7 @@ struct CalendarView: View {
                             image: model.commitmentPhotoURL(id: charge.subId)) {
                 if !day.isPast {
                     Button {
+                        Measure.used("paid")
                         model.setPaid(subscriptionId: charge.subId, dateISO: day.id, paid: !charge.paid)
                     } label: {
                         Text(charge.paid ? "Paid" : "Mark Paid")

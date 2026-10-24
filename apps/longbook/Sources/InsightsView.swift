@@ -74,11 +74,11 @@ struct InsightsView: View {
     /// sits beside the door, not inside it, so a tap on either does only its own thing.
     private func insightRow(_ row: DashboardModel.InsightPlace, separated: Bool) -> some View {
         HStack(alignment: .top, spacing: 0) {
-            Button { open(row) } label: {
+            Button { Measure.used("open_insight"); open(row) } label: {
                 insightRowBody(row)
             }
             .buttonStyle(.plain)
-            Button { model.removeInsight(row.id) } label: {
+            Button { Measure.used("remove_insight"); model.removeInsight(row.id) } label: {
                 Image(systemName: "xmark")
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(LBColor.textTertiary.color)

@@ -83,7 +83,7 @@ struct OnboardingCardStep: View {
         .task(id: card) { await arm() }
         .measured("onboarding_card_step_slow_down", .alert, when: slowDown)
         .alert("Slow down", isPresented: $slowDown) {
-            Button("Got it") {}
+            Button("Got it") { Measure.used("got_it") }
         } message: {
             Text("Please read before continuing. This one-time setup of your longbook requires your attention.")
         }
@@ -188,7 +188,7 @@ struct OnboardingCardStep: View {
     /// The next card's question, dimmed under the open one: a tap brings it up once the
     /// open card has been read.
     private func peek(_ following: OnboardingCard) -> some View {
-        Button(action: next) {
+        Button(action: { Measure.used("next_card"); next() }) {
             HStack(spacing: LBSpacing.s3) {
                 questionRow(following)
                 Spacer(minLength: LBSpacing.s2)

@@ -60,7 +60,7 @@ struct ChoicePickerView: View {
             List {
                 Section {
                     if let addable {
-                        Button { create(addable) } label: {
+                        Button { Measure.used("add"); create(addable) } label: {
                             Label("Add “\(addable)”", systemImage: "plus.circle.fill")
                                 .lbText(.body)
                                 .foregroundStyle(LBColor.brandText.color)
@@ -100,8 +100,8 @@ struct ChoicePickerView: View {
         .measured("choice_picker_naming", .alert, when: naming)
         .alert("New \(title.lowercased())", isPresented: $naming) {
             TextField(createPrompt, text: $typedNew)
-            Button("Add") { create(typedNew.trimmingCharacters(in: .whitespaces)) }
-            Button("Cancel", role: .cancel) {}
+            Button("Add") { Measure.used("add"); create(typedNew.trimmingCharacters(in: .whitespaces)) }
+            Button("Cancel", role: .cancel) { Measure.used("cancel") }
         }
     }
 
@@ -113,7 +113,7 @@ struct ChoicePickerView: View {
                 .foregroundStyle(LBColor.textPrimary.color)
                 .lineLimit(1)
             HStack {
-                Button("Cancel", action: onDone)
+                Button("Cancel", action: { Measure.used("cancel"); onDone() })
                     .buttonStyle(.plain)
                     .lbText(.body)
                     .foregroundStyle(LBColor.brandText.color)
@@ -121,6 +121,7 @@ struct ChoicePickerView: View {
                 Spacer()
                 if onCreate != nil {
                     Button {
+                        Measure.used("add_new")
                         LBHaptics.tap()
                         typedNew = needle
                         refusal = nil
@@ -191,6 +192,7 @@ struct ChoicePickerView: View {
     private func row(_ choice: Choice) -> some View {
         let isOn = selected == choice.id
         return Button {
+            Measure.used("pick_choice")
             LBHaptics.tap()
             onPick(choice.id)
             onDone()

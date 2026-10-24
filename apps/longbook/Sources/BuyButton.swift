@@ -13,7 +13,7 @@ struct BuyButton: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: LBSpacing.s1) {
-            Button(action: buy) {
+            Button(action: { Measure.used("buy"); buy() }) {
                 Text(store.busy ? "Opening…" : label)
                     .lbText(.label)
                     .foregroundStyle(LBColor.onBrand.color)

@@ -145,6 +145,7 @@ struct ReportSharingCard: View {
             Spacer(minLength: LBSpacing.s2)
             if copyable {
                 Button {
+                    Measure.used("copy_value")
                     copyToClipboard(value)
                     copied = true
                     Task {
@@ -191,6 +192,7 @@ struct ReportSharingCard: View {
 
     private func actionButton(_ title: String, filled: Bool, action: @escaping () async -> Void) -> some View {
         Button {
+            Measure.used("task")
             Task { await action() }
         } label: {
             Text(title)
@@ -355,6 +357,7 @@ private struct ShareCreatedSheet: View {
                 }
             }
             Button {
+                Measure.used("done")
                 dismiss()
             } label: {
                 Text("Done")
@@ -389,6 +392,7 @@ private struct ShareCreatedSheet: View {
                 .textSelection(.enabled)
             Spacer(minLength: LBSpacing.s2)
             Button {
+                Measure.used("copy_value")
                 copyToClipboard(value)
                 copied = key
                 Task {

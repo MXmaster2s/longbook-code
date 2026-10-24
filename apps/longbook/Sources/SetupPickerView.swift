@@ -180,7 +180,7 @@ struct SetupPickerView: View {
                     .lbText(.bodySM)
                     .foregroundStyle(LBColor.textSecondary.color)
                 Spacer(minLength: LBSpacing.s3)
-                Button(action: onSkip) {
+                Button(action: { Measure.used("skip"); onSkip() }) {
                     Text("Skip")
                         .lbText(.label)
                         .foregroundStyle(LBColor.textTertiary.color)
@@ -197,6 +197,7 @@ struct SetupPickerView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             Button {
+                Measure.used("continue")
                 onDone(chosen)
             } label: {
                 Text("Continue")

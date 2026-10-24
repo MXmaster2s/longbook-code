@@ -16,6 +16,7 @@ struct InsightMark: View {
     var body: some View {
         if let insight {
             Button {
+                Measure.used("open_note")
                 open.toggle()
             } label: {
                 if labelled {

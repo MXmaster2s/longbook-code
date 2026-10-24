@@ -40,7 +40,7 @@ struct EntityRecentPanel: View {
             }
             VStack(spacing: LBSpacing.s1) {
                 ForEach(moments) { moment in
-                    Button { open(moment.commitmentId) } label: {
+                    Button { Measure.used("open_commitment"); open(moment.commitmentId) } label: {
                         EntityMomentRow(moment: moment)
                     }
                     .buttonStyle(.plain)
@@ -92,7 +92,7 @@ struct EntityQuickActions: View {
     private func action(
         _ title: String, detail: String?, symbol: String, trailing: String, perform: @escaping () -> Void
     ) -> some View {
-        Button(action: perform) {
+        Button(action: { Measure.used("perform"); perform() }) {
             HStack(spacing: LBSpacing.s3) {
                 Image(systemName: symbol)
                     .font(.system(size: 15, weight: .medium))
@@ -131,7 +131,7 @@ struct EntityQuickActions: View {
     }
 
     private func commitmentRow(_ sub: Subscription) -> some View {
-        Button { open(sub.id) } label: {
+        Button { Measure.used("open_commitment"); open(sub.id) } label: {
             HStack(spacing: LBSpacing.s2) {
                 Text(sub.name)
                     .lbText(.bodySM)

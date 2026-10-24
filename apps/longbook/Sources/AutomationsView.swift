@@ -99,7 +99,7 @@ struct AutomationsView: View {
                     .fixedSize(horizontal: false, vertical: true)
                 // Beside its note on the Mac; the phone gives the button the whole width.
                 AdaptiveStack(spacing: LBSpacing.s3) {
-                    Button { reorganising = true } label: {
+                    Button { Measure.used("reorganise_my_longbook"); reorganising = true } label: {
                         Text("Reorganise my longbook")
                             .lbText(.label)
                             .foregroundStyle(LBColor.onBrand.color)
@@ -183,6 +183,7 @@ struct AutomationsView: View {
                     let open = openGroups.contains(group.title) != (index == 0)
                     VStack(alignment: .leading, spacing: LBSpacing.s2) {
                         Button {
+                            Measure.used("toggle_group")
                             withAnimation(.easeOut(duration: 0.2)) {
                                 if openGroups.contains(group.title) { openGroups.remove(group.title) } else { openGroups.insert(group.title) }
                             }
@@ -235,6 +236,7 @@ struct AutomationsView: View {
                 .accessibilityHint(about(row))
             Spacer(minLength: LBSpacing.s2)
             Button {
+                Measure.used("info_circle")
                 explained = explained == row.id ? nil : row.id
             } label: {
                 Image(systemName: "info.circle")
@@ -312,6 +314,7 @@ struct AutomationsView: View {
 
     private func copyButton(_ value: String, key: String, label: String, title: String) -> some View {
         Button {
+            Measure.used("copy_value")
             copy(value, key: key)
         } label: {
             HStack(spacing: LBSpacing.s1) {
@@ -332,6 +335,7 @@ struct AutomationsView: View {
     /// The unfilled copy button of the MCP panel: four filled capsules in one list would shout.
     private func copyGlyph(_ value: String, key: String, title: String) -> some View {
         Button {
+            Measure.used("copy_value")
             copy(value, key: key)
         } label: {
             HStack(spacing: LBSpacing.s1) {

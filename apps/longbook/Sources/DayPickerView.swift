@@ -45,7 +45,7 @@ struct DayPickerView: View {
                 .lbText(.label)
                 .foregroundStyle(LBColor.textPrimary.color)
             Spacer(minLength: LBSpacing.s3)
-            Button(action: onDone) {
+            Button(action: { Measure.used("done"); onDone() }) {
                 Text("Done")
                     .lbText(.label)
                     .foregroundStyle(LBColor.brandText.color)
@@ -57,7 +57,7 @@ struct DayPickerView: View {
             .keyboardShortcut(.defaultAction)
             // On the Mac the sheet has no swipe down, so Escape closes it too.
             #if os(macOS)
-            Button(action: onDone) {
+            Button(action: { Measure.used("close"); onDone() }) {
                 Image(systemName: "xmark")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(LBColor.textSecondary.color)

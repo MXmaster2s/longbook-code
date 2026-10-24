@@ -41,6 +41,7 @@ struct PurchaseView: View {
                             .transition(.opacity.combined(with: .move(edge: .top)))
                     } else {
                         Button {
+                            Measure.used("and_more")
                             withAnimation(.easeOut(duration: 0.3)) { showingAll = true }
                         } label: {
                             HStack(spacing: LBSpacing.s2) {
@@ -89,7 +90,7 @@ struct PurchaseView: View {
     }
 
     private func plain(_ title: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        Button(action: { Measure.used("purchase_plain"); action() }) {
             Text(title)
                 .lbText(.label)
                 .foregroundStyle(LBColor.brandText.color)

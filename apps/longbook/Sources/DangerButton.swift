@@ -16,6 +16,7 @@ struct DangerButton: View {
 
     var body: some View {
         Button {
+            Measure.used("confirming")
             confirming = true
         } label: {
             Text(title)
@@ -31,8 +32,8 @@ struct DangerButton: View {
         .animation(.easeOut(duration: 0.12), value: hovering)
         .measured("danger_button_confirming", .dialog, when: confirming)
         .confirmationDialog(question, isPresented: $confirming, titleVisibility: .visible) {
-            Button(confirmLabel ?? title, role: .destructive, action: action)
-            Button("Cancel", role: .cancel) {}
+            Button(confirmLabel ?? title, role: .destructive, action: { Measure.used("danger_confirm"); action() })
+            Button("Cancel", role: .cancel) { Measure.used("cancel") }
         } message: {
             Text(detail)
         }

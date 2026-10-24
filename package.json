@@ -14,7 +14,7 @@
     "lint:comments": "node scripts/lint-comments.mjs",
     "guard:name": "node scripts/name-guard.mjs",
     "telemetry:names": "node scripts/telemetry-names.mjs",
-    "telemetry:coverage": "node scripts/telemetry-names.mjs --coverage",
+    "telemetry:coverage": "node scripts/telemetry-names.mjs --coverage --strict",
     "guard:tree": "node scripts/tree-guard.mjs",
     "guard:leak": "node scripts/leak-check.mjs",
     "guard:history": "node scripts/history-guard.mjs",

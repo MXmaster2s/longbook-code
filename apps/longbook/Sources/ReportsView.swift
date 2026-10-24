@@ -30,17 +30,18 @@ struct ReportsView: View {
             .measured("reports_deleting", .dialog, when: deleting != nil)
             .confirmationDialog("Delete \(deleting?.title ?? "this report")?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }), titleVisibility: .visible) {
                 Button("Delete Report", role: .destructive) {
+                    Measure.used("delete_report")
                     if let report = deleting, model.deleteReport(id: report.id), picked == report.id { picked = nil }
                     deleting = nil
                 }
-                Button("Keep", role: .cancel) { deleting = nil }
+                Button("Keep", role: .cancel) { Measure.used("keep"); deleting = nil }
             } message: {
                 Text("The report’s file goes from your longbook folder and it is not drawn again. Your charges are not touched.")
             }
             // Reading a file in is an import; it sits in the bar, a tap away, without
             // leading a page that is for browsing.
             .lbScreenTitle("Reports") {
-                Button("Import Statement") { importing = true }
+                Button("Import Statement") { Measure.used("import_statement"); importing = true }
                     .accessibilityLabel("Import a statement")
             }
     }
@@ -99,7 +100,7 @@ struct ReportsView: View {
         HStack(alignment: .firstTextBaseline) {
             LBPageTitle("Reports")
             Spacer()
-            Button("Import Statement…") { importing = true }
+            Button("Import Statement…") { Measure.used("import_statement"); importing = true }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
                 .accessibilityLabel("Import a statement")
@@ -118,6 +119,7 @@ struct ReportsView: View {
                     .foregroundStyle(LBColor.textTertiary.color)
                     .fixedSize(horizontal: false, vertical: true)
                 Button {
+                    Measure.used("copy_prompt")
                     copy(prompt)
                 } label: {
                     HStack(spacing: LBSpacing.s2) {
@@ -168,7 +170,7 @@ struct ReportsView: View {
                             ForEach(group.reports, id: \.id) { report in
                                 reportRow(report)
                                     .contextMenu {
-                                        Button("Delete Report…", role: .destructive) { deleting = report }
+                                        Button("Delete Report…", role: .destructive) { Measure.used("delete_report", .contextMenu); deleting = report }
                                     }
                             }
                         }
@@ -209,7 +211,7 @@ struct ReportsView: View {
         let total = report.totalStat.flatMap { stat in stat.amount.flatMap { amount in stat.currency.map { fmtMoney(amount, $0) } } }
         #if os(macOS)
         let isPicked = report.id == (picked ?? model.reports().reports.first?.id)
-        Button { picked = report.id } label: {
+        Button { Measure.used("picked"); picked = report.id } label: {
             LBCommitmentRow(name: report.title, facts: reportFacts(report), amount: total ?? "", ink: LBColor.brand,
                             selected: isPicked, symbol: reportSymbol(report))
         }

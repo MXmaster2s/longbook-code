@@ -183,7 +183,7 @@ struct MoreView: View {
             }
             .buttonStyle(.plain)
         case .does(let action):
-            Button(action: action) {
+            Button(action: { Measure.used("more_row"); action() }) {
                 rowBody(row.symbol, ink: row.ink, row.title, row.subtitle, trailing: "chevron.right", separated: separated, destructive: row.destructive)
             }
             .buttonStyle(.plain)

@@ -136,6 +136,7 @@ struct MCPServerView: View {
                             .fixedSize(horizontal: false, vertical: true)
                         HStack(spacing: LBSpacing.s3) {
                             Button {
+                                Measure.used("enable")
                                 confirmingEnable = false
                                 Task { await apply(true) }
                             } label: {
@@ -148,6 +149,7 @@ struct MCPServerView: View {
                             }
                             .buttonStyle(.plain)
                             Button {
+                                Measure.used("not_now")
                                 confirmingEnable = false
                                 enabled = false
                             } label: {
@@ -190,6 +192,7 @@ struct MCPServerView: View {
                 .foregroundStyle(LBColor.urgent.color)
                 .fixedSize(horizontal: false, vertical: true)
             Button {
+                Measure.used("subscribe_to_longbook_cloud")
                 paywall = true
             } label: {
                 Text("Subscribe to longbook Cloud")
@@ -219,6 +222,7 @@ struct MCPServerView: View {
                         .truncationMode(.middle)
                     Spacer(minLength: LBSpacing.s2)
                     Button {
+                        Measure.used("copy_connect_prompt")
                         copy(Self.connectPrompt)
                     } label: {
                         HStack(spacing: LBSpacing.s1) {
@@ -270,7 +274,7 @@ struct MCPServerView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: LBSpacing.s2)
-            Toggle(title, isOn: isOn)
+            Toggle(title, isOn: isOn.measured("mcp_setting_switch"))
                 .labelsHidden()
                 .toggleStyle(.switch)
                 .tint(LBColor.brand.color)
@@ -343,6 +347,7 @@ struct MCPServerView: View {
     private var otherTools: some View {
         VStack(alignment: .leading, spacing: LBSpacing.s2) {
             Button {
+                Measure.used("access_keys")
                 withAnimation(.easeOut(duration: 0.2)) { showingKeys.toggle() }
             } label: {
                 HStack(spacing: LBSpacing.s1) {
@@ -386,6 +391,7 @@ struct MCPServerView: View {
                             .frame(minHeight: 34)
                             .background(LBColor.chrome.color, in: RoundedRectangle(cornerRadius: LBRadius.xs, style: .continuous))
                         Button {
+                            Measure.used("creating")
                             createKey()
                         } label: {
                             Text(keyBusy ? "Creating…" : "Create")
@@ -405,6 +411,7 @@ struct MCPServerView: View {
                         HStack(spacing: LBSpacing.s2) {
                             ForEach(HostedMemory.KeyScope.allCases, id: \.self) { scope in
                                 Button {
+                                    Measure.used("new_key_scope")
                                     newKeyScope = scope
                                 } label: {
                                     Text(scope.label)
@@ -441,6 +448,7 @@ struct MCPServerView: View {
                                     .truncationMode(.middle)
                                 Spacer(minLength: LBSpacing.s2)
                                 Button {
+                                    Measure.used("copy_access_key")
                                     copy(freshKey)
                                 } label: {
                                     Image(systemName: copied ? "checkmark" : "doc.on.doc")
@@ -456,6 +464,7 @@ struct MCPServerView: View {
                             .background(LBColor.chrome.color, in: RoundedRectangle(cornerRadius: LBRadius.xs, style: .continuous))
                             #if os(macOS)
                             Button {
+                                Measure.used("save_to_keychain")
                                 keychainWord = KeyKeychain.save(freshKey, named: freshKeyName)
                             } label: {
                                 Text("Save to Keychain")
@@ -562,6 +571,7 @@ struct MCPServerView: View {
                     }
                     HStack(spacing: LBSpacing.s2) {
                         Button {
+                            Measure.used("set_up_again")
                             macSetupWord = writeClaudeDesktopConfig()
                             refreshClaudeConfigured()
                             if claudeConfigured { macSetupWord = nil }
@@ -585,6 +595,7 @@ struct MCPServerView: View {
                     }
                     // For any other local MCP client: the configuration to paste, folded away.
                     Button {
+                        Measure.used("advanced")
                         withAnimation(.easeOut(duration: 0.2)) { showingConfig.toggle() }
                     } label: {
                         HStack(spacing: LBSpacing.s1) {
@@ -601,6 +612,7 @@ struct MCPServerView: View {
                     .buttonStyle(.plain)
                     if showingConfig {
                         Button {
+                            Measure.used("copied")
                             if let json = localConfigJSON() { copy(json) }
                         } label: {
                             Text(copied ? "Copied" : "Copy Configuration")

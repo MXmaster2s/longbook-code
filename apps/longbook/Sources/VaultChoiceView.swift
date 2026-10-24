@@ -174,7 +174,7 @@ struct VaultChoiceView: View {
 
     #if !os(macOS)
     private func choiceButton(_ choice: Choice, filled: Bool) -> some View {
-        Button { perform(choice) } label: {
+        Button { Measure.used("perform"); perform(choice) } label: {
             Text(title(choice))
                 .lbText(.body)
                 .foregroundStyle(filled ? LBColor.onBrand.color : LBColor.brandText.color)
@@ -228,7 +228,7 @@ struct VaultChoiceView: View {
     }
 
     private func macButton(_ choice: Choice, isDefault: Bool) -> some View {
-        Button { perform(choice) } label: {
+        Button { Measure.used("perform"); perform(choice) } label: {
             Text(title(choice))
                 .lbText(.body)
                 .foregroundStyle(isDefault ? LBColor.onBrand.color : LBColor.textPrimary.color)
@@ -301,6 +301,7 @@ struct VaultChoiceView: View {
     /// The one way back — sign-in is the only screen before this one — named for what it does.
     private var signOutButton: some View {
         Button {
+            Measure.used("sign_out")
             guard !signingOut else { return }
             signingOut = true
             Task {
@@ -322,7 +323,7 @@ struct VaultChoiceView: View {
     }
 
     private func secondaryButton(_ title: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        Button(action: { Measure.used("vault_secondary"); action() }) {
             Text(title)
                 .lbText(.body)
                 .foregroundStyle(LBColor.textPrimary.color)
@@ -346,7 +347,7 @@ struct VaultChoiceView: View {
     #endif
 
     private var pickButton: some View {
-        Button { pickingFolder = true } label: {
+        Button { Measure.used("choose_a_folder_instead"); pickingFolder = true } label: {
             Text("Choose a Folder Instead")
                 .lbText(.footnote)
                 .foregroundStyle(LBColor.brandText.color)
