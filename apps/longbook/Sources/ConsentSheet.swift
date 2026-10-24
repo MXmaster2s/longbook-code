@@ -6,7 +6,7 @@ import SwiftUI
 enum AIConsent: String {
     /// Statements and Reorganise, both read by Anthropic's Claude.
     case statements
-    /// Support messages, answered first by chat.sh's AI from the help articles.
+    /// Support questions, answered by Anthropic's Claude from the help articles.
     case support
 
     /// The UserDefaults key, for `@AppStorage`. True once accepted.

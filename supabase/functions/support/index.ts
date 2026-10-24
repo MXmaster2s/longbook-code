@@ -98,7 +98,11 @@ Deno.serve(async (req: Request) => {
     service.rpc('support_ask', { p_asker: asker }),
     service.rpc('support_ask', { p_asker: network }),
   ])
-  if (mine.error || theirs.error) console.error('count', mine.error?.message ?? theirs.error?.message)
+  // A count that can't be taken refuses rather than answers: the limit is what caps the cost.
+  if (mine.error || theirs.error) {
+    console.error('count', mine.error?.message ?? theirs.error?.message)
+    return json({ error: "Support couldn't answer just now. Try again in a minute, or tap Email us.", code: 'busy' }, 503)
+  }
   if (Number(mine.data ?? 0) > ASKS_PER_DAY || Number(theirs.data ?? 0) > ASKS_PER_NETWORK) {
     return json({ error: "That's all the questions Support can answer for today. Tap Email us and a person will reply.", code: 'limit' }, 429)
   }
