@@ -29,6 +29,8 @@ extension Notification.Name {
     static let longbookImport = Notification.Name("longbook.import")
     /// Optimize Your Data, asked of the main window from the Help menu or Settings.
     static let longbookSetUpAgain = Notification.Name("longbook.setUpAgain")
+    /// Support, asked of the main window from the Help menu or the Settings window.
+    static let longbookSupport = Notification.Name("longbook.support")
 }
 
 struct LongbookCommands: Commands {
@@ -73,6 +75,11 @@ struct LongbookCommands: Commands {
                 NotificationCenter.default.post(name: .longbookPush, object: Destination.helpAbout)
             }
             .keyboardShortcut("?", modifiers: .command)
+            .disabled(!menu.shellReady)
+            Button("Ask Support…") {
+                Measure.used("ask_support", .menuItem)
+                NotificationCenter.default.post(name: .longbookSupport, object: nil)
+            }
             .disabled(!menu.shellReady)
             // Not settings, so not in the Settings window: what longbook can do, and setup again.
             Button("Tips") {

@@ -140,6 +140,7 @@ struct RootView: View {
     @StateObject private var entitlement = EntitlementStore()
     #endif
     @Environment(\.scenePhase) private var scenePhase
+    @ObservedObject private var support = SupportCenter.shared
     @Environment(\.dynamicTypeSize) private var typeSize
     /// App-local, not vault data: whether the owner has been through setup on this
     /// device. The vault stays the only place real facts live.
@@ -609,6 +610,11 @@ struct RootView: View {
                 }
             }
             .safeAreaInset(edge: .top, spacing: 0) { macTopInsets }
+            .measured("support_panel", .sheet, when: support.presented)
+            .inspector(isPresented: Binding(get: { support.presented }, set: { if !$0 { support.close() } })) {
+                SupportScreen(auth: auth)
+                    .inspectorColumnWidth(min: 340, ideal: 380, max: 460)
+            }
         }
         .background(LBColor.canvas.color)
         .ignoresSafeArea()
@@ -618,6 +624,13 @@ struct RootView: View {
         // than refusing to tile — so a floor above that overlapped the app beside it. With
         // the sidebar put away the panes still have their measure.
         .frame(minWidth: 720, minHeight: 620)
+        // While a conversation is open and the panel is put away, the button brings it back.
+        .overlay(alignment: .bottomTrailing) {
+            if support.active && !support.presented {
+                SupportButton().padding(LBSpacing.s6)
+            }
+        }
+        .modifier(SupportPresenter(auth: auth))
         .measured("root_adding_renewal", .sheet, when: addingRenewal)
         .sheet(isPresented: $addingRenewal) {
             RenewalFormView(model: model, editingId: nil) { addingRenewal = false }
@@ -641,6 +654,9 @@ struct RootView: View {
         .onReceive(NotificationCenter.default.publisher(for: .longbookSetUpAgain)) { _ in
             setUpAgain()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .longbookSupport)) { _ in
+            support.open()
+        }
         .measured("root_importing_statement", .sheet, when: importingStatement)
         .sheet(isPresented: $importingStatement) {
             StatementImportView(model: model, auth: auth) { importingStatement = false }
@@ -663,12 +679,15 @@ struct RootView: View {
             // one tap from anywhere. Seated INSIDE the stack because an inset on the
             // stack itself never reaches its scroll views — the last section of every
             // screen stayed pinned under the bar, unreachable by scrolling.
+            .overlay(alignment: .bottomTrailing) { supportOverlay(nil) }
             .safeAreaInset(edge: .bottom, spacing: 0) { tabBar }
-            .navigationDestination(for: Destination.self) {
-                destinationView($0)
+            .navigationDestination(for: Destination.self) { destination in
+                destinationView(destination)
+                    .overlay(alignment: .bottomTrailing) { supportOverlay(destination) }
                     .safeAreaInset(edge: .bottom, spacing: 0) { tabBar }
             }
         }
+        .modifier(SupportPresenter(auth: auth))
         .measured("root_adding_renewal", .sheet, when: addingRenewal)
         .sheet(isPresented: $addingRenewal) {
             RenewalFormView(model: model, editingId: nil) { addingRenewal = false }
@@ -679,6 +698,21 @@ struct RootView: View {
         }
         #endif
     }
+
+    #if os(iOS)
+    /// The Support button: on Settings and Help & about, and on every screen while a
+    /// conversation is open. `screen` is the pushed screen it sits on, nil on a tab's root.
+    @ViewBuilder
+    private func supportOverlay(_ screen: Destination?) -> some View {
+        let onTop = screen == nil ? path.isEmpty : path.last == screen
+        let home = tab == .more && (screen == nil || screen == .helpAbout)
+        if onTop, !support.presented, support.active || home {
+            SupportButton()
+                .padding(.trailing, LBSpacing.s4)
+                .padding(.bottom, LBSpacing.s4)
+        }
+    }
+    #endif
 
     private func destinationView(_ destination: Destination) -> some View {
         DestinationScreen(

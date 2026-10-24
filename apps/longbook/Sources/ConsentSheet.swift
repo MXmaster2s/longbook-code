@@ -6,6 +6,8 @@ import SwiftUI
 enum AIConsent: String {
     /// Statements and Reorganise, both read by Anthropic's Claude.
     case statements
+    /// Support messages, answered first by chat.sh's AI from the help articles.
+    case support
 
     /// The UserDefaults key, for `@AppStorage`. True once accepted.
     var key: String { "longbook.aiConsent." + rawValue }
@@ -17,6 +19,8 @@ enum AIConsent: String {
         switch self {
         case .statements:
             "longbook does not store or use your personal financial data.\nlongbook uses Anthropic’s AI services."
+        case .support:
+            "Your messages go to chat.sh, where an AI answers first from our help articles. The details are in the privacy policy."
         }
     }
 }

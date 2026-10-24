@@ -102,6 +102,10 @@ struct SettingsWindowView: View {
             .background(LBColor.canvas.color)
             .background(CentersSheets())
             .preferredColorScheme((LBAppearance(rawValue: appearance) ?? .dark).colorScheme)
+            .overlay(alignment: .bottomTrailing) {
+                SupportButton { toMainWindow(.longbookSupport) }
+                    .padding(LBSpacing.s6)
+            }
             .onAppear { model.loadIfNeeded() }
     }
 
