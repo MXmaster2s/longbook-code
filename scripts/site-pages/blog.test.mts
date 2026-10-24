@@ -68,7 +68,7 @@ test('a post with a film carries it in its structured data', () => {
   assert.ok(video)
   assert.equal(video.contentUrl, `https://longbook.app${FILM}`)
   assert.equal(video.thumbnailUrl, 'https://longbook.app/blog/media/sample/clip.jpg')
-  assert.equal(video.uploadDate, '2026-10-16')
+  assert.equal(video.uploadDate, '2026-10-16T00:00:00+05:30')
   const article = graph.find((n) => n['@type'] === 'BlogPosting') as { video?: unknown }
   assert.deepEqual(article.video, [{ '@id': `https://longbook.app${FILM}` }])
 })
