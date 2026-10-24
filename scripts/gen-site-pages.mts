@@ -27,11 +27,11 @@ const LINT = process.argv.includes('--lint')
 // Hand-written pages that wear the shared header and footer. The shared-report viewer and the
 // sign-in consent screen stand alone on purpose.
 const STAMPED = ['index.html', '404.html', 'faq/index.html', 'download/index.html', 'ios/index.html',
-  'source/index.html', 'contact/index.html', 'privacy-policy/index.html', 'terms/index.html', 'media-kit/index.html',
+  'source/index.html', 'contact/index.html', 'support/index.html', 'privacy-policy/index.html', 'terms/index.html', 'media-kit/index.html',
   'ready-for-the-run/index.html', 'why-we-built-longbook/index.html', 'features/upcoming-features/index.html']
 const LISTED: [string, string][] = [['/', 'index.html'], ['/faq/', 'faq/index.html'],
   ['/download/', 'download/index.html'], ['/ios/', 'ios/index.html'], ['/source/', 'source/index.html'],
-  ['/contact/', 'contact/index.html'], ['/media-kit/', 'media-kit/index.html'],
+  ['/contact/', 'contact/index.html'], ['/support/', 'support/index.html'], ['/media-kit/', 'media-kit/index.html'],
   ['/privacy-policy/', 'privacy-policy/index.html'], ['/terms/', 'terms/index.html'],
   ['/ready-for-the-run/', 'ready-for-the-run/index.html'], ['/why-we-built-longbook/', 'why-we-built-longbook/index.html'],
   ['/features/upcoming-features/', 'features/upcoming-features/index.html']]

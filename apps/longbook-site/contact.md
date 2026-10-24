@@ -6,6 +6,7 @@
 
 longbook is made by one person; every message lands with the maker.
 
+- **Support**: [Ask Support](https://longbook.app/support/) — answers from the [help center](https://longbook.chat.sh), or a person when you ask. You can attach a screenshot.
 - **Email**: [contact@longbook.app](mailto:contact@longbook.app) — support, billing, a double charge, anything broken.
 - **X**: [@rohthebuilder](https://x.com/rohthebuilder)
 - **Discord**: The [community server](https://discord.gg/28Dtvbx23q) — feature requests, the roadmap, and what is being built.

@@ -2,27 +2,31 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://longbook.app/</loc>
-    <lastmod>2026-10-23</lastmod>
+    <lastmod>2026-10-24</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/faq/</loc>
-    <lastmod>2026-10-23</lastmod>
+    <lastmod>2026-10-24</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/download/</loc>
-    <lastmod>2026-10-23</lastmod>
+    <lastmod>2026-10-24</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/ios/</loc>
-    <lastmod>2026-10-23</lastmod>
+    <lastmod>2026-10-24</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/source/</loc>
-    <lastmod>2026-10-23</lastmod>
+    <lastmod>2026-10-24</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/contact/</loc>
-    <lastmod>2026-10-23</lastmod>
+    <lastmod>2026-10-24</lastmod>
+  </url>
+  <url>
+    <loc>https://longbook.app/support/</loc>
+    <lastmod>2026-10-24</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/media-kit/</loc>
@@ -92,19 +96,19 @@
   </url>
   <url>
     <loc>https://longbook.app/terms/</loc>
-    <lastmod>2026-10-23</lastmod>
+    <lastmod>2026-10-24</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/ready-for-the-run/</loc>
-    <lastmod>2026-10-23</lastmod>
+    <lastmod>2026-10-24</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/why-we-built-longbook/</loc>
-    <lastmod>2026-10-23</lastmod>
+    <lastmod>2026-10-24</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/features/upcoming-features/</loc>
-    <lastmod>2026-10-23</lastmod>
+    <lastmod>2026-10-24</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/features/</loc>
@@ -184,7 +188,7 @@
   </url>
   <url>
     <loc>https://longbook.app/features/share-monthly-expense-reports-with-others/</loc>
-    <lastmod>2026-10-23</lastmod>
+    <lastmod>2026-10-24</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/features/import-your-bank-statements/</loc>
@@ -224,11 +228,11 @@
   </url>
   <url>
     <loc>https://longbook.app/features/add-longbook-widget-to-your-iphone/</loc>
-    <lastmod>2026-10-23</lastmod>
+    <lastmod>2026-10-24</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/features/see-your-next-payment-in-the-mac-menu-bar/</loc>
-    <lastmod>2026-10-23</lastmod>
+    <lastmod>2026-10-24</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/features/keep-your-longbook-in-your-own-icloud/</loc>
@@ -249,12 +253,12 @@
   </url>
   <url>
     <loc>https://longbook.app/reviews/</loc>
-    <lastmod>2026-10-23</lastmod>
+    <lastmod>2026-10-24</lastmod>
     <image:image><image:loc>https://longbook.app/reviews/share.jpg</image:loc></image:image>
   </url>
   <url>
     <loc>https://longbook.app/blog/</loc>
-    <lastmod>2026-10-23</lastmod>
+    <lastmod>2026-10-24</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/blog/how-to-show-reviews-about-your-product-to-the-world/</loc>

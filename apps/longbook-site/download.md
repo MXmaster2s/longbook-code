@@ -21,3 +21,5 @@ IPHONE
 [Coming soon on the App Store](https://testflight.apple.com/join/g66Nd3Na)
 
 One [lifetime license](https://longbook.app/#price) covers every longbook app: Mac and iPhone now, iPad, Apple Watch, iPhone Duo and Android as they arrive. The first 100 buyers pay $38.
+
+Still have a question? [Ask Support](https://longbook.app/support/), or read the [help center](https://longbook.chat.sh).

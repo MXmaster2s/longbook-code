@@ -377,6 +377,18 @@
   Content-Type: text/markdown; charset=utf-8
   Link: <https://longbook.app/contact/>; rel="canonical"
 
+/support.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/support/>; rel="canonical"
+
+/support/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/support/>; rel="canonical"
+
+/support/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/support/>; rel="canonical"
+
 /media-kit/index.md
   Content-Type: text/markdown; charset=utf-8
   Link: <https://longbook.app/media-kit/>; rel="canonical"
