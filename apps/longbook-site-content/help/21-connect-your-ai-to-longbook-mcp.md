@@ -31,4 +31,4 @@ No. It can only make proposals online, and every proposal shows in **Proposals**
 Disconnect it in **AI Connections**, or turn off **Let AI Read My longbook**. It takes effect at once, and turning it off deletes the copy.
 
 ### I'm stuck.
-Tap **Email us** and tell us which AI you use and the message it shows.
+Ask Support for a reply from the team, and tell us which AI you use and the message it shows.

@@ -8,6 +8,8 @@ export type Block =
   | { code: string }
   | { link: { lead: string; label: string; href: string } }
   | { details: { title: string; rows: [string, string][] } }
+  /** One message of a conversation: who said it, then what they said, line breaks kept. */
+  | { turn: { who: string; text: string } }
 
 export interface Spec {
   subject: string
@@ -56,6 +58,10 @@ function block(b: Block): string {
   }
   if ('code' in b) {
     return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding:6px 0 24px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bx" style="background:${L.sunken};border:1px solid ${L.hairline};border-radius:12px;"><tr><td align="center" class="co tk" style="padding:22px 12px;font-family:${MONO};font-size:34px;line-height:1;font-weight:600;letter-spacing:7px;color:${L.ink};">${esc(b.code)}</td></tr></table></td></tr></table>`
+  }
+  if ('turn' in b) {
+    return `<p class="ts" style="margin:0 0 4px;font-family:${SANS};font-size:13px;line-height:1.4;font-weight:600;color:${L.soft};">${esc(b.turn.who)}</p>` +
+      `<p class="tk" style="margin:0 0 18px;font-family:${SANS};font-size:15px;line-height:1.6;color:${L.ink};white-space:pre-wrap;">${esc(b.turn.text)}</p>`
   }
   if ('link' in b) {
     return `<p class="tm" style="margin:0 0 20px;font-family:${SANS};font-size:14px;line-height:1.6;color:${L.muted};">${esc(b.link.lead)} <a class="lk" href="${esc(b.link.href)}" style="color:${L.link};text-decoration:underline;">${esc(b.link.label)}</a></p>`
@@ -151,6 +157,7 @@ export function renderText(spec: Spec): string {
     if ('small' in b) return [b.small, '']
     if ('code' in b) return [b.code, '']
     if ('link' in b) return [`${b.link.lead} ${b.link.href}`, '']
+    if ('turn' in b) return [`${b.turn.who}:`, b.turn.text, '']
     return [b.details.title, ...b.details.rows.map(([label, value]) => `${label}: ${value}`), '']
   }
   return [spec.title, ...(spec.subline ? [spec.subline] : []), '', ...spec.blocks.flatMap(lines), '-- ', spec.reason, ''].join('\n')

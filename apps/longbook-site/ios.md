@@ -22,4 +22,4 @@ The iPhone app is in beta, so it arrives through **TestFlight** — Apple’s ow
 
 **On a Mac instead?** The same invitation works there: install [TestFlight for Mac](https://apps.apple.com/app/testflight/id899247664) from the Mac App Store, then open the invitation. One purchase covers every platform.
 
-**Nothing arrived, or the link will not open?** The invitation has to be opened on the iPhone itself, not on a computer. If it still does not work, [get support](https://longbook.app/support/) or write to [contact@longbook.app](mailto:contact@longbook.app) and it gets sorted.
+**Nothing arrived, or the link will not open?** The invitation has to be opened on the iPhone itself, not on a computer. If it still does not work, [ask Support](https://longbook.app/support/) or write to [contact@longbook.app](mailto:contact@longbook.app) and it gets sorted.

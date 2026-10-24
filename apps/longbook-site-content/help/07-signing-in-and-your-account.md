@@ -16,7 +16,7 @@ Your longbook account carries your licence and your Cloud subscription. It also 
 - Wait a minute before asking for another. Each address can get only a few codes an hour, to stop misuse.
 - Make sure the address is spelled right.
 
-Still nothing? Tap **Email us** and tell us the address you used.
+Still nothing? Ask Support for a reply from the team, and tell us the address you used.
 
 ## Signed in on a new device
 

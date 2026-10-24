@@ -34,4 +34,4 @@ longbook first checks that a file is a statement. A file that isn't, such as a r
 
 ## If the charges look wrong
 
-Undo the proposal on the Proposals screen and nothing stays in your longbook. Then tap **Email us** and tell us the bank's name and what went wrong. Please don't send the statement itself.
+Undo the proposal on the Proposals screen and nothing stays in your longbook. Then ask Support for a reply from the team, and tell us the bank's name and what went wrong. Please don't send the statement itself.

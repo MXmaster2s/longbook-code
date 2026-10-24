@@ -30,4 +30,4 @@ longbook doesn't send notifications. On iPhone, add the **next payment** widget 
 
 ## Something not working?
 
-Tap **Email us** and tell us what you see. A screenshot helps, but please crop out amounts and account numbers first.
+Ask Support for a reply from the team, and tell us what you see. A screenshot helps, but please crop out amounts and account numbers first.
