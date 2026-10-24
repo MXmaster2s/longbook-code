@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import { ORIGIN, LIMITS, frontmatter } from './content.mts'
 import { type Ctx, COPY_SCRIPT, aboutMd, aboutSection, attr, checkHref, esc, inlineHtml, inlineMd, linksIn, page, plainText } from './render.mts'
 import { APP, ORG, SITE, organization, website } from './seo.mts'
-import { COPYRIGHT, CREATOR } from './jpeg.mts'
+import { ACQUIRE_URL, COPYRIGHT, CREATOR, RIGHTS_URL } from './jpeg.mts'
 
 /** A picture that site:media builds from media.json, at the size its page draws it. */
 export interface Still {
@@ -355,6 +355,8 @@ function imageObject(src: string, s: Still, caption: string): object {
     creator: { '@id': ORG },
     creditText: CREATOR,
     copyrightNotice: COPYRIGHT,
+    license: RIGHTS_URL,
+    acquireLicensePage: ACQUIRE_URL,
   }
 }
 
@@ -366,7 +368,8 @@ function videoObject(f: Extract<PostBlock, { kind: 'film' }>, p: Post): object {
     description: f.alt,
     contentUrl: `${ORIGIN}${f.src}`,
     thumbnailUrl: `${ORIGIN}${posterOf(f.src)}`,
-    uploadDate: p.date,
+    // Google wants a time and a zone: the post's day, from midnight India time, where it is written.
+    uploadDate: `${p.date}T00:00:00+05:30`,
     encodingFormat: 'video/mp4',
     inLanguage: 'en',
     creator: { '@id': ORG },

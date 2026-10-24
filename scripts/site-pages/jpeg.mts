@@ -12,6 +12,8 @@ export interface ImageMeta {
 export const CREATOR = 'longbook'
 export const COPYRIGHT = '© 2026 longbook'
 export const RIGHTS_URL = 'https://longbook.app/terms/'
+// Where the same pictures are offered for use: the media kit, free when writing about longbook.
+export const ACQUIRE_URL = 'https://longbook.app/media-kit/#usage'
 const XMP_ID = 'http://ns.adobe.com/xap/1.0/\0'
 const PHOTOSHOP_ID = 'Photoshop 3.0\0'
 

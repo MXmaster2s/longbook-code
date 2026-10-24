@@ -2,7 +2,7 @@
 // sitemap, the Markdown headers and the redirects that keep old or guessed addresses working.
 import { ORIGIN, DOWNLOAD, type Automations, type Feature } from './content.mts'
 import { type Ctx, type Picture, pageUrl, mdUrl, groupName, plainText, INDEX, AUTOMATIONS_URL } from './render.mts'
-import { COPYRIGHT, CREATOR } from './jpeg.mts'
+import { ACQUIRE_URL, COPYRIGHT, CREATOR, RIGHTS_URL } from './jpeg.mts'
 
 export const ORG = `${ORIGIN}/#organization`
 export const SITE = `${ORIGIN}/#website`
@@ -62,6 +62,8 @@ function imageObject(p: Picture): object {
     creator: { '@id': ORG },
     creditText: CREATOR,
     copyrightNotice: COPYRIGHT,
+    license: RIGHTS_URL,
+    acquireLicensePage: ACQUIRE_URL,
   }
 }
 
