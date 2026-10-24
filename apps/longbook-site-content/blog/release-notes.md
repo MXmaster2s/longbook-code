@@ -1,6 +1,6 @@
 ---
 slug: release-notes
-title: longbook release notes
+title: 1.4.1 Release Notes
 seo_title: longbook release notes for iPhone and Mac
 description: What each version of longbook for iPhone and Mac brings, newest first. Starts with 1.4.1, the first release on the App Store.
 card: What each version of longbook brings, newest first. 1.4.1 is the first release on the App Store, for iPhone and Mac.
