@@ -72,3 +72,8 @@ test('a post with a film carries it in its structured data', () => {
   const article = graph.find((n) => n['@type'] === 'BlogPosting') as { video?: unknown }
   assert.deepEqual(article.video, [{ '@id': `https://longbook.app${FILM}` }])
 })
+
+test('a ### takes its ## heading into its id, so two versions can share a sub-heading', () => {
+  const blocks = parseBlocks(['## 1.5.0', '### On the Mac', '## 1.4.1', '### On the Mac'], 'blog/x.md')
+  assert.deepEqual(blocks.map((b) => (b as { id: string }).id), ['1-5-0', '1-5-0-on-the-mac', '1-4-1', '1-4-1-on-the-mac'])
+})
