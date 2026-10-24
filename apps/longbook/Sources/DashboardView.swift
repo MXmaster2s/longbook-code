@@ -179,6 +179,7 @@ struct DashboardView: View {
             DashboardRail(model: model, rail: data.rail) {
                 importingMonth = MonthAsk(offset: 0, prompt: "No past charges yet. Import a bank statement to add them.")
             }
+            .tutorialTarget(.dashboardComingUp)
             if isBare(data) {
                 // Until a charge exists anywhere, one card says what to do next, and the
                 // month card keeps the dashboard's shape with the way to its statement.
@@ -199,6 +200,7 @@ struct DashboardView: View {
                 categoryPanel(data)
             }
         }
+        .screenTutorial(.dashboard)
     }
 
     /// Nothing due ahead and no month in the range holding a charge: a book with no money in it yet.
@@ -301,7 +303,7 @@ struct DashboardView: View {
     /// width broke "Commitments" in two.
     private func heroRow(_ data: DashboardData) -> some View {
         LBReflowStack(alignment: .top, spacing: LBSpacing.s3) {
-            heroCard(data)
+            heroCard(data).tutorialTarget(.dashboardNextPayment)
             statCard(data)
         }
         .frame(maxWidth: .infinity)
@@ -524,6 +526,7 @@ struct DashboardView: View {
         // swipe that starts in the space between them never begins at all.
         .contentShape(Rectangle())
         .simultaneousGesture(flipGesture($monthFlipped, swiping: $monthCardSwiping))
+        .tutorialTarget(.dashboardSpending)
     }
 
     private var monthMark: some View {

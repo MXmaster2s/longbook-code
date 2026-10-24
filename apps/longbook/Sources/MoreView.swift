@@ -31,10 +31,12 @@ struct MoreView: View {
                     Row(LBGlyph.account, 4, "Accounts", "", .opens(.accounts)),
                     Row("person.2", 9, "People", "", .opens(.members)),
                 ])
+                .tutorialTarget(.settingsLongbook)
                 #endif
                 group("Import", [
                     Row("doc.text.magnifyingglass", 4, "Import a statement", "", .does { importing = true }),
                 ])
+                .tutorialTarget(.settingsImport)
                 group("Reports", [
                     Row("airplane", 7, "Trips", "", .opens(.trips)),
                 ])
@@ -49,6 +51,7 @@ struct MoreView: View {
                     Row("slider.horizontal.3", 10, "Optimize your data", "", .does(onTutorial)),
                 ] + (onDemo.map { demo in [Row("sparkles", 12, "Try the demo", "", .does(demo))] } ?? []) + [
                     Row("lightbulb.max", 1, "Tips", "", .opens(.tips)),
+                    Row("hand.point.up.left", 6, "Tutorials", "", .opens(.tutorials)),
                     Row("questionmark.circle", 8, "Help & about", "", .opens(.helpAbout)),
                 ] + updateRows)
                 group(nil, [
@@ -59,6 +62,10 @@ struct MoreView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(LBColor.canvas.color)
+        #if os(iOS)
+        // The Mac's settings are a window of their own, with no tutorial over them.
+        .screenTutorial(.settings)
+        #endif
         .measured("more_importing", .sheet, when: importing)
         .sheet(isPresented: $importing) {
             StatementImportView(model: model, auth: auth) { importing = false }

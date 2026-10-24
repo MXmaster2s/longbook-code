@@ -40,6 +40,7 @@ struct EntityListView: View {
     var body: some View {
         let cards = model.entityCards(kind)
         return content(cards)
+            .screenTutorial(isAccount ? .accounts : .people)
             .measured("entity_list_editing", .sheet, when: editing != nil)
             .sheet(item: $editing) { target in
                 EntityEditView(model: model, kind: kind, id: target.id, currentName: target.name) {
@@ -165,7 +166,8 @@ struct EntityListView: View {
             }
             if !cards.isEmpty {
                 Section {
-                    ForEach(cards) { card in phoneRow(card) }
+                    // Every row on show is lit together: the list as far as the screen shows it.
+                    ForEach(cards) { card in phoneRow(card).tutorialTarget(.entityList) }
                 } footer: {
                     if !isAccount {
                         Text("The people your commitments are for.")
@@ -180,6 +182,7 @@ struct EntityListView: View {
             Button(action: { Measure.used("add_new"); startNaming() }) {
                 Image(systemName: "plus")
             }
+            .tutorialTarget(.entityAdd)
             .accessibilityLabel("Add \(word)")
         }
     }
@@ -272,6 +275,7 @@ struct EntityListView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(LBColor.brand.color)
+                .tutorialTarget(.entityAdd)
             }
             .controlSize(.large)
             if !isAccount {
@@ -358,7 +362,14 @@ struct EntityListView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // The table fills the pane; the tutorial lights its header and rows, not the space under them.
+            .tutorialTarget(.entityList) { pane in
+                CGRect(x: pane.minX, y: pane.minY, width: pane.width, height: min(pane.height, Self.tableHeader + CGFloat(rows.count) * Self.tableRow))
+            }
     }
+
+    private static let tableHeader: CGFloat = 32
+    private static let tableRow: CGFloat = 30
 
     private func dimmed(_ text: String) -> some View {
         Text(text)

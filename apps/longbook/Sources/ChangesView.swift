@@ -77,6 +77,7 @@ struct ChangesView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(LBColor.canvas.color)
+        .screenTutorial(.changes)
         .onAppear(perform: refresh)
         .measured("changes_showing_history", .sheet, when: showingHistory)
         .sheet(isPresented: $showingHistory) { historySheet }
@@ -183,6 +184,7 @@ struct ChangesView: View {
             SwiftUI.Section {
                 if review != nil {
                     reviewActions(wide: true)
+                        .tutorialTarget(.changesAll)
                         .listRowBackground(Color.clear)
                         .listRowInsets(EdgeInsets())
                 }
@@ -211,14 +213,17 @@ struct ChangesView: View {
             if groups.count > 1 {
                 SwiftUI.Section {
                     kindTabs(groups)
+                        .tutorialTarget(.changesKinds)
                         .listRowBackground(Color.clear)
                         .listRowInsets(EdgeInsets())
                 }
             }
+            let first = shownGroups(groups).first?.lines.first?.id
             ForEach(shownGroups(groups)) { group in
                 SwiftUI.Section {
                     ForEach(group.lines) { line in
                         phoneRow(line)
+                            .tutorialTarget(line.id == first ? .changesFirst : nil)
                     }
                 } header: {
                     LBSectionHeader(group.title)
@@ -329,6 +334,7 @@ struct ChangesView: View {
                 .lbInspector(isPresented: detailShown, width: 380) {
                     macDetail(review, groups: groups)
                         .background(LBColor.canvas.color)
+                        .tutorialTarget(.changesDetail)
                 }
         }
         // The first proposed line is selected as the review arrives, so the right side is never blank.
@@ -391,14 +397,17 @@ struct ChangesView: View {
             if groups.count > 1 {
                 SwiftUI.Section {
                     kindTabs(groups)
+                        .tutorialTarget(.changesKinds)
                         .listRowBackground(Color.clear)
                         .listRowInsets(EdgeInsets())
                 }
             }
+            let first = shownGroups(groups).first?.lines.first?.id
             ForEach(shownGroups(groups)) { group in
                 SwiftUI.Section {
                     ForEach(group.lines) { line in
                         lineRow(line, selected: selection == .line(line.id))
+                            .tutorialTarget(line.id == first ? .changesFirst : nil)
                             .contentShape(Rectangle())
                             .onTapGesture { selection = .line(line.id) }
                             .modifier(LineRowChrome(card: Self.isCard(line)))

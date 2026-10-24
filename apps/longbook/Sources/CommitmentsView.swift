@@ -166,6 +166,7 @@ struct CommitmentsView: View {
 
     var body: some View {
         content
+            .screenTutorial(.commitments)
             // A window set by hand replaces the one a door passed; its pills step aside.
             .onChange(of: from) { _, from in if from != nil { day = nil; months = [] } }
             .onChange(of: to) { _, to in if to != nil { day = nil; months = [] } }
@@ -652,6 +653,7 @@ struct CommitmentsView: View {
             } label: {
                 Image(systemName: "plus")
             }
+            .tutorialTarget(.commitmentsAdd)
             .accessibilityLabel("Add a commitment")
         }
     }
@@ -665,6 +667,7 @@ struct CommitmentsView: View {
             VStack(alignment: .leading, spacing: LBSpacing.s3) {
                 LBSegmented(selection: $when, choices: [(ListScope.upcoming, "Upcoming"), (ListScope.past, "Past")])
                     .accessibilityLabel("Show")
+                    .tutorialTarget(.commitmentsScope)
                 narrowedLine(data)
             }
             .textCase(nil)
@@ -698,9 +701,10 @@ struct CommitmentsView: View {
                 LBSectionHeader("Needs details")
             }
         }
+        let first = parts.rows.first?.id
         ForEach(grouped(parts.rows, by: \.monthLabel), id: \.label) { group in
             Section {
-                ForEach(group.items) { phoneRow($0) }
+                ForEach(group.items) { phoneRow($0).tutorialTarget($0.id == first ? .commitmentsFirst : nil) }
             } header: {
                 LBSectionHeader(monthHeading(group.label))
             }
@@ -952,14 +956,17 @@ struct CommitmentsView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(LBColor.brand.color)
+                .tutorialTarget(.commitmentsAdd)
                 .accessibilityLabel("Add a commitment")
             }
             .controlSize(.large)
             HStack(spacing: LBSpacing.s2) {
                 searchField
+                    .tutorialTarget(.commitmentsSearch)
                 LBSegmented(selection: $when, choices: [(ListScope.upcoming, "Upcoming"), (ListScope.past, "Past")])
                     .frame(width: 180)
                     .accessibilityLabel("Show")
+                    .tutorialTarget(.commitmentsScope)
                 filterMenu(data)
             }
             narrowedLine(data)
@@ -1046,6 +1053,7 @@ struct CommitmentsView: View {
                         Section {
                             ForEach(group.items) { charge in
                                 pickable("c:" + charge.id, rows: rows, chargeCard(charge, selected: selection.contains("c:" + charge.id)))
+                                    .tutorialTarget(charge.id == parts.rows.first?.id ? .commitmentsFirst : nil)
                                     .lbCardRow()
                             }
                         } header: {
