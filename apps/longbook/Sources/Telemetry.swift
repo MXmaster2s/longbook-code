@@ -81,7 +81,8 @@ final class Telemetry {
         #if os(macOS)
         // Quitting ends the session as going to the background does on iPhone.
         NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: .main) { _ in
-            MainActor.assumeIsolated { Telemetry.shared.wentAway() }
+            // The process ends right after, so the last batch is given up to a second to leave.
+            MainActor.assumeIsolated { Telemetry.shared.wentAway(waitingUpTo: 1) }
         }
         #endif
     }
@@ -209,13 +210,14 @@ final class Telemetry {
 
     /// The app went to the background or is quitting: how long it was in front, to the
     /// nearest 5 seconds, and how many screens were opened.
-    func wentAway() {
+    func wentAway(waitingUpTo wait: TimeInterval? = nil) {
+        // Whatever is held goes now, with or without a session to end.
+        defer { flush(waitingUpTo: wait) }
         guard let since = foregroundSince else { return }
         foregroundSince = nil
         let seconds = Int((Date().timeIntervalSince(since) / 5).rounded()) * 5
         send("app.session_ended", ["seconds": seconds, "screens": screensThisSession])
         screensThisSession = 0
-        flush()
     }
 
     // MARK: errors
@@ -317,13 +319,17 @@ final class Telemetry {
     }
 
     /// Sends what is held: on a full batch, ten seconds after the first, and as the app goes away.
-    func flush() {
+    /// With `waitingUpTo`, blocks until the post answers or that time passes.
+    func flush(waitingUpTo wait: TimeInterval? = nil) {
         flushTask?.cancel()
         flushTask = nil
         guard !held.isEmpty else { return }
         let events = held
         held = []
-        post(events)
+        guard let wait else { return post(events) }
+        let answered = DispatchSemaphore(value: 0)
+        post(events) { answered.signal() }
+        _ = answered.wait(timeout: .now() + wait)
     }
 
     /// Crash, hang and exception reports. Version, build and system are the ones that
@@ -389,21 +395,26 @@ final class Telemetry {
     }
 
     /// Fire and forget: no retry, nothing kept. DEBUG prints instead, and only when asked to.
-    private func post(_ events: [[String: Any]]) {
+    private func post(_ events: [[String: Any]], answered: (@Sendable () -> Void)? = nil) {
         #if DEBUG
+        defer { answered?() }
         guard ProcessInfo.processInfo.environment["LONGBOOK_TELEMETRY_LOG"] == "1",
               let data = try? JSONSerialization.data(withJSONObject: events, options: [.prettyPrinted, .sortedKeys])
         else { return }
         print("telemetry (not sent):", String(decoding: data, as: UTF8.self))
         #else
         let body: [String: Any] = ["api_key": Self.token, "batch": events]
-        guard let data = try? JSONSerialization.data(withJSONObject: body) else { return }
+        guard let data = try? JSONSerialization.data(withJSONObject: body) else {
+            answered?()
+            return
+        }
         var request = URLRequest(url: Self.endpoint)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(Self.userAgent, forHTTPHeaderField: "User-Agent")
         request.httpBody = data
-        session.dataTask(with: request).resume()
+        // The session answers on its own queue, so a wait on the main thread can end.
+        session.dataTask(with: request) { _, _, _ in answered?() }.resume()
         #endif
     }
 }
