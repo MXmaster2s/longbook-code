@@ -63,7 +63,7 @@ test("prompts/get hands over the owner's words, then longbook's procedure and wh
   const text = got.result.messages[0].content.text as string
   assert.ok(text.startsWith('Add my statement in my longbook\n'), 'the first phrase opens the message')
   for (const step of PROMPTS.find((p) => p.id === 'add-my-statement')!.procedure) assert.ok(text.includes(step), step)
-  assert.match(text, /The method in full: read_guide\("importing-statements"\)$/)
+  assert.match(text, /The method in full: read_guide\("importing-statements"\)\n\nPass guide_key "add-my-statement:\d+:[0-9a-z]+" with every write this procedure makes\.$/)
 
   const october = (await call('prompts/get', { name: 'add-a-month-report-in-my-longbook', arguments: { month: 'october' } })).result
   assert.ok(october.messages[0].content.text.startsWith('Add October month report in my longbook\n'))
@@ -926,4 +926,33 @@ test('create_report files for the app to draw, says nothing waits in Changes, an
   assert.equal(stranger.code, 'not_found')
   assert.equal(stranger.message, 'No person in the hosted copy (pushed 2026-09-17) is called "Meera". People: "Rohit" (id m-rohit), "Diya" (id m-diya). Pass one of these names exactly, or its id.')
   assert.equal(filed.length, before + 1)
+})
+
+test('a write says beside its filing when it skipped the guide, and says nothing once it read it', async () => {
+  const guided = (): RpcContext => ({ ...writingCtx(), llmsText: () => LLMS_TXT })
+  const read = async (section: string) =>
+    JSON.parse((await callWith(guided(), 'read_guide', { section })).result.content[0].text)
+  const statements = await read('importing-statements')
+  assert.match(statements.guide_key, /^importing-statements:\d+:[0-9a-z]+$/)
+  assert.match((await read('Add my statement')).guide_key, /^add-my-statement:\d+:[0-9a-z]+$/)
+  const tags = (await read('tags')).guide_key
+
+  const skipped = JSON.parse((await callWith(guided(), 'add_commitments', { rows: [ROW] })).result.content[0].text)
+  assert.match(skipped.guide_warning, /^No guide_key: call read_guide/)
+  const followed = JSON.parse((await callWith(guided(), 'add_commitments', { rows: [ROW], guide_key: statements.guide_key })).result.content[0].text)
+  assert.equal(followed.guide_warning, undefined)
+  assert.equal('guide_key' in filed.at(-1)!.payload, false, 'the key is checked, never filed')
+
+  const stale = JSON.parse((await callWith(guided(), 'add_commitments', { rows: [ROW], guide_key: 'tags:43:abc' })).result.content[0].text)
+  assert.match(stale.guide_warning, /^This guide_key is not from rulebook \d+'s guide/)
+  const line = { ...ROW, billing_cycle: 'once', date: '2026-09-01', paid: true, basis: 'statement' }
+  const wrongChapter = JSON.parse((await callWith(guided(), 'add_commitments', { rows: [line], guide_key: tags })).result.content[0].text)
+  assert.match(wrongChapter.guide_warning, /^Rows with basis "statement" follow read_guide\("importing-statements"\)/)
+  const rightChapter = JSON.parse((await callWith(guided(), 'add_commitments', { rows: [line], guide_key: statements.guide_key })).result.content[0].text)
+  assert.equal(rightChapter.guide_warning, undefined)
+})
+
+test('every write lists guide_key', async () => {
+  const listed = (await call('tools/list')).result.tools as { name: string; inputSchema: { properties: object } }[]
+  for (const name of WRITE_NAMES) assert.ok('guide_key' in listed.find((t) => t.name === name)!.inputSchema.properties, name)
 })

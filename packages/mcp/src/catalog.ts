@@ -17,6 +17,8 @@ export const INSTRUCTIONS =
   `longbook is the owner's financial memory: every commitment — subscriptions, insurance, ` +
   `EMIs, rent, fees, salaries, one-time spends — in a folder they own. These tools return real ` +
   `arithmetic from that memory; quote the numbers, never recompute them. ${HONESTY} ` +
+  `Before any write, call read_guide with the owner's prompt or the chapter for the task, ` +
+  `follow it, and pass the guide_key it returns with every write. ` +
   `Every charge is a stored row, past or planned: history is exactly the rows before today, ` +
   `the plan is exactly the rows from today on, and nothing is computed from a rule. ` +
   `The working method: read first (commitments with status "all", search) and match names ` +

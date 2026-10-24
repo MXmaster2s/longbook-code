@@ -3,6 +3,7 @@
 // to one contract — local then writes the file, hosted files the proposal.
 import { daysBetween, fmtDate, nameKey, parseDate, scanFields, scanText, scannableWords, policyFix, storedDirection, toISO, todayMid, CUSTOM_DAYS_LIMIT, DATA_POLICY_REFUSAL } from '@longbook/core'
 import { VaultWriteError } from './errors.js'
+import { GUIDE_KEY_SCHEMA } from './guideCheck.js'
 
 export const PROPOSAL_KINDS = [
   'add_commitments',
@@ -900,6 +901,10 @@ const WRITE_TOOL_SPECS: WriteToolSpec[] = [
 export const WRITE_TOOLS: WriteToolSpec[] = WRITE_TOOL_SPECS.map((tool) => ({
   ...tool,
   description: tool.description + HOSTED_NOTE,
+  inputSchema: {
+    ...tool.inputSchema,
+    properties: { ...(tool.inputSchema.properties as object), guide_key: GUIDE_KEY_SCHEMA },
+  },
 }))
 
 // ---------------------------------------------------------------------------------------------
@@ -1449,6 +1454,8 @@ export function checkProposal(kind: string, payload: unknown, options: { daySlac
   let body: Record<string, unknown> = { ...payload }
   const idempotency = body.idempotency_key
   delete body.idempotency_key
+  // The guide check is said beside the write, not part of it.
+  delete body.guide_key
   if (idempotency != null && (typeof idempotency !== 'string' || !idempotency.trim() || idempotency.length > 200)) {
     throw new VaultWriteError('idempotency_key is a short string, 1–200 characters.')
   }

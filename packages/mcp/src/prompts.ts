@@ -1,7 +1,7 @@
 // longbook's prompts as MCP prompts, said once for both doors: the menu entry, and the
 // message a client puts in the chat when the owner picks one. The words come from the
 // catalogue in @longbook/core; nothing here restates a procedure.
-import { PROMPTS, promptPhrase } from '@longbook/core'
+import { CONTRACT_REVISION, PROMPTS, promptGuideKey, promptPhrase } from '@longbook/core'
 import type { LongbookPrompt } from '@longbook/core'
 
 export interface McpPromptArgument {
@@ -70,6 +70,7 @@ export function mcpPromptMessage(
   if (prompt.chapter) {
     lines.push('', `The method in full: read_guide("${prompt.chapter}")`)
   }
+  lines.push('', `Pass guide_key "${promptGuideKey(prompt, CONTRACT_REVISION)}" with every write this procedure makes.`)
   return {
     description: prompt.result,
     messages: [{ role: 'user', content: { type: 'text', text: lines.join('\n') } }],

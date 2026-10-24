@@ -4,7 +4,8 @@
     "build": 52,
     "date": "2026-10-23",
     "changes": [
-      "On the Mac, an AI connected to longbook on this computer now sees every choice its tools offer, such as listing cancelled commitments or reading one chapter of the guide."
+      "On the Mac, an AI connected to longbook on this computer now sees every choice its tools offer, such as listing cancelled commitments or reading one chapter of the guide.",
+      "An AI connected to longbook now reads longbook's guide for the task before it writes, and is told which part to read when it hasn't."
     ]
   },
   {

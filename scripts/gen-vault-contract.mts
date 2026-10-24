@@ -15,7 +15,7 @@ import { PROMPTS, PROMPT_GROUPS } from '../packages/core/src/prompts'
 // Source of truth. REFUND_DAYS must match StoreClient.refundDays in the app; PRICE_USD and
 // CLOUD_USD are prose only (App Store Connect owns the real prices) — all are named here so a change is one grep away.
 const DATA_FORMAT_VERSION = 3
-const CONTRACT_REVISION = 43 // pay upfront: a 7-day refund replaces the trial, and a purchase includes 12 months of Cloud. 42: pictures: accounts, commitments and tags may carry a photo too, all under images/. 41:people: the tools are people, spending_by_person, add_person and update_person; a person may carry a photo; a tag's icon is one of the library's. 40:the weekly page prompt; 39: every prompt names "my longbook"; the trial is three days; a
+const CONTRACT_REVISION = 44 // read before writing: read_guide hands out a guide_key, every write passes it back, and a write without one is warned. 43: pay upfront: a 7-day refund replaces the trial, and a purchase includes 12 months of Cloud. 42: pictures: accounts, commitments and tags may carry a photo too, all under images/. 41:people: the tools are people, spending_by_person, add_person and update_person; a person may carry a photo; a tag's icon is one of the library's. 40:the weekly page prompt; 39: every prompt names "my longbook"; the trial is three days; a
 const REFUND_DAYS = 7
 const PRICE_USD = 38
 const CLOUD_USD = 4
@@ -1633,6 +1633,11 @@ you were not asked for, and never remove a paid one without saying so.
    every screen while the rest of the vault keeps working. If something you wrote is not
    showing up, do not rewrite it blind: validate this file against \`longbook.schema.json\`
    and check the vault's shape first.
+10. Read before you write. Every \`read_guide\` answer carries a \`guide_key\`, and so does a
+   prompt's own message; pass it with every write the procedure makes. A write without one,
+   or with one from another rulebook, is answered with a \`guide_warning\` naming what to
+   read; from the next rulebook it is refused. Charges with basis "statement" take the key
+   of \`importing-statements\`, or of a prompt built on it.
 
 The formal schema: \`longbook.schema.json\`, right beside this file. The seeded tag library
 with icons: \`library.json\`, beside it too. Both are served by the longbook MCP servers as

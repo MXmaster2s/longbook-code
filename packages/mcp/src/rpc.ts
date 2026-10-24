@@ -10,10 +10,11 @@ import {
   nextPaymentCard,
   upcomingStrip,
 } from '@longbook/cards'
-import { LIBRARY_JSON, RELEASE_VERSION, contractRevisionOf, findPrompt, guideSection, guideSections } from '@longbook/core'
+import { LIBRARY_JSON, RELEASE_VERSION, WHOLE_GUIDE, contractRevisionOf, findPrompt, guideKey, guideSection, guideSections, promptGuideKey } from '@longbook/core'
 import { CARD_RESOURCES, RESOURCE_LIBRARY, RESOURCE_LLMS, RESOURCE_SCHEMA, TOOLS, instructionsFor, titled } from './catalog.js'
 import { MCP_PROMPTS, mcpPromptMessage } from './prompts.js'
 import { VaultWriteError } from './errors.js'
+import { guideWarning } from './guideCheck.js'
 import { failure } from './failure.js'
 import type { Failure, FailureCode } from './failure.js'
 import { WRITE_TOOLS, checkProposal, entitySetOutcome, setOutcome, canonicalToolName } from './proposal.js'
@@ -101,7 +102,7 @@ export function readGuide(llms: string, section: unknown): unknown {
   const all = guideSections(llms)
   const sections = all.map((s) => ({ id: s.id, title: s.title }))
   if (section === undefined || section === null || section === '') {
-    return { revision, sections, text: llms }
+    return { revision, sections, text: llms, guide_key: guideKey(WHOLE_GUIDE, revision, llms) }
   }
   if (typeof section !== 'string') throw new RangeError('section must be a chapter id or a word from its title')
   const prompt = findPrompt(section)
@@ -117,13 +118,14 @@ export function readGuide(llms: string, section: unknown): unknown {
       needs: prompt.needs ?? [],
       procedure: prompt.procedure.join('\n'),
       chapter: chapter ? { id: chapter.id, title: chapter.title, text: chapter.text } : null,
+      guide_key: promptGuideKey(prompt, revision),
     }
   }
   const found = guideSection(llms, section)
   if (!found) {
     throw new RangeError(`No chapter matches "${section}". Chapters: ${sections.map((s) => s.id).join(', ')}`)
   }
-  return { revision, section: found.id, title: found.title, text: found.text }
+  return { revision, section: found.id, title: found.title, text: found.text, guide_key: guideKey(found.id, revision, found.text) }
 }
 
 interface RpcMessage {
@@ -265,6 +267,7 @@ async function callWrite(name: string, args: Record<string, unknown>, ctx: RpcCo
       ignored = entitySetOutcome(proposal.kind, proposal.payload.set as object).ignored
     }
   }
+  const guide_warning = guideWarning(ctx.llmsText(), args)
   // Said beside the filing, as the local door says it: the balance the rows just written outrun.
   const balance_note = proposal.kind === 'add_commitments' || proposal.kind === 'add_charges'
     ? writtenBalanceNote(proposal, ctx.loadData(), ctx.today?.() ?? todayMid())
@@ -275,6 +278,7 @@ async function callWrite(name: string, args: Record<string, unknown>, ctx: RpcCo
       ...out,
       ...(ignored.length > 0 ? { ignored } : {}),
       ...(balance_note ? { balance_note } : {}),
+      ...(guide_warning ? { guide_warning } : {}),
       note: !out.created
         ? 'This exact write was already filed, so nothing was added again.'
         : proposal.kind === 'create_report'
