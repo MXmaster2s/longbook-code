@@ -24,6 +24,8 @@
     s.onload = function () {
       if (!window.chatSh) { failed(); return; }
       state = 'ready';
+      // An open sent before the widget is ready is dropped, so open again once it is.
+      window.chatSh.on('ready', function () { window.chatSh.open(); });
       window.chatSh.open();
     };
     s.onerror = failed;
