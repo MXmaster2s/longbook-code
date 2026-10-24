@@ -8,6 +8,8 @@
 
 longbook is a memory for your financial commitments. It remembers them and reminds you on time, on your iPhone and your Mac. Everything is stored in your own iCloud, and it is open for your AI to talk to — so Claude or ChatGPT always knows what you are committed to. Health insurance, car insurance, rent, EMIs, school fees, subscriptions, credit card fees, domain renewals: if it costs money and comes back, it goes in longbook.
 
+Still have a question? [Ask Support](https://longbook.app/support/), or read the [help center](https://longbook.chat.sh).
+
 ### What can it remember?
 
 Your financial commitments — premiums, rent, instalments, school fees, subscriptions, credit card payment dates — and the expenses you have already made, which appear in the Reports section of the app. Your AI can write into it too: anything it finds in your emails, or anywhere else you point it, longbook remembers and reminds you about. For a quick glance there is an iPhone widget and a Mac menu bar item.

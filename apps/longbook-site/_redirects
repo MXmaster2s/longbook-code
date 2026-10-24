@@ -41,8 +41,6 @@
 /agentic                /automations/    301!
 /agentic/*              /automations/    301!
 /agentic.md             /automations.md  301!
-/support                /contact/ 301!
-/support/*              /contact/ 301!
 /support-us             /contact/ 301!
 /support-us/*           /contact/ 301!
 # Both apps ship through TestFlight and the App Store. A Mac build that asks for an update
@@ -85,6 +83,8 @@ https://longbook-app.netlify.app/*  https://longbook.app/:splat  301!
 /source/index.html.md                                                             /source.md                                                             200
 /contact/index.md                                                                 /contact.md                                                            200
 /contact/index.html.md                                                            /contact.md                                                            200
+/support/index.md                                                                 /support.md                                                            200
+/support/index.html.md                                                            /support.md                                                            200
 /media-kit.md                                                                     /media-kit/index.md                                                    200
 /media-kit/index.html.md                                                          /media-kit/index.md                                                    200
 /privacy-policy/index.md                                                          /privacy-policy.md                                                     200

@@ -212,6 +212,8 @@ longbook is licensed under GPL-3.0. Its source code is public on GitHub at [gith
 
 Email: [contact@longbook.app](mailto:contact@longbook.app). X: [@rohthebuilder](https://x.com/rohthebuilder). The [community Discord](https://discord.gg/28Dtvbx23q) carries feature requests and the roadmap. Feature suggestions also land on the [feedback board](https://insigh.to/b/longbook), and developers start at [Work on the source](https://longbook.app/source).
 
+Still have a question? [Ask Support](https://longbook.app/support/), or read the [help center](https://longbook.chat.sh).
+
 ## A memory for your financial commitments
 
 Download and start using your longbook today, with a 7-day refund if it isn’t for you.

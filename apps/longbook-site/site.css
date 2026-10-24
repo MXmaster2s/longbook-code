@@ -37,3 +37,5 @@ a { color:var(--lb-brand-text); }
 .fsoc .copymail:hover .tip, .fsoc .copymail.done .tip { opacity:1; }
 .fsoc .copymail.done { background:var(--lb-brand); border-color:var(--lb-brand); color:var(--lb-on-brand); }
 .fbase { margin-top:var(--lb-space-s8); padding-top:var(--lb-space-s6); border-top:1px solid var(--lb-hairline); display:flex; justify-content:space-between; gap:var(--lb-space-s3); flex-wrap:wrap; color:var(--lb-text-quaternary); font-size:var(--lb-type-footnote-size); }
+/* The Support line under a page's questions. */
+.ask { margin:var(--lb-space-s8) 0 0; text-align:center; color:var(--lb-text-secondary); }
