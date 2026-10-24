@@ -18,7 +18,7 @@
 
 ### A hosted copy for your AI
 
-Claude on the web or the phone, and ChatGPT, run on someone else's computers, so they cannot open the longbook folder in your iCloud. Cloud keeps a copy of your longbook on longbook's server and serves it at longbook.app/mcp, so those assistants can read it and suggest changes, each one shown in Changes to keep or undo.
+Claude on the web or the phone, and ChatGPT, run on someone else's computers, so they cannot open the longbook folder in your iCloud. Cloud keeps a copy of your longbook on longbook's server and serves it at longbook.app/mcp, so those assistants can read it and suggest changes, each one shown in Proposals to keep or undo.
 
 ### More statement reading
 
@@ -57,7 +57,7 @@ The server features stop. Your folder and the apps are untouched. The hosted cop
 
 longbook is a memory for your financial commitments: subscriptions, insurance, rent, loans and every other payment that comes back. It runs on iPhone and Mac and keeps its records as plain files in your own iCloud.
 
-The next payment stays in view on the iPhone widget and in the Mac menu bar. Your AI can read your longbook and update it through longbook's MCP server, and every change it makes shows in Changes, to keep or undo.
+The next payment stays in view on the iPhone widget and in the Mac menu bar. Your AI can read your longbook and update it through longbook's MCP server, and every change it makes shows in Proposals, to keep or undo.
 
 - Download for Mac: https://testflight.apple.com/join/g66Nd3Na
 - Download for iPhone: https://testflight.apple.com/join/g66Nd3Na

@@ -73,7 +73,7 @@ const doc = {
       how: 'The server built into the longbook app, also on npm for any computer: npx -y @longbook/mcp@latest, with --vault <folder> where the app\u2019s iCloud folder is not. On the Mac, Set up Claude Desktop writes the client config in one click, and Copy configuration hands it to any other MCP client.',
       auth: 'none — it is their own folder',
       reads: true,
-      writes: 'straight to the folder; every batch lands in the app’s Changes screen for review',
+      writes: 'straight to the folder; every batch lands in the app’s Proposals screen for review',
       documents: true,
     },
     {
@@ -83,7 +83,7 @@ const doc = {
       auth: 'oauth',
       reads: true,
       writes:
-        'as suggestions, once the owner ticks "Let signed-in AIs suggest changes" on the app\u2019s Automations screen — they wait for the app and land in its Changes screen, to keep or undo',
+        'as suggestions, once the owner ticks "Let signed-in AIs suggest changes" on the app\u2019s Automations screen — they wait for the app and land in its Proposals screen, to keep or undo',
       documents: false,
     },
     {
@@ -92,7 +92,7 @@ const doc = {
       how: 'Create a key on the longbook app\u2019s Automations screen (More on iPhone, Settings on the Mac) with "Read and suggest changes", and send it as a bearer token. On a Mac, save it to the keychain when shown and read it with `security find-generic-password -s "longbook access key" -w`. Clients that cannot send a header — claude.ai among them — use the signed-in door above instead.',
       auth: 'bearer lbk_… with scope memory:propose',
       reads: true,
-      writes: 'as proposals — they wait in the owner’s app and land in Changes the next time it opens',
+      writes: 'as proposals — they wait in the owner’s app and land in Proposals the next time it opens',
       documents: false,
     },
   ],

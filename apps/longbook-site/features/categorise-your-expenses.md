@@ -44,7 +44,7 @@ No. A commitment carries one category, and every charge takes it. Commitments wi
 
 ### Can my AI set categories?
 
-Yes. Through [longbook's MCP server](https://longbook.app/features/automate-longbook-with-claude.md), your AI reads the categories in use and sets one on what it adds or updates. Each change waits in **Changes**.
+Yes. Through [longbook's MCP server](https://longbook.app/features/automate-longbook-with-claude.md), your AI reads the categories in use and sets one on what it adds or updates. Each change waits in **Proposals**.
 
 ## Related features
 
@@ -57,7 +57,7 @@ Yes. Through [longbook's MCP server](https://longbook.app/features/automate-long
 
 longbook is a memory for your financial commitments: subscriptions, insurance, rent, loans and every other payment that comes back. It runs on iPhone and Mac and keeps its records as plain files in your own iCloud.
 
-The next payment stays in view on the iPhone widget and in the Mac menu bar. Your AI can read your longbook and update it through longbook's MCP server, and every change it makes shows in Changes, to keep or undo.
+The next payment stays in view on the iPhone widget and in the Mac menu bar. Your AI can read your longbook and update it through longbook's MCP server, and every change it makes shows in Proposals, to keep or undo.
 
 - Download for Mac: https://testflight.apple.com/join/g66Nd3Na
 - Download for iPhone: https://testflight.apple.com/join/g66Nd3Na

@@ -44,7 +44,7 @@ A total shows how much; it does not say which charge made the difference, or tha
 
 No. longbook draws the figures on each card; every note comes from an AI you connect, such as Claude or ChatGPT, through longbook's MCP server. The setup is on [Automate longbook with Claude](/features/automate-longbook-with-claude/).
 
-### Do notes wait in Changes?
+### Do notes wait in Proposals?
 
 No. A note changes no commitment or charge, so it goes to its card without a review. A note left through the hosted connector at `longbook.app/mcp` reaches its card the next time longbook is open and signed in.
 

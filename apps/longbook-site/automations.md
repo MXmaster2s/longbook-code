@@ -1,6 +1,6 @@
 # Automations
 
-> longbook can keep itself up to date. Your AI reads your email and records the charges it finds, Siri adds expenses by voice, and every change waits in Changes for you to keep or undo.
+> longbook can keep itself up to date. Your AI reads your email and records the charges it finds, Siri adds expenses by voice, and every change waits in Proposals for you to keep or undo.
 
 - Page: https://longbook.app/automations/
 
@@ -35,11 +35,11 @@ Read more: [Use your longbook in any AI app on your computer](https://longbook.a
 
 ## Log expenses from Gmail
 
-Claude reads your Gmail every morning and records what it finds in longbook: bank alerts, receipts, bills that are due and money in. Each entry waits in Changes.
+Claude reads your Gmail every morning and records what it finds in longbook: bank alerts, receipts, bills that are due and money in. Each entry waits in Proposals.
 
 - One prompt, once
 - Each morning's mail
-- Waiting in Changes
+- Waiting in Proposals
 
 ![The Automations screen of longbook on iPhone: the longbook MCP server switched on, AI suggestions allowed, and the Claude email automation with its prompt.](https://longbook.app/features/img/iphone-automations.jpg)
 
@@ -77,21 +77,21 @@ Read more: [Get insights about your expenses from your AI](https://longbook.app/
 
 ## Review every change your AI makes
 
-Every row an AI, Siri or a statement import writes into longbook shows in Changes, with the name of its writer, to keep or undo.
+Every row an AI, Siri or a statement import writes into longbook shows in Proposals, with the name of its writer, to keep or undo.
 
 - Each row with its writer
 - One answer for the whole change
 - Every version, kept
 
-![The Changes screen of longbook on iPhone: charges, a commitment, an account and a member suggested by Claude, with Keep all and Undo all.](https://longbook.app/features/img/iphone-changes.jpg)
+![The Proposals screen of longbook on iPhone: charges, a commitment, an account and a member suggested by Claude, with Keep all and Undo all.](https://longbook.app/features/img/iphone-changes.jpg)
 
-![The Changes screen of longbook on Mac: charges proposed by Claude with Keep all and Undo all, and the history of earlier versions.](https://longbook.app/features/img/mac-changes.jpg)
+![The Proposals screen of longbook on Mac: charges proposed by Claude with Keep all and Undo all, and the history of earlier versions.](https://longbook.app/features/img/mac-changes.jpg)
 
 Read more: [Review every change your AI makes](https://longbook.app/features/review-every-change-your-ai-makes.md)
 
 ## Reorganise my longbook
 
-One pass over the whole book, the way you would keep it if you had an afternoon: names as you would say them, every row in a category, people and accounts linked, doubles merged, nothing lost. Amounts and dates are never touched. The pass lands in [Changes](https://longbook.app/features/review-every-change-your-ai-makes.md) as one change, to keep or undo at once.
+One pass over the whole book, the way you would keep it if you had an afternoon: names as you would say them, every row in a category, people and accounts linked, doubles merged, nothing lost. Amounts and dates are never touched. The pass lands in [Proposals](https://longbook.app/features/review-every-change-your-ai-makes.md) as one change, to keep or undo at once.
 
 In the app, **Reorganise my longbook** on the AI Connections screen runs it with longbook's own AI: your longbook goes to longbook's server for the one pass and is not kept, and Anthropic's Claude reads it. Twice a month without longbook Cloud, more with it. With your own AI connected, paste the prompt **Reorganise my longbook** instead; it follows the same written method, as often as you like.
 
@@ -159,13 +159,13 @@ Add a server named longbook that runs this command:
 
 ## Prompts for your AI
 
-Paste a prompt into Claude or ChatGPT with the longbook connector on. Each one has written steps your AI reads from longbook, so the same words get the same result, and what it adds or changes in your commitments and charges waits in [Changes](https://longbook.app/features/review-every-change-your-ai-makes.md).
+Paste a prompt into Claude or ChatGPT with the longbook connector on. Each one has written steps your AI reads from longbook, so the same words get the same result, and what it adds or changes in your commitments and charges waits in [Proposals](https://longbook.app/features/review-every-change-your-ai-makes.md).
 
 The same list, with every step, is at [longbook.app/prompts.json](https://longbook.app/prompts.json).
 
 ### Setting up
 
-- "Read my 12-month bank statement and help me set up my longbook": Your longbook filled from your statements: every charge on record, the names you picked in setup filled in where your statements or your answers show them, each account's closing balance set, the charges that clearly repeat planned ahead, and the rest set to repeat once you confirm them. It waits in the Changes screen for you to keep.
+- "Read my 12-month bank statement and help me set up my longbook": Your longbook filled from your statements: every charge on record, the names you picked in setup filled in where your statements or your answers show them, each account's closing balance set, the charges that clearly repeat planned ahead, and the rest set to repeat once you confirm them. It waits in the Proposals screen for you to keep.
 - "Add my statement in my longbook": Every charge on the statement recorded as paid, money in kept apart, the account's balance updated, the charges that clearly repeat set to continue, and the rest once you confirm them.
 - "Categorise my longbook": Every commitment without a category gets one. Your AI shows you the ones it guessed, so you can correct any.
 - "Add September month report in my longbook": The month's statements recorded, the charges they prove confirmed, and each account's balance set. longbook draws that month's report, with "Not yet confirmed" beside the total until every charge in it is confirmed.
@@ -193,7 +193,7 @@ The same list, with every step, is at [longbook.app/prompts.json](https://longbo
 ### Housekeeping
 
 - "Tidy my longbook": Doubled charges, bank-style names and odd categories found, and fixed once you approve each change.
-- "Reorganise my longbook": Your whole longbook, once over: names as you would say them, every row categorised, people and accounts linked, doubles merged, nothing lost. The whole pass waits in Changes.
+- "Reorganise my longbook": Your whole longbook, once over: names as you would say them, every row categorised, people and accounts linked, doubles merged, nothing lost. The whole pass waits in Proposals.
 - "Set up a morning brief for my longbook": A short summary every morning of what is due today and in the next 30 days. Nothing in your longbook changes. Needs scheduled tasks in your AI.
 
 ### From your email
@@ -210,7 +210,7 @@ The same list, with every step, is at [longbook.app/prompts.json](https://longbo
 
 ## All of the MCP server's tools
 
-Every write goes through the same validator the apps use and lands in [Changes](https://longbook.app/features/review-every-change-your-ai-makes.md) with its writer named. The folder also carries a schema and a guide, `longbook.schema.json` and `llms.txt`, so any AI reads and writes it correctly.
+Every write goes through the same validator the apps use and lands in [Proposals](https://longbook.app/features/review-every-change-your-ai-makes.md) with its writer named. The folder also carries a schema and a guide, `longbook.schema.json` and `llms.txt`, so any AI reads and writes it correctly.
 
 ### Reading
 
@@ -258,13 +258,13 @@ The statements in the folder, and the reports longbook drew there with the comme
 - `delete_commitment`
 - `create_report`
 
-`create_report` asks longbook to draw a report over the days, accounts, people and categories you name. It appears on the Reports screen the next time the app is open, not in Changes.
+`create_report` asks longbook to draw a report over the days, accounts, people and categories you name. It appears on the Reports screen the next time the app is open, not in Proposals.
 
 ## About longbook
 
 longbook is a memory for your financial commitments: subscriptions, insurance, rent, loans and every other payment that comes back. It runs on iPhone and Mac and keeps its records as plain files in your own iCloud.
 
-The next payment stays in view on the iPhone widget and in the Mac menu bar. Your AI can read your longbook and update it through longbook's MCP server, and every change it makes shows in Changes, to keep or undo.
+The next payment stays in view on the iPhone widget and in the Mac menu bar. Your AI can read your longbook and update it through longbook's MCP server, and every change it makes shows in Proposals, to keep or undo.
 
 - Download for Mac: https://testflight.apple.com/join/g66Nd3Na
 - Download for iPhone: https://testflight.apple.com/join/g66Nd3Na

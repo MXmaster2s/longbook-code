@@ -260,7 +260,7 @@ test('a proposing door lists all eighteen writes and files one, carrying its key
   })
   const answer = JSON.parse(out.result.content[0].text)
   assert.equal(answer.created, true)
-  assert.match(answer.note, /Changes screen/)
+  assert.match(answer.note, /Proposals screen/)
   const proposal = filed.at(-1)!
   assert.equal(proposal.kind, 'add_commitments')
   assert.equal(proposal.idempotency_key, 'brief:2026-08-21:18c2a')
@@ -905,7 +905,7 @@ test('the new kinds wear honest annotations and schemas: deletes destructive, ev
   assert.equal('name' in (tool('delete_commitment').inputSchema as any).properties, false, 'by id only')
 })
 
-test('create_report files for the app to draw, says nothing waits in Changes, and refuses a name the copy lacks', async () => {
+test('create_report files for the app to draw, says nothing waits in Proposals, and refuses a name the copy lacks', async () => {
   const before = filed.length
   const out = await callWith(writingCtx(), 'create_report', {
     title: 'Goa', start_date: '2026-09-28', end_date: '2026-09-30', accounts: ['icici joint account'], members: ['Diya'], categories: ['Travel'], idempotency_key: 'report:goa',
@@ -913,7 +913,7 @@ test('create_report files for the app to draw, says nothing waits in Changes, an
   const answer = JSON.parse(out.result.content[0].text)
   assert.equal(answer.created, true)
   assert.equal(answer.note, REPORT_FILED_NOTE)
-  assert.equal(REPORT_FILED_NOTE, 'Filed. longbook draws the report on its Reports screen the next time the owner opens the app — tell them so, and stop here. A report is drawn from the rows; nothing waits in Changes.')
+  assert.equal(REPORT_FILED_NOTE, 'Filed. longbook draws the report on its Reports screen the next time the owner opens the app — tell them so, and stop here. A report is drawn from the rows; nothing waits in Proposals.')
   const proposal = filed.at(-1)!
   assert.equal(proposal.kind, 'create_report')
   assert.equal(proposal.idempotency_key, 'report:goa')

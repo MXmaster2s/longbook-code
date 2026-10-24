@@ -45,13 +45,13 @@ longbook".
 Result: Your longbook filled from your statements: every charge on record, the names you picked
 in setup filled in where your statements or your answers show them, each account's closing
 balance set, the charges that clearly repeat planned ahead, and the rest set to repeat once you
-confirm them. It waits in the Changes screen for you to keep.
+confirm them. It waits in the Proposals screen for you to keep.
 
 Attachments: bank and card statements, ideally the last 12 months, as a PDF with text, an .xlsx
 or a CSV. Card statements matter too: a bank statement shows only the card bill payment, not
 what the card was spent on.
 
-Writes to the longbook: yes; it waits in the app's Changes screen.
+Writes to the longbook: yes; it waits in the app's Proposals screen.
 
 ### Add my statement
 
@@ -68,7 +68,7 @@ Attachments: bank or card statements, as a PDF with text, an .xlsx or a CSV. A s
 photo or an older .xls file in the documents folder cannot be read: save it as .xlsx or CSV, or
 attach it in the chat.
 
-Writes to the longbook: yes; it waits in the app's Changes screen.
+Writes to the longbook: yes; it waits in the app's Proposals screen.
 
 ### Categorise my longbook
 
@@ -81,7 +81,7 @@ you can correct any.
 
 Attachments: none.
 
-Writes to the longbook: yes; it waits in the app's Changes screen.
+Writes to the longbook: yes; it waits in the app's Proposals screen.
 
 ### Add a month report in my longbook
 
@@ -95,4 +95,4 @@ until every charge in it is confirmed.
 
 Attachments: the bank and card statements that cover the month.
 
-Writes to the longbook: yes; it waits in the app's Changes screen.
+Writes to the longbook: yes; it waits in the app's Proposals screen.

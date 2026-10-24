@@ -154,7 +154,7 @@ const PAGE = `<!doctype html>
     <h2>What it can do</h2>
     <p class="quiet">Reading</p>
     <p class="tools">${toolList(ROUTER.tools.read)}</p>
-    <p class="quiet">Writing — every write lands in the app’s Changes screen, to keep or undo</p>
+    <p class="quiet">Writing — every write lands in the app’s Proposals screen, to keep or undo</p>
     <p class="tools">${toolList(ROUTER.tools.write)}</p>
     <p class="quiet">On the owner’s machine only</p>
     <p class="tools">${toolList(ROUTER.tools.local_only)}</p>
@@ -172,14 +172,14 @@ const PAGE = `<!doctype html>
 
   <section id="prompts">
     <h2>Prompts</h2>
-    <p>Copy one into an AI connected to longbook. Each comes with a procedure your AI follows, step by step, and what it writes waits in the app’s Changes screen for you to keep or undo.</p>
+    <p>Copy one into an AI connected to longbook. Each comes with a procedure your AI follows, step by step, and what it writes waits in the app’s Proposals screen for you to keep or undo.</p>
     ${promptGroups()}
     <p class="quiet" style="margin-top:16px">For the AI: <code>read_guide</code> with a prompt’s name or the owner’s words returns its procedure, and <a href="/prompts.json">prompts.json</a> holds them all.</p>
   </section>
 
   <section id="daily-email-round">
     <h2>${escape(ROUTER.recipes.daily_email_round.title)}</h2>
-    <p>Your AI reads yesterday's mail each morning and writes the money it finds into longbook, where it waits in Changes. To set it up, paste this into an AI that has this connector and reads your mail:</p>
+    <p>Your AI reads yesterday's mail each morning and writes the money it finds into longbook, where it waits in Proposals. To set it up, paste this into an AI that has this connector and reads your mail:</p>
     <span class="prompt">${escape(ROUTER.recipes.daily_email_round.the_owner_says)}</span>
     <p class="quiet" style="margin-top:12px">What follows is for the AI. It is the guide's own chapter, also at <code>read_guide "daily-email-round"</code>.</p>
     <div class="recipe">${chapter(ROUTER.recipes.daily_email_round.instructions)}</div>

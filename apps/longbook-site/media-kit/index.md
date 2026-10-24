@@ -44,7 +44,7 @@ The name is one word, all lowercase, even at the start of a sentence. Write **lo
 
 - **Remembers every commitment.** The amount, how often it repeats and when it is due next, for every subscription, premium, loan and renewal.
 - **Lets your AI fill it in.** Connected over MCP, Claude or ChatGPT reads the receipts and renewal notices in your email and writes them into longbook.
-- **Keeps every change reviewable.** Every edit an AI makes waits in the Changes section with its author recorded, ready to keep or undo. Earlier versions can be restored.
+- **Keeps every change reviewable.** Every edit an AI makes waits in the Proposals section with its author recorded, ready to keep or undo. Earlier versions can be restored.
 - **Shows what is next at a glance.** An iPhone widget and a Mac menu bar item show the next payment without opening the app.
 - **Turns a month into a report.** A month of spending goes to family as a link that expires, and their comments come back into longbook.
 

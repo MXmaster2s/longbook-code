@@ -22,7 +22,7 @@ Claude calls longbook's tools to answer: the next payment, what is due in the ne
 
 ### Writes that wait for you
 
-Claude can add commitments and charges, mark a charge paid, cancel a commitment or leave an insight. Each change is checked against longbook's format and shows in **Changes**, to keep or undo.
+Claude can add commitments and charges, mark a charge paid, cancel a commitment or leave an insight. Each change is checked against longbook's format and shows in **Proposals**, to keep or undo.
 
 ### Two ways to connect
 
@@ -40,7 +40,7 @@ Claude, ChatGPT and any other assistant that supports MCP connectors. Claude Des
 
 ### Can Claude change my longbook without me knowing?
 
-No. Every change Claude makes shows in Changes with Claude named as its author. Through the hosted connector, a signed-in Claude can only suggest changes, and only after **Allow suggested changes** is turned on in the app.
+No. Every change Claude makes shows in Proposals with Claude named as its author. Through the hosted connector, a signed-in Claude can only suggest changes, and only after **Allow proposals** is turned on in the app.
 
 ### What does the hosted copy hold?
 
@@ -48,8 +48,8 @@ A copy of the memory file, uploaded when the MCP server is enabled. It is delete
 
 ## Related features
 
-- [Review every change your AI makes](https://longbook.app/features/review-every-change-your-ai-makes.md): Every row your AI, Siri or an import writes shows in Changes, to keep, edit or undo.
-- [Log expenses from Gmail](https://longbook.app/features/log-expenses-from-gmail.md): Claude reads your email every morning and records the charges it finds, each one waiting in Changes.
+- [Review every change your AI makes](https://longbook.app/features/review-every-change-your-ai-makes.md): Every row your AI, Siri or an import writes shows in Proposals, to keep, edit or undo.
+- [Log expenses from Gmail](https://longbook.app/features/log-expenses-from-gmail.md): Claude reads your email every morning and records the charges it finds, each one waiting in Proposals.
 - [Get insights about your expenses from your AI](https://longbook.app/features/get-insights-about-your-expenses-from-your-ai.md): Short notes from your AI, shown beside the dashboard, account or member card each one is about.
 - [All features of longbook](https://longbook.app/features.md)
 
@@ -57,7 +57,7 @@ A copy of the memory file, uploaded when the MCP server is enabled. It is delete
 
 longbook is a memory for your financial commitments: subscriptions, insurance, rent, loans and every other payment that comes back. It runs on iPhone and Mac and keeps its records as plain files in your own iCloud.
 
-The next payment stays in view on the iPhone widget and in the Mac menu bar. Your AI can read your longbook and update it through longbook's MCP server, and every change it makes shows in Changes, to keep or undo.
+The next payment stays in view on the iPhone widget and in the Mac menu bar. Your AI can read your longbook and update it through longbook's MCP server, and every change it makes shows in Proposals, to keep or undo.
 
 - Download for Mac: https://testflight.apple.com/join/g66Nd3Na
 - Download for iPhone: https://testflight.apple.com/join/g66Nd3Na

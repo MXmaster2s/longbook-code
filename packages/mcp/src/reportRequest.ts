@@ -14,7 +14,7 @@ export const REQUESTS_DIR = 'requests'
 
 /** What the local door answers once the request is left for the app. */
 export const REPORT_ASKED_NOTE =
-  'Asked. longbook draws the report on its Reports screen the next time the app is open — tell the owner so, and stop here. Nothing waits in Changes.'
+  'Asked. longbook draws the report on its Reports screen the next time the app is open — tell the owner so, and stop here. Nothing waits in Proposals.'
 
 export function createReport(dir: string, editedBy: string, input: Record<string, unknown>): unknown {
   const proposal = checkProposal('create_report', input)

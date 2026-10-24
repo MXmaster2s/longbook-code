@@ -72,7 +72,7 @@ struct SidebarView: View {
                     navRow(LBGlyph.commitment, "Commitments", active: isCommitments) { path = [.commitments(ListFilter())] }
                     navRow("lightbulb", "Insights", active: shown == .insights) { path = [.insights] }
                     navRow(
-                        LBGlyph.change, "Changes", active: shown == .changes,
+                        LBGlyph.change, "Proposals", active: shown == .changes,
                         attention: model.outsideChangeFrom != nil
                     ) { path = [.changes] }
 

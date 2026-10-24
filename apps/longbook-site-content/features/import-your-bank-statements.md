@@ -32,7 +32,7 @@ Each line comes back with a name, date, amount and category, and money in is mar
 
 ### Commitments and members
 
-Payments that repeat are offered as commitments to fill in, and the people a statement pays as members. A line that belongs to a recurring commitment longbook already holds is recorded as that commitment's charge. What is recorded shows in [Changes](/features/review-every-change-your-ai-makes/), and each month the statement fills gets a [monthly report](/features/create-monthly-expense-reports/).
+Payments that repeat are offered as commitments to fill in, and the people a statement pays as members. A line that belongs to a recurring commitment longbook already holds is recorded as that commitment's charge. What is recorded shows in [Proposals](/features/review-every-change-your-ai-makes/), and each month the statement fills gets a [monthly report](/features/create-monthly-expense-reports/).
 
 ## Why it exists
 
@@ -46,7 +46,7 @@ To longbook's server, a few pages or rows at a time, and from there to Anthropic
 
 ### Can my own AI read the statement instead?
 
-Yes. **Use My Own AI** gives a prompt for Claude or another AI, which reads the statement and writes into longbook; what it writes waits in Changes. The same route opens when longbook's server has read what it can for your account for now.
+Yes. **Use My Own AI** gives a prompt for Claude or another AI, which reads the statement and writes into longbook; what it writes waits in Proposals. The same route opens when longbook's server has read what it can for your account for now.
 
 ### Does longbook connect to my bank?
 
