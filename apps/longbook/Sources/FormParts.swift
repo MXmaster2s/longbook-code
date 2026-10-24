@@ -126,7 +126,7 @@ struct FormQuestion<Trailing: View>: View {
 
     /// The way to make a new one. A word beside the plus only repeated the section's name.
     private func addButton(_ noun: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        Button(action: { Measure.used("add_new"); action() }) {
             Image(systemName: "plus")
                 .font(.system(size: 11, weight: .bold))
                 .foregroundStyle(LBColor.brandText.color)
@@ -147,7 +147,7 @@ struct FormQuestion<Trailing: View>: View {
     /// The rest of the rack. The rail carries one row, so the list behind this is the
     /// only place a name past its edge can be read rather than scrolled to blindly.
     private func browseButton(_ noun: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        Button(action: { Measure.used("list_bullet"); action() }) {
             Image(systemName: "list.bullet")
                 .font(.system(size: 11, weight: .bold))
                 .foregroundStyle(LBColor.textSecondary.color)
@@ -180,7 +180,7 @@ struct MoneyButton: View {
         let income = direction == "in"
         let transfer = direction == "transfer"
         let marked = income || transfer
-        return Button(action: action) {
+        return Button(action: { Measure.used("pick_direction"); action() }) {
             Image(systemName: income ? LBGlyph.income : (transfer ? LBGlyph.transfer : LBGlyph.expense))
                 .font(.system(size: 11, weight: .bold))
                 .foregroundStyle(marked ? LBColor.onBrandTint.color : LBColor.textSecondary.color)
@@ -281,6 +281,8 @@ struct FormToggleRow: View {
     @Environment(\.lbFormGrouped) private var grouped
     let title: String
     @Binding var isOn: Bool
+    /// The switch's fixed name in usage counts.
+    let measure: StaticString
 
     var body: some View {
         #if os(macOS)
@@ -288,7 +290,7 @@ struct FormToggleRow: View {
             FormRow {
                 FormQuestion(title)
             } content: {
-                Toggle(title, isOn: $isOn)
+                Toggle(title, isOn: $isOn.measured(measure))
                     .labelsHidden()
                     .toggleStyle(.switch)
                     .tint(LBColor.brand.color)
@@ -303,7 +305,7 @@ struct FormToggleRow: View {
 
     private var field: some View {
         FormField {
-            Toggle(isOn: $isOn) {
+            Toggle(isOn: $isOn.measured(measure)) {
                 Text(title)
                     .lbText(.body)
                     .foregroundStyle(LBColor.textPrimary.color)
@@ -374,12 +376,12 @@ struct FormCurrencyMenu: View {
             .pickerStyle(.inline)
             .labelsHidden()
             Divider()
-            Button("Other…") { picking = true }
+            Button("Other…") { Measure.used("other", .menuItem); picking = true }
             let removable = codes.filter { model.commitmentsIn(currency: $0).isEmpty && $0 != currency }
             if !removable.isEmpty {
                 Menu("Remove From Quick Selector") {
                     ForEach(removable, id: \.self) { code in
-                        Button(code, role: .destructive) { deleting = code }
+                        Button(code, role: .destructive) { Measure.used("deleting", .menuItem); deleting = code }
                     }
                 }
             }
@@ -401,6 +403,7 @@ struct FormCurrencyMenu: View {
         .menuIndicator(.hidden)
         .fixedSize()
         .accessibilityLabel("Currency, \(currency)")
+        .measured("form_parts_picking", .sheet, when: picking)
         .sheet(isPresented: $picking) {
             CurrencyPickerView(
                 already: model.editChoices.currencies,
@@ -412,19 +415,21 @@ struct FormCurrencyMenu: View {
             )
             .lbThreeQuarterSheet()
         }
+        .measured("form_parts_deleting", .alert, when: deleting != nil)
         .alert(refusal.title,
                isPresented: Binding(get: { deleting != nil },
                                     set: { if !$0 { deleting = nil } })) {
             if refusal.removable {
                 Button("Delete", role: .destructive) {
+                    Measure.used("delete")
                     if let code = deleting, model.forgetCurrency(code), currency == code {
                         currency = model.editChoices.currencies.first ?? "INR"
                     }
                     deleting = nil
                 }
-                Button("Cancel", role: .cancel) { deleting = nil }
+                Button("Cancel", role: .cancel) { Measure.used("cancel"); deleting = nil }
             } else {
-                Button("Close", role: .cancel) { deleting = nil }
+                Button("Close", role: .cancel) { Measure.used("close"); deleting = nil }
             }
         } message: {
             Text(refusal.message)
@@ -506,6 +511,7 @@ struct FormDateControl<Trailing: View>: View {
         }
         #if os(macOS)
         // The Mac's calendar hangs off the field, as Calendar and Reminders do; no sheet.
+        .measured("form_parts_picking", .popover, when: picking)
         .popover(isPresented: $picking, arrowEdge: .bottom) {
             DayPickerView(
                 title: title,
@@ -517,6 +523,7 @@ struct FormDateControl<Trailing: View>: View {
             )
         }
         #else
+        .measured("form_parts_picking", .sheet, when: picking)
         .sheet(isPresented: $picking) {
             DayPickerView(
                 title: title,
@@ -533,6 +540,7 @@ struct FormDateControl<Trailing: View>: View {
 
     private var dayButton: some View {
             Button {
+                Measure.used("open_picker")
                 picking.toggle()
             } label: {
                 FormField {
@@ -797,6 +805,7 @@ struct CommitmentRacks: View {
         .onAppear { typing.submitTyped = submitTyped }
         // The closure holds these racks, and they hold the typing: let go when they leave.
         .onDisappear { typing.submitTyped = { true } }
+        .measured("form_parts_browsing", .sheet, when: browsing != nil)
         .sheet(item: $browsing) { target in
             let picker = ChoicePickerView(
                 title: target.title,
@@ -819,37 +828,42 @@ struct CommitmentRacks: View {
             picker
             #endif
         }
+        .measured("form_parts_editing_entity", .sheet, when: editingEntity != nil)
         .sheet(item: $editingEntity) { target in
             EntityEditView(model: model, kind: target.kind, id: target.entityId,
                            currentName: target.name, onDone: { editingEntity = nil },
                            onDeleted: { forget(target) })
                 .lbThreeQuarterSheet()
         }
+        .measured("form_parts_deleting_tag", .dialog, when: deletingTag != nil)
         .confirmationDialog("Delete the tag \(deletingTag?.name ?? "")?",
                             isPresented: Binding(get: { deletingTag != nil },
                                                  set: { if !$0 { deletingTag = nil } }),
                             titleVisibility: .visible) {
             Button("Delete Tag", role: .destructive) {
+                Measure.used("delete_tag")
                 guard let target = deletingTag else { return }
                 if model.deleteTag(kind: "commitment", name: target.name), tag == target.name {
                     tag = nil
                 }
                 deletingTag = nil
             }
-            Button("Keep It", role: .cancel) { deletingTag = nil }
+            Button("Keep It", role: .cancel) { Measure.used("keep_it"); deletingTag = nil }
         } message: {
             Text("Commitments wearing it keep everything else; they just lose the tag.")
         }
+        .measured("form_parts_deleting_entity", .dialog, when: deletingEntity != nil)
         .confirmationDialog("Delete \(deletingEntity?.name ?? "")?",
                             isPresented: Binding(get: { deletingEntity != nil },
                                                  set: { if !$0 { deletingEntity = nil } }),
                             titleVisibility: .visible) {
             Button("Delete", role: .destructive) {
+                Measure.used("delete")
                 guard let target = deletingEntity else { return }
                 if model.deleteEntity(target.kind, id: target.entityId) { forget(target) }
                 deletingEntity = nil
             }
-            Button("Keep It", role: .cancel) { deletingEntity = nil }
+            Button("Keep It", role: .cancel) { Measure.used("keep_it"); deletingEntity = nil }
         } message: {
             Text("Commitments paid from it stay; they simply stop naming it.")
         }
@@ -903,6 +917,7 @@ struct CommitmentRacks: View {
                 }
             }
         }
+        .measured("form_parts_editing_tag", .sheet, when: editingTag != nil)
         .sheet(item: $editingTag) { target in
             CategoryEditView(
                 model: model,
@@ -937,14 +952,14 @@ struct CommitmentRacks: View {
             addingCategory = false
         }
         .contextMenu {
-            Button { editingTag = TagTarget(name: name) } label: {
+            Button { Measure.used("edit_tag", .contextMenu); editingTag = TagTarget(name: name) } label: {
                 Label("Edit Tag", systemImage: "pencil")
             }
             // Only a tag this vault owns can be deleted. A seeded one has no registry
             // entry to remove, so the delete appeared to work and the chip returned on
             // the next render — an affordance that lied.
             if model.customTags(kind: "commitment").contains(name) {
-                Button(role: .destructive) { deletingTag = TagTarget(name: name) } label: {
+                Button(role: .destructive) { Measure.used("delete_tag", .contextMenu); deletingTag = TagTarget(name: name) } label: {
                     Label("Delete Tag", systemImage: "trash")
                 }
             }
@@ -1165,8 +1180,8 @@ struct CommitmentRacks: View {
 private extension View {
     func chipMenu(edit: @escaping () -> Void, delete: @escaping () -> Void, noun: String) -> some View {
         contextMenu {
-            Button(action: edit) { Label("Edit \(noun)", systemImage: "pencil") }
-            Button(role: .destructive, action: delete) { Label("Delete \(noun)", systemImage: "trash") }
+            Button(action: { Measure.used("edit"); edit() }) { Label("Edit \(noun)", systemImage: "pencil") }
+            Button(role: .destructive, action: { Measure.used("delete"); delete() }) { Label("Delete \(noun)", systemImage: "trash") }
         }
         .accessibilityHint("Press and hold to edit or delete this \(noun.lowercased())")
     }
@@ -1192,7 +1207,7 @@ struct MoneyPicker: View {
                         .foregroundStyle(LBColor.textTertiary.color)
                 }
                 Spacer()
-                Button(action: onDone) {
+                Button(action: { Measure.used("close"); onDone() }) {
                     Image(systemName: "xmark")
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(LBColor.textSecondary.color)
@@ -1231,6 +1246,7 @@ struct MoneyPicker: View {
     private func option(_ title: String, detail: String, symbol: String, selected: Bool,
                         pick: @escaping () -> Void) -> some View {
         Button {
+            Measure.used("pick_done")
             LBHaptics.tap()
             pick()
             onDone()

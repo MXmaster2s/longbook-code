@@ -168,9 +168,10 @@ struct StatementImportView: View {
         .lbClosesOnOutsideClick(onDone)
         // A pull-down with a statement read would lose it; the close button asks instead.
         .interactiveDismissDisabled(stage != .pick)
+        .measured("statement_import_confirming_close", .dialog, when: confirmingClose)
         .confirmationDialog("Leave the import?", isPresented: $confirmingClose, titleVisibility: .visible) {
-            Button("Leave", role: .destructive, action: onDone)
-            Button("Stay", role: .cancel) {}
+            Button("Leave", role: .destructive, action: { Measure.used("leave"); onDone() })
+            Button("Stay", role: .cancel) { Measure.used("stay") }
         } message: {
             Text("What was read is not kept.")
         }
@@ -212,7 +213,9 @@ struct StatementImportView: View {
             guard case .success(let urls) = result, !urls.isEmpty else { return }
             start(Array(urls.prefix(Self.filesAtOnce)))
         }
+        .measured("statement_import_own_ai", .sheet, when: ownAI)
         .sheet(isPresented: $ownAI) { ownAISheet }
+        .measured("statement_import_asking_consent", .sheet, when: askingConsent)
         .sheet(isPresented: $askingConsent) {
             ConsentSheet(consent: .statements, onAccept: {
                 consented = true
@@ -227,8 +230,10 @@ struct StatementImportView: View {
             })
         }
         #if os(iOS)
+        .measured("statement_import_open_line", .sheet, when: openLine != nil)
         .sheet(item: $openLine) { line in lineDetail(line.id) }
         #endif
+        .measured("statement_import_filling", .sheet, when: filling != nil)
         .sheet(item: $filling) { item in
             RenewalFormView(
                 model: model, editingId: nil,
@@ -304,6 +309,7 @@ struct StatementImportView: View {
                 // The other door, for the owner who has an AI of their own: its own sheet, so
                 // the statement stays the one path on this screen.
                 Button {
+                    Measure.used("use_my_own_ai")
                     ownAI = true
                 } label: {
                     HStack(spacing: LBSpacing.s1) {
@@ -325,7 +331,7 @@ struct StatementImportView: View {
                 .buttonStyle(.plain)
                 .accessibilityHint("Opens the steps for your own AI")
                 if setup {
-                    Button(action: onDone) {
+                    Button(action: { Measure.used("skip"); onDone() }) {
                         HStack(spacing: LBSpacing.s2) {
                             Text("Skip")
                                 .lbText(.footnote)
@@ -502,6 +508,7 @@ struct StatementImportView: View {
             Spacer(minLength: 0)
             primary("Unlock", enabled: !password.isEmpty) { cut() }
             Button {
+                Measure.used("pick_another_file")
                 password = ""
                 problem = nil
                 files = []
@@ -567,11 +574,11 @@ struct StatementImportView: View {
                 .foregroundStyle(LBColor.textSecondary.color)
                 .fixedSize(horizontal: false, vertical: true)
             LBReflowStack(spacing: LBSpacing.s2) {
-                Button { confirmingClose = true } label: {
+                Button { Measure.used("discard"); confirmingClose = true } label: {
                     ChangeActionLabel(title: "Discard", symbol: "xmark", filled: false, wide: true)
                 }
                 .buttonStyle(.plain)
-                Button { add() } label: {
+                Button { Measure.used("checkmark_circle_fill"); add() } label: {
                     ChangeActionLabel(title: addTitle, symbol: "checkmark.circle.fill", filled: true, wide: true)
                 }
                 .buttonStyle(.plain)
@@ -636,6 +643,7 @@ struct StatementImportView: View {
                     }
                     .contextMenu {
                         Button("Rename") {
+                            Measure.used("rename", .contextMenu)
                             renamed = member.name
                             renaming = member.name
                         }
@@ -659,10 +667,11 @@ struct StatementImportView: View {
                 .padding(.horizontal, LBSpacing.s1)
                 .fixedSize(horizontal: false, vertical: true)
         }
+        .measured("statement_import_renaming", .alert, when: renaming != nil)
         .alert("Their name", isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } }), presenting: renaming) { old in
             TextField("Name", text: $renamed)
-            Button("Save") { rename(old, to: renamed) }
-            Button("Cancel", role: .cancel) {}
+            Button("Save") { Measure.used("save"); rename(old, to: renamed) }
+            Button("Cancel", role: .cancel) { Measure.used("cancel") }
         } message: { _ in
             Text("As you would write it on a commitment.")
         }
@@ -681,10 +690,11 @@ struct StatementImportView: View {
                         if chosenRepeats.contains(repeated.name) { chosenRepeats.remove(repeated.name) } else { chosenRepeats.insert(repeated.name) }
                     }
                     .contextMenu {
-                        Button { filling = Filling(repeated: repeated, before: Set(model.commitmentIdNames.map(\.id))) } label: {
+                        Button { Measure.used("fill_in_the_details", .contextMenu); filling = Filling(repeated: repeated, before: Set(model.commitmentIdNames.map(\.id))) } label: {
                             Label("Fill in the details", systemImage: "pencil")
                         }
                         Button {
+                            Measure.used("rename", .contextMenu)
                             renamedRepeat = repeated.name
                             renamingRepeat = repeated.name
                         } label: {
@@ -710,10 +720,11 @@ struct StatementImportView: View {
                 .padding(.horizontal, LBSpacing.s1)
                 .fixedSize(horizontal: false, vertical: true)
         }
+        .measured("statement_import_renaming_repeat", .alert, when: renamingRepeat != nil)
         .alert("Its name", isPresented: Binding(get: { renamingRepeat != nil }, set: { if !$0 { renamingRepeat = nil } }), presenting: renamingRepeat) { old in
             TextField("Name", text: $renamedRepeat)
-            Button("Save") { renameRepeat(old, to: renamedRepeat) }
-            Button("Cancel", role: .cancel) {}
+            Button("Save") { Measure.used("save"); renameRepeat(old, to: renamedRepeat) }
+            Button("Cancel", role: .cancel) { Measure.used("cancel") }
         } message: { _ in
             Text("As you would say it. The statement’s lines take the name too.")
         }
@@ -832,7 +843,7 @@ struct StatementImportView: View {
                 }
             }
             card {
-                Button { showingCharges.toggle() } label: {
+                Button { Measure.used("show_charges"); showingCharges.toggle() } label: {
                     HStack(spacing: LBSpacing.s3) {
                         VStack(alignment: .leading, spacing: 1) {
                             Text(chargesWord)
@@ -977,6 +988,7 @@ struct StatementImportView: View {
                     .foregroundStyle(LBColor.textPrimary.color)
                 Spacer()
                 Button {
+                    Measure.used("close")
                     if stage == .pick { onDone() } else { confirmingClose = true }
                 } label: {
                     Image(systemName: "xmark")
@@ -999,7 +1011,7 @@ struct StatementImportView: View {
                     .lbText(.headline)
                     .foregroundStyle(LBColor.textPrimary.color)
                 Spacer()
-                Button("Done") { ownAI = false }
+                Button("Done") { Measure.used("done"); ownAI = false }
                     .lbText(.body)
                     .foregroundStyle(LBColor.brandText.color)
                     .buttonStyle(.plain)
@@ -1052,6 +1064,7 @@ struct StatementImportView: View {
 
     private func keepAllButton(_ title: String, enabled: Bool, run: @escaping () -> Void) -> some View {
         Button {
+            Measure.used("keep_all")
             LBHaptics.tap()
             run()
         } label: {
@@ -1193,6 +1206,7 @@ struct StatementImportView: View {
         let locked = isLocked(candidate)
         return HStack(alignment: .top, spacing: LBSpacing.s2) {
             Button {
+                Measure.used("checkmark_square_fill")
                 if !locked { candidates[index].keep.toggle() }
             } label: {
                 Image(systemName: candidate.keep ? "checkmark.square.fill" : "square")
@@ -1205,6 +1219,7 @@ struct StatementImportView: View {
             .disabled(locked)
             .accessibilityLabel(candidate.keep ? "Kept. Tap to leave out." : "Left out. Tap to keep.")
             Button {
+                Measure.used("open_line")
                 openLine = OpenLine(id: index)
             } label: {
                 LBCommitmentRow(
@@ -1244,7 +1259,7 @@ struct StatementImportView: View {
         return NavigationStack {
             Form {
                 Section {
-                    Toggle("Add this item", isOn: keepBinding(index))
+                    Toggle("Add this item", isOn: keepBinding(index).measured("add_this_item"))
                         .disabled(locked)
                 } footer: {
                     if let reason = candidate.skipReason { Text("Skipped: \(reason)") }
@@ -1266,13 +1281,13 @@ struct StatementImportView: View {
                 Section("Statement line") {
                     Text(candidate.line.payee)
                         .textSelection(.enabled)
-                    Button("Copy Statement Line") { copy(candidate.line.payee) }
+                    Button("Copy Statement Line") { Measure.used("copy_statement_line"); copy(candidate.line.payee) }
                 }
             }
             .lbScreenTitle(LB.parseDate(candidate.line.date).map(monthDayWord) ?? candidate.line.date, large: false)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { openLine = nil }
+                    Button("Done") { Measure.used("done"); openLine = nil }
                 }
             }
         }
@@ -1307,7 +1322,7 @@ struct StatementImportView: View {
     private var chargesTable: some View {
         Table(lineRows, sortOrder: $lineOrder) {
             TableColumn("Add", value: \.kept) { row in
-                Toggle("", isOn: keepBinding(row.id))
+                Toggle("", isOn: keepBinding(row.id).measured("keep_binding"))
                     .labelsHidden()
                     .disabled(isLocked(candidates[row.id]))
                     .accessibilityLabel(candidates[row.id].keep ? "Kept" : "Left out")
@@ -1397,7 +1412,7 @@ struct StatementImportView: View {
 
     /// The brand button; `badge` adds a small positive pill beside its word.
     private func primary(_ title: String, badge: String? = nil, enabled: Bool = true, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        Button(action: { Measure.used("statement_option"); action() }) {
             HStack(spacing: LBSpacing.s2) {
                 Text(title)
                     .lbText(.body)

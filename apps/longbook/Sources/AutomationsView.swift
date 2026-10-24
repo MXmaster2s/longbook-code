@@ -83,6 +83,7 @@ struct AutomationsView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(LBColor.canvas.color)
         .lbScreenTitle("AI Connections")
+        .measured("automations_reorganising", .sheet, when: reorganising)
         .sheet(isPresented: $reorganising) {
             ReorganiseView(model: model, auth: auth) { reorganising = false }
         }
@@ -244,6 +245,7 @@ struct AutomationsView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("What this prompt does")
+            .measured("automations_explained", .popover, when: explained == row.id)
             .popover(isPresented: Binding(get: { explained == row.id }, set: { if !$0 { explained = nil } })) {
                 Text(about(row))
                     .lbText(.bodySM)

@@ -60,9 +60,11 @@ struct CommitmentDetailView: View {
         .frame(minWidth: onClose != nil ? 520 : 0, minHeight: onClose != nil ? 480 : 0)
         #endif
         .background(LBColor.canvas.color)
+        .measured("commitment_detail_editing", .sheet, when: editing)
         .sheet(isPresented: $editing) {
             RenewalFormView(model: model, editingId: id) { editing = false }
         }
+        .measured("commitment_detail_showing_history", .sheet, when: showingHistory)
         .sheet(isPresented: $showingHistory) {
             CommitmentHistoryView(model: model, id: id) { showingHistory = false }
         }
@@ -511,6 +513,7 @@ struct CommitmentHistoryView: View {
         .frame(minWidth: 460, minHeight: 480)
         #endif
         .lbClosesOnOutsideClick(onDone)
+        .measured("commitment_detail_editing", .sheet, when: editing != nil)
         .sheet(item: $editing) { charge in
             RenewalFormView(model: model, editingId: id, chargeISO: charge.row.date) { editing = nil }
                 .lbThreeQuarterSheet()

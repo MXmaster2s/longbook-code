@@ -41,6 +41,7 @@ struct ReorganiseView: View {
         .presentationDetents([.medium, .large])
         #endif
         .interactiveDismissDisabled(stage == .running)
+        .measured("reorganise_asking_consent", .sheet, when: askingConsent)
         .sheet(isPresented: $askingConsent) {
             ConsentSheet(consent: .statements, onAccept: {
                 consented = true

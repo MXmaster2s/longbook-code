@@ -123,14 +123,15 @@ struct EntityEditView: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
-                        Button("Cancel", action: close)
+                        Button("Cancel", action: { Measure.used("cancel"); close() })
+                            .measured("entity_edit_confirming_discard", .dialog, when: confirmingDiscard)
                             .confirmationDialog("Discard your changes?", isPresented: $confirmingDiscard, titleVisibility: .visible) {
-                                Button("Discard", role: .destructive) { onDone() }
-                                Button("Keep Editing", role: .cancel) {}
+                                Button("Discard", role: .destructive) { Measure.used("discard"); onDone() }
+                                Button("Keep Editing", role: .cancel) { Measure.used("keep_editing") }
                             }
                     }
                     ToolbarItem(placement: .confirmationAction) {
-                        Button("Save") { if saveNow() { onDone() } }
+                        Button("Save") { Measure.used("save"); if saveNow() { onDone() } }
                             .disabled(!ready)
                     }
                 }
@@ -195,12 +196,15 @@ struct EntityEditView: View {
         .interactiveDismissDisabled(hasUnsavedChanges)
         #endif
         .onAppear { model.clearSaveError(); loadIfNeeded() }
+        .measured("entity_edit_viewing_commitment", .sheet, when: viewingCommitment != nil)
         .sheet(item: $viewingCommitment, onDismiss: refreshFacts) { ref in
             CommitmentDetailView(model: model, id: ref.id) { viewingCommitment = nil }
         }
+        .measured("entity_edit_adding_commitment", .sheet, when: addingCommitment)
         .sheet(isPresented: $addingCommitment, onDismiss: refreshFacts) {
             entityAddForm(model: model, kind: kind, id: id) { addingCommitment = false }
         }
+        .measured("entity_edit_picking_balance_day", .sheet, when: pickingBalanceDay)
         .sheet(isPresented: $pickingBalanceDay) {
             DayPickerView(
                 title: "Balance on",
@@ -210,6 +214,7 @@ struct EntityEditView: View {
             )
             .lbDaySheet()
         }
+        .measured("entity_edit_picking_account", .sheet, when: pickingAccount)
         .sheet(isPresented: $pickingAccount) {
             ChoicePickerView(
                 title: "Link an account", glyph: LBGlyph.account,
@@ -226,16 +231,18 @@ struct EntityEditView: View {
             )
             .lbThreeQuarterSheet()
         }
+        .measured("entity_edit_confirming_delete", .dialog, when: confirmingDelete)
         .confirmationDialog(
             "Delete \(currentName)?", isPresented: $confirmingDelete, titleVisibility: .visible
         ) {
             Button("Delete", role: .destructive) {
+                Measure.used("delete")
                 if model.deleteEntity(kind, id: id) {
                     onDeleted()
                     onDone()
                 }
             }
-            Button("Keep", role: .cancel) {}
+            Button("Keep", role: .cancel) { Measure.used("keep") }
         } message: {
             Text(EntityCopy.removalNote(kind, use: model.entityUse(kind, id: id)))
         }
@@ -254,7 +261,7 @@ struct EntityEditView: View {
                     .foregroundStyle(LBColor.textPrimary.color)
             }
             Spacer()
-            Button(action: close) {
+            Button(action: { Measure.used("close"); close() }) {
                 Image(systemName: "xmark")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(LBColor.textSecondary.color)
@@ -267,9 +274,10 @@ struct EntityEditView: View {
             .accessibilityLabel("Close")
             // On the X, as the commitment form has it: the root already carries the delete
             // question, and one view presents one dialog reliably.
+            .measured("entity_edit_confirming_discard", .dialog, when: confirmingDiscard)
             .confirmationDialog("Discard your changes?", isPresented: $confirmingDiscard, titleVisibility: .visible) {
-                Button("Discard", role: .destructive) { onDone() }
-                Button("Keep Editing", role: .cancel) {}
+                Button("Discard", role: .destructive) { Measure.used("discard"); onDone() }
+                Button("Keep Editing", role: .cancel) { Measure.used("keep_editing") }
             }
         }
     }
@@ -325,7 +333,7 @@ struct EntityEditView: View {
                     }
                 }
                 if hasPhoto {
-                    Button("Remove") { photoData = nil; removingPhoto = true }
+                    Button("Remove") { Measure.used("remove"); photoData = nil; removingPhoto = true }
                         .buttonStyle(.plain)
                         .lbText(.label)
                         .foregroundStyle(LBColor.textSecondary.color)
@@ -384,7 +392,7 @@ struct EntityEditView: View {
         let glyph = isAccount ? LBGlyph.account : LBGlyph.member
         return VStack(alignment: .leading, spacing: LBSpacing.s2) {
             question(label)
-            Button { pickingTag = true } label: {
+            Button { Measure.used("none"); pickingTag = true } label: {
                 field {
                     HStack(spacing: LBSpacing.s2) {
                         Image(systemName: chosen?.icon ?? glyph)
@@ -406,6 +414,7 @@ struct EntityEditView: View {
             .buttonStyle(.plain)
             .accessibilityLabel("\(label), \(tag.map(EntityCopy.tagWord) ?? "none")")
         }
+        .measured("entity_edit_picking_tag", .sheet, when: pickingTag)
         .sheet(isPresented: $pickingTag) {
             let picker = ChoicePickerView(
                 title: label, glyph: glyph,
@@ -608,7 +617,7 @@ struct EntityEditView: View {
             ForEach(accounts, id: \.self) { accountId in
                 if let account = allAccounts.first(where: { $0.id == accountId }) { accountRow(account) }
             }
-            Button { pickingAccount = true } label: {
+            Button { Measure.used("link_an_account"); pickingAccount = true } label: {
                 EntityActionLabel(title: "Link an Account", symbol: "plus", prominent: true, fills: true)
             }
             .buttonStyle(.plain)
@@ -639,7 +648,7 @@ struct EntityEditView: View {
             }
             .accessibilityElement(children: .combine)
             Spacer(minLength: LBSpacing.s2)
-            Button { accounts.removeAll { $0 == account.id } } label: {
+            Button { Measure.used("remove_account_chip"); accounts.removeAll { $0 == account.id } } label: {
                 Image(systemName: "xmark")
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(LBColor.textSecondary.color)
@@ -736,7 +745,7 @@ struct EntityEditView: View {
 
     /// The phone's Delete: a red row at the very end of the form, away from Save.
     private var deleteRow: some View {
-        Button { confirmingDelete = true } label: {
+        Button { Measure.used("delete"); confirmingDelete = true } label: {
             Text("Delete \(word.capitalized)")
                 .lbText(.body)
                 .foregroundStyle(LBColor.danger.color)
@@ -760,7 +769,7 @@ struct EntityEditView: View {
                 HStack(spacing: LBSpacing.s3) {
                     deleteButton(fills: false)
                     Spacer(minLength: LBSpacing.s3)
-                    Button(action: close) { decision("Cancel", ink: LBColor.textPrimary, fill: LBColor.chrome.color, fills: false) }
+                    Button(action: { Measure.used("cancel"); close() }) { decision("Cancel", ink: LBColor.textPrimary, fill: LBColor.chrome.color, fills: false) }
                         .buttonStyle(.plain)
                     saveButton(fills: false)
                 }
@@ -809,6 +818,7 @@ struct EntityEditView: View {
 
     private func saveButton(fills: Bool) -> some View {
         Button {
+            Measure.used("save")
             if saveNow() { onDone() }
         } label: {
             decision("Save", ink: ready ? LBColor.onBrand : LBColor.textTertiary,
@@ -821,7 +831,7 @@ struct EntityEditView: View {
     /// Quiet red at rest, filled under the pointer, and a question before it acts — the
     /// manner every destructive control here keeps.
     private func deleteButton(fills: Bool) -> some View {
-        Button { confirmingDelete = true } label: {
+        Button { Measure.used("delete"); confirmingDelete = true } label: {
             decision("Delete \(word.capitalized)", symbol: "trash",
                      ink: hoveringDelete ? LBColor.onBrand : LBColor.danger,
                      fill: hoveringDelete ? LBColor.dangerFill.color : LBColor.danger.color.opacity(0.10),
@@ -1040,7 +1050,7 @@ struct EntityEditView: View {
                 }
             }
             if let noun, let add {
-                Button(action: add) {
+                Button(action: { Measure.used("add_new"); add() }) {
                     Image(systemName: "plus")
                         .font(.system(size: 11, weight: .bold))
                         .foregroundStyle(LBColor.brandText.color)
@@ -1076,7 +1086,7 @@ struct EntityEditView: View {
     }
 
     private func dateButton(_ label: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        Button(action: { Measure.used("pick_date"); action() }) {
             HStack(spacing: LBSpacing.s2) {
                 Image(systemName: LBGlyph.date)
                     .font(.system(size: 11, weight: .medium))

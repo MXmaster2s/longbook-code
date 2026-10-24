@@ -81,6 +81,7 @@ struct OnboardingCardStep: View {
         .onKeyPress(.upArrow) { back(); return .handled }
         .onKeyPress(.leftArrow) { back(); return .handled }
         .task(id: card) { await arm() }
+        .measured("onboarding_card_step_slow_down", .alert, when: slowDown)
         .alert("Slow down", isPresented: $slowDown) {
             Button("Got it") {}
         } message: {

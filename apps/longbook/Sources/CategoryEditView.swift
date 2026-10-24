@@ -75,6 +75,7 @@ struct CategoryEditView: View {
         .background(LBColor.canvas.color)
         .lbClosesOnOutsideClick(onDone)
         // A commitment opens whole, the same screen a push shows; Edit lives on it.
+        .measured("category_edit_viewing_commitment", .sheet, when: viewingCommitment != nil)
         .sheet(item: $viewingCommitment) { row in
             CommitmentDetailView(model: model, id: row.id) { viewingCommitment = nil }
         }

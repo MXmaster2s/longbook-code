@@ -356,6 +356,7 @@ struct RootView: View {
                 model.signedInEmail = address
             }
             #if DEBUG && os(iOS)
+            .measured("root_snapshot_editing", .sheet, when: snapshotEditing)
             .sheet(isPresented: $snapshotEditing) {
                 SnapshotEditForm(model: model)
             }
@@ -453,7 +454,9 @@ struct RootView: View {
 
         func body(content: Content) -> some View {
             #if os(iOS)
-            content.fullScreenCover(isPresented: $showing) {
+            content
+                .measured("demo_cover", .sheet, when: showing)
+                .fullScreenCover(isPresented: $showing) {
                 DemoLongbookView(auth: auth) { showing = false }
             }
             #else
@@ -522,6 +525,8 @@ struct RootView: View {
             #endif
         }
         .background(LBColor.canvas.color)
+        // The app opens on the dashboard without announcing it; its controls are counted on it.
+        .onAppear { Telemetry.shared.cameBack(to: Tab.dashboard.screenName) }
         // Coming back to the app re-reads the file, so an edit made elsewhere — another
         // device, the owner's AI — is noticed the moment the app is.
         .onChange(of: scenePhase) { _, phase in
@@ -532,16 +537,24 @@ struct RootView: View {
         .onChange(of: path) { old, new in
             #if os(macOS)
             if new.isEmpty, !old.isEmpty {
-                Telemetry.shared.screen(Tab.dashboard.screenName)
+                Telemetry.shared.screen(Tab.dashboard.screenName, kind: .tab)
                 return
             }
             #endif
-            guard let last = new.last, last != old.last, !old.starts(with: new) else { return }
+            guard let last = new.last, last != old.last, !old.starts(with: new) else {
+                // A step back sends nothing, but controls are on the page come back to.
+                #if os(iOS)
+                Telemetry.shared.cameBack(to: new.last?.screenName ?? tab.screenName)
+                #else
+                if let last = new.last { Telemetry.shared.cameBack(to: last.screenName) }
+                #endif
+                return
+            }
             Telemetry.shared.screen(last.screenName)
         }
         #if os(iOS)
         .onChange(of: tab) { _, new in
-            Telemetry.shared.screen(new.screenName)
+            Telemetry.shared.screen(new.screenName, kind: .tab)
         }
         #endif
     }
@@ -579,6 +592,7 @@ struct RootView: View {
         // than refusing to tile — so a floor above that overlapped the app beside it. With
         // the sidebar put away the panes still have their measure.
         .frame(minWidth: 720, minHeight: 620)
+        .measured("root_adding_renewal", .sheet, when: addingRenewal)
         .sheet(isPresented: $addingRenewal) {
             RenewalFormView(model: model, editingId: nil) { addingRenewal = false }
         }
@@ -601,6 +615,7 @@ struct RootView: View {
         .onReceive(NotificationCenter.default.publisher(for: .longbookSetUpAgain)) { _ in
             setUpAgain()
         }
+        .measured("root_importing_statement", .sheet, when: importingStatement)
         .sheet(isPresented: $importingStatement) {
             StatementImportView(model: model, auth: auth) { importingStatement = false }
         }
@@ -628,9 +643,11 @@ struct RootView: View {
                     .safeAreaInset(edge: .bottom, spacing: 0) { tabBar }
             }
         }
+        .measured("root_adding_renewal", .sheet, when: addingRenewal)
         .sheet(isPresented: $addingRenewal) {
             RenewalFormView(model: model, editingId: nil) { addingRenewal = false }
         }
+        .measured("root_importing_statement", .sheet, when: importingStatement)
         .sheet(isPresented: $importingStatement) {
             StatementImportView(model: model, auth: auth) { importingStatement = false }
         }

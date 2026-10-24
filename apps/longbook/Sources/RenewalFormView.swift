@@ -255,12 +255,15 @@ struct RenewalFormView: View {
         #if os(iOS)
         .interactiveDismissDisabled(hasUnsavedChanges)
         #endif
+        .measured("renewal_form_picking_cancel", .sheet, when: pickingCancel)
         .sheet(isPresented: $pickingCancel) {
             DayPickerView(title: "Ends", selected: cancellingOn ?? Date(),
                           onPick: { cancellingOn = $0 }, onDone: { pickingCancel = false })
                 .lbDaySheet()
         }
+        .measured("renewal_form_picking_recurrence", .sheet, when: pickingRecurrence)
         .sheet(isPresented: $pickingRecurrence) { recurrencePicker.lbThreeQuarterSheet() }
+        .measured("renewal_form_picking_count", .sheet, when: pickingCount)
         .sheet(isPresented: $pickingCount) { countWheel.lbMonthSheet() }
         // The wheel waits for the list to be down: two sheets in one breath lose the second.
         .onChange(of: pickingRecurrence) { _, up in
@@ -271,32 +274,37 @@ struct RenewalFormView: View {
                 pickingCount = true
             }
         }
+        .measured("renewal_form_switching_to", .alert, when: switchingTo != nil)
         .alert("Discard changes to this charge?", isPresented: Binding(get: { switchingTo != nil },
                                                                        set: { if !$0 { switchingTo = nil } })) {
             Button("Discard", role: .destructive) {
+                Measure.used("discard")
                 if let iso = switchingTo { loadCharge(iso); rebaseCharge() }
                 switchingTo = nil
             }
-            Button("Keep Editing", role: .cancel) { switchingTo = nil }
+            Button("Keep Editing", role: .cancel) { Measure.used("keep_editing"); switchingTo = nil }
         }
+        .measured("renewal_form_confirming_remove", .alert, when: confirmingRemove)
         .alert("Remove this charge?", isPresented: $confirmingRemove) {
             Button("Remove", role: .destructive) {
+                Measure.used("remove")
                 if let row = anchor, model.removeCharge(subscriptionId: row.sub.id, dateISO: row.row.date) { onDone() }
             }
-            Button("Keep It", role: .cancel) {}
+            Button("Keep It", role: .cancel) { Measure.used("keep_it") }
         } message: {
             Text(anchor?.row.paid == true
                  ? "This charge is marked paid. Removing it takes that fact out of your file."
                  : heldOnce ? "Only this one is removed; the other charges stay."
                  : "Only this one is removed; the rest of the plan stays.")
         }
+        .measured("renewal_form_asking_reach", .dialog, when: askingReach)
         .confirmationDialog("Apply the change to", isPresented: $askingReach, titleVisibility: .visible) {
-            Button("Only This Charge") { if saveNow(andLater: false) { onDone() } }
-            Button("This and Every One After") { if saveNow(andLater: true) { onDone() } }
+            Button("Only This Charge") { Measure.used("only_this_charge"); if saveNow(andLater: false) { onDone() } }
+            Button("This and Every One After") { Measure.used("this_and_every_one_after"); if saveNow(andLater: true) { onDone() } }
             if offersPast {
-                Button("All, Including Past Charges") { if saveNow(andLater: true), rewritePast() { onDone() } }
+                Button("All, Including Past Charges") { Measure.used("all_including_past_charges"); if saveNow(andLater: true), rewritePast() { onDone() } }
             }
-            Button("Cancel", role: .cancel) {}
+            Button("Cancel", role: .cancel) { Measure.used("cancel") }
         } message: {
             Text(reachMessage)
         }
@@ -453,7 +461,7 @@ struct RenewalFormView: View {
                 }
             }
             Spacer()
-            Button(action: close) {
+            Button(action: { Measure.used("close"); close() }) {
                 Image(systemName: "xmark")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(LBColor.textSecondary.color)
@@ -464,9 +472,10 @@ struct RenewalFormView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Close without saving")
+            .measured("renewal_form_confirming_discard", .dialog, when: confirmingDiscard)
             .confirmationDialog(discardTitle, isPresented: $confirmingDiscard, titleVisibility: .visible) {
-                Button("Discard", role: .destructive) { onDone() }
-                Button("Keep Editing", role: .cancel) {}
+                Button("Discard", role: .destructive) { Measure.used("discard"); onDone() }
+                Button("Keep Editing", role: .cancel) { Measure.used("keep_editing") }
             } message: {
                 // A name the racks wrote is in the file already, whether or not Save landed.
                 if let kept = typing.keptOnDiscard(model) { Text(kept) }
@@ -527,7 +536,7 @@ struct RenewalFormView: View {
 
     /// A date already set, shown as the control that changes it.
     private func dateButton(_ label: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        Button(action: { Measure.used("pick_date"); action() }) {
             HStack(spacing: LBSpacing.s2) {
                 Image(systemName: LBGlyph.date)
                     .font(.system(size: 11, weight: .medium))
@@ -586,7 +595,7 @@ struct RenewalFormView: View {
         if !isEditing || anchorISO != nil { whenNext } else if let lastCharge { lastChargeRow(lastCharge) }
         if showsPaidToggle { paidRow }
         if showsFreeTrial {
-            FormToggleRow(title: "Free trial", isOn: $edit.freeTrial)
+            FormToggleRow(title: "Free trial", isOn: $edit.freeTrial, measure: "free_trial")
         }
         moreDetails
         // A one-time commitment is offered no end day, but one it already carries stays in
@@ -600,6 +609,7 @@ struct RenewalFormView: View {
     private var moreDetails: some View {
         VStack(alignment: .leading, spacing: LBSpacing.s4) {
             Button {
+                Measure.used("more_details")
                 withAnimation(.snappy(duration: 0.2)) { showsMore.toggle() }
             } label: {
                 HStack(spacing: LBSpacing.s1) {
@@ -731,6 +741,7 @@ struct RenewalFormView: View {
             }
             if isEditing, occurrences.count > 1 { occurrenceMenu(occurrences) }
         }
+        .measured("renewal_form_picking_money", .sheet, when: pickingMoney)
         .sheet(isPresented: $pickingMoney) {
             MoneyPicker(direction: $edit.direction) { pickingMoney = false }
         }
@@ -794,7 +805,7 @@ struct RenewalFormView: View {
         return FormMenuField(value: "Charge on \(current)", symbol: LBGlyph.date) {
             ForEach(occurrences) { occurrence in
                 let word = (words[occurrence.iso]?.label ?? occurrence.iso) + (occurrence.paid ? " · Paid" : "")
-                Button { switchOccurrence(to: occurrence.iso) } label: {
+                Button { Measure.used("switch_occurrence"); switchOccurrence(to: occurrence.iso) } label: {
                     if occurrence.iso == anchorISO { Label(word, systemImage: "checkmark") } else { Text(word) }
                 }
             }
@@ -866,7 +877,7 @@ struct RenewalFormView: View {
     /// The mark on the form's charge, written in the same Save, as the list's swipe marks it.
     @ViewBuilder
     private var paidRow: some View {
-        FormToggleRow(title: isEditing ? "Paid" : "Already paid", isOn: $paid)
+        FormToggleRow(title: isEditing ? "Paid" : "Already paid", isOn: $paid, measure: "paid")
         // A spending charge behind today counts whatever its row's mark says; stated while the
         // mark is off. Money in and a transfer are in no spending total, marked or not.
         if !paid, LB.dayOf(day) < LB.todayMid(), spends {
@@ -1123,7 +1134,7 @@ struct RenewalFormView: View {
                     .frame(minHeight: 34)
                     keepingButton
                 } else if cancellingOn == nil {
-                    Button { cancellingOn = Date() } label: {
+                    Button { Measure.used("set_a_date"); cancellingOn = Date() } label: {
                         Text("Set a Date")
                             .lbText(.label)
                             .foregroundStyle(LBColor.brandText.color)
@@ -1144,7 +1155,7 @@ struct RenewalFormView: View {
     }
 
     private var keepingButton: some View {
-        Button { cancellingOn = nil } label: {
+        Button { Measure.used("clear_cancel_date"); cancellingOn = nil } label: {
             Text("Clear")
                 .lbText(.label)
                 .foregroundStyle(LBColor.textTertiary.color)
@@ -1160,13 +1171,13 @@ struct RenewalFormView: View {
         VStack(spacing: LBSpacing.s3) {
             if isGone {
                 footnote(goneNote)
-                Button(action: onDone) { primaryLabel("Close") }
+                Button(action: { Measure.used("close"); onDone() }) { primaryLabel("Close") }
                     .buttonStyle(.plain)
             } else {
                 #if os(macOS)
                 footer
                 #else
-                Button(action: attemptSave) { primaryLabel(primaryWord) }
+                Button(action: { Measure.used("attempt_save"); attemptSave() }) { primaryLabel(primaryWord) }
                     .buttonStyle(.plain)
                 if isEditing { destructive } else { addAnother }
                 #endif
@@ -1186,7 +1197,7 @@ struct RenewalFormView: View {
             if isEditing { destructive.fixedSize(horizontal: true, vertical: false) }
             Spacer(minLength: LBSpacing.s3)
             if !isEditing { addAnother.fixedSize(horizontal: true, vertical: false) }
-            Button(action: close) {
+            Button(action: { Measure.used("cancel"); close() }) {
                 Text("Cancel")
                     .lbText(.label)
                     .foregroundStyle(LBColor.textSecondary.color)
@@ -1196,7 +1207,7 @@ struct RenewalFormView: View {
             }
             .buttonStyle(.plain)
             .keyboardShortcut(.cancelAction)
-            Button(action: attemptSave) { primaryLabel(primaryWord, fills: false) }
+            Button(action: { Measure.used("attempt_save"); attemptSave() }) { primaryLabel(primaryWord, fills: false) }
                 .buttonStyle(.plain)
                 .keyboardShortcut(.defaultAction)
         }
@@ -1237,10 +1248,11 @@ struct RenewalFormView: View {
     @ViewBuilder
     private var destructive: some View {
         if removesCharge {
-            Button { confirmingRemove = true } label: { dangerLabel("Remove This Charge") }
+            Button { Measure.used("remove_this_charge"); confirmingRemove = true } label: { dangerLabel("Remove This Charge") }
                 .buttonStyle(.plain)
         } else {
             Button {
+                Measure.used("tap_again_to_delete_it_forever")
                 if confirmingDelete {
                     if model.deleteCommitment(id: editingId ?? "") { onDone() }
                 } else {
@@ -1269,6 +1281,7 @@ struct RenewalFormView: View {
 
     private var addAnother: some View {
         Button {
+            Measure.used("save_amount")
             guard amountAccepted(), typing.submit() else { return }
             let name = edit.name
             if saveNow(andLater: false) {
@@ -1515,7 +1528,7 @@ private struct PlannedCountPicker: View {
                     .lbText(.label)
                     .foregroundStyle(LBColor.textPrimary.color)
                 Spacer()
-                Button(action: onDone) {
+                Button(action: { Measure.used("close"); onDone() }) {
                     Image(systemName: "xmark")
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(LBColor.textSecondary.color)

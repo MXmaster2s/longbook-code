@@ -40,17 +40,21 @@ struct EntityListView: View {
     var body: some View {
         let cards = model.entityCards(kind)
         return content(cards)
+            .measured("entity_list_editing", .sheet, when: editing != nil)
             .sheet(item: $editing) { target in
                 EntityEditView(model: model, kind: kind, id: target.id, currentName: target.name) {
                     editing = nil
                 }
             }
+            .measured("entity_list_adding_for", .sheet, when: addingFor != nil)
             .sheet(item: $addingFor) { target in
                 entityAddForm(model: model, kind: kind, id: target.id) { addingFor = nil }
             }
+            .measured("entity_list_viewing", .sheet, when: viewing != nil)
             .sheet(item: $viewing) { ref in
                 CommitmentDetailView(model: model, id: ref.id) { viewing = nil }
             }
+            .measured("entity_list_deleting", .dialog, when: deleting != nil)
             .confirmationDialog(
                 "Delete \(deleting?.name ?? "this \(word)")?",
                 isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }),
@@ -476,15 +480,19 @@ struct EntityDetailView: View {
         .lbScreenTitle(title, large: false) {
             if isReal { Button("Edit") { editing = true } }
         }
+        .measured("entity_list_editing", .sheet, when: editing)
         .sheet(isPresented: $editing) {
             EntityEditView(model: model, kind: kind, id: id, currentName: title) { editing = false }
         }
+        .measured("entity_list_adding", .sheet, when: adding)
         .sheet(isPresented: $adding) {
             entityAddForm(model: model, kind: kind, id: id) { adding = false }
         }
+        .measured("entity_list_viewing", .sheet, when: viewing != nil)
         .sheet(item: $viewing) { ref in
             CommitmentDetailView(model: model, id: ref.id) { viewing = nil }
         }
+        .measured("entity_list_deleting", .dialog, when: deleting)
         .confirmationDialog("Delete \(title)?", isPresented: $deleting, titleVisibility: .visible) {
             Button("Delete", role: .destructive) {
                 if model.deleteEntity(kind, id: id) { dismiss() }

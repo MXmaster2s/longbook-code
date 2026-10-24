@@ -101,6 +101,7 @@ struct SetupBanksView: View {
             if ProcessInfo.processInfo.environment["LONGBOOK_SNAPSHOT_MORE"] != nil { showingAll = true }
             #endif
         }
+        .measured("setup_banks_showing_all", .sheet, when: showingAll)
         .sheet(isPresented: $showingAll, onDismiss: { query = ""; addingBank = false; typedBank = "" }) {
             allBanks
                 #if os(macOS)

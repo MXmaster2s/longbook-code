@@ -251,6 +251,7 @@ struct AccountScreenView: View {
         }
         .buttonStyle(.plain)
         .padding(.top, LBSpacing.s6)
+        .measured("account_screen_deleting", .sheet, when: deleting)
         .sheet(isPresented: $deleting) {
             DeleteAccountSheet(auth: auth) { deleting = false }
                 #if os(macOS)
@@ -266,6 +267,7 @@ struct AccountScreenView: View {
         #if os(macOS)
         Button { signingOut = true } label: { plainLabel("Sign Out…") }
             .buttonStyle(.plain)
+            .measured("account_screen_signing_out", .sheet, when: signingOut)
             .sheet(isPresented: $signingOut) {
                 VStack(spacing: 0) {
                     HStack {

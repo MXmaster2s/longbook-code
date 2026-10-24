@@ -31,6 +31,7 @@ jobs:
       - run: npm run lint:comments
       - run: npm run lint:transform
       - run: npm run guard:name
+      - run: npm run telemetry:names
       - run: npm run vault:contract:check
       - run: npm run design:tokens:check
       - run: npm run hosted:engine:check

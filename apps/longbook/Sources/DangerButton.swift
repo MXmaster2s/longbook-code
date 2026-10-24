@@ -29,6 +29,7 @@ struct DangerButton: View {
         .buttonStyle(.plain)
         .onHover { hovering = $0 }
         .animation(.easeOut(duration: 0.12), value: hovering)
+        .measured("danger_button_confirming", .dialog, when: confirming)
         .confirmationDialog(question, isPresented: $confirming, titleVisibility: .visible) {
             Button(confirmLabel ?? title, role: .destructive, action: action)
             Button("Cancel", role: .cancel) {}

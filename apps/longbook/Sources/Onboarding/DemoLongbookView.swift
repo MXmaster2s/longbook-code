@@ -26,6 +26,7 @@ struct DemoLongbookView: View {
                     SidebarView(model: model, path: $path) { adding = true }
                     stack(model)
                 }
+                .measured("demo_longbook_adding", .sheet, when: adding)
                 .sheet(isPresented: $adding) {
                     RenewalFormView(model: model, editingId: nil) { adding = false }
                 }

@@ -112,6 +112,7 @@ struct OwnAIHelp: View {
             }
         }
         // Outside any navigation stack, so the MCP screen is reached as a sheet with its own way back.
+        .measured("own_ai_help_connecting", .sheet, when: connecting)
         .sheet(isPresented: $connecting) {
             NavigationStack {
                 MCPServerView(model: model, auth: auth)
