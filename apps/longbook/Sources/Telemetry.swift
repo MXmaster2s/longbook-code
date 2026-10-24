@@ -94,6 +94,9 @@ final class Telemetry {
         } else {
             unsubscribe()
             UserDefaults.standard.removeObject(forKey: Self.installIdKey)
+            flushTask?.cancel()
+            flushTask = nil
+            held.removeAll()
         }
     }
 
@@ -151,11 +154,50 @@ final class Telemetry {
 
     private var foregroundSince: Date?
     private var screensThisSession = 0
+    /// The tab or page in front and the popups over it, newest last: where a control is used.
+    private var page = ""
+    private var popups: [String] = []
 
-    /// A screen opened. Counted for the session as well as sent on its own.
-    func screen(_ name: String) {
-        screensThisSession += 1
-        send("app.screen_viewed", ["screen": name])
+    /// How a screen appeared: a tab, a pushed page, or something presented over them.
+    enum ScreenKind: String {
+        case tab, page, sheet, popover, alert, dialog
+    }
+
+    /// A screen opened, sent on its own. Tabs and pages also count toward the session's screens.
+    func screen(_ name: String, kind: ScreenKind = .page) {
+        if kind == .tab || kind == .page {
+            screensThisSession += 1
+            page = name
+        } else {
+            popups.append(name)
+        }
+        send("app.screen_viewed", ["screen": name, "kind": kind.rawValue])
+    }
+
+    /// A step back to a page already counted: nothing is sent, but controls are on it again.
+    func cameBack(to name: String) {
+        page = name
+    }
+
+    /// A popup went away, so controls are on what lies under it again.
+    func dismissed(_ name: String) {
+        if let at = popups.lastIndex(of: name) { popups.remove(at: at) }
+    }
+
+    /// What kind of control was used.
+    enum ControlKind: String {
+        case button, toggle, link, swipe, shortcut
+        case menuItem = "menu_item"
+        case contextMenu = "context_menu"
+    }
+
+    /// A control used, by the fixed name the code gives it, on the screen in front.
+    func control(_ name: String, kind: ControlKind, on: Bool? = nil) {
+        // Before any page is counted (sign-in, setup), the screen is "unnamed".
+        let screen = popups.last ?? (page.isEmpty ? "unnamed" : page)
+        var props: [String: Any] = ["control": name, "screen": screen, "kind": kind.rawValue]
+        if let on { props["on"] = on }
+        send("app.control_used", props)
     }
 
     /// The app came to the front. A session already running keeps its start.
@@ -173,6 +215,7 @@ final class Telemetry {
         let seconds = Int((Date().timeIntervalSince(since) / 5).rounded()) * 5
         send("app.session_ended", ["seconds": seconds, "screens": screensThisSession])
         screensThisSession = 0
+        flush()
     }
 
     // MARK: errors
@@ -252,10 +295,35 @@ final class Telemetry {
         return "other"
     }
 
+    /// Events wait in memory, at most fifty and at most ten seconds, then go together. Nothing
+    /// is written to disk: an app killed in between loses what it held.
+    private var held: [[String: Any]] = []
+    private var flushTask: Task<Void, Never>?
+    private static let batchLimit = 50
+
     /// One event. Properties are counts and fixed words only, never the owner's data.
     func send(_ event: String, _ props: [String: Any] = [:]) {
         guard isEnabled else { return }
-        post([Self.event(event, props, id: installId)])
+        held.append(Self.event(event, props, id: installId))
+        if held.count >= Self.batchLimit {
+            flush()
+        } else if flushTask == nil {
+            flushTask = Task { [weak self] in
+                try? await Task.sleep(nanoseconds: 10_000_000_000)
+                guard !Task.isCancelled else { return }
+                self?.flush()
+            }
+        }
+    }
+
+    /// Sends what is held: on a full batch, ten seconds after the first, and as the app goes away.
+    func flush() {
+        flushTask?.cancel()
+        flushTask = nil
+        guard !held.isEmpty else { return }
+        let events = held
+        held = []
+        post(events)
     }
 
     /// Crash, hang and exception reports. Version, build and system are the ones that
@@ -320,7 +388,7 @@ final class Telemetry {
         ]
     }
 
-    /// Fire and forget: no retry, no queue. DEBUG prints instead, and only when asked to.
+    /// Fire and forget: no retry, nothing kept. DEBUG prints instead, and only when asked to.
     private func post(_ events: [[String: Any]]) {
         #if DEBUG
         guard ProcessInfo.processInfo.environment["LONGBOOK_TELEMETRY_LOG"] == "1",

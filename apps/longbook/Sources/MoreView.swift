@@ -59,6 +59,7 @@ struct MoreView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(LBColor.canvas.color)
+        .measured("more_importing", .sheet, when: importing)
         .sheet(isPresented: $importing) {
             StatementImportView(model: model, auth: auth) { importing = false }
         }

@@ -170,6 +170,7 @@ struct CommitmentsView: View {
             .onChange(of: from) { _, from in if from != nil { day = nil; months = [] } }
             .onChange(of: to) { _, to in if to != nil { day = nil; months = [] } }
             .onChange(of: when) { _, _ in selection = [] }
+            .measured("commitments_picking_range", .sheet, when: pickingRange)
             .sheet(isPresented: $pickingRange, onDismiss: settleSide) {
                 DateRangePickerView(from: $from, to: $to) { pickingRange = false }
             }
@@ -183,6 +184,7 @@ struct CommitmentsView: View {
                 }
                 #endif
             }
+            .measured("commitments_form_target", .sheet, when: formTarget != nil)
             .sheet(item: $formTarget) { target in
                 switch target {
                 case .add:
@@ -197,40 +199,47 @@ struct CommitmentsView: View {
                     }
                 }
             }
+            .measured("commitments_editing_charge", .sheet, when: editingCharge != nil)
             .sheet(item: $editingCharge) { charge in
                 RenewalFormView(model: model, editingId: charge.sub.id, chargeISO: charge.row.date) { editingCharge = nil }
                     .lbThreeQuarterSheet()
             }
+            .measured("commitments_deleting_item", .alert, when: deletingItem != nil)
             .alert("Delete \(deletingItem?.name ?? "this commitment")?",
                    isPresented: Binding(get: { deletingItem != nil }, set: { if !$0 { deletingItem = nil } }),
                    presenting: deletingItem) { item in
                 Button("Delete", role: .destructive) {
+                    Measure.used("delete")
                     model.deleteCommitment(id: item.id)
                     selection = []
                 }
-                Button("Cancel", role: .cancel) {}
+                Button("Cancel", role: .cancel) { Measure.used("cancel") }
             } message: { _ in
                 Text("Its charges are removed with it. The version before stays in Changes.")
             }
+            .measured("commitments_deleting_charge", .alert, when: deletingCharge != nil)
             .alert("Delete this charge?",
                    isPresented: Binding(get: { deletingCharge != nil }, set: { if !$0 { deletingCharge = nil } }),
                    presenting: deletingCharge) { charge in
                 Button("Delete", role: .destructive) {
+                    Measure.used("delete")
                     _ = model.removeCharge(subscriptionId: charge.subId, dateISO: charge.dateISO)
                     selection = []
                 }
-                Button("Cancel", role: .cancel) {}
+                Button("Cancel", role: .cancel) { Measure.used("cancel") }
             } message: { charge in
                 Text("\(charge.name), \(charge.amountText). Only this charge is removed.")
             }
+            .measured("commitments_removing_placeholder", .alert, when: removingPlaceholder != nil)
             .alert("Remove \(removingPlaceholder?.name ?? "this commitment")?",
                    isPresented: Binding(get: { removingPlaceholder != nil }, set: { if !$0 { removingPlaceholder = nil } }),
                    presenting: removingPlaceholder) { placeholder in
                 Button("Remove", role: .destructive) {
+                    Measure.used("remove")
                     model.removePlaceholder(placeholder.id)
                     selection = []
                 }
-                Button("Cancel", role: .cancel) {}
+                Button("Cancel", role: .cancel) { Measure.used("cancel") }
             } message: { _ in
                 Text("Only the name is removed. Nothing has been written for it yet.")
             }
@@ -437,7 +446,7 @@ struct CommitmentsView: View {
     }
 
     private func pill(_ words: String, clear: @escaping () -> Void) -> some View {
-        Button(action: clear) {
+        Button(action: { Measure.used("clear_filter_chip"); clear() }) {
             HStack(spacing: LBSpacing.s1) {
                 Text(words).lbText(.label).lineLimit(1)
                 Image(systemName: "xmark").font(.system(size: 8, weight: .bold))
@@ -625,17 +634,20 @@ struct CommitmentsView: View {
         }
         .lbGroupedList()
         .searchable(text: $search, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search")
+        .measured("commitments_showing_filters", .sheet, when: showingFilters)
         .sheet(isPresented: $showingFilters) {
             if case .loaded(let data) = model.state { filterSheet(data) }
         }
         .lbScreenTitle(screenTitle) {
             Button {
+                Measure.used("line_3_horizontal_decrease_circle_fill")
                 showingFilters = true
             } label: {
                 Image(systemName: anyFilter ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
             }
             .accessibilityLabel(anyFilter ? "Filters, some chosen" : "Filters")
             Button {
+                Measure.used("add_commitment")
                 formTarget = .add
             } label: {
                 Image(systemName: "plus")
@@ -672,7 +684,7 @@ struct CommitmentsView: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .lbListRowBackground()
                 if let elsewhere {
-                    Button(elsewhere == .past ? "Show Past Charges" : "Show Upcoming Charges") { when = elsewhere }
+                    Button(elsewhere == .past ? "Show Past Charges" : "Show Upcoming Charges") { Measure.used("show_past_charges"); when = elsewhere }
                         .foregroundStyle(LBColor.brandText.color)
                         .lbListRowBackground()
                 }
@@ -695,7 +707,7 @@ struct CommitmentsView: View {
         }
         if parts.capped {
             Section {
-                Button("Show Later Months") { showsLaterMonths = true }
+                Button("Show Later Months") { Measure.used("show_later_months"); showsLaterMonths = true }
                     .foregroundStyle(LBColor.brandText.color)
                     .lbListRowBackground()
             }
@@ -709,7 +721,7 @@ struct CommitmentsView: View {
         }
         if !parts.rows.isEmpty || !parts.unscheduled.isEmpty, let also = alsoMatching {
             Section {
-                Button(alsoMatchingWords(also)) { when = also.scope }
+                Button(alsoMatchingWords(also)) { Measure.used("show_also_matching"); when = also.scope }
                     .foregroundStyle(LBColor.brandText.color)
                     .lbListRowBackground()
             }
@@ -743,6 +755,7 @@ struct CommitmentsView: View {
             Form {
                 Section {
                     Button {
+                        Measure.used("pick_date_range")
                         prefillRange()
                         pickingRangeInFilters = true
                     } label: {
@@ -766,14 +779,14 @@ struct CommitmentsView: View {
                         }
                         .lbListRowBackground()
                     }
-                    Toggle(isOn: $onlyBookmarked) {
+                    Toggle(isOn: $onlyBookmarked.measured("bookmarked_only")) {
                         Label("Bookmarked Only", systemImage: "bookmark")
                     }
                     .lbListRowBackground()
                 }
                 if anyFilter {
                     Section {
-                        Button("Clear Filters", role: .destructive) { clearFilters() }
+                        Button("Clear Filters", role: .destructive) { Measure.used("clear_filters"); clearFilters() }
                             .lbListRowBackground()
                     }
                 }
@@ -786,9 +799,10 @@ struct CommitmentsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { showingFilters = false }
+                    Button("Done") { Measure.used("done"); showingFilters = false }
                 }
             }
+            .measured("commitments_picking_range_in_filters", .sheet, when: pickingRangeInFilters)
             .sheet(isPresented: $pickingRangeInFilters, onDismiss: settleSide) {
                 DateRangePickerView(from: $from, to: $to) { pickingRangeInFilters = false }
             }
@@ -917,18 +931,21 @@ struct CommitmentsView: View {
                 LBPageTitle(screenTitle)
                 Spacer()
                 Button(allPaid ? "Mark Unpaid" : "Mark Paid") {
+                    Measure.used("mark_unpaid")
                     for charge in charges {
                         model.setPaid(subscriptionId: charge.subId, dateISO: charge.dateISO, paid: !allPaid)
                     }
                 }
                 .disabled(charges.isEmpty)
                 Button(allSaved ? "Remove Bookmark" : "Bookmark") {
+                    Measure.used("remove_bookmark")
                     for id in ids where model.bookmarks.contains(id) == allSaved { model.toggleBookmark(id) }
                 }
                 .disabled(ids.isEmpty)
-                Button("Edit") { if let only = chosen.first { edit(only) } }
+                Button("Edit") { Measure.used("edit"); if let only = chosen.first { edit(only) } }
                     .disabled(chosen.count != 1)
                 Button {
+                    Measure.used("add")
                     formTarget = .add
                 } label: {
                     Label("Add", systemImage: "plus")
@@ -974,7 +991,7 @@ struct CommitmentsView: View {
     /// Every narrowing in one menu; each is a submenu that ticks its choice.
     private func filterMenu(_ data: DashboardData) -> some View {
         Menu {
-            Button(rangeWords.map { "Date: \($0)…" } ?? "Date…", action: openRange)
+            Button(rangeWords.map { "Date: \($0)…" } ?? "Date…", action: { Measure.used("pick_date_range", .menuItem); openRange() })
             ForEach(filterSpecs(data)) { spec in
                 Picker(selection: spec.selection) {
                     Text("Any").tag(String?.none)
@@ -986,10 +1003,10 @@ struct CommitmentsView: View {
                 }
                 .pickerStyle(.menu)
             }
-            Toggle("Bookmarked Only", isOn: $onlyBookmarked)
+            Toggle("Bookmarked Only", isOn: $onlyBookmarked.measured("bookmarked_only"))
             if anyFilter {
                 Divider()
-                Button("Clear Filters", action: clearFilters)
+                Button("Clear Filters", action: { Measure.used("clear_filters", .menuItem); clearFilters() })
             }
         } label: {
             Label("Filter", systemImage: anyFilter ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
@@ -1010,7 +1027,7 @@ struct CommitmentsView: View {
                         .foregroundStyle(LBColor.textSecondary.color)
                         .fixedSize(horizontal: false, vertical: true)
                     if let elsewhere {
-                        Button(elsewhere == .past ? "Show Past Charges" : "Show Upcoming Charges") { when = elsewhere }
+                        Button(elsewhere == .past ? "Show Past Charges" : "Show Upcoming Charges") { Measure.used("show_past_charges"); when = elsewhere }
                     }
                 }
                 .padding(LBSpacing.s4)
@@ -1037,7 +1054,7 @@ struct CommitmentsView: View {
                     }
                     if parts.capped {
                         Section {
-                            Button("Show Later Months") { showsLaterMonths = true }
+                            Button("Show Later Months") { Measure.used("show_later_months"); showsLaterMonths = true }
                                 .lbCardRow()
                         }
                     }
@@ -1053,7 +1070,7 @@ struct CommitmentsView: View {
                     }
                     if let also = alsoMatching {
                         Section {
-                            Button(alsoMatchingWords(also)) { when = also.scope }
+                            Button(alsoMatchingWords(also)) { Measure.used("show_also_matching"); when = also.scope }
                                 .lbCardRow()
                         }
                     }
@@ -1107,28 +1124,30 @@ struct CommitmentsView: View {
             switch row.kind {
             case .charge(let charge):
                 if !charge.isPast {
-                    Button(charge.isPaid ? "Mark Unpaid" : "Mark Paid") { togglePaid(charge) }
+                    Button(charge.isPaid ? "Mark Unpaid" : "Mark Paid") { Measure.used("mark_unpaid"); togglePaid(charge) }
                 }
-                Button(bookmarkWord(charge.subId).title) { toggleBookmark(charge.subId) }
+                Button(bookmarkWord(charge.subId).title) { Measure.used("toggle_bookmark"); toggleBookmark(charge.subId) }
                 Divider()
-                Button("Edit Charge") { editCharge(charge) }
-                Button("Edit Commitment") { formTarget = .edit(charge.subId) }
+                Button("Edit Charge") { Measure.used("edit_charge"); editCharge(charge) }
+                Button("Edit Commitment") { Measure.used("edit_commitment"); formTarget = .edit(charge.subId) }
                 Divider()
-                Button("Delete Charge", role: .destructive) { deletingCharge = charge }
+                Button("Delete Charge", role: .destructive) { Measure.used("delete_charge"); deletingCharge = charge }
                 Button("Delete Commitment", role: .destructive) {
+                    Measure.used("delete_commitment")
                     deletingItem = CommitmentRef(id: charge.subId, name: charge.name)
                 }
             case .commitment(let item):
                 Button(bookmarkWord(item.id).title) { toggleBookmark(item.id) }
-                Button("Edit") { formTarget = .edit(item.id) }
+                Button("Edit") { Measure.used("edit"); formTarget = .edit(item.id) }
                 Divider()
                 Button("Delete Commitment", role: .destructive) {
+                    Measure.used("delete_commitment")
                     deletingItem = CommitmentRef(id: item.id, name: item.name)
                 }
             case .placeholder(let placeholder):
                 Button("Fill In") { formTarget = .fill(placeholder) }
                 Divider()
-                Button("Remove", role: .destructive) { removingPlaceholder = placeholder }
+                Button("Remove", role: .destructive) { Measure.used("remove"); removingPlaceholder = placeholder }
             }
         } else if !rows.isEmpty {
             let charges: [DashboardModel.ChargeItem] = rows.compactMap {
@@ -1137,6 +1156,7 @@ struct CommitmentsView: View {
             }
             if !charges.isEmpty {
                 Button("Mark \(charges.count) Paid") {
+                    Measure.used("mark_paid")
                     for charge in charges { model.setPaid(subscriptionId: charge.subId, dateISO: charge.dateISO, paid: true) }
                 }
             }
@@ -1165,10 +1185,10 @@ struct CommitmentsView: View {
                         .foregroundStyle(LBColor.textSecondary.color)
                         .fixedSize(horizontal: false, vertical: true)
                     HStack {
-                        Button("Fill In") { formTarget = .fill(placeholder) }
+                        Button("Fill In") { Measure.used("fill_in"); formTarget = .fill(placeholder) }
                             .buttonStyle(.borderedProminent)
                             .tint(LBColor.brand.color)
-                        Button("Remove", role: .destructive) { removingPlaceholder = placeholder }
+                        Button("Remove", role: .destructive) { Measure.used("remove"); removingPlaceholder = placeholder }
                     }
                 }
                 .padding(LBSpacing.s4)

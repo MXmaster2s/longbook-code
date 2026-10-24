@@ -86,6 +86,7 @@ struct TripsView: View {
             }
             #endif
         }
+        .measured("trips_flow", .sheet, when: flow != nil)
         .sheet(item: $flow) { mode in
             TripFlowView(model: model, mode: mode, onCreated: { id in
                 flow = nil
@@ -95,6 +96,7 @@ struct TripsView: View {
             .presentationDetents([.large])
             #endif
         }
+        .measured("trips_confirming_end", .dialog, when: confirmingEnd)
         .confirmationDialog("End this trip?", isPresented: $confirmingEnd, titleVisibility: .visible) {
             Button("End Trip") { model.endTrip() }
             Button("Cancel", role: .cancel) {}

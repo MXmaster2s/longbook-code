@@ -23,9 +23,11 @@ struct ReportsView: View {
                 model.applyLocalRequests()
                 model.drawMonthlyReports()
             }
+            .measured("reports_importing", .sheet, when: importing)
             .sheet(isPresented: $importing) {
                 StatementImportView(model: model, auth: auth, context: .reports) { importing = false }
             }
+            .measured("reports_deleting", .dialog, when: deleting != nil)
             .confirmationDialog("Delete \(deleting?.title ?? "this report")?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }), titleVisibility: .visible) {
                 Button("Delete Report", role: .destructive) {
                     if let report = deleting, model.deleteReport(id: report.id), picked == report.id { picked = nil }

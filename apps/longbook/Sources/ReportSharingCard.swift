@@ -54,6 +54,7 @@ struct ReportSharingCard: View {
         }
         .onAppear { with = model.shareDetails(forReport: reportId)?.with ?? "" }
         .onChange(of: with) { _, _ in saveWith() }
+        .measured("report_sharing_card_fresh", .sheet, when: fresh != nil)
         .sheet(item: $fresh) { made in
             ShareCreatedSheet(share: made)
         }

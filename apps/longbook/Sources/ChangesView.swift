@@ -62,12 +62,13 @@ struct ChangesView: View {
             phoneList(review, groups: groups)
                 .lbScreenTitle("Changes") {
                     Button {
+                        Measure.used("how_it_works")
                         withAnimation(.snappy(duration: 0.25)) { showingHow.toggle() }
                     } label: {
                         Label("How It Works", systemImage: showingHow ? "info.circle.fill" : "info.circle")
                     }
                     .accessibilityHint(showingHow ? "Hides the explanation." : "Explains keeping, undoing and restoring.")
-                    Button { showingHistory = true } label: {
+                    Button { Measure.used("history"); showingHistory = true } label: {
                         Label("History", systemImage: "clock.arrow.circlepath")
                     }
                     .accessibilityHint("Shows every kept version.")
@@ -77,16 +78,19 @@ struct ChangesView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(LBColor.canvas.color)
         .onAppear(perform: refresh)
+        .measured("changes_showing_history", .sheet, when: showingHistory)
         .sheet(isPresented: $showingHistory) { historySheet }
+        .measured("changes_editing", .sheet, when: editing != nil)
         .sheet(item: $editing) { target in
             editor(for: target)
         }
         // The Mac detail's Delete… asks here; a row's swipe or menu asks through its own action.
+        .measured("changes_deleting", .alert, when: deleting != nil)
         .alert(deleting?.question ?? "Delete this row?",
                isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }),
                presenting: deleting) { target in
-            Button("Delete", role: .destructive) { drop(target) }
-            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive) { Measure.used("delete"); drop(target) }
+            Button("Cancel", role: .cancel) { Measure.used("cancel") }
         } message: { target in
             Text(target.detail)
         }
@@ -256,7 +260,7 @@ struct ChangesView: View {
     private func phoneRow(_ line: Line) -> some View {
         Group {
             if let edit = line.edit {
-                Button(action: edit) { lineRow(line) }
+                Button(action: { Measure.used("edit"); edit() }) { lineRow(line) }
                     .buttonStyle(.plain)
                     .accessibilityHint("Opens this row to edit it.")
             } else {
@@ -359,6 +363,7 @@ struct ChangesView: View {
             ChangeHeaderButton(title: "How It Works", symbol: "questionmark", active: showingHow) {
                 showingHow.toggle()
             }
+            .measured("changes_showing_how", .popover, when: showingHow)
             .popover(isPresented: $showingHow, arrowEdge: .bottom) {
                 VStack(alignment: .leading, spacing: LBSpacing.s2) {
                     ForEach(howLines(pending: review != nil), id: \.self) { line in
@@ -491,11 +496,11 @@ struct ChangesView: View {
                 }
                 HStack(spacing: LBSpacing.s2) {
                     if let edit = line.edit {
-                        Button(action: edit) { capsule("Edit…", filled: true) }
+                        Button(action: { Measure.used("edit"); edit() }) { capsule("Edit…", filled: true) }
                             .buttonStyle(.plain)
                     }
                     if let target = line.delete {
-                        Button { deleting = target } label: { capsule("Delete…", filled: false, danger: true) }
+                        Button { Measure.used("delete"); deleting = target } label: { capsule("Delete…", filled: false, danger: true) }
                             .buttonStyle(.plain)
                     }
                 }
@@ -805,7 +810,7 @@ struct ChangesView: View {
                     .lbText(.bodySM)
                     .foregroundStyle(LBColor.textSecondary.color)
                     .fixedSize(horizontal: false, vertical: true)
-                Button { showingHistory = true } label: {
+                Button { Measure.used("clock_arrow_circlepath"); showingHistory = true } label: {
                     HStack(spacing: LBSpacing.s1) {
                         Image(systemName: "clock.arrow.circlepath")
                             .font(.system(size: 13, weight: .medium))
@@ -868,6 +873,7 @@ struct ChangesView: View {
                     }
                     Spacer(minLength: LBSpacing.s2)
                     Button {
+                        Measure.used("dismiss")
                         model.dismissFailedProposal(proposal.id)
                     } label: {
                         Text("Dismiss")
@@ -960,6 +966,7 @@ struct ChangesView: View {
     private func reviewActions(wide: Bool) -> some View {
         LBReflowStack(spacing: LBSpacing.s2) {
             Button {
+                Measure.used("undo_all")
                 let done = model.revertOutsideChange()
                 if done { Telemetry.shared.send("app.proposal_reviewed", ["decision": "undone"]) }
                 settle(refused: done ? nil : model.saveError)
@@ -969,6 +976,7 @@ struct ChangesView: View {
             .buttonStyle(.plain)
             .accessibilityHint("Writes the previous state back as a new change.")
             Button {
+                Measure.used("keep_all")
                 let done = model.keepOutsideChange()
                 if done { Telemetry.shared.send("app.proposal_reviewed", ["decision": "kept"]) }
                 settle(refused: done ? nil : model.saveError)
@@ -1219,7 +1227,7 @@ struct ChangesView: View {
                     .lbText(.headline)
                     .foregroundStyle(LBColor.textPrimary.color)
                 Spacer()
-                Button("Done") { showingHistory = false }
+                Button("Done") { Measure.used("done"); showingHistory = false }
                     .buttonStyle(.plain)
                     .lbText(.body)
                     .foregroundStyle(LBColor.brandText.color)
@@ -1252,7 +1260,7 @@ struct ChangesView: View {
                 }
                 if !shown.isEmpty {
                     SwiftUI.Section {
-                        Button(role: .destructive) { clearingHistory = true } label: {
+                        Button(role: .destructive) { Measure.used("clear_history"); clearingHistory = true } label: {
                             Text("Clear History…")
                                 .lbText(.body)
                                 .foregroundStyle(LBColor.danger.color)
@@ -1277,15 +1285,17 @@ struct ChangesView: View {
         #endif
         // Read again on opening; a log iCloud still holds elsewhere is fetched first.
         .task { await openHistory() }
+        .measured("changes_clearing_history", .dialog, when: clearingHistory)
         .confirmationDialog("Clear \(shown.count) kept version\(shown.count == 1 ? "" : "s")?", isPresented: $clearingHistory, titleVisibility: .visible) {
-            Button("Clear", role: .destructive) { clearingHistoryAgain = true }
-            Button("Keep", role: .cancel) {}
+            Button("Clear", role: .destructive) { Measure.used("clear_history_confirm"); clearingHistoryAgain = true }
+            Button("Keep", role: .cancel) { Measure.used("keep") }
         } message: {
             Text("Frees \(historySizeWords). Your longbook itself is not touched, but no earlier version can be restored afterwards.")
         }
+        .measured("changes_clearing_history_again", .alert, when: clearingHistoryAgain)
         .alert("Are you sure?", isPresented: $clearingHistoryAgain) {
-            Button("Clear History", role: .destructive) { clearHistory() }
-            Button("Keep", role: .cancel) {}
+            Button("Clear History", role: .destructive) { Measure.used("clear_history"); clearHistory() }
+            Button("Keep", role: .cancel) { Measure.used("keep") }
         } message: {
             Text("The kept versions are gone for good. This cannot be undone.")
         }
@@ -1377,6 +1387,7 @@ struct ChangesView: View {
     private func entryRow(_ entry: HistoryEntry, isCurrent: Bool) -> some View {
         VStack(alignment: .leading, spacing: LBSpacing.s2) {
             Button {
+                Measure.used("toggle_version")
                 toggle(entry)
             } label: {
                 HStack(spacing: LBSpacing.s2) {
@@ -1435,6 +1446,7 @@ struct ChangesView: View {
     @ViewBuilder
     private func restoreButton(_ entry: HistoryEntry) -> some View {
         Button {
+            Measure.used("restore")
             confirmingRestore = entry.hash
         } label: {
             Text("Restore…")
@@ -1447,6 +1459,7 @@ struct ChangesView: View {
         }
         .buttonStyle(.plain)
         .accessibilityHint("Writes this version back as a new change. Nothing is lost.")
+        .measured("changes_confirming_restore", .dialog, when: confirmingRestore == entry.hash)
         .confirmationDialog(
             "Restore the version from \(entry.at.formatted(date: .abbreviated, time: .shortened))?",
             isPresented: Binding(
@@ -1456,6 +1469,7 @@ struct ChangesView: View {
             titleVisibility: .visible
         ) {
             Button("Restore", role: .destructive) {
+                Measure.used("restore")
                 confirmingRestore = nil
                 if model.restore(hash: entry.hash) {
                     restoreRefusal = nil
@@ -1464,7 +1478,7 @@ struct ChangesView: View {
                     restoreRefusal = model.saveError.map { RowRefusal(hash: entry.hash, words: $0) }
                 }
             }
-            Button("Cancel", role: .cancel) {}
+            Button("Cancel", role: .cancel) { Measure.used("cancel") }
         } message: {
             Text("Your memory returns to that version, written back as a new change. Nothing is deleted.")
         }

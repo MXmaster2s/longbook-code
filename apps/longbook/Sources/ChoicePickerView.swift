@@ -97,6 +97,7 @@ struct ChoicePickerView: View {
         #endif
         .background(LBColor.canvas.color)
         .lbClosesOnOutsideClick(onDone)
+        .measured("choice_picker_naming", .alert, when: naming)
         .alert("New \(title.lowercased())", isPresented: $naming) {
             TextField(createPrompt, text: $typedNew)
             Button("Add") { create(typedNew.trimmingCharacters(in: .whitespaces)) }

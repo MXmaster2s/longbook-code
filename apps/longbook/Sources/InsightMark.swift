@@ -35,6 +35,7 @@ struct InsightMark: View {
             .buttonStyle(.plain)
             .accessibilityLabel(labelled ? "1 note" : "Insight")
             .accessibilityHint("Shows the note")
+            .measured("insight_mark_open", .popover, when: open)
             .popover(isPresented: $open, arrowEdge: .bottom) {
                 Text(insight.text)
                     .lbText(.footnote)

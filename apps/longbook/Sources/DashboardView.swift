@@ -134,6 +134,7 @@ struct DashboardView: View {
             }
             #endif
         }
+        .measured("dashboard_picking_month", .sheet, when: pickingMonth)
         .sheet(isPresented: $pickingMonth) {
             // Read through a binding, so the grid redraws with each month the cards take on.
             MonthPickerView(
@@ -147,12 +148,14 @@ struct DashboardView: View {
             )
             .lbMonthSheet()
         }
+        .measured("dashboard_importing_month", .sheet, when: importingMonth != nil)
         .sheet(item: $importingMonth) { asked in
             StatementImportView(model: model, auth: auth, prompt: asked.prompt,
                                 context: asked.namesMonth ? .month(PromptCatalog.monthName(of: asked.firstDay)) : nil) {
                 importingMonth = nil
             }
         }
+        .measured("dashboard_adding_for_month", .sheet, when: addingForMonth != nil)
         .sheet(item: $addingForMonth) { asked in
             RenewalFormView(model: model, editingId: nil, seedDate: asked.firstDay) { addingForMonth = nil }
         }
@@ -253,6 +256,7 @@ struct DashboardView: View {
 
     private func pillButton(_ title: String, filled: Bool, run: @escaping () -> Void) -> some View {
         Button {
+            Measure.used("dashboard_shortcut")
             LBHaptics.tap()
             run()
         } label: {
@@ -849,6 +853,7 @@ struct DashboardView: View {
     /// The accounts the legend leaves out, as one row that turns the card to all of them.
     private func moreAccountsRow(_ count: Int) -> some View {
         Button {
+            Measure.used("show_more_accounts")
             LBHaptics.tap()
             withAnimation(reduceMotion ? nil : .spring(duration: 0.45)) { accountsFlipped = true }
         } label: {
@@ -868,6 +873,7 @@ struct DashboardView: View {
     /// The phone says the motion; a pointer clicks, so the Mac names what the other face shows.
     private func flipControl(_ flipped: Binding<Bool>, mac: String) -> some View {
         Button {
+            Measure.used("arrow_left_arrow_right")
             LBHaptics.tap()
             withAnimation(reduceMotion ? nil : .spring(duration: 0.45)) { flipped.wrappedValue.toggle() }
         } label: {
@@ -891,6 +897,7 @@ struct DashboardView: View {
     /// year of tiles rather than a menu, so the year is visible and a month is one reach away.
     private func monthMenu(_ label: String) -> some View {
         Button {
+            Measure.used("pick_month")
             LBHaptics.tap()
             pickingMonth = true
         } label: {
@@ -1139,6 +1146,7 @@ struct DashboardView: View {
 
     private func accountChip(_ slice: DashboardData.Slice, selected: Bool) -> some View {
         Button {
+            Measure.used("pick_account_slice")
             LBHaptics.tap()
             pickedAccountId = slice.id
         } label: {
@@ -1160,7 +1168,7 @@ struct DashboardView: View {
     private func moreAccountsChip(_ rest: [DashboardData.Slice]) -> some View {
         Menu {
             ForEach(rest) { slice in
-                Button(slice.name) { pickedAccountId = slice.id }
+                Button(slice.name) { Measure.used("picked_account_id", .menuItem); pickedAccountId = slice.id }
             }
         } label: {
             HStack(spacing: LBSpacing.s1) {
@@ -1440,6 +1448,7 @@ private struct DashboardEmpty: View {
             }
             if let action {
                 Button {
+                    Measure.used("dashboard_action")
                     LBHaptics.tap()
                     action.run()
                 } label: {
@@ -1720,6 +1729,7 @@ private struct DashboardRail: View {
         // The words are the reward for the motion, not an instruction before it.
         let named = min(max((spent - 0.15) / 0.5, 0), 1)
         return Button {
+            Measure.used("change_period")
             LBHaptics.tap()
             setLooksBack(back)
         } label: {

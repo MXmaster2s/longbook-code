@@ -57,6 +57,7 @@ struct SignInView: View {
         // Raised from the email door, where the typed address can be compared with the
         // folder's. Apple and Google name the address only after their own sheet, so those
         // two still carry the note rather than a question.
+        .measured("sign_in_confirming_folder_account", .dialog, when: confirmingFolderAccount)
         .confirmationDialog(Self.folderAccountTitle, isPresented: $confirmingFolderAccount, titleVisibility: .visible) {
             Button("Continue") { Task { await send(confirmed: true) } }
             Button("Cancel", role: .cancel) {}

@@ -93,6 +93,7 @@ struct OnboardingFinishView: View {
         .focusEffectDisabled()
         .onKeyPress(.upArrow) { onBack(); return .handled }
         .onKeyPress(.leftArrow) { onBack(); return .handled }
+        .measured("onboarding_finish_importing", .sheet, when: importing)
         .sheet(isPresented: $importing) {
             StatementImportView(model: model, auth: auth, context: .setup, onDone: { importing = false })
                 #if os(macOS)
@@ -100,6 +101,7 @@ struct OnboardingFinishView: View {
                 #endif
         }
         #if os(iOS)
+        .measured("onboarding_finish_showing_ai", .sheet, when: showingAI)
         .sheet(isPresented: $showingAI) { aiSheet }
         #endif
     }
