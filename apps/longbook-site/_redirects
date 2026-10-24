@@ -175,6 +175,8 @@ https://longbook-app.netlify.app/*  https://longbook.app/:splat  301!
 /reviews/index.html.md                                                            /reviews.md                                                            200
 /blog/open-any-folder-in-longbook/index.md                                        /blog/open-any-folder-in-longbook.md                                   200
 /blog/open-any-folder-in-longbook/index.html.md                                   /blog/open-any-folder-in-longbook.md                                   200
+/blog/release-notes/index.md                                                      /blog/release-notes.md                                                 200
+/blog/release-notes/index.html.md                                                 /blog/release-notes.md                                                 200
 /blog/how-to-show-reviews-about-your-product-to-the-world/index.md                /blog/how-to-show-reviews-about-your-product-to-the-world.md           200
 /blog/how-to-show-reviews-about-your-product-to-the-world/index.html.md           /blog/how-to-show-reviews-about-your-product-to-the-world.md           200
 /blog/using-claude-to-record-your-expenses/index.md                               /blog/using-claude-to-record-your-expenses.md                          200

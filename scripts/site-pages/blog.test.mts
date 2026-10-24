@@ -83,3 +83,8 @@ test('a code block keeps its lines as written, escaped on the page and fenced in
 test('a code block that is not closed is refused', () => {
   assert.throws(() => parseBlocks(['```json', '{}'], 'blog/x.md'), /never closed/)
 })
+
+test('a ### takes its ## heading into its id, so two versions can share a sub-heading', () => {
+  const blocks = parseBlocks(['## 1.5.0', '### On the Mac', '## 1.4.1', '### On the Mac'], 'blog/x.md')
+  assert.deepEqual(blocks.map((b) => (b as { id: string }).id), ['1-5-0', '1-5-0-on-the-mac', '1-4-1', '1-4-1-on-the-mac'])
+})

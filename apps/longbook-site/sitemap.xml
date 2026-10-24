@@ -262,7 +262,7 @@
   </url>
   <url>
     <loc>https://longbook.app/facts/</loc>
-    <lastmod>2026-10-28</lastmod>
+    <lastmod>2026-10-29</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/help/what-longbook-is-and-what-it-costs/</loc>
@@ -298,43 +298,43 @@
   </url>
   <url>
     <loc>https://longbook.app/help/what-each-screen-in-longbook-is-for/</loc>
-    <lastmod>2026-10-28</lastmod>
+    <lastmod>2026-10-29</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/help/add-a-commitment-or-an-expense/</loc>
-    <lastmod>2026-10-28</lastmod>
+    <lastmod>2026-10-29</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/help/categories/</loc>
-    <lastmod>2026-10-28</lastmod>
+    <lastmod>2026-10-29</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/help/people-and-accounts/</loc>
-    <lastmod>2026-10-28</lastmod>
+    <lastmod>2026-10-29</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/help/currencies/</loc>
-    <lastmod>2026-10-28</lastmod>
+    <lastmod>2026-10-29</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/help/the-dashboard/</loc>
-    <lastmod>2026-10-28</lastmod>
+    <lastmod>2026-10-29</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/help/the-calendar-and-bookmarks/</loc>
-    <lastmod>2026-10-28</lastmod>
+    <lastmod>2026-10-29</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/help/monthly-reports-and-sharing-them/</loc>
-    <lastmod>2026-10-28</lastmod>
+    <lastmod>2026-10-29</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/help/proposals-review-what-your-ai-writes/</loc>
-    <lastmod>2026-10-28</lastmod>
+    <lastmod>2026-10-29</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/help/where-your-data-lives-and-what-leaves-your-device/</loc>
-    <lastmod>2026-10-28</lastmod>
+    <lastmod>2026-10-29</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/help/the-widget-and-the-mac-menu-bar/</loc>
@@ -342,19 +342,19 @@
   </url>
   <url>
     <loc>https://longbook.app/help/siri-and-shortcuts/</loc>
-    <lastmod>2026-10-28</lastmod>
+    <lastmod>2026-10-29</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/help/connect-your-ai-to-longbook-mcp/</loc>
-    <lastmod>2026-10-28</lastmod>
+    <lastmod>2026-10-29</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/help/what-your-ai-can-do-in-longbook/</loc>
-    <lastmod>2026-10-28</lastmod>
+    <lastmod>2026-10-29</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/help/run-longbook-s-server-on-your-computer/</loc>
-    <lastmod>2026-10-28</lastmod>
+    <lastmod>2026-10-29</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/help/prompts-to-set-up-and-keep-longbook-current/</loc>
@@ -366,19 +366,19 @@
   </url>
   <url>
     <loc>https://longbook.app/help/log-expenses-from-gmail-every-morning/</loc>
-    <lastmod>2026-10-28</lastmod>
+    <lastmod>2026-10-29</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/help/notes-from-your-ai-insights/</loc>
-    <lastmod>2026-10-28</lastmod>
+    <lastmod>2026-10-29</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/help/what-longbook-does-not-do/</loc>
-    <lastmod>2026-10-28</lastmod>
+    <lastmod>2026-10-29</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/help/trips/</loc>
-    <lastmod>2026-10-28</lastmod>
+    <lastmod>2026-10-29</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/help/back-up-export-and-delete-your-data/</loc>
@@ -398,12 +398,17 @@
   </url>
   <url>
     <loc>https://longbook.app/blog/</loc>
-    <lastmod>2026-10-28</lastmod>
+    <lastmod>2026-10-29</lastmod>
   </url>
   <url>
     <loc>https://longbook.app/blog/open-any-folder-in-longbook/</loc>
     <lastmod>2026-10-28</lastmod>
     <image:image><image:loc>https://longbook.app/blog/media/open-any-folder/share.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://longbook.app/blog/release-notes/</loc>
+    <lastmod>2026-10-29</lastmod>
+    <image:image><image:loc>https://longbook.app/blog/media/release-notes/share.jpg</image:loc></image:image>
   </url>
   <url>
     <loc>https://longbook.app/blog/how-to-show-reviews-about-your-product-to-the-world/</loc>

@@ -232,6 +232,12 @@
       "out": "reviews/share.jpg",
       "width": 1200,
       "height": 630
+    },
+    {
+      "source": "blog-release-notes-share.png",
+      "out": "blog/media/release-notes/share.jpg",
+      "width": 1200,
+      "height": 630
     }
   ]
 }
