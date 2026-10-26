@@ -129,6 +129,9 @@ struct DataLeavingCard: View {
                     fact("Account", "Your email and account ID, to sign you in. With Google, also your name and the address of your picture.")
                     rule
                     fact("Purchase", "Apple’s transaction ID, to unlock the licence.")
+                    #if os(macOS)
+                    fact("Update check", "With Check for updates automatically on, once a day the app asks Apple’s App Store which version of longbook is current. Nothing about you or your longbook is sent.")
+                    #endif
                     rule
                     fact(
                         "Hosted copy",
