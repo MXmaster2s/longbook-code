@@ -84,7 +84,9 @@ struct LongbookApp: App {
 
         #if os(macOS)
         // The desktop's menu-bar indicator, as a scene: the next payment beside the clock.
-        MenuBarExtra(isInserted: Binding(get: { showsMenuBar || hidesDock }, set: { showsMenuBar = $0 })) {
+        // Bound straight to the stored switch: a computed binding is rewritten on every
+        // pass, and the scene's write-back then redraws the app without end.
+        MenuBarExtra(isInserted: $showsMenuBar) {
             Group {
                 Text(tray.menuLine)
                 Divider()

@@ -569,6 +569,7 @@ enum DockIcon {
     /// At launch: the Dock icon as the owner left it.
     static func applyStored() {
         if UserDefaults.standard.bool(forKey: hiddenKey) {
+            UserDefaults.standard.set(true, forKey: menuBarKey)
             NSApp.setActivationPolicy(.accessory)
         }
     }
@@ -766,7 +767,7 @@ struct LoginItemsPage: View {
     }
 
     private var menuBarBinding: Binding<Bool> {
-        Binding(get: { showsMenuBar || hidesDock }, set: { showsMenuBar = $0 })
+        Binding(get: { showsMenuBar || hidesDock }, set: { if $0 != showsMenuBar { showsMenuBar = $0 } })
     }
 
     private var dockBinding: Binding<Bool> {
@@ -774,6 +775,8 @@ struct LoginItemsPage: View {
             get: { hidesDock },
             set: { on in
                 hidesDock = on
+                // A hidden Dock icon leaves the menu bar item as the way in, so it shows.
+                if on && !showsMenuBar { showsMenuBar = true }
                 DockIcon.apply(hidden: on)
             }
         )
