@@ -1,7 +1,7 @@
 // Parsing and validation for one financial memory, filesystem-free on purpose: the
 // stdio server reads a folder, the hosted server reads a row, both land here. Format 3
 // only — any other version is refused by name rather than read with the wrong shape.
-import type { LoadedData, Commitment, Member, Account, ChargeRow, Details, Tag } from '@longbook/core'
+import type { LoadedData, Commitment, Member, Account, ChargeRow, Details, Tag, Hint } from '@longbook/core'
 import { nameKey, storedDirection } from '@longbook/core'
 
 export class VaultReadError extends Error {}
@@ -84,6 +84,7 @@ function normalizeMember(raw: Record<string, unknown>): Member {
     avatar_seed: str(raw.avatar_seed),
     is_incomplete: raw.is_incomplete === true,
     email: orNull(raw.email),
+    starred: raw.starred === true,
     created_at: str(raw.created_at),
   }
 }
@@ -105,6 +106,7 @@ function normalizeMethod(raw: Record<string, unknown>): Account {
     balance: typeof raw.balance === 'number' && Number.isFinite(raw.balance) ? raw.balance : null,
     balance_date: orNull(raw.balance_date),
     is_incomplete: raw.is_incomplete === true,
+    starred: raw.starred === true,
     created_at: str(raw.created_at),
   }
 }
@@ -181,5 +183,19 @@ export function parseVault(text: string): LoadedData {
         ...(typeof r['group'] === 'string' ? { group: r['group'] } : {}),
         ...(typeof r['tag'] === 'string' ? { tag: r['tag'] } : {}),
       })),
+    hints: parseHints(parsed['hints']),
   }
+}
+
+/** The vault's hints[]: a person or an account picked at setup, each with a name and a kind. */
+export function parseHints(raw: unknown): Hint[] {
+  return rows(raw)
+    .filter((r) => typeof r['id'] === 'string' && typeof r['name'] === 'string' && (r['name'] as string).trim() !== '')
+    .filter((r) => r['kind'] === 'member' || r['kind'] === 'account')
+    .map((r) => ({
+      id: r['id'] as string,
+      name: r['name'] as string,
+      kind: r['kind'] as Hint['kind'],
+      ...(typeof r['tag'] === 'string' && r['tag'] !== '' ? { tag: r['tag'] } : {}),
+    }))
 }

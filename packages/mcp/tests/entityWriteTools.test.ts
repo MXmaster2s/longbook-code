@@ -595,3 +595,23 @@ test('delete_tag removes the registry entry and leaves the rows that wore it wit
   assert.throws(() => checkProposal('delete_tag', { kind: 'commitment', name: '' }), /name names the tag as the vault holds it\./)
   assert.deepEqual(readFileSync(file), before)
 })
+
+test('update_account and update_person star and unstar; the read tools say so; a star that is not a boolean is refused', async () => {
+  const { dir, file } = seeded()
+  const report = updateAccount(dir, 'claude', { id: 'a-hdfc', set: { starred: true } }) as Record<string, any>
+  assert.equal(accountIn(file, 'a-hdfc').starred, true)
+  assert.deepEqual(report.fields, ['starred'])
+  updateMember(dir, 'claude', { id: 'm-diya', set: { starred: true } })
+  assert.equal(memberIn(file, 'm-diya').starred, true)
+  const { parseVault } = await import('../src/parse.js')
+  const { accounts, members } = await import('../src/tools.js')
+  const data = parseVault(readFileSync(file, 'utf8'))
+  assert.equal((accounts(data).accounts.find((a) => a.id === 'a-hdfc') as Record<string, unknown>).starred, true)
+  assert.equal('starred' in (accounts(data).accounts.find((a) => a.id === 'a-visa') as Record<string, unknown>), false)
+  assert.equal((members(data).members.find((m) => m.id === 'm-diya') as Record<string, unknown>).starred, true)
+  // Off leaves no key behind, as the app writes it.
+  updateAccount(dir, 'claude', { id: 'a-hdfc', set: { starred: false } })
+  assert.equal('starred' in accountIn(file, 'a-hdfc'), false)
+  assert.throws(() => updateAccount(dir, 'claude', { id: 'a-hdfc', set: { starred: 'yes' as unknown as boolean } }), /starred is true or false/)
+  assert.throws(() => updateMember(dir, 'claude', { id: 'm-diya', set: { starred: 1 as unknown as boolean } }), /starred is true or false/)
+})

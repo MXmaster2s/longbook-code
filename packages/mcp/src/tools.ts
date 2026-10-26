@@ -368,6 +368,16 @@ export function commitments(data: LoadedData, status: StatusFilter, today: Date 
             `older or longer statements before guessing.`,
         }
       : {}),
+    ...(data.hints?.length
+      ? {
+          hints: data.hints.map((h) => ({ name: h.name, kind: h.kind === 'member' ? 'person' : 'account', tag: h.tag ?? null })),
+          hints_note:
+            `${data.hints.length} hint${data.hints.length === 1 ? '' : 's'} the owner picked at setup: people by role and accounts by kind. ` +
+            `Use them when reading statements — a monthly payment to a person may be the cook, a statement's account may be the ` +
+            `savings account. A hint is not a person or an account: never write a charge to its name. Add the person or the account ` +
+            `under the name the statement or the owner gives, with add_person or add_account.`,
+        }
+      : {}),
   }
 }
 
@@ -471,7 +481,7 @@ export function accounts(data: LoadedData, today: Date = todayMid()) {
   return {
     count: data.methods.length,
     note:
-      'type is the account\'s tag. notes hold what is particular about it, one detail per line — on a card, "Card name: …", the product printed on it. details, when an account holds any, is longbook\'s own, returned as stored. linked_to is the account this one is linked to — a card to the bank account that pays it. balance_note appears when the balance held is older than the newest confirmed charge. commitments and charges count everything billed to the account, every status, past and planned.',
+      'type is the account\'s tag. notes hold what is particular about it, one detail per line — on a card, "Card name: …", the product printed on it. details, when an account holds any, is longbook\'s own, returned as stored. linked_to is the account this one is linked to — a card to the bank account that pays it. starred is true for an account the owner starred to keep it first. balance_note appears when the balance held is older than the newest confirmed charge. commitments and charges count everything billed to the account, every status, past and planned.',
     accounts: data.methods.map((account) => ({
       id: account.id,
       name: account.name,
@@ -484,6 +494,7 @@ export function accounts(data: LoadedData, today: Date = todayMid()) {
       balance_date: account.balance_date ?? null,
       ...balanceNote(data, account, today),
       notes: account.notes ?? null,
+      ...(account.starred ? { starred: true } : {}),
       ...heldDetails(account),
       ...usage(data, data.subs.filter((s) => s.account_id === account.id), today),
     })),
@@ -495,13 +506,14 @@ export function members(data: LoadedData, today: Date = todayMid()) {
   return {
     count: data.members.length,
     note:
-      'tag is the person\'s role in the owner\'s finances — family, household help, landlord. accounts are the ones that belong to them. details, when a person holds any, is longbook\'s own, returned as stored. commitments and charges count everything that is for them, every status, past and planned.',
+      'tag is the person\'s role in the owner\'s finances — family, household help, landlord. accounts are the ones that belong to them. starred is true for a person the owner starred to keep them first. details, when a person holds any, is longbook\'s own, returned as stored. commitments and charges count everything that is for them, every status, past and planned.',
     members: data.members.map((member) => ({
       id: member.id,
       name: member.name,
       tag: member.tag,
       email: member.email,
       accounts: data.methods.filter((a) => a.member_id === member.id).map((a) => a.name),
+      ...(member.starred ? { starred: true } : {}),
       ...heldDetails(member),
       ...usage(data, data.subs.filter((s) => s.member_id === member.id), today),
     })),

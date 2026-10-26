@@ -53,6 +53,8 @@ export interface RpcContext {
    * the memory, so initialize still says them. Unneeded where loadData carries the memory.
    */
   toFillIn?: () => LoadedData['toFillIn']
+  /** The hints setup kept, for the same door's handshake. */
+  hints?: () => LoadedData['hints']
   llmsText: () => string
   schemaText: () => string
   /** The day the arithmetic answers from. Tests pin it; live servers omit it. */
@@ -415,6 +417,8 @@ export function whoami(ctx: RpcContext): Record<string, unknown> {
     ...(ctx.writeMode === 'direct' ? {} : { closer_door: CLOSER_DOOR }),
     // What setup named and nobody has filled in: an agent that calls whoami first sees them.
     to_fill_in: (data?.toFillIn ?? []).map((p) => ({ name: p.name, group: p.group ?? null })),
+    // People and accounts setup kept as hints for reading statements; never rows of their own.
+    hints: (data?.hints ?? []).map((h) => ({ name: h.name, kind: h.kind === 'member' ? 'person' : 'account', tag: h.tag ?? null })),
     tags: vocabulary
       ? {
           in_vault: vocabulary.in_vault.map((t) => ({ kind: t.kind, name: t.name })),
@@ -451,7 +455,7 @@ export async function handleRpc(message: unknown, ctx: RpcContext): Promise<Reco
       case 'initialize': {
         const asked = typeof params.protocolVersion === 'string' ? params.protocolVersion : ''
         // A door that skipped the memory for the handshake still hands over the names.
-        const waiting = ctx.loadData() ?? (ctx.toFillIn ? { toFillIn: ctx.toFillIn() } : null)
+        const waiting = ctx.loadData() ?? (ctx.toFillIn || ctx.hints ? { toFillIn: ctx.toFillIn?.(), hints: ctx.hints?.() } : null)
         return result(id, {
           protocolVersion: PROTOCOLS.includes(asked) ? asked : PROTOCOLS[0],
           capabilities: { tools: {}, resources: {}, prompts: {} },
