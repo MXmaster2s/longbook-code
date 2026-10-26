@@ -53,6 +53,8 @@ final class SupportCenter: ObservableObject {
     /// The screen behind Support, taken the moment it opened, and whether it goes in the email.
     @Published private(set) var behind: SupportImage?
     @Published var screenshotAttached = false
+    /// Support was opened since launch, so the button stays to bring it back after a hide.
+    @Published private(set) var opened = false
     private var asking: Task<Void, Never>?
 
     var active: Bool {
@@ -71,6 +73,7 @@ final class SupportCenter: ObservableObject {
 
     func open() {
         guard !presented else { return }
+        opened = true
         behind = SupportScreenshot.capture()
         screenshotAttached = false
         if AIConsent.support.given { presented = true } else { askingConsent = true }
@@ -224,6 +227,12 @@ final class SupportCenter: ObservableObject {
                 mailOpened()
                 return
             }
+        }
+        // A mailto link carries no file: the picture goes on the clipboard instead.
+        if let image = behind, screenshotAttached {
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.writeObjects([image])
+            mailNote = "The screenshot is copied. In your email, press Command-V to paste it."
         }
         #endif
         guard let url = Self.mailto(subject: subject, body: mailBody(rating: rating, limit: 1_800)) else { return }
@@ -390,7 +399,11 @@ enum SupportScreenshot {
             window.drawHierarchy(in: window.bounds, afterScreenUpdates: false)
         }
         #else
-        guard let view = (NSApp.mainWindow ?? NSApp.keyWindow)?.contentView,
+        // The ledger's window, never Settings, drawn whole: the frame view holds the title bar
+        // and toolbar too. The cached rep is at the window's backing scale, so Retina pixels.
+        let ledger = NSApp.windows.first { $0.identifier?.rawValue.hasPrefix(LongbookWindow.main) == true && $0.isVisible }
+        guard let window = ledger ?? NSApp.mainWindow ?? NSApp.keyWindow,
+              let view = window.contentView?.superview ?? window.contentView,
               let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { return nil }
         view.cacheDisplay(in: view.bounds, to: rep)
         let image = NSImage(size: view.bounds.size)
@@ -403,7 +416,9 @@ enum SupportScreenshot {
         #if os(iOS)
         image.pngData()
         #else
-        image.tiffRepresentation.flatMap { NSBitmapImageRep(data: $0)?.representation(using: .png, properties: [:]) }
+        // The captured rep itself, at full pixel size; a TIFF round trip can pick a smaller one.
+        let rep = image.representations.compactMap { $0 as? NSBitmapImageRep }.max { $0.pixelsWide < $1.pixelsWide }
+        return (rep ?? image.tiffRepresentation.flatMap(NSBitmapImageRep.init(data:)))?.representation(using: .png, properties: [:])
         #endif
     }
 
@@ -411,7 +426,9 @@ enum SupportScreenshot {
     /// The screenshot as a file, for the mail app to attach.
     static func save(_ png: Data) -> URL? {
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent("longbook-support", isDirectory: true)
-        let file = folder.appendingPathComponent("longbook screenshot.png")
+        // A name of its own each time, so an email still open keeps the picture it was given.
+        let stamp = Int(Date().timeIntervalSince1970)
+        let file = folder.appendingPathComponent("longbook-screenshot-\(stamp).png")
         guard (try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)) != nil,
               (try? png.write(to: file)) != nil else { return nil }
         return file
@@ -846,16 +863,28 @@ struct SupportScreen: View {
 
     private func attachedShot(_ image: SupportImage) -> some View {
         HStack(spacing: LBSpacing.s3) {
+            // The whole screen, scaled to fit: what the team gets, nothing cut away.
             shot(image)
                 .resizable()
-                .scaledToFill()
-                .frame(width: 44, height: 64)
+                .scaledToFit()
                 .clipShape(RoundedRectangle(cornerRadius: LBRadius.xs, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: LBRadius.xs, style: .continuous).strokeBorder(LBColor.hairline.color))
-            Text("Goes in your email to the team, never to the AI. Check it first, it may show amounts.")
-                .lbText(.footnote)
-                .foregroundStyle(LBColor.textSecondary.color)
-                .fixedSize(horizontal: false, vertical: true)
+                .frame(width: 88, height: 64)
+            VStack(alignment: .leading, spacing: LBSpacing.s1) {
+                Text("Goes in your email to the team, never to the AI. Check it first, it may show amounts.")
+                    .lbText(.footnote)
+                    .foregroundStyle(LBColor.textSecondary.color)
+                    .fixedSize(horizontal: false, vertical: true)
+                Button {
+                    Measure.used("support_screenshot_email")
+                    withAnimation(spring) { center.emailTeam(review: false, openURL: openURL) }
+                } label: {
+                    Text("Email it to the team")
+                        .lbText(.footnote)
+                        .foregroundStyle(LBColor.brandText.color)
+                }
+                .buttonStyle(.plain)
+            }
             Spacer(minLength: 0)
             Button {
                 Measure.used("support_screenshot_remove")
@@ -979,12 +1008,10 @@ private struct Arrive: ViewModifier {
 
 /// The floating Support button. The dot says a conversation is recent.
 struct SupportButton: View {
-    /// What the press does, when Support opens in another window (the Mac's Settings).
-    var action: (() -> Void)? = nil
     @ObservedObject private var center = SupportCenter.shared
 
     var body: some View {
-        Button { Measure.used("support_button"); (action ?? center.open)() } label: {
+        Button { Measure.used("support_button"); center.open() } label: {
             HStack(spacing: LBSpacing.s2) {
                 Image(systemName: "bubble.left.fill")
                     .font(.system(size: 14, weight: .semibold))
