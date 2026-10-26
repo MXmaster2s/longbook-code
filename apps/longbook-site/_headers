@@ -6,6 +6,12 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
 
+/support.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+/support-chat.js
+  Cache-Control: public, max-age=0, must-revalidate
+
 /tokens.css
   Cache-Control: public, max-age=31536000, immutable
 
