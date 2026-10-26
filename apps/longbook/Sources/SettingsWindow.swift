@@ -3,6 +3,7 @@ import AppKit
 import DesignSystem
 import LongbookCore
 import ServiceManagement
+import StoreKit
 import SwiftUI
 
 /// The Settings window's panes, each with its name, symbol, tile colour and one line saying what it holds.
@@ -25,20 +26,23 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .appearance: "Appearance"
         case .ai: "AI"
         case .statements: "Statements"
-        case .privacy: "Data & privacy"
+        case .privacy: "Data & Privacy"
         case .tutorials: "Tutorials"
         }
     }
 
+    /// The name a subpage's back button carries.
+    var backTitle: String { self == .account ? "Account" : title }
+
     var line: String {
         switch self {
-        case .account: "Your purchase, longbook Cloud, and the ways out."
-        case .general: "Your longbook’s version, updates, currency, and how it opens on this Mac."
-        case .appearance: "Light, dark, or following the Mac."
-        case .ai: "Let Claude or ChatGPT read your longbook and propose changes you review."
-        case .statements: "How longbook reads your bank and card statements."
-        case .privacy: "Where your longbook lives, its backups, and what leaves this Mac."
-        case .tutorials: "Each screen shows a short tutorial the first time you open it on this Mac."
+        case .account: "longbook Account"
+        case .general: "Version, currency and how longbook opens."
+        case .appearance: "Light, dark, or as the Mac is set."
+        case .ai: "Let your AI read your longbook and propose changes."
+        case .statements: "How longbook reads your statements."
+        case .privacy: "Where your longbook lives and what leaves this Mac."
+        case .tutorials: "Replay a screen’s tutorial on this Mac."
         }
     }
 
@@ -69,14 +73,14 @@ enum SettingsPane: String, CaseIterable, Identifiable {
     private var words: [String] {
         switch self {
         case .account: ["Account", "Email", "Plan", "Purchase", "longbook Cloud", "Subscription", "Sign Out", "Refund", "Delete Account"]
-        case .general: ["About", "Software Update", "Check for updates", "What’s New", "Home currency", "Login Items", "Launch at login",
+        case .general: ["About", "Software Update", "Check for updates", "What’s New", "Home currency", "Login Items", "Open at login",
                         "Menu Bar", "Dock", "Help", "Support", "Feedback", "Tips", "Demo", "Suggest a feature", "Report a problem", "Contact",
                         "Terms", "Privacy policy", "Source code", "Version"]
         case .appearance: ["Automatic", "Light", "Dark", "Theme"]
         case .ai: ["Claude", "ChatGPT", "MCP", "Access", "Keys", "Proposals", "Reorganise", "Prompts", "Shortcuts", "Siri", "Spotlight"]
         case .statements: ["Add accounts and people found", "Optimize your data", "Import a statement", "PDF", "CSV", "Bank", "Card"]
-        case .privacy: ["iCloud", "Folder", "Finder", "Backups", "Move", "Usage", "Crash", "What leaves this device", "Card details",
-                        "Open Another Folder", "Delete longbook"]
+        case .privacy: ["iCloud", "Folder", "Finder", "Backups", "Move", "Usage", "Crash", "What longbook keeps", "What leaves this device",
+                        "Card details", "Open Another Folder", "Delete longbook"]
         case .tutorials: ["Replay", "Dashboard", "Commitments", "Calendar", "Reports", "Accounts", "People", "Insights", "Proposals"]
         }
     }
@@ -91,6 +95,8 @@ enum SettingsPane: String, CaseIterable, Identifiable {
 /// A page a pane opens: one of the window's own subpages, or one of the app's screens.
 enum SettingsPage: Hashable {
     case about, softwareUpdate, loginItems, help
+    case plan, backups, keeps
+    case aiClaudeDesktop, aiAccess, aiPrompts, aiShortcuts
     case screen(Destination)
 
     var title: String {
@@ -99,11 +105,35 @@ enum SettingsPage: Hashable {
         case .softwareUpdate: "Software Update"
         case .loginItems: "Login Items and Menu Bar"
         case .help: "Help and Feedback"
+        case .plan: "Plan and longbook Cloud"
+        case .backups: "Backups"
+        case .keeps: "What longbook keeps"
+        case .aiClaudeDesktop: "Claude Desktop"
+        case .aiAccess: "Access Keys"
+        case .aiPrompts: "Prompts for Your AI"
+        case .aiShortcuts: "Shortcuts and Siri"
         case .screen(.updates): "What’s New"
         case .screen(.tips): "Tips"
         case .screen: ""
         }
     }
+}
+
+/// The Settings window's one spacing scale, in points.
+enum SettingsMetrics {
+    static let inset: CGFloat = 24
+    static let rowHeight: CGFloat = 40
+    static let rowPadding: CGFloat = 12
+    static let tile: CGFloat = 22
+    static let gap: CGFloat = 10
+    static let section: CGFloat = 20
+    static let heading: CGFloat = 6
+    static let radius: CGFloat = 10
+    /// Where a divider starts in a row with a tile: the label's leading edge.
+    static let labelEdge: CGFloat = rowPadding + tile + gap
+    static let sidebarPadding: CGFloat = 12
+    static let sidebarRow: CGFloat = 32
+    static let sidebarWidth: CGFloat = 220
 }
 
 /// The Settings window (⌘,), laid out as the Mac's System Settings: a searchable sidebar under the
@@ -144,97 +174,50 @@ struct SettingsWindowContent: View {
 
     var body: some View {
         NavigationSplitView {
-            List(selection: selection) {
-                if SettingsPane.account.matches(query) || (auth.email ?? "").localizedCaseInsensitiveContains(query) {
-                    Section {
-                        SettingsAccountRow(auth: auth).tag(SettingsPane.account)
-                    }
-                }
-                ForEach(Array(shownGroups.enumerated()), id: \.offset) { _, group in
-                    Section {
-                        ForEach(group) { pane in
-                            SettingsSidebarRow(pane: pane).tag(pane)
-                        }
-                    }
-                }
-            }
-            .listStyle(.sidebar)
-            .searchable(text: $query, placement: .sidebar, prompt: "Search")
-            .tint(LBColor.brand.color)
-            .navigationSplitViewColumnWidth(230)
-            .toolbar(removing: .sidebarToggle)
+            SettingsSidebar(auth: auth, picked: $picked, query: $query)
+                .navigationSplitViewColumnWidth(SettingsMetrics.sidebarWidth)
+                .toolbar(removing: .sidebarToggle)
         } detail: {
             pane(picked)
                 .id(picked)
                 .environment(\.lbPageTitleHidden, true)
         }
+        .settingsTitleRemoved()
         .environmentObject(entitlement)
-    }
-
-    /// The groups with only the panes the search finds; a group left empty is dropped.
-    private var shownGroups: [[SettingsPane]] {
-        SettingsPane.groups.map { $0.filter { $0.matches(query) } }.filter { !$0.isEmpty }
-    }
-
-    /// The sidebar's pick, counted when the owner changes it.
-    private var selection: Binding<SettingsPane?> {
-        Binding(
-            get: { picked },
-            set: { pane in
-                guard let pane, pane != picked else { return }
-                Measure.used("settings_pane")
-                picked = pane
-            }
-        )
     }
 
     @ViewBuilder
     private func pane(_ pane: SettingsPane) -> some View {
         switch pane {
         case .account:
-            stack(header: accountHeader) { nav in screen(.accountDetails, nav) }
+            stack(pane) { nav in AccountSettingsPane(auth: auth, entitlement: entitlement, open: nav.open) }
         case .general:
-            stack { nav in GeneralSettingsPane(model: model, open: nav.open) }
+            stack(pane) { nav in GeneralSettingsPane(model: model, open: nav.open) }
         case .appearance:
-            stack { _ in AppearanceSettingsPane() }
+            stack(pane) { _ in AppearanceSettingsPane() }
         case .ai:
-            stack(header: header(.ai)) { nav in screen(.mcpServer, nav) }
+            stack(pane) { nav in AISettingsPane(model: model, auth: auth, open: nav.open) }
         case .statements:
-            stack { _ in StatementsSettingsPane(toMainWindow: toMainWindow) }
+            stack(pane) { _ in StatementsSettingsPane(toMainWindow: toMainWindow) }
         case .privacy:
-            stack(header: header(.privacy)) { nav in screen(.privacy, nav) }
+            stack(pane, header: header(.privacy)) { nav in DataPrivacyView(model: model, openPage: nav.open) }
         case .tutorials:
-            stack(header: header(.tutorials)) { nav in screen(.tutorials, nav) }
+            stack(pane) { _ in TutorialsSettingsPane() }
         }
     }
 
-    private func stack<Root: View>(header: AnyView? = nil, @ViewBuilder root: @escaping (SettingsNavigator) -> Root) -> some View {
-        SettingsStack(model: model, auth: auth, entitlement: entitlement, toMainWindow: toMainWindow, header: header, root: root)
-    }
-
-    private func screen(_ destination: Destination, _ nav: SettingsNavigator) -> DestinationScreen {
-        DestinationScreen(
-            destination: destination, model: model, auth: auth, entitlement: entitlement, path: nav.screens,
-            importStatement: { toMainWindow(.longbookImport) },
-            setUpAgain: { toMainWindow(.longbookSetUpAgain) }
+    private func stack<Root: View>(
+        _ pane: SettingsPane, header: AnyView? = nil, @ViewBuilder root: @escaping (SettingsNavigator) -> Root
+    ) -> some View {
+        SettingsStack(
+            model: model, auth: auth, entitlement: entitlement, toMainWindow: toMainWindow,
+            back: pane.backTitle, header: header, root: root
         )
     }
 
-    /// The header card an app screen draws in place of its title, framed as a card of its own.
+    /// The header card a shared screen draws in place of its title.
     private func header(_ pane: SettingsPane) -> AnyView {
-        AnyView(SettingsHeaderCard(title: pane.title, line: pane.line, framed: true) { SettingsTile(pane: pane, size: 56) })
-    }
-
-    private var accountHeader: AnyView {
-        AnyView(
-            SettingsHeaderCard(
-                title: auth.email ?? SettingsPane.account.title,
-                line: auth.email == nil ? SettingsPane.account.line : "longbook Account · signed in on this Mac",
-                framed: true
-            ) {
-                AccountAvatar(url: auth.avatarURL, email: auth.email, size: 56)
-            }
-        )
+        AnyView(SettingsPaneHeader(pane: pane))
     }
 }
 
@@ -244,14 +227,16 @@ struct SettingsNavigator {
     let screens: Binding<[Destination]>
 }
 
-/// One pane's own stack, titled as System Settings is: the pane's root has no bar of its own and is
-/// named by its header card; a pushed page puts a back button and its name in the title bar. ⌘[ and
-/// ⌘] go back and forward.
+/// One pane's own stack, titled as System Settings is: the pane's root leaves the title bar empty
+/// and is named by its header card; a pushed page puts "‹ Pane" and its name in the title bar.
+/// ⌘[ and ⌘] go back and forward.
 struct SettingsStack<Root: View>: View {
     let model: DashboardModel
     @ObservedObject var auth: AuthViewModel
     @ObservedObject var entitlement: EntitlementStore
     let toMainWindow: (Notification.Name) -> Void
+    /// The pane's name, on every subpage's back button.
+    let back: String
     let header: AnyView?
     let root: (SettingsNavigator) -> Root
     @State private var path: [SettingsPage] = []
@@ -265,23 +250,12 @@ struct SettingsStack<Root: View>: View {
                 .navigationTitle("")
                 .navigationDestination(for: SettingsPage.self) { page in
                     self.page(page)
-                        .navigationTitle(page.title)
+                        .navigationTitle("")
                         .navigationBarBackButtonHidden(true)
                         .environment(\.lbPageHeader, nil)
                         // Where the title bar names the page, the page draws no second title.
                         .environment(\.lbPageTitleHidden, !page.title.isEmpty)
-                        .toolbar {
-                            ToolbarItem(placement: .navigation) {
-                                Button {
-                                    Measure.used("settings_back")
-                                    back()
-                                } label: {
-                                    Label("Back", systemImage: "chevron.left")
-                                }
-                                .help("Back")
-                                .keyboardShortcut("[", modifiers: .command)
-                            }
-                        }
+                        .toolbar { SettingsBackItem(back: back, title: page.title, action: goBack) }
                 }
         }
         // Forward has no button, as in System Settings; its shortcut lives here, out of sight.
@@ -301,7 +275,7 @@ struct SettingsStack<Root: View>: View {
         }
     }
 
-    private func back() {
+    private func goBack() {
         guard let last = path.popLast() else { return }
         ahead.append(last)
     }
@@ -332,6 +306,20 @@ struct SettingsStack<Root: View>: View {
             LoginItemsPage()
         case .help:
             HelpSettingsPage(open: open, toMainWindow: toMainWindow)
+        case .plan:
+            AccountScreenView(auth: auth, entitlement: entitlement, planOnly: true)
+        case .backups:
+            BackupsSettingsPage(model: model)
+        case .keeps:
+            PrivacyKeepsPage(model: model)
+        case .aiClaudeDesktop:
+            MCPServerView(model: model, auth: auth, part: .claudeDesktop)
+        case .aiAccess:
+            MCPServerView(model: model, auth: auth, part: .access)
+        case .aiPrompts:
+            AutomationsView(model: model, auth: auth, part: .prompts)
+        case .aiShortcuts:
+            AutomationsView(model: model, auth: auth, part: .shortcuts)
         case .screen(let destination):
             DestinationScreen(
                 destination: destination, model: model, auth: auth, entitlement: entitlement, path: screens,
@@ -342,40 +330,189 @@ struct SettingsStack<Root: View>: View {
     }
 }
 
+/// A subpage's title bar: "‹ Pane" in the brand's ink, then the page's own name.
+private struct SettingsBackItem: ToolbarContent {
+    let back: String
+    let title: String
+    let action: () -> Void
+
+    var body: some ToolbarContent {
+        if #available(macOS 26, *) {
+            ToolbarItem(placement: .navigation) { label }
+                .sharedBackgroundVisibility(.hidden)
+        } else {
+            ToolbarItem(placement: .navigation) { label }
+        }
+    }
+
+    private var label: some View {
+        HStack(spacing: 16) {
+            Button {
+                Measure.used("settings_back")
+                action()
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 11, weight: .semibold))
+                    Text(back)
+                        .lbText(.body)
+                }
+                .foregroundStyle(LBColor.brandText.color)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .help("Back to \(back)")
+            .accessibilityLabel("Back to \(back)")
+            .keyboardShortcut("[", modifiers: .command)
+            if !title.isEmpty {
+                Text(title)
+                    .lbText(.headline)
+                    .foregroundStyle(LBColor.textPrimary.color)
+                    .lineLimit(1)
+                    .accessibilityAddTraits(.isHeader)
+            }
+        }
+        .padding(.leading, SettingsMetrics.inset - 8)
+    }
+}
+
+private extension View {
+    /// The title bar holds no window title: a pane's root leaves it empty, a subpage names itself.
+    @ViewBuilder
+    func settingsTitleRemoved() -> some View {
+        if #available(macOS 15, *) {
+            toolbar(removing: .title)
+        } else {
+            self
+        }
+    }
+}
+
 // MARK: sidebar
 
-/// The account row at the sidebar's top: the avatar, the address, and what it is.
-private struct SettingsAccountRow: View {
+/// The sidebar: the search field, the account row, then the panes in their groups.
+private struct SettingsSidebar: View {
     @ObservedObject var auth: AuthViewModel
+    @Binding var picked: SettingsPane
+    @Binding var query: String
 
     var body: some View {
-        HStack(spacing: LBSpacing.s2) {
-            AccountAvatar(url: auth.avatarURL, email: auth.email, size: 34)
+        ScrollView {
+            VStack(alignment: .leading, spacing: SettingsMetrics.sidebarPadding) {
+                SettingsSearchField(query: $query)
+                if SettingsPane.account.matches(query) || (auth.email ?? "").localizedCaseInsensitiveContains(query) {
+                    SettingsSidebarButton(pane: .account, picked: $picked) { on in
+                        SettingsAccountRow(auth: auth, picked: on)
+                    }
+                }
+                ForEach(Array(shownGroups.enumerated()), id: \.offset) { _, group in
+                    VStack(spacing: 0) {
+                        ForEach(group) { pane in
+                            SettingsSidebarButton(pane: pane, picked: $picked) { on in
+                                SettingsSidebarRow(pane: pane, picked: on)
+                            }
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, SettingsMetrics.sidebarPadding)
+            .padding(.bottom, SettingsMetrics.sidebarPadding)
+        }
+        .scrollIndicators(.never)
+    }
+
+    /// The groups with only the panes the search finds; a group left empty is dropped.
+    private var shownGroups: [[SettingsPane]] {
+        SettingsPane.groups.map { $0.filter { $0.matches(query) } }.filter { !$0.isEmpty }
+    }
+}
+
+/// The sidebar's search field, 28 pt tall.
+private struct SettingsSearchField: View {
+    @Binding var query: String
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(LBColor.textTertiary.color)
+                .accessibilityHidden(true)
+            TextField("Search", text: $query)
+                .textFieldStyle(.plain)
+                .lbText(.body)
+        }
+        .padding(.horizontal, 8)
+        .frame(height: 28)
+        .background(Color.primary.opacity(0.06), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+    }
+}
+
+/// A sidebar row as a button that picks its pane, drawn filled in the brand's colour when picked.
+private struct SettingsSidebarButton<Label: View>: View {
+    let pane: SettingsPane
+    @Binding var picked: SettingsPane
+    @ViewBuilder let label: (Bool) -> Label
+
+    var body: some View {
+        let on = picked == pane
+        Button {
+            guard pane != picked else { return }
+            Measure.used("settings_pane")
+            picked = pane
+        } label: {
+            label(on)
+                .padding(.horizontal, 8)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background {
+                    if on {
+                        RoundedRectangle(cornerRadius: 6, style: .continuous).fill(LBColor.brand.color)
+                    }
+                }
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(on ? .isSelected : [])
+    }
+}
+
+/// The account row at the sidebar's top: the sign-in photo, the address, and what it is. 44 pt tall.
+private struct SettingsAccountRow: View {
+    @ObservedObject var auth: AuthViewModel
+    let picked: Bool
+
+    var body: some View {
+        HStack(spacing: SettingsMetrics.gap) {
+            AccountAvatar(url: auth.avatarURL, email: auth.email, size: 28)
             VStack(alignment: .leading, spacing: 1) {
                 Text(auth.email ?? "Account")
-                    .font(.body.weight(.semibold))
+                    .lbText(.body)
+                    .foregroundStyle(picked ? Color.white : LBColor.textPrimary.color)
                     .lineLimit(1)
                     .truncationMode(.middle)
                 Text("longbook Account")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .lbText(.footnote)
+                    .foregroundStyle(picked ? Color.white.opacity(0.8) : LBColor.textSecondary.color)
             }
         }
-        .padding(.vertical, 3)
+        .frame(height: 44)
         .accessibilityElement(children: .combine)
     }
 }
 
-/// One sidebar row: the pane's symbol on its coloured tile, then its name.
+/// One sidebar row, 32 pt: the pane's symbol on its coloured tile, then its name.
 private struct SettingsSidebarRow: View {
     let pane: SettingsPane
+    let picked: Bool
 
     var body: some View {
-        Label {
+        HStack(spacing: SettingsMetrics.gap) {
+            SettingsTile(pane: pane, size: SettingsMetrics.tile)
             Text(pane.title)
-        } icon: {
-            SettingsTile(pane: pane)
+                .lbText(.body)
+                .foregroundStyle(picked ? Color.white : LBColor.textPrimary.color)
+                .lineLimit(1)
         }
+        .frame(height: SettingsMetrics.sidebarRow)
     }
 }
 
@@ -385,15 +522,15 @@ private struct SettingsSidebarRow: View {
 struct SettingsTile: View {
     let symbol: String
     let color: Color
-    var size: CGFloat = 20
+    var size: CGFloat = SettingsMetrics.tile
 
-    init(symbol: String, color: Color, size: CGFloat = 20) {
+    init(symbol: String, color: Color, size: CGFloat = SettingsMetrics.tile) {
         self.symbol = symbol
         self.color = color
         self.size = size
     }
 
-    init(pane: SettingsPane, size: CGFloat = 20) {
+    init(pane: SettingsPane, size: CGFloat = SettingsMetrics.tile) {
         self.init(symbol: pane.symbol, color: pane.tile, size: size)
     }
 
@@ -410,67 +547,204 @@ struct SettingsTile: View {
     }
 }
 
-/// A pane's first card: its big tile, its name, and one line saying what it holds.
-struct SettingsHeaderCard<Icon: View>: View {
+/// A pane's first card: a 44 pt mark, its name, one short line, and an optional control at the end.
+struct SettingsHeaderCard<Icon: View, Accessory: View>: View {
     let title: String
     let line: String
-    /// Drawn on a card of its own where the page has no grouped cards to sit in.
-    var framed = false
     @ViewBuilder let icon: () -> Icon
+    @ViewBuilder let accessory: () -> Accessory
 
     var body: some View {
-        VStack(spacing: LBSpacing.s2) {
+        HStack(spacing: 14) {
             icon()
-            Text(title)
-                .lbText(.largeTitle)
-                .foregroundStyle(LBColor.textPrimary.color)
-                .lineLimit(1)
-                .minimumScaleFactor(0.6)
-                .accessibilityAddTraits(.isHeader)
-            Text(line)
-                .lbText(.footnote)
-                .foregroundStyle(LBColor.textSecondary.color)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, LBSpacing.s4)
-        .padding(.horizontal, framed ? LBSpacing.s4 : 0)
-        .background {
-            if framed {
-                RoundedRectangle(cornerRadius: LBRadius.md, style: .continuous).fill(LBColor.card.color)
+                .frame(width: 44, height: 44)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .lbText(.title)
+                    .foregroundStyle(LBColor.textPrimary.color)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                    .accessibilityAddTraits(.isHeader)
+                Text(line)
+                    .lbText(.footnote)
+                    .foregroundStyle(LBColor.textSecondary.color)
+                    .lineLimit(1)
             }
+            Spacer(minLength: SettingsMetrics.gap)
+            accessory()
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(LBColor.card.color, in: RoundedRectangle(cornerRadius: SettingsMetrics.radius, style: .continuous))
+    }
+}
+
+extension SettingsHeaderCard where Accessory == EmptyView {
+    init(title: String, line: String, @ViewBuilder icon: @escaping () -> Icon) {
+        self.init(title: title, line: line, icon: icon, accessory: { EmptyView() })
+    }
+}
+
+/// A pane's header card from the pane itself: its tile, name and line.
+struct SettingsPaneHeader: View {
+    let pane: SettingsPane
+
+    var body: some View {
+        SettingsHeaderCard(title: pane.title, line: pane.line) { SettingsTile(pane: pane, size: 44) }
+    }
+}
+
+/// A pane or subpage's scrolling canvas: inset 24 pt from both edges, sections 20 pt apart.
+struct SettingsCanvas<Content: View>: View {
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: SettingsMetrics.section) {
+                content()
+            }
+            .padding(.horizontal, SettingsMetrics.inset)
+            .padding(.bottom, SettingsMetrics.inset)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(LBColor.canvas.color)
+        .toggleStyle(.switch)
+        .tint(LBColor.brand.color)
+    }
+}
+
+/// A card of rows, radius 10, with an optional heading 6 pt above it.
+struct SettingsGroup<Content: View>: View {
+    var heading: String?
+    @ViewBuilder let content: () -> Content
+
+    init(heading: String? = nil, @ViewBuilder content: @escaping () -> Content) {
+        self.heading = heading
+        self.content = content
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: SettingsMetrics.heading) {
+            if let heading {
+                Text(heading)
+                    .lbText(.headline)
+                    .foregroundStyle(LBColor.textSecondary.color)
+                    .accessibilityAddTraits(.isHeader)
+            }
+            VStack(spacing: 0) { content() }
+                .frame(maxWidth: .infinity)
+                .background(LBColor.card.color, in: RoundedRectangle(cornerRadius: SettingsMetrics.radius, style: .continuous))
         }
     }
 }
 
-/// A row's tile, title and an optional note under the title.
-private struct SettingsPaneRowLabel: View {
-    let title: String
-    var note: String?
-    let symbol: String
-    let tile: Color
+/// The rule between two rows, starting at the label: 46 pt in a row with a tile, 12 pt without.
+struct SettingsDivider: View {
+    var tiled = true
 
     var body: some View {
-        HStack(spacing: LBSpacing.s2) {
-            SettingsTile(symbol: symbol, color: tile)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(title)
-                if let note {
-                    Text(note)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
+        Rectangle()
+            .fill(LBColor.hairline.color)
+            .frame(height: 1)
+            .padding(.leading, tiled ? SettingsMetrics.labelEdge : SettingsMetrics.rowPadding)
+    }
+}
+
+/// A row's detail, behind an ⓘ that opens it in a popover.
+struct SettingsInfoButton: View {
+    let text: String
+    let control: StaticString
+    @State private var shown = false
+
+    init(_ text: String, control: StaticString) {
+        self.text = text
+        self.control = control
+    }
+
+    var body: some View {
+        Button {
+            Measure.used(control)
+            shown.toggle()
+        } label: {
+            Image(systemName: "info.circle")
+                .font(.system(size: 12, weight: .regular))
+                .foregroundStyle(LBColor.textTertiary.color)
+                .frame(width: 20, height: 20)
+                .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
+        .help(text)
+        .accessibilityLabel("More about this setting")
+        .measured("settings_info", .popover, when: shown)
+        .popover(isPresented: $shown, arrowEdge: .bottom) {
+            Text(text)
+                .lbText(.bodySM)
+                .foregroundStyle(LBColor.textSecondary.color)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(16)
+                .frame(width: 280, alignment: .leading)
+        }
+    }
+}
+
+/// One row, 40 pt: a 22 pt tile, the label, then the row's own control at the trailing edge.
+struct SettingsRow<Label: View, Trailing: View>: View {
+    var symbol: String?
+    var tile: Color = Color(white: 0.55)
+    @ViewBuilder let label: () -> Label
+    @ViewBuilder let trailing: () -> Trailing
+
+    var body: some View {
+        HStack(spacing: SettingsMetrics.gap) {
+            if let symbol {
+                SettingsTile(symbol: symbol, color: tile)
+            }
+            label()
+            Spacer(minLength: SettingsMetrics.gap)
+            trailing()
+        }
+        .padding(.horizontal, SettingsMetrics.rowPadding)
+        .frame(minHeight: SettingsMetrics.rowHeight)
+    }
+}
+
+/// A row's label in the body style.
+struct SettingsRowTitle: View {
+    let title: String
+    var tone: Color?
+
+    var body: some View {
+        Text(title)
+            .lbText(.body)
+            .foregroundStyle(tone ?? LBColor.textPrimary.color)
+    }
+}
+
+extension SettingsRow where Label == SettingsRowTitle {
+    init(_ title: String, symbol: String? = nil, tile: Color = Color(white: 0.55), tone: Color? = nil,
+         @ViewBuilder trailing: @escaping () -> Trailing) {
+        self.symbol = symbol
+        self.tile = tile
+        self.label = { SettingsRowTitle(title: title, tone: tone) }
+        self.trailing = trailing
+    }
+}
+
+extension SettingsRow where Label == SettingsRowTitle, Trailing == EmptyView {
+    init(_ title: String, symbol: String? = nil, tile: Color = Color(white: 0.55), tone: Color? = nil) {
+        self.init(title, symbol: symbol, tile: tile, tone: tone) { EmptyView() }
     }
 }
 
 /// A row that opens a page, or a window elsewhere: its label, an optional value, then a chevron.
-private struct SettingsLinkRow: View {
-    let label: SettingsPaneRowLabel
+struct SettingsLinkRow: View {
+    let title: String
+    var symbol: String?
+    var tile: Color = Color(white: 0.55)
     var value: String?
+    var tone: Color?
+    var chevron = true
     let control: StaticString
     let action: () -> Void
 
@@ -479,15 +753,18 @@ private struct SettingsLinkRow: View {
             Measure.used(control)
             action()
         } label: {
-            HStack(spacing: LBSpacing.s2) {
-                label
-                Spacer(minLength: LBSpacing.s2)
+            SettingsRow(title, symbol: symbol, tile: tile, tone: tone) {
                 if let value {
-                    Text(value).foregroundStyle(.secondary)
+                    Text(value)
+                        .lbText(.body)
+                        .foregroundStyle(LBColor.textSecondary.color)
+                        .lineLimit(1)
                 }
-                Image(systemName: "chevron.right")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.tertiary)
+                if chevron {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(LBColor.textTertiary.color)
+                }
             }
             .contentShape(Rectangle())
         }
@@ -495,46 +772,35 @@ private struct SettingsLinkRow: View {
     }
 }
 
-/// A pane of grouped cards on the window's canvas, switches drawn as switches.
-private struct SettingsForm<Content: View>: View {
-    @ViewBuilder let content: () -> Content
-
-    var body: some View {
-        Form { content() }
-            .formStyle(.grouped)
-            .toggleStyle(.switch)
-            .scrollContentBackground(.hidden)
-            .background(LBColor.canvas.color)
-            .tint(LBColor.brand.color)
-    }
-}
-
-/// The pane's header card as the first card of its form.
-private struct SettingsHeaderSection: View {
-    let pane: SettingsPane
-
-    var body: some View {
-        Section {
-            SettingsHeaderCard(title: pane.title, line: pane.line) { SettingsTile(pane: pane, size: 56) }
-        }
-    }
-}
-
-/// The short note under a card.
-private struct SettingsNote: View {
+/// A line under a group for what went wrong; nothing else sits under a card.
+struct SettingsProblem: View {
     let text: String
-    var tone: LBColorValue = LBColor.textTertiary
 
-    init(_ text: String, tone: LBColorValue = LBColor.textTertiary) {
+    init(_ text: String) {
         self.text = text
-        self.tone = tone
     }
 
     var body: some View {
         Text(text)
             .lbText(.footnote)
-            .foregroundStyle(tone.color)
+            .foregroundStyle(LBColor.urgent.color)
             .fixedSize(horizontal: false, vertical: true)
+            .padding(.top, -SettingsMetrics.section + SettingsMetrics.heading)
+    }
+}
+
+/// The two-line row a subpage uses for a sentence: the text wraps inside the row's padding.
+struct SettingsTextRow: View {
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .lbText(.body)
+            .foregroundStyle(LBColor.textSecondary.color)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, minHeight: SettingsMetrics.rowHeight, alignment: .leading)
+            .padding(.horizontal, SettingsMetrics.rowPadding)
+            .padding(.vertical, 8)
     }
 }
 
@@ -579,48 +845,38 @@ enum DockIcon {
     }
 }
 
-
 struct GeneralSettingsPane: View {
     let model: DashboardModel
     let open: (SettingsPage) -> Void
     @State private var saved: String?
 
     var body: some View {
-        SettingsForm {
-            SettingsHeaderSection(pane: .general)
-            Section {
-                SettingsLinkRow(label: SettingsPaneRowLabel(title: "About", symbol: "info", tile: Color(white: 0.55)), control: "general_about") {
+        SettingsCanvas {
+            SettingsPaneHeader(pane: .general)
+            SettingsGroup {
+                SettingsLinkRow(title: "About", symbol: "info", value: AppVersion.marketing, control: "general_about") {
                     open(.about)
                 }
-                SettingsLinkRow(
-                    label: SettingsPaneRowLabel(title: "Software Update", symbol: "gear", tile: Color(white: 0.55)),
-                    control: "general_software_update"
-                ) {
+                SettingsDivider()
+                SettingsLinkRow(title: "Software Update", symbol: "gear", control: "general_software_update") {
                     open(.softwareUpdate)
                 }
             }
-            Section {
-                currency
-            } footer: {
-                if let saveError = model.saveError {
-                    SettingsNote(saveError, tone: LBColor.urgent)
-                } else {
-                    SettingsNote(choices.count > 1
-                        ? "Totals in other currencies are shown separately, never converted."
-                        : "Everything in your folder is in \(choices.first ?? "one currency"). A second currency adds a choice here.")
+            SettingsGroup {
+                SettingsRow("Home currency", symbol: "banknote", tile: .green) {
+                    currency
+                    SettingsInfoButton(currencyNote, control: "home_currency_info")
                 }
             }
-            Section {
-                SettingsLinkRow(
-                    label: SettingsPaneRowLabel(title: "Login Items and Menu Bar", symbol: "menubar.rectangle", tile: .blue),
-                    control: "general_login_items"
-                ) {
+            if let saveError = model.saveError {
+                SettingsProblem(saveError)
+            }
+            SettingsGroup {
+                SettingsLinkRow(title: "Login Items and Menu Bar", symbol: "menubar.rectangle", tile: .blue, control: "general_login_items") {
                     open(.loginItems)
                 }
-                SettingsLinkRow(
-                    label: SettingsPaneRowLabel(title: "Help and Feedback", symbol: "questionmark", tile: .orange),
-                    control: "general_help_and_feedback"
-                ) {
+                SettingsDivider()
+                SettingsLinkRow(title: "Help and Feedback", symbol: "questionmark", tile: .orange, control: "general_help_and_feedback") {
                     open(.help)
                 }
             }
@@ -631,29 +887,35 @@ struct GeneralSettingsPane: View {
         }
     }
 
-    private var currencyLabel: SettingsPaneRowLabel {
-        SettingsPaneRowLabel(title: "Home currency", symbol: "banknote", tile: .green)
+    private var currencyNote: String {
+        choices.count > 1
+            ? "Totals in other currencies are shown separately, never converted."
+            : "Everything in your folder is in \(choices.first ?? "one currency"). A second currency adds a choice here."
     }
 
+    /// The code alone in the row; the menu names each currency in full.
     @ViewBuilder
     private var currency: some View {
         if choices.count > 1 {
-            Picker(selection: currencyChoice) {
-                ForEach(choices, id: \.self) { code in
-                    Text(Self.currencyWords(code)).tag(String?.some(code))
+            Menu {
+                Picker("Home currency", selection: currencyChoice) {
+                    ForEach(choices, id: \.self) { code in
+                        Text(Self.currencyWords(code)).tag(String?.some(code))
+                    }
+                    Text("Automatic").tag(String?.none)
                 }
-                Text("Automatic").tag(String?.none)
+                .pickerStyle(.inline)
+                .labelsHidden()
             } label: {
-                currencyLabel
+                Text(current ?? "Automatic")
             }
-            .pickerStyle(.menu)
+            .menuStyle(.borderlessButton)
+            .fixedSize()
         } else {
             // A picker of one option would be dead UI, and picking would change nothing.
-            LabeledContent {
-                Text(choices.first.map(Self.currencyWords) ?? "Automatic")
-            } label: {
-                currencyLabel
-            }
+            Text(choices.first ?? "Automatic")
+                .lbText(.body)
+                .foregroundStyle(LBColor.textSecondary.color)
         }
     }
 
@@ -689,29 +951,23 @@ struct SoftwareUpdatePage: View {
     @AppStorage(AppUpdates.automaticKey) private var checksUpdates = true
 
     var body: some View {
-        SettingsForm {
-            Section {
-                LabeledContent {
+        SettingsCanvas {
+            SettingsGroup {
+                SettingsRow("longbook \(AppVersion.marketing) (\(AppVersion.build))", symbol: "gear") {
                     Button("Check Now") {
                         Measure.used("about_check_for_updates")
                         AppUpdates.askFromMenu()
                     }
-                } label: {
-                    SettingsPaneRowLabel(
-                        title: "longbook \(AppVersion.marketing) (\(AppVersion.build))",
-                        note: "The App Store or TestFlight installs new versions. longbook only opens its page.",
-                        symbol: "gear", tile: Color(white: 0.55)
-                    )
                 }
-                Toggle(isOn: $checksUpdates.measured("check_for_updates_automatically")) {
-                    SettingsPaneRowLabel(title: "Check for updates automatically", symbol: "arrow.clockwise", tile: Color(white: 0.55))
+                SettingsDivider()
+                SettingsRow("Check automatically", symbol: "arrow.clockwise") {
+                    Toggle("Check automatically", isOn: $checksUpdates.measured("check_for_updates_automatically"))
+                        .labelsHidden()
                 }
-            } footer: {
-                SettingsNote("Once a day, longbook asks the App Store for a newer version and tells you when one is out.")
             }
-            Section {
+            SettingsGroup {
                 SettingsLinkRow(
-                    label: SettingsPaneRowLabel(title: "What’s New in \(AppVersion.marketing)", symbol: "sparkles.rectangle.stack", tile: .orange),
+                    title: "What’s New in \(AppVersion.marketing)", symbol: "sparkles.rectangle.stack", tile: .orange,
                     control: "about_whats_new"
                 ) {
                     open(.screen(.updates))
@@ -729,31 +985,30 @@ struct LoginItemsPage: View {
     @State private var loginNote: String?
 
     var body: some View {
-        SettingsForm {
-            Section {
-                Toggle(isOn: launchBinding.measured("launch_at_login")) {
-                    SettingsPaneRowLabel(title: "Launch at login", symbol: "power", tile: Color(white: 0.55))
-                }
-            } footer: {
-                if let loginNote {
-                    SettingsNote(loginNote, tone: LBColor.urgent)
-                } else {
-                    SettingsNote("longbook opens when you log in to this Mac.")
+        SettingsCanvas {
+            SettingsGroup {
+                SettingsRow("Open at login", symbol: "laptopcomputer", tile: .blue) {
+                    Toggle("Open at login", isOn: launchBinding.measured("launch_at_login"))
+                        .labelsHidden()
                 }
             }
-            Section {
-                Toggle(isOn: menuBarBinding.measured("show_next_payment_in_menu_bar")) {
-                    SettingsPaneRowLabel(title: "Show the next payment in the menu bar", symbol: "menubar.rectangle", tile: .blue)
+            if let loginNote {
+                SettingsProblem(loginNote)
+            }
+            SettingsGroup(heading: "Menu Bar and Dock") {
+                SettingsRow("Show in the menu bar", symbol: "menubar.rectangle", tile: .orange) {
+                    SettingsInfoButton(
+                        "On, the menu bar item shows your next payment. Off, it shows the longbook mark. Either way it opens longbook and its Settings.",
+                        control: "menu_bar_info"
+                    )
+                    Toggle("Show in the menu bar", isOn: menuBarBinding.measured("show_next_payment_in_menu_bar"))
+                        .labelsHidden()
                 }
-                Toggle(isOn: dockBinding.measured("hide_the_dock_icon")) {
-                    SettingsPaneRowLabel(title: "Hide the Dock icon", symbol: "dock.rectangle", tile: .blue)
+                SettingsDivider()
+                SettingsRow("Hide the Dock icon", symbol: "dock.rectangle") {
+                    Toggle("Hide the Dock icon", isOn: dockBinding.measured("hide_the_dock_icon"))
+                        .labelsHidden()
                 }
-            } header: {
-                Text("Menu bar and Dock")
-            } footer: {
-                SettingsNote(showsMenuBar
-                    ? "The menu bar item shows your next payment, and opens longbook and its Settings."
-                    : "The menu bar item shows the longbook mark, and opens longbook and its Settings.")
             }
         }
         .onAppear { launchesAtLogin = LaunchAtLogin.isOn }
@@ -790,19 +1045,15 @@ struct AppearanceSettingsPane: View {
     @AppStorage("appearance") private var appearance = LBAppearance.system.rawValue
 
     var body: some View {
-        SettingsForm {
-            SettingsHeaderSection(pane: .appearance)
-            Section {
-                HStack(spacing: LBSpacing.s4) {
-                    Spacer(minLength: 0)
+        SettingsCanvas {
+            SettingsPaneHeader(pane: .appearance)
+            SettingsGroup {
+                HStack(spacing: 0) {
                     thumbnail(.system, "Automatic")
                     thumbnail(.light, LBAppearance.light.label)
                     thumbnail(.dark, LBAppearance.dark.label)
-                    Spacer(minLength: 0)
                 }
-                .padding(.vertical, LBSpacing.s2)
-            } footer: {
-                SettingsNote("longbook follows the Mac’s appearance, or keeps the one you pick.")
+                .padding(.vertical, 16)
             }
         }
     }
@@ -811,12 +1062,12 @@ struct AppearanceSettingsPane: View {
     private func thumbnail(_ choice: LBAppearance, _ name: String) -> some View {
         let picked = appearance == choice.rawValue
         let light = Color(white: 0.95)
-        let dark = Color(white: 0.12)
+        let dark = Color(white: 0.16)
         return Button {
             Measure.used("appearance")
             appearance = choice.rawValue
         } label: {
-            VStack(spacing: LBSpacing.s1) {
+            VStack(spacing: 8) {
                 Group {
                     switch choice {
                     case .system: HStack(spacing: 0) { light; dark }
@@ -824,20 +1075,142 @@ struct AppearanceSettingsPane: View {
                     case .dark: dark
                     }
                 }
-                .frame(width: 96, height: 62)
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .frame(width: 88, height: 56)
+                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
                         .strokeBorder(picked ? LBColor.brand.color : Color.primary.opacity(0.12), lineWidth: picked ? 3 : 1)
                 )
                 Text(name)
-                    .font(.caption.weight(picked ? .semibold : .regular))
-                    .foregroundStyle(picked ? .primary : .secondary)
+                    .lbText(.footnote)
+                    .foregroundStyle(picked ? LBColor.textPrimary.color : LBColor.textSecondary.color)
             }
+            .frame(maxWidth: .infinity)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(picked ? .isSelected : [])
+    }
+}
+
+// MARK: Account
+
+/// The account pane: the sign-in photo and email once, in the header; then the plan and Cloud,
+/// the ways out, and deleting last.
+struct AccountSettingsPane: View {
+    @ObservedObject var auth: AuthViewModel
+    @ObservedObject var entitlement: EntitlementStore
+    let open: (SettingsPage) -> Void
+    @ObservedObject private var store = StoreClient.shared
+    @State private var deleting = false
+    @State private var signingOut = false
+    @State private var refund: (id: UInt64, closes: Date)?
+    @State private var refunding = false
+
+    var body: some View {
+        SettingsCanvas {
+            SettingsHeaderCard(title: auth.email ?? SettingsPane.account.title, line: "longbook Account") {
+                AccountAvatar(url: auth.avatarURL, email: auth.email, size: 44)
+            }
+            SettingsGroup {
+                SettingsLinkRow(title: "Plan", symbol: "seal.fill", tile: .purple, value: planValue, control: "account_plan") {
+                    open(.plan)
+                }
+                SettingsDivider()
+                SettingsLinkRow(title: "longbook Cloud", symbol: "icloud.fill", tile: .blue, value: cloudValue, control: "account_cloud") {
+                    open(.plan)
+                }
+            }
+            if auth.isSignedIn {
+                SettingsGroup {
+                    SettingsLinkRow(title: "Sign Out", symbol: "rectangle.portrait.and.arrow.right", control: "sign_out") {
+                        signingOut = true
+                    }
+                    if refund != nil {
+                        SettingsDivider()
+                        SettingsLinkRow(title: "Request a Refund", symbol: "dollarsign.arrow.circlepath", tile: .green,
+                                        control: "request_a_refund") {
+                            refunding = true
+                        }
+                    }
+                }
+                SettingsGroup {
+                    SettingsLinkRow(title: "Delete Account…", tone: LBColor.danger.color, chevron: false, control: "delete_account") {
+                        deleting = true
+                    }
+                }
+            }
+        }
+        .task { await store.load() }
+        .task(id: entitlement.state.hasLicence) { refund = entitlement.state.hasLicence ? await store.refundable() : nil }
+        .refundRequestSheet(for: refund?.id ?? 0, isPresented: $refunding) { _ in
+            Task { await entitlement.refresh() }
+        }
+        .measured("account_screen_signing_out", .sheet, when: signingOut)
+        .sheet(isPresented: $signingOut) {
+            VStack(spacing: 0) {
+                HStack {
+                    Spacer()
+                    Button("Done") { Measure.used("done"); signingOut = false }
+                        .keyboardShortcut(.cancelAction)
+                }
+                .padding(LBSpacing.s3)
+                SignOutScreenView(auth: auth)
+            }
+            .frame(minWidth: 520, minHeight: 520)
+            .background(LBColor.canvas.color)
+        }
+        .measured("account_screen_deleting", .sheet, when: deleting)
+        .sheet(isPresented: $deleting) {
+            DeleteAccountSheet(auth: auth) { deleting = false }
+                .frame(minWidth: 520, minHeight: 640)
+        }
+    }
+
+    private var planValue: String? { planWords(entitlement.state)?.0 }
+
+    /// "Renews 2 Oct 2027" while a date stands, otherwise Cloud's standing.
+    private var cloudValue: String? {
+        if let line = cloudDateLine(entitlement.state) { return "\(line.0) \(line.1)" }
+        return cloudWords(entitlement.state)?.0
+    }
+}
+
+// MARK: AI
+
+/// The AI pane: the two switches, the connections, then what to do with them.
+struct AISettingsPane: View {
+    let model: DashboardModel
+    @ObservedObject var auth: AuthViewModel
+    let open: (SettingsPage) -> Void
+    @State private var reorganising = false
+
+    var body: some View {
+        SettingsCanvas {
+            SettingsPaneHeader(pane: .ai)
+            MCPServerView(model: model, auth: auth, part: .switches, openPage: open)
+            SettingsGroup(heading: "Automations") {
+                SettingsLinkRow(title: "Prompts for Your AI", symbol: "text.quote", tile: .orange, control: "ai_prompts") {
+                    open(.aiPrompts)
+                }
+                SettingsDivider()
+                SettingsLinkRow(title: "Shortcuts and Siri", symbol: "command", control: "ai_shortcuts_and_siri") {
+                    open(.aiShortcuts)
+                }
+                SettingsDivider()
+                SettingsRow("Reorganise My longbook", symbol: "wand.and.stars", tile: .purple) {
+                    SettingsInfoButton(
+                        "longbook’s AI reads your whole longbook and proposes it the way you’d keep it. It lands in Proposals as one proposal.",
+                        control: "reorganise_info"
+                    )
+                    Button("Reorganise…") { Measure.used("reorganise_my_longbook"); reorganising = true }
+                }
+            }
+        }
+        .measured("automations_reorganising", .sheet, when: reorganising)
+        .sheet(isPresented: $reorganising) {
+            ReorganiseView(model: model, auth: auth) { reorganising = false }
+        }
     }
 }
 
@@ -848,40 +1221,211 @@ struct StatementsSettingsPane: View {
     @AppStorage("longbook.statements.addFound") private var addsFound = true
 
     var body: some View {
-        SettingsForm {
-            SettingsHeaderSection(pane: .statements)
-            Section {
-                Toggle(isOn: $addsFound.measured("add_accounts_and_people_found")) {
-                    SettingsPaneRowLabel(title: "Add accounts and people found in statements", symbol: "person.2.fill", tile: .teal)
+        SettingsCanvas {
+            SettingsPaneHeader(pane: .statements)
+            SettingsGroup {
+                SettingsRow("Add accounts and people found", symbol: "person.2.fill", tile: .teal) {
+                    SettingsInfoButton(
+                        "On, importing a statement adds its account, the accounts its transfers and card payments go to, and every person it names to Accounts and People. Off, statements still name them for your AI, but Accounts and People list only what you add.",
+                        control: "add_accounts_and_people_found_info"
+                    )
+                    Toggle("Add accounts and people found", isOn: $addsFound.measured("add_accounts_and_people_found"))
+                        .labelsHidden()
                 }
-            } footer: {
-                SettingsNote(addsFound
-                    ? "When you import a statement, its account, the accounts its transfers and card payments go to, and every person it names are added to Accounts and People."
-                    : "Off: statements still name them for your AI, but Accounts and People list only what you add.")
             }
-            Section {
-                SettingsLinkRow(
-                    label: SettingsPaneRowLabel(title: "Optimize your data", symbol: "wand.and.stars", tile: .purple),
-                    control: "optimize_your_data"
-                ) {
+            SettingsGroup {
+                SettingsLinkRow(title: "Optimize Your Data", symbol: "wand.and.stars", tile: .purple, control: "optimize_your_data") {
                     toMainWindow(.longbookSetUpAgain)
                 }
-            } footer: {
-                SettingsNote("Your answers are kept as hints for reading your statements. They aren’t added to People or Accounts.")
-            }
-            Section {
-                LabeledContent {
+                SettingsDivider()
+                SettingsRow("Import a Statement", symbol: "doc.fill", tile: .teal) {
                     Button("Import…") {
                         Measure.used("import_statement")
                         toMainWindow(.longbookImport)
                     }
-                } label: {
-                    SettingsPaneRowLabel(title: "Import a statement", symbol: "doc.fill", tile: .teal)
                 }
-            } footer: {
-                SettingsNote("A PDF, CSV, text or Excel file from your bank or card. You check what it read before anything is added.")
             }
         }
+    }
+}
+
+// MARK: Data & Privacy
+
+/// Data & Privacy › Backups: how many versions history keeps, and a copy to save.
+struct BackupsSettingsPage: View {
+    let model: DashboardModel
+    @State private var backup: URL?
+
+    var body: some View {
+        SettingsCanvas {
+            SettingsGroup {
+                SettingsRow("History", symbol: "clock.arrow.circlepath") {
+                    Text(historyWords)
+                        .lbText(.body)
+                        .foregroundStyle(LBColor.textSecondary.color)
+                }
+                SettingsDivider()
+                if let backup {
+                    SettingsRow("Backup", symbol: "externaldrive.fill", tile: .blue) {
+                        ShareLink(item: backup) { Text("Share Backup") }
+                    }
+                } else {
+                    SettingsRow("Backup", symbol: "externaldrive.fill", tile: .blue) {
+                        Button("Back Up Now") { Measure.used("back_up_now"); backup = model.exportBackup() }
+                    }
+                }
+            }
+        }
+    }
+
+    private var historyWords: String {
+        let count = model.historyCount()
+        return count == 0 ? "Starts with the first change" : "\(count) version\(count == 1 ? "" : "s") kept"
+    }
+}
+
+/// Data & Privacy › What longbook keeps: the folder's facts, what is never stored, and what leaves this Mac.
+struct PrivacyKeepsPage: View {
+    let model: DashboardModel
+    @State private var bytes = 0
+
+    var body: some View {
+        SettingsCanvas {
+            SettingsGroup(heading: "Your longbook") {
+                SettingsRow("Stored") { value(location) }
+                if bytes > 0 {
+                    SettingsDivider(tiled: false)
+                    SettingsRow("Size") { value(ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .file)) }
+                }
+            }
+            SettingsGroup(heading: "Card details") {
+                SettingsTextRow(text: "longbook never stores a full card number, CVV, expiry, PIN or password: a save carrying one is refused.")
+            }
+            SettingsGroup(heading: "What longbook keeps") {
+                SettingsTextRow(text: "Your data stays on your devices, except while AI access is on (turning it off deletes that copy), when you share a report, or when you import a statement.")
+                SettingsDivider(tiled: false)
+                SettingsTextRow(text: "Your account keeps each tag’s kind, name and icon, never a commitment’s name, amount, date or note.")
+            }
+            VStack(alignment: .leading, spacing: SettingsMetrics.heading) {
+                Text("What leaves this device")
+                    .lbText(.headline)
+                    .foregroundStyle(LBColor.textSecondary.color)
+                    .accessibilityAddTraits(.isHeader)
+                DataLeavingCard(model: model)
+            }
+        }
+        .onAppear { bytes = model.vaultFolderURL.map { VaultMigration.totalBytes(in: $0) } ?? 0 }
+    }
+
+    private func value(_ text: String) -> some View {
+        Text(text)
+            .lbText(.body)
+            .foregroundStyle(LBColor.textSecondary.color)
+            .lineLimit(1)
+            .truncationMode(.middle)
+    }
+
+    private var location: String {
+        if case .loaded(let data) = model.state { return data.vaultLocation.capitalizedFirst }
+        return "No folder is open"
+    }
+}
+
+// MARK: Tutorials
+
+extension ScreenTutorial {
+    /// The screen's own symbol, as the main window's sidebar draws it.
+    var settingsSymbol: String {
+        switch self {
+        case .dashboard: "square.grid.2x2.fill"
+        case .commitments: LBGlyph.commitment
+        case .calendar: LBGlyph.date
+        case .reports: "chart.bar.fill"
+        case .accounts: LBGlyph.account
+        case .people: "person.2.fill"
+        case .insights: "lightbulb.fill"
+        case .changes: LBGlyph.change
+        case .settings: "gearshape.fill"
+        }
+    }
+
+    var settingsTile: Color {
+        switch self {
+        case .dashboard: .indigo
+        case .commitments: .blue
+        case .calendar: .red
+        case .reports: .green
+        case .accounts: .teal
+        case .people: .orange
+        case .insights: .yellow
+        case .changes: .purple
+        case .settings: Color(white: 0.55)
+        }
+    }
+}
+
+/// Tutorials: every screen's tutorial, whether this Mac has shown it, and Replay, in two fixed columns.
+struct TutorialsSettingsPane: View {
+    private var center: TutorialCenter { TutorialCenter.shared }
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        // Read so the Seen words redraw after a tutorial ends or is replayed.
+        let _ = center.seenRevision
+        let screens = ScreenTutorial.listed
+        SettingsCanvas {
+            SettingsHeaderCard(title: SettingsPane.tutorials.title, line: SettingsPane.tutorials.line) {
+                SettingsTile(pane: .tutorials, size: 44)
+            } accessory: {
+                Button("Replay All") {
+                    Measure.used("replay_all_tutorials")
+                    center.replayAll()
+                    open(.dashboard)
+                }
+            }
+            SettingsGroup {
+                ForEach(Array(screens.enumerated()), id: \.element) { index, screen in
+                    row(screen, control: screen.replayControl)
+                    if index < screens.count - 1 { SettingsDivider() }
+                }
+            }
+        }
+    }
+
+    private func row(_ screen: ScreenTutorial, control: StaticString) -> some View {
+        SettingsRow(screen.title, symbol: screen.settingsSymbol, tile: screen.settingsTile) {
+            HStack(spacing: 3) {
+                if center.isSeen(screen) {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 8, weight: .bold))
+                    Text("Seen")
+                        .lbText(.footnote)
+                }
+            }
+            .foregroundStyle(LBColor.textTertiary.color)
+            .frame(width: 52, alignment: .trailing)
+            .accessibilityLabel(center.isSeen(screen) ? "Seen" : "Not seen yet")
+            Button {
+                Measure.used(control)
+                center.replay(screen)
+                open(screen)
+            } label: {
+                Text("Replay")
+                    .lbText(.body)
+                    .foregroundStyle(LBColor.brandText.color)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .frame(width: 52, alignment: .trailing)
+            .accessibilityLabel("Replay the \(screen.title) tutorial")
+        }
+    }
+
+    /// The main window opens the screen, brought to the front first, where the tutorial starts.
+    private func open(_ screen: ScreenTutorial) {
+        openWindow(id: LongbookWindow.main)
+        NSApp.activate(ignoringOtherApps: true)
+        NotificationCenter.default.post(name: .longbookOpenTutorial, object: screen)
     }
 }
 
@@ -890,21 +1434,18 @@ struct StatementsSettingsPane: View {
 /// General › About: this version, and the terms the app is under.
 struct AboutSettingsPage: View {
     var body: some View {
-        SettingsForm {
-            Section {
-                SettingsHeaderCard(title: "longbook", line: "Version \(AppVersion.marketing) (\(AppVersion.build))") {
-                    Image(nsImage: NSApp.applicationIconImage)
-                        .resizable()
-                        .frame(width: 64, height: 64)
-                        .accessibilityHidden(true)
-                }
+        SettingsCanvas {
+            SettingsHeaderCard(title: "longbook", line: "Version \(AppVersion.marketing) (\(AppVersion.build))") {
+                Image(nsImage: NSApp.applicationIconImage)
+                    .resizable()
+                    .accessibilityHidden(true)
             }
-            Section {
+            SettingsGroup {
                 SettingsLinkOut(title: "Terms of service", words: "Open", url: HelpAboutView.termsURL)
+                SettingsDivider(tiled: false)
                 SettingsLinkOut(title: "Privacy policy", words: "Open", url: HelpAboutView.privacyURL)
+                SettingsDivider(tiled: false)
                 SettingsLinkOut(title: "Source code", words: "GPL-3.0", url: HelpAboutView.sourceURL)
-            } footer: {
-                SettingsNote("longbook never sells your data, and never uses your financial data for analytics or advertising.")
             }
         }
     }
@@ -919,43 +1460,48 @@ struct HelpSettingsPage: View {
     private static let helpURL = URL(string: "https://longbook.app/help/")
 
     var body: some View {
-        SettingsForm {
-            Section {
+        SettingsCanvas {
+            SettingsGroup {
                 SettingsLinkOut(title: "Help", words: "longbook.app/help", url: Self.helpURL)
+                SettingsDivider(tiled: false)
                 SettingsLinkOut(title: "Questions and guides", words: "longbook.app/faq", url: HelpAboutView.faqURL)
-                SettingsLinkRow(label: SettingsPaneRowLabel(title: "Tips", symbol: "lightbulb", tile: .orange), control: "about_tips") {
+                SettingsDivider(tiled: false)
+                SettingsLinkRow(title: "Tips", control: "about_tips") {
                     open(.screen(.tips))
                 }
-                LabeledContent("Demo longbook") {
+                SettingsDivider(tiled: false)
+                SettingsRow("Demo longbook") {
                     Button("Try the Demo…") {
                         Measure.used("about_try_the_demo")
                         toMainWindow(.longbookShowDemo)
                     }
                 }
             }
-            Section {
-                LabeledContent("longbook Support") {
+            SettingsGroup {
+                SettingsRow("longbook Support") {
                     Button("Ask Support…") {
                         Measure.used("about_ask_support")
                         toMainWindow(.longbookSupport)
                     }
                 }
-                LabeledContent("Send feedback") {
+                SettingsDivider(tiled: false)
+                SettingsRow("Send feedback") {
                     Button("Write…") {
                         Measure.used("about_send_feedback")
                         toMainWindow(.longbookSupport)
                     }
                 }
+                SettingsDivider(tiled: false)
                 SettingsLinkOut(title: "Suggest a feature", words: "insigh.to", url: HelpAboutView.ideasURL)
-                LabeledContent("Report a problem") {
+                SettingsDivider(tiled: false)
+                SettingsRow("Report a problem") {
                     Button("Write…") {
                         Measure.used("about_report_a_problem")
                         if let url = HelpAboutView.problemURL { openURL(url) }
                     }
                 }
+                SettingsDivider(tiled: false)
                 SettingsLinkOut(title: "Contact", words: "contact@longbook.app", url: HelpAboutView.contactURL)
-            } footer: {
-                SettingsNote("Support answers from the help articles, or passes your message to a person.")
             }
         }
     }
@@ -969,7 +1515,7 @@ private struct SettingsLinkOut: View {
     @Environment(\.openURL) private var openURL
 
     var body: some View {
-        LabeledContent(title) {
+        SettingsRow(title) {
             Button(words) {
                 Measure.used("about_link")
                 if let url { openURL(url) }

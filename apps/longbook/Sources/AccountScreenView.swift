@@ -54,6 +54,8 @@ struct AccountAvatar: View {
 struct AccountScreenView: View {
     @ObservedObject var auth: AuthViewModel
     @ObservedObject var entitlement: EntitlementStore
+    /// The plan, purchase and Cloud alone, for the Mac's Settings window, whose pane holds the rest.
+    var planOnly = false
     @ObservedObject private var store = StoreClient.shared
     @State private var deleting = false
     @State private var paywall = false
@@ -82,11 +84,11 @@ struct AccountScreenView: View {
 
     var body: some View {
         SettingsScreen(title: "Account", note: "") {
-            identity
+            if !planOnly { identity }
             plan
             if canBuy { purchase }
             cloud
-            actions
+            if !planOnly { actions }
         }
         .task { await store.load() }
         .task(id: entitlement.state.hasLicence) { refund = entitlement.state.hasLicence ? await store.refundable() : nil }

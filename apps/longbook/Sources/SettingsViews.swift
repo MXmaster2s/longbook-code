@@ -284,14 +284,55 @@ struct DataPrivacyView: View {
     @State private var checkingFolder = false
     @State private var folderRefusal: FolderRefusal?
     #if os(macOS)
+    /// Opens a Settings window page; set, the screen is laid out as that window's pane.
+    var openPage: ((SettingsPage) -> Void)? = nil
     @State private var confirmingDelete = false
     @State private var deleteError: String?
+    @AppStorage(Telemetry.shareUsageKey) private var shareUsage = true
     @Environment(\.lbPageTitleHidden) private var titleHidden
     @Environment(\.lbPageHeader) private var pageHeader
     #endif
     @Environment(\.openURL) private var openURL
 
     var body: some View {
+        page
+            .onAppear { vaultBytes = model.vaultFolderURL.map { VaultMigration.totalBytes(in: $0) } ?? 0 }
+            .onChange(of: model.vaultFolderURL) { _, folder in
+                vaultBytes = folder.map { VaultMigration.totalBytes(in: $0) } ?? 0
+            }
+            .measured("open_another_folder_picker", .sheet, when: pickingFolder)
+            .fileImporter(isPresented: $pickingFolder, allowedContentTypes: [.folder]) { result in
+                if case .success(let folder) = result { open(folder) }
+            }
+            .measured("folder_not_opened_notice", .alert, when: folderRefusal != nil)
+            .alert(folderRefusal?.title ?? "", isPresented: Binding(get: { folderRefusal != nil }, set: { if !$0 { folderRefusal = nil } }),
+                   presenting: folderRefusal) { refusal in
+                if refusal.explainsFormat {
+                    Button("Learn More") {
+                        Measure.used("folder_notice_learn_more")
+                        if let url = Self.formatPostURL { openURL(url) }
+                    }
+                }
+                Button("OK", role: .cancel) { Measure.used("folder_notice_ok") }
+            } message: { refusal in
+                Text(refusal.line)
+            }
+    }
+
+    @ViewBuilder
+    private var page: some View {
+        #if os(macOS)
+        if let openPage {
+            settingsPane(openPage)
+        } else {
+            list
+        }
+        #else
+        list
+        #endif
+    }
+
+    private var list: some View {
         List {
             #if os(macOS)
             // The Settings window draws its header card here, and names the pane itself.
@@ -341,28 +382,119 @@ struct DataPrivacyView: View {
         .frame(maxWidth: .infinity)
         .background(LBColor.canvas.color)
         .lbScreenTitle("Data & privacy")
-        .onAppear { vaultBytes = model.vaultFolderURL.map { VaultMigration.totalBytes(in: $0) } ?? 0 }
-        .onChange(of: model.vaultFolderURL) { _, folder in
-            vaultBytes = folder.map { VaultMigration.totalBytes(in: $0) } ?? 0
-        }
-        .measured("open_another_folder_picker", .sheet, when: pickingFolder)
-        .fileImporter(isPresented: $pickingFolder, allowedContentTypes: [.folder]) { result in
-            if case .success(let folder) = result { open(folder) }
-        }
-        .measured("folder_not_opened_notice", .alert, when: folderRefusal != nil)
-        .alert(folderRefusal?.title ?? "", isPresented: Binding(get: { folderRefusal != nil }, set: { if !$0 { folderRefusal = nil } }),
-               presenting: folderRefusal) { refusal in
-            if refusal.explainsFormat {
-                Button("Learn More") {
-                    Measure.used("folder_notice_learn_more")
-                    if let url = Self.formatPostURL { openURL(url) }
+    }
+
+    #if os(macOS)
+    /// The Settings window's pane: the folder and its doors, the usage switch, the page of what
+    /// longbook keeps, and deleting last. The long text lives on that page.
+    private func settingsPane(_ openPage: @escaping (SettingsPage) -> Void) -> some View {
+        SettingsCanvas {
+            LBPageTitle("Data & Privacy")
+            SettingsGroup {
+                if let folder = model.vaultFolderURL {
+                    SettingsRow(symbol: "folder.fill", tile: .blue) {
+                        Text(shortPlace(folder))
+                            .lbText(.body)
+                            .foregroundStyle(LBColor.textPrimary.color)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .help(placeWords(folder))
+                    } trailing: {
+                        revealButton(folder)
+                    }
+                    SettingsDivider()
+                    if !inICloud(folder) {
+                        SettingsRow("Move to iCloud", symbol: "icloud.and.arrow.up", tile: .blue) {
+                            Button(moving ? "Moving…" : "Move…") { Measure.used("moving"); move(folder) }
+                                .disabled(moving)
+                        }
+                        SettingsDivider()
+                    }
+                }
+                if !model.isDemo {
+                    SettingsRow(symbol: "folder.badge.plus", tile: .blue) {
+                        Button { Measure.used("open_another_folder"); pickingFolder = true } label: {
+                            Text(checkingFolder ? "Checking…" : "Open Another Folder…")
+                                .lbText(.body)
+                                .foregroundStyle(LBColor.textPrimary.color)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(checkingFolder)
+                    } trailing: {
+                        SettingsInfoButton(
+                            "longbook reads and writes the folder you choose. Your current folder stays as it is.",
+                            control: "open_another_folder_info"
+                        )
+                    }
+                    SettingsDivider()
+                }
+                SettingsLinkRow(
+                    title: "Backups", symbol: "clock.arrow.circlepath", value: backupsValue, control: "privacy_backups"
+                ) {
+                    openPage(.backups)
                 }
             }
-            Button("OK", role: .cancel) { Measure.used("folder_notice_ok") }
-        } message: { refusal in
-            Text(refusal.line)
+            if let problem = moveError ?? revealNote {
+                SettingsProblem(problem)
+            }
+            SettingsGroup {
+                SettingsRow("Share usage and crash data", symbol: "chart.bar.xaxis") {
+                    SettingsInfoButton(
+                        "Counts of what you do, how long the app is open, errors it handles and who changed your file, plus crash reports. Sent under a random ID that stays on this device; turning this off deletes the ID. Never a name, amount, date or note.",
+                        control: "share_usage_info"
+                    )
+                    Toggle("Share usage and crash data", isOn: Binding(
+                        get: { shareUsage },
+                        set: { on in
+                            shareUsage = on
+                            Telemetry.shared.setEnabled(on)
+                        }
+                    ).measured("share_usage_and_crash_data"))
+                    .labelsHidden()
+                }
+                SettingsDivider()
+                SettingsLinkRow(title: "What longbook keeps", symbol: "checkmark.shield.fill", tile: .green, control: "privacy_what_longbook_keeps") {
+                    openPage(.keeps)
+                }
+            }
+            if let folder = model.vaultFolderURL {
+                SettingsGroup {
+                    Button { Measure.used("delete_longbook"); confirmingDelete = true } label: {
+                        SettingsRow("Delete longbook…", tone: LBColor.danger.color)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .measured("settings_confirming_delete", .dialog, when: confirmingDelete)
+                    .confirmationDialog("Move your longbook to the Bin?", isPresented: $confirmingDelete, titleVisibility: .visible) {
+                        Button("Move to Bin", role: .destructive) { Measure.used("move_to_bin"); deleteFolder(folder) }
+                        Button("Cancel", role: .cancel) { Measure.used("cancel") }
+                    } message: {
+                        Text(inICloud(folder)
+                            ? "The folder at \(placeWords(folder)) moves to the Bin and leaves every device that syncs it. Until you empty the Bin you can put it back."
+                            : "The folder at \(placeWords(folder)) moves to the Bin. Until you empty the Bin you can put it back.")
+                    }
+                }
+                if let deleteError {
+                    SettingsProblem(deleteError)
+                }
+            }
         }
     }
+
+    /// The Backups row's count: the versions history keeps.
+    private var backupsValue: String? {
+        let count = model.historyCount()
+        return count == 0 ? nil : "\(count) kept"
+    }
+
+    /// The folder named the way Finder's sidebar names it: iCloud Drive, then the folder.
+    private func shortPlace(_ folder: URL) -> String {
+        if folder.path.contains("iCloud~app~longbook") { return "iCloud Drive › longbook" }
+        if folder.path.contains("Mobile Documents/com~apple~CloudDocs") { return "iCloud Drive › \(folder.lastPathComponent)" }
+        return placeWords(folder)
+    }
+    #endif
 
     /// Why a picked folder was not opened, in the notice's own words.
     private struct FolderRefusal {
