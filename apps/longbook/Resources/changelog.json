@@ -1,5 +1,13 @@
 [
   {
+    "version": "1.6.0",
+    "build": 53,
+    "date": "2026-10-26",
+    "changes": [
+      "On the Mac, buttons, sidebar rows and cards light up under the pointer and darken while pressed, Tab shows a focus ring, and unavailable controls are dimmed."
+    ]
+  },
+  {
     "version": "1.5.0",
     "build": 52,
     "date": "2026-10-23",
