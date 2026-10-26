@@ -104,18 +104,18 @@ public final class LBPointerScroll {
         guard let anchor else { return }
         self.anchor = nil
         dragging = false
-        NSCursor.openHand.set()
+        NSCursor.arrow.set()
         let extra = predicted - translation
         if abs(extra) > 2 { scroll(to: anchor - translation - extra, animated: true) }
         #endif
     }
 
-    /// The cursor says the strip can be held — an open hand over it, closed while it is —
-    /// and says nothing over a strip with nowhere to go.
+    /// The arrow over the strip, as over every control on the Mac; the closed hand shows
+    /// only while the strip is held.
     public func hover(_ inside: Bool) {
         #if os(macOS)
         guard scrollView != nil, overflow > 0 else { return }
-        if inside { (dragging ? NSCursor.closedHand : NSCursor.openHand).set() }
+        if inside && dragging { NSCursor.closedHand.set() }
         else if !dragging { NSCursor.arrow.set() }
         #endif
     }

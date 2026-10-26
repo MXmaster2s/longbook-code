@@ -107,9 +107,10 @@ public struct LBCommitmentRow<Trailing: View>: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         // The card is as tall as its words: offered more, it never stretches to fill.
         .fixedSize(horizontal: false, vertical: true)
-        // Chosen reads as a tint, never a ring: the ink and the amount stay as they are.
-        .background(selected ? LBColor.brand.color.opacity(0.14) : LBColor.card.color,
-                    in: RoundedRectangle(cornerRadius: LBRadius.md, style: .continuous))
+        // Chosen reads as a tint, never a ring: the ink and the amount stay as they are. On
+        // the Mac it greys while the window is not in front.
+        .lbSelectionFill(selected, in: RoundedRectangle(cornerRadius: LBRadius.md, style: .continuous),
+                         resting: LBColor.card.color, tint: 0.14)
         .overlay(
             RoundedRectangle(cornerRadius: LBRadius.md, style: .continuous)
                 .strokeBorder(LBColor.hairline.color, lineWidth: 1)

@@ -58,6 +58,12 @@ public enum LBColor {
     /// The text danger above is lighter, so a label on a card or chrome clears 4.5.
     public static let dangerFill = LBColorValue(0xD33955)
 
+    // Control states on the Mac, laid over the control (see `LBWash`): a hover, a press,
+    // and a selection whose window or list is not in front.
+    public static let stateHover = LBWash(0xFFFFFF, opacity: 0.07)
+    public static let statePressed = LBWash(0x000000, opacity: 0.25)
+    public static let stateSelectionInactive = LBWash(0xFFFFFF, opacity: 0.12)
+
     // Data ramp — resolved by rank, never by name. Identity marks are small, so the inks
     // are vivid: every pair is 11+ OKLab units apart and clears 3:1 on every surface.
     public static let dataRamp: [LBColorValue] = [

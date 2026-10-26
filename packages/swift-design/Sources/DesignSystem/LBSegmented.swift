@@ -35,7 +35,7 @@ public struct LBSegmented<Value: Hashable>: View {
                         )
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle(.rounded(LBRadius.xs), hovers: false)
                 .accessibilityAddTraits(chosen ? .isSelected : [])
             }
         }
