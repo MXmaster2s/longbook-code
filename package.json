@@ -90,6 +90,7 @@
     "auth-emails:check": "tsx scripts/auth-emails.mts --check",
     "auth-hook": "tsx scripts/auth-hook.mts",
     "sessions:test": "tsx --test scripts/sessions.test.mts",
+    "device-build:test": "tsx --test scripts/device-build.test.mts",
     "review:test": "tsx --test scripts/review-sign-in.test.mts",
     "cloud:test": "tsx --test scripts/cloud-subscription.test.mts",
     "statements:test": "tsx --test scripts/statement-shares.test.mts scripts/statement-counterpart.test.mts scripts/licence-seats.test.mts",

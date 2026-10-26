@@ -1,22 +1,26 @@
 #!/usr/bin/env -S npx tsx
-// Builds this checkout onto the owner's iPhone and Mac, the first step of every release. It
-// refuses uncommitted changes, a device holding a newer build, and a number TestFlight already
-// has for a different app, and records the commit. Run: npm run device:install [-- --ios-only | --mac-only] [--device <udid>]
+// Builds this checkout onto the owner's iPhone and Mac, the first step of every release. A changed
+// app takes the next build number; the same app keeps its own. It refuses uncommitted changes and
+// a device holding a newer build. Run: npm run device:install [-- --ios-only | --mac-only] [--device <udid>] [--dry-run]
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { homedir, tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { APP_BUILD, APP_VERSION, ROOT, appChangedSince, readLedger, writeLedger } from './release.mts'
+import {
+  APP_BUILD, APP_VERSION, CHANGELOG, PROJECT_YML, ROOT, appChangedSince, highestBuild, nextDeviceBuild, readLedger,
+  withBuild, withChangelogEntry, writeLedger,
+} from './release.mts'
 
 const argv = process.argv.slice(2)
 const iosOnly = argv.includes('--ios-only')
 const macOnly = argv.includes('--mac-only')
 const deviceAt = argv.indexOf('--device')
+const dryRun = argv.includes('--dry-run')
 const APP_DIR = join(ROOT, 'apps/longbook')
 const MAC_APP = '/Applications/longbook.app'
 
 const run = (cmd: string, args: string[], cwd = ROOT): string => execFileSync(cmd, args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
-const stop = (message: string): never => {
+const stop: (message: string) => never = (message) => {
   console.error(message)
   process.exit(1)
 }
@@ -25,6 +29,27 @@ if (run('git', ['status', '--porcelain']).trim()) {
   stop('This checkout has uncommitted changes. Commit them first, so the build is one exact commit.')
 }
 const commit = run('git', ['rev-parse', '--short=10', 'HEAD']).trim()
+const today = new Date().toISOString().slice(0, 10)
+const { build: BUILD, reuse } = nextDeviceBuild(readLedger(), APP_BUILD, appChangedSince)
+const highest = highestBuild(readLedger())
+const said = reuse
+  ? `The app is unchanged since build ${BUILD}, so it installs as ${BUILD} again.`
+  : `The app has changed since build ${highest}, so it takes build ${BUILD}.`
+
+// The changelog entry is made before anything builds, so a version it cannot name stops here.
+const changelogPath = join(ROOT, CHANGELOG)
+let changelog: string
+try {
+  changelog = withChangelogEntry(readFileSync(changelogPath, 'utf8'), APP_VERSION, BUILD, today)
+} catch (error) {
+  stop((error as Error).message)
+}
+
+if (dryRun) {
+  console.log(`${said}\nA real run builds ${APP_VERSION} (${BUILD}) from ${commit}, installs it, records it in ` +
+    `apps/longbook/device-builds.json${reuse ? '' : `, and writes ${BUILD} into ${PROJECT_YML} and ${CHANGELOG}`}. Nothing was built.`)
+  process.exit(0)
+}
 
 type Device = { identifier: string; name: string; build: number | null }
 function iphone(): Device {
@@ -63,16 +88,11 @@ if (!iosOnly && existsSync(MAC_APP) && statSync(MAC_APP).uid !== process.getuid?
 }
 const phone = macOnly ? null : iphone()
 const onMac = iosOnly ? null : macBuild()
-// The devices reuse a number until it goes to TestFlight; after that a changed app takes the next.
-const shipped = readLedger()[String(APP_BUILD)]
-if (shipped?.testflight && appChangedSince(shipped.commit)) {
-  stop(`Build ${APP_BUILD} went to TestFlight on ${shipped.testflight}, and the app has changed since. Raise ` +
-    `CURRENT_PROJECT_VERSION in apps/longbook/project.yml to ${APP_BUILD + 1} and add its changelog entry.`)
-}
+// A new number on a device already means a build the ledger never recorded.
 for (const [where, build] of [['your iPhone', phone?.build], ['your Mac', onMac]] as const) {
-  if (build != null && build > APP_BUILD) {
-    stop(`Build ${build} is already on ${where}, newer than the ${APP_BUILD} project.yml builds. Raise CURRENT_PROJECT_VERSION ` +
-      'in apps/longbook/project.yml and add its changelog entry.')
+  if (build != null && (reuse ? build > BUILD : build >= BUILD)) {
+    stop(`Build ${build} is already on ${where}, and apps/longbook/device-builds.json goes up to ${highest}. Merge the ` +
+      'device-build files that recorded it, then install again.')
   }
 }
 
@@ -87,42 +107,47 @@ function build(destination: string): void {
     '-project', join(APP_DIR, 'longbook.xcodeproj'), '-scheme', 'longbook', '-configuration', 'Release',
     '-destination', destination, '-derivedDataPath', derived, '-allowProvisioningUpdates',
     '-authenticationKeyPath', keyPath, '-authenticationKeyID', keyId, '-authenticationKeyIssuerID', issuer,
-    `LONGBOOK_COMMIT=${commit}`, 'build',
+    `CURRENT_PROJECT_VERSION=${BUILD}`, `LONGBOOK_COMMIT=${commit}`, 'build',
   ], { cwd: APP_DIR, stdio: ['ignore', 'ignore', 'inherit'] })
 }
 
 try {
-  console.log(`Building ${APP_VERSION} (${APP_BUILD}) from ${commit}…`)
+  console.log(`${said}\nBuilding ${APP_VERSION} (${BUILD}) from ${commit}…`)
   run('xcodegen', ['generate'], APP_DIR)
   if (phone) {
     build(`id=${phone.identifier}`)
     run('xcrun', ['devicectl', 'device', 'install', 'app', '--device', phone.identifier,
       join(derived, 'Build/Products/Release-iphoneos/longbook.app')])
     const now = iphone().build
-    if (now !== APP_BUILD) stop(`${phone.name} reports build ${now} after the install, not ${APP_BUILD}.`)
-    console.log(`${phone.name}: ${APP_VERSION} (${APP_BUILD}) installed.`)
+    if (now !== BUILD) stop(`${phone.name} reports build ${now} after the install, not ${BUILD}.`)
+    console.log(`${phone.name}: ${APP_VERSION} (${BUILD}) installed.`)
   }
   if (!iosOnly) {
     build('platform=macOS')
     // Never opened here: the owner opens the new build himself.
     try { run('osascript', ['-e', 'tell application "longbook" to quit']) } catch { /* not running */ }
     if (onMac != null) {
-      // Stamped, so a --same-build swap never lands on the folder an earlier swap left.
+      // Stamped, so reinstalling one build never lands on the folder an earlier swap left.
       const trash = join(homedir(), '.Trash', `longbook-old-build${onMac}-${Date.now()}`)
       run('mkdir', ['-p', trash])
       run('mv', [MAC_APP, trash])
     }
     run('ditto', [join(derived, 'Build/Products/Release/longbook.app'), MAC_APP])
-    if (macBuild() !== APP_BUILD) stop(`/Applications/longbook.app is not build ${APP_BUILD} after the swap.`)
-    console.log(`Mac: ${APP_VERSION} (${APP_BUILD}) in Applications${onMac != null ? `, build ${onMac} in the Trash` : ''}.`)
+    if (macBuild() !== BUILD) stop(`/Applications/longbook.app is not build ${BUILD} after the swap.`)
+    console.log(`Mac: ${APP_VERSION} (${BUILD}) in Applications${onMac != null ? `, build ${onMac} in the Trash` : ''}.`)
   }
 } finally {
   rmSync(derived, { recursive: true, force: true })
 }
 
 const ledger = readLedger()
-// A reinstall of the same app keeps its TestFlight mark; a changed app never reaches here with one.
-const kept = ledger[String(APP_BUILD)]?.testflight
-ledger[String(APP_BUILD)] = { version: APP_VERSION, commit, installed: new Date().toISOString().slice(0, 10), ...(kept ? { testflight: kept } : {}) }
+// A reinstall of the same app keeps its TestFlight mark.
+const kept = ledger[String(BUILD)]?.testflight
+ledger[String(BUILD)] = { version: APP_VERSION, commit, installed: today, ...(kept ? { testflight: kept } : {}) }
 writeLedger(ledger)
-console.log(`Recorded build ${APP_BUILD} = ${commit} in apps/longbook/device-builds.json. Commit that file.`)
+if (!reuse) {
+  writeFileSync(join(ROOT, PROJECT_YML), withBuild(readFileSync(join(ROOT, PROJECT_YML), 'utf8'), BUILD))
+  writeFileSync(changelogPath, changelog)
+}
+console.log(`Recorded build ${BUILD} = ${commit} in apps/longbook/device-builds.json` +
+  (reuse ? '.' : `, and wrote ${BUILD} into ${PROJECT_YML} and ${CHANGELOG}.`) + ' Commit those files.')

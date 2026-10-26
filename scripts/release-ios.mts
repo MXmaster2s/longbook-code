@@ -138,7 +138,7 @@ const preflight = (): Check[] => {
 
   const untested = untestedOnDevices()
   checks.push({
-    name: 'The app on your devices, unchanged since',
+    name: 'The latest device build, unchanged since',
     ok: untested === null,
     fix: untested ?? '',
   })
@@ -261,7 +261,7 @@ const main = () => {
 
   console.log(`\nUploaded ${marketing} (${build}). App Store Connect processes it before it appears in TestFlight — minutes, sometimes longer.`)
   markOnTestFlight()
-  console.log(`Recorded build ${build} as on TestFlight in apps/longbook/device-builds.json; the next device build takes ${Number(build) + 1}. Commit that file.`)
+  console.log(`Recorded build ${build} as on TestFlight in apps/longbook/device-builds.json. Commit that file.`)
   console.log('Internal testers get it without review. A public link needs an external group, which goes through Beta App Review.')
 }
 

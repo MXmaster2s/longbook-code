@@ -5,7 +5,7 @@
 import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { APP_BUILD, APP_VERSION, MCP_NAME, NPM_NAME, RELEASE_VERSION, ROOT, RULEBOOK, appChangedSince, readLedger } from './release.mts'
+import { APP_BUILD, APP_VERSION, MCP_NAME, NPM_NAME, RELEASE_VERSION, ROOT, RULEBOOK, appChangedSince, highestBuild, nextDeviceBuild, readLedger } from './release.mts'
 
 const LIVE = process.argv.includes('--live')
 type Row = { piece: string; want: string; have: string; ok: boolean | null; fix?: string }
@@ -34,31 +34,24 @@ add('npm package (repo)', RELEASE_VERSION, json('packages/mcp/package.json').ver
 add('MCP registry entry (repo)', RELEASE_VERSION, json('packages/mcp/server.json').version, 'npm run release')
 add('Claude plugin (repo)', RELEASE_VERSION, json('apps/claude-plugin/plugins/longbook/.claude-plugin/plugin.json').version, 'npm run plugin:claude')
 
-// ---- the app: devices reuse a number until it goes to TestFlight, then take the next --------
+// ---- the app: every device build of a changed app takes the next number ---------------------
 const ledger = readLedger()
-const highest = Math.max(0, ...Object.keys(ledger).map(Number))
-let appOk = APP_BUILD >= highest
-let appNote = `${APP_VERSION} (${APP_BUILD})`
-let appFix = `Raise CURRENT_PROJECT_VERSION in apps/longbook/project.yml above ${highest} and add its changelog entry.`
-const built = ledger[String(APP_BUILD)]
-if (appOk && built) {
-  let known = true
-  try { git(['cat-file', '-e', `${built.commit}^{commit}`]) } catch { known = false }
-  if (!known) {
-    appOk = false
-    appNote += `, made from ${built.commit}, which this checkout does not have`
-    appFix = 'Fetch the full history (git fetch --unshallow), or raise the build number.'
-  } else if (appChangedSince(built.commit)) {
-    if (built.testflight) {
-      appOk = false
-      appNote += `, on TestFlight since ${built.testflight} as ${built.commit}, and the app has changed since`
-      appFix = `Raise CURRENT_PROJECT_VERSION in apps/longbook/project.yml to ${APP_BUILD + 1} and add its changelog entry.`
-    } else {
-      appNote += `, changed since ${built.commit} on the devices; reinstall before TestFlight`
-    }
-  }
+const highest = highestBuild(ledger)
+const last = ledger[String(highest)]
+let known = !!last
+if (last) {
+  try { git(['cat-file', '-e', `${last.commit}^{commit}`]) } catch { known = false }
 }
-rows.push({ piece: 'App build to make next', want: `${highest}, until it goes to TestFlight`, have: appNote, ok: appOk, fix: appOk ? undefined : appFix })
+const next = known ? nextDeviceBuild(ledger, APP_BUILD, appChangedSince) : nextDeviceBuild(ledger, APP_BUILD, () => true)
+let appNote = `${APP_VERSION} (${APP_BUILD})`
+if (last && !known) appNote += `; build ${highest} was made from ${last.commit}, which this checkout does not have`
+else if (last) appNote += next.reuse ? `; the same app as build ${highest} (${last.commit})` : `; changed since build ${highest} (${last.commit})`
+// Behind only when project.yml names less than the devices had: the ledger moved without it.
+const appOk = APP_BUILD >= highest
+rows.push({
+  piece: 'App build to make next', want: String(next.build), have: appNote, ok: appOk,
+  fix: appOk ? undefined : `Set CURRENT_PROJECT_VERSION in apps/longbook/project.yml to ${highest}, with its changelog entry, as npm run device:install writes them.`,
+})
 
 // ---- live -------------------------------------------------------------------------------------
 async function fetchJson(url: string): Promise<any> {

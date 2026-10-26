@@ -24,10 +24,11 @@ patch at 0 again. Then run `npm run release` and `npm run plugin:claude`.
 
 **The app's own number** (1.3.6, build 31), in `apps/longbook/project.yml`, because Apple
 requires one. Help & about shows it with the rulebook it follows and the commit it was built
-from. One build number is one exact app: `npm run device:install` refuses a number already on
-the iPhone or the Mac, and `apps/longbook/device-builds.json` records the commit each number was
-made from. `npm run versions` fails if the app changes after a number was installed and the
-number was not raised.
+from. One build number is one exact app. The version stays the same for a sprint; every
+`npm run device:install` of a changed app takes the next build number, records the commit it was
+made from in `apps/longbook/device-builds.json`, and writes the number into `project.yml` with a
+changelog entry repeating the previous build's lines. Installing the same app again keeps its
+number. TestFlight ships the highest device build, and refuses once the app has changed since it.
 
 ## The places
 
