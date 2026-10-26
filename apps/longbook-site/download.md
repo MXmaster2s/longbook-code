@@ -22,4 +22,4 @@ IPHONE
 
 One [lifetime license](https://longbook.app/#price) covers every longbook app: Mac and iPhone now, iPad, Apple Watch, iPhone Duo and Android as they arrive. The first 100 buyers pay $38.
 
-Still have a question? [Ask Support](https://longbook.app/support/), or read the [help center](https://longbook.chat.sh).
+Still have a question? Read the [help articles](https://longbook.app/help/), or [ask Support](https://longbook.app/support/).

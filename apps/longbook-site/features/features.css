@@ -411,3 +411,17 @@ code { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.92
 .rfoot span { color:var(--lb-brand-text); font-weight:500; }
 .rnote { max-width:640px; margin:12px auto 0; text-align:center; color:var(--lb-text-tertiary); font-size:var(--lb-type-footnote-size); line-height:1.6; }
 @media (prefers-reduced-motion: reduce) { .rcard, .rcard:hover { transition:none; transform:none; } }
+
+/* Help: the articles grouped on /help/, a table in an article, and the closing "still have a question". */
+.hgroups { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:var(--lb-space-s6); margin-top:var(--lb-space-s6); }
+.hgroup { background:var(--lb-card); border:1px solid var(--lb-hairline); border-radius:var(--lb-radius-md); padding:var(--lb-space-s6); }
+.hgroup h2 { margin:0 0 var(--lb-space-s3); font-size:var(--lb-type-title-size); }
+.hgroup ul { list-style:none; margin:0; padding:0; display:grid; gap:var(--lb-space-s2); }
+.hgroup a { text-decoration:none; font-size:var(--lb-type-body-sm-size); }
+.hgroup a:hover { text-decoration:underline; }
+.htable { border-collapse:collapse; margin:var(--lb-space-s4) 0; font-size:var(--lb-type-body-sm-size); }
+.htable th, .htable td { text-align:left; padding:var(--lb-space-s2) var(--lb-space-s4); border-bottom:1px solid var(--lb-hairline); }
+.htable th { color:var(--lb-text-secondary); font-weight:600; }
+.hstill { margin-top:var(--lb-space-s12); background:var(--lb-card); border:1px solid var(--lb-hairline); border-radius:var(--lb-radius-md); padding:var(--lb-space-s6); }
+.hstill h2 { margin:0 0 var(--lb-space-s2); font-size:var(--lb-type-title-size); }
+.hstill p { margin:0; color:var(--lb-text-secondary); }

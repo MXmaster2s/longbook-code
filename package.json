@@ -54,6 +54,8 @@
     "site:router:check": "tsx scripts/gen-mcp-router.mts --check",
     "site:consent": "tsx scripts/gen-consent-bundle.mts",
     "site:consent:check": "tsx scripts/gen-consent-bundle.mts --check",
+    "help:articles": "tsx scripts/gen-help-articles.mts",
+    "help:articles:check": "tsx scripts/gen-help-articles.mts --check",
     "site:viewer": "tsx scripts/gen-share-viewer.mts",
     "site:viewer:check": "tsx scripts/gen-share-viewer.mts --check",
     "site:analytics": "tsx scripts/gen-analytics-bundle.mts",

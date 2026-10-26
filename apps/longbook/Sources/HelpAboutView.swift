@@ -36,6 +36,7 @@ struct HelpAboutView: View {
                 LinkRow(symbol: "exclamationmark.bubble", ink: 3, title: "Report a problem", subtitle: "", url: Self.problemURL),
             ])
             LBSectionHeader("Help")
+            supportRow
             links([
                 LinkRow(symbol: "questionmark.circle", ink: 8, title: "Questions and guides", subtitle: "", url: Self.faqURL),
                 LinkRow(symbol: "envelope", ink: 8, title: "Contact", subtitle: "contact@longbook.app", url: Self.contactURL),
@@ -77,6 +78,21 @@ struct HelpAboutView: View {
                 Spacer(minLength: 0)
             }
             .accessibilityElement(children: .combine)
+        }
+    }
+
+    // MARK: Support
+
+    /// Support opens in the app, so its row wears the inward chevron, not the outward arrow.
+    private var supportRow: some View {
+        LBCard(padding: 0) {
+            Button {
+                Measure.used("help_support")
+                SupportCenter.shared.open()
+            } label: {
+                SettingsRowLabel(symbol: "bubble.left", ink: 8, title: "Support", subtitle: "", trailing: "chevron.right")
+            }
+            .buttonStyle(.plain)
         }
     }
 
@@ -127,6 +143,8 @@ struct HelpAboutView: View {
                         .foregroundStyle(LBColor.textPrimary.color)
                 }
                 .tint(LBColor.brand.color)
+                rule
+                SupportPrivacyRows()
                 rule
                 fact("Shared reports", "Kept with your account until the link expires or you revoke it.")
                 rule

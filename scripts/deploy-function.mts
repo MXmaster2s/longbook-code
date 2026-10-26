@@ -9,7 +9,7 @@ import { homedir } from 'node:os'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const PROJECT_REF = 'xbrnijgctmovoqbbmgmb'
-const ALLOWED = ['share-report', 'apple-purchase', 'apple-notifications', 'statement-extract', 'account-notice', 'sessions', 'auth-email', 'review-sign-in', 'reorganise', 'seats']
+const ALLOWED = ['share-report', 'apple-purchase', 'apple-notifications', 'statement-extract', 'account-notice', 'sessions', 'auth-email', 'review-sign-in', 'reorganise', 'seats', 'support']
 
 const args = process.argv.slice(2).filter((a) => !a.startsWith('--'))
 const SLUG = args[0]

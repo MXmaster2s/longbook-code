@@ -38,6 +38,7 @@ jobs:
       - run: npm run hosted:engine:check
       - run: npm run local:server:check
       - run: npm run site:consent:check
+      - run: npm run help:articles:check
       - run: npm run site:viewer:check
       - run: npm run site:router:check
       - run: npm run plugin:claude:check

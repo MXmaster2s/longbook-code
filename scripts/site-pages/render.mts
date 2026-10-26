@@ -36,7 +36,7 @@ export const mdUrl = (slug: string): string => `${ORIGIN}/features/${slug}.md`
 export const groupName = (id: GroupId): string => GROUPS.find((g) => g.id === id)!.name
 
 const KNOWN = new Set(['/', '/faq/', '/download/', '/ios/', '/automations/', '/source/', '/contact/', '/why-we-built-longbook/',
-  '/privacy-policy/', '/terms/', '/mcp', '/features/', '/features/upcoming-features/', '/blog/', '/reviews/'])
+  '/privacy-policy/', '/terms/', '/mcp', '/features/', '/features/upcoming-features/', '/blog/', '/reviews/', '/help/', '/support/'])
 
 // A link inside the copy: another feature page, a blog post, a known page of the site, or an https address.
 export function checkHref(href: string, slugs: Set<string>, posts: Set<string> = new Set()): string | null {
