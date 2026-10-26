@@ -284,14 +284,15 @@ struct DataPrivacyView: View {
     @State private var confirmingDelete = false
     @State private var deleteError: String?
     @Environment(\.lbPageTitleHidden) private var titleHidden
+    @Environment(\.lbPageHeader) private var pageHeader
     #endif
     @Environment(\.openURL) private var openURL
 
     var body: some View {
         List {
             #if os(macOS)
-            // The Settings window's title already names the pane.
-            if !titleHidden {
+            // The Settings window draws its header card here, and names the pane itself.
+            if !titleHidden || pageHeader != nil {
                 LBPageTitle("Data & privacy")
                     .listRowSeparator(.hidden)
                     .listRowBackground(Color.clear)

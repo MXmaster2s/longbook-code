@@ -68,6 +68,7 @@ public extension View {
 public struct LBPageTitle: View {
     private let title: String
     @Environment(\.lbPageTitleHidden) private var hidden
+    @Environment(\.lbPageHeader) private var header
 
     public init(_ title: String) {
         self.title = title
@@ -75,7 +76,9 @@ public struct LBPageTitle: View {
 
     public var body: some View {
         #if os(macOS)
-        if !hidden {
+        if let header {
+            header
+        } else if !hidden {
             Text(title)
                 .lbText(.largeTitle)
                 .foregroundStyle(LBColor.textPrimary.color)
@@ -91,11 +94,21 @@ private struct LBPageTitleHiddenKey: EnvironmentKey {
     static let defaultValue = false
 }
 
+private struct LBPageHeaderKey: EnvironmentKey {
+    static let defaultValue: AnyView? = nil
+}
+
 public extension EnvironmentValues {
     /// True where a window's own title already names the page, as in a Settings pane, so
     /// the page draws no second title.
     var lbPageTitleHidden: Bool {
         get { self[LBPageTitleHiddenKey.self] }
         set { self[LBPageTitleHiddenKey.self] = newValue }
+    }
+
+    /// A header drawn in place of the page's title, as a Settings pane's header card.
+    var lbPageHeader: AnyView? {
+        get { self[LBPageHeaderKey.self] }
+        set { self[LBPageHeaderKey.self] = newValue }
     }
 }
