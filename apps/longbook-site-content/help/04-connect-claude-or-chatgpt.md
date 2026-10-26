@@ -4,7 +4,7 @@ Your AI can read your longbook and add to it: bills it finds in your email, subs
 
 ## On a Mac, with Claude
 
-In **AI Connections**, tap **Set Up Claude Desktop**. Claude Desktop then reads your longbook folder directly, with no copy on our server.
+In **AI Connections** (on Mac, the **AI** pane of the Settings window), tap **Set Up Claude Desktop**. Claude Desktop then reads your longbook folder directly, with no copy on our server.
 
 ## From any device, with Claude or ChatGPT
 

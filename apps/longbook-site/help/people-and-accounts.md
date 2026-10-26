@@ -12,6 +12,12 @@ Each person has a card with their commitments, charges and accounts, and their n
 
 A person is a name in your records, not a sign-in. They don't need a longbook account.
 
+## Stars, search and filters
+
+Tap the **star** on a person or an account to keep it at the top of its list. On Mac, the sidebar lists only your starred people and accounts, under **People** and **Payments**.
+
+Both screens have a search field. **People** filters by **Relationship**, and **Accounts** filters by **Type**: a menu on Mac, chips on iPhone.
+
 ## Accounts
 
 An account is what pays a commitment: a bank account, a credit or debit card, UPI, a wallet or cash. Each account has one **Owner** (a person) or **Shared**.
@@ -32,7 +38,13 @@ No. Balances change only when you, a statement or your AI record one.
 
 ### Can a statement add people and accounts?
 
-Yes. The import offers every person and every account the statement prints, and files each line under the account the statement is from. A closing balance on the statement updates that account.
+Yes, while **Add accounts and people found in statements** is on. It's on unless you turn it off: on iPhone in **Settings** under **Import**, and on Mac in the Settings window under **Statements**. The review then offers, ticked, every person the statement prints and every account: the statement's own account, and the accounts and people that transfers and card payments go to. Untick what you don't want before you tap **Add**. A closing balance on the statement updates its account.
+
+With the switch off, they still appear in the review, unticked, and nothing is added unless you tick it.
+
+### Are my answers from setup added as people and accounts?
+
+No. **Optimize your data** keeps your answers, such as a cook or a card, as hints for reading your statements. They help your AI and the statement reader name things, but **People** and **Accounts** list only what you add or what a statement shows.
 
 Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.
 

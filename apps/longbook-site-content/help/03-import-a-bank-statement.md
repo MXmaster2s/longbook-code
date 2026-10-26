@@ -7,10 +7,14 @@ longbook can read a bank or card statement and turn its lines into charges, so y
 1. On iPhone, open **Settings**, then **Import a statement**. It is also on the **Reports** screen.
 2. Tap **Securely Upload Statement** and choose up to five files at once: PDF, CSV, plain text or Excel, scanned PDFs included.
 3. If a PDF is locked, enter its password. The password stays on your device.
-4. Review what was read, in four groups: **Commitments**, **Past expenses**, **People** and **Accounts**. Fix a name, a category or a person, or untick anything. Transfers between your own accounts and card bill payments start unticked, and lines an earlier statement already recorded are left out.
-5. Add them. The sheet closes, and what is recorded shows in **Proposals**, to keep or undo.
+4. Review what was read. It is one list, drawn with the app's own cards: **Commitments**, then **Past expenses**, **People** and **Accounts**, every item ticked. Fix a name, a category or a person, or untick anything. Transfers between your own accounts, card bill payments, money in, and lines already in your longbook start unticked.
+5. Tap **Add**, which counts the ticked items. The review closes, and what is recorded shows in **Proposals**, to keep or undo. Only **Add** or **Discard** closes the review.
 
 Payments that repeat are offered as commitments, every one ticked. Every person the statement prints is offered under People, and every account it prints under Accounts: the statement's own account, named from its header even when no number is printed, and the accounts your transfers go to, your own among them. Untick what you don't want. You need to be signed in to longbook to import.
+
+### Adding the people and accounts it finds
+
+**Add accounts and people found in statements** decides whether the people and accounts start ticked. It's on unless you turn it off: on iPhone in **Settings** under **Import**, and on Mac in the Settings window under **Statements**. With it off, they start unticked, and only what you tick is added.
 
 ## What is sent, and what is kept
 

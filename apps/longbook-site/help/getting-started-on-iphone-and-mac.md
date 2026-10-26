@@ -22,6 +22,14 @@ You can fill your longbook in three ways:
 
 Whatever is added for you waits on the **Proposals** screen until you keep it or undo it.
 
+## Your answers at setup
+
+Setup asks about the people you pay and the accounts you pay from. Your answers are kept as hints for reading your statements, not added to **People** or **Accounts**. To change them later, open **Optimize your data** in Settings.
+
+## Settings on Mac
+
+On Mac, Settings opens in its own window: choose **Settings…** from the **Settings** row at the foot of the sidebar, or press ⌘,. Its sidebar has **General**, **Appearance**, **AI**, **Statements**, **Data & privacy** and **Tutorials**, with your longbook account at the top. **General** holds **About**, **Software Update**, **Login Items and Menu Bar**, and **Help and Feedback**; that's where you'll find **Launch at login**, **Check for updates automatically**, **Show the next payment in the menu bar** and **Hide the Dock icon**.
+
 ## Look around first
 
 Not ready to add your own? Open **Try the demo** in Settings. It's filled with made-up payments so you can see how everything works, and it doesn't touch your own folder.

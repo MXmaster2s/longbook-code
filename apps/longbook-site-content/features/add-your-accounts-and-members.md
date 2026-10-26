@@ -11,7 +11,7 @@ iphone: iphone-members
 mac: mac-members
 aliases: add-your-accounts, add-your-members, add-family-members
 related: view-expenses-from-multiple-bank-accounts, share-monthly-expense-reports-with-others, manage-your-expenses
-labels: People, Accounts, Owner, Shared, Unassigned, Add Commitment, Show All
+labels: People, Accounts, Owner, Shared, Unassigned, Add Commitment, Show All, Relationship, Type, Add accounts and people found in statements
 ---
 
 People are who your commitments are for. Accounts are what they are paid from. Each commitment can name one of each, and Commitments filters by both.
@@ -19,6 +19,8 @@ People are who your commitments are for. Accounts are what they are paid from. E
 ## On the screen
 
 **People** on iPhone and Mac: one row for each person, with their relationship, such as Family, Household help or Landlord, and how many commitments name them. A tap on iPhone opens their card; on Mac a table sorts by any column, with the chosen person's card beside it. The **Unassigned** row holds the commitments that name no one.
+
+A star keeps a person or an account at the top, and on Mac the sidebar lists only the starred ones. A search field and a filter, **Relationship** for people and **Type** for accounts, narrow either list.
 
 ## What it does
 
@@ -44,9 +46,13 @@ A household pays for more than one person, from more than one account. A cook's 
 
 They stay, without a person. Before the delete, longbook states how many commitments, one-time charges and accounts name that person. Their accounts stay too, and belong to no one in particular. Deleting an account leaves its commitments in place the same way.
 
-### Can a bank statement add people?
+### Can a bank statement add people and accounts?
 
-Yes. A statement import offers the people it names to tick, and files its lines under the account the statement is from. More on [Import your bank statements](/features/import-your-bank-statements/).
+Yes. With **Add accounts and people found in statements** on, which it is unless you turn it off, an import adds the statement's own account, the people its lines name, and the accounts and people that transfers and card payments go to. Each one is shown in the review first, matched to what you already have. With the switch off they start unticked. More on [Import your bank statements](/features/import-your-bank-statements/).
+
+### Are the people and accounts from setup added to these lists?
+
+No. The answers you give in setup are kept as hints for reading statements. People and Accounts list only what you add and what statements show.
 
 ### Does a person need a longbook account?
 

@@ -32,7 +32,7 @@ Totals are never converted or blended. The dashboard totals one currency, lists 
 
 ### A home currency
 
-**Home currency** under **Display & currency** sets the currency the dashboard leads with, and **Automatic** leads with the one most recurring commitments use. The choice appears once recurring commitments use more than one currency.
+**Home currency**, under **Display & currency** on iPhone and **General** in the Mac's Settings window, sets the currency the dashboard leads with, and **Automatic** leads with the one most recurring commitments use. The choice appears once recurring commitments use more than one currency.
 
 ## Why it exists
 

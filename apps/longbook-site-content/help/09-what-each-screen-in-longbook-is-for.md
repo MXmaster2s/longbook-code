@@ -10,16 +10,18 @@ The bottom bar has five places:
 - **Reports**: one report for every month that has a confirmed charge.
 - **Settings**: everything else.
 
-Settings opens everything else: **Proposals**, **Insights**, **Bookmarks**, **Accounts**, **People**, **Import a statement**, **Trips**, **AI Connections**, **Display & currency**, **Data & privacy**, **Set up again**, **Try the demo**, **Tips**, **Help & about**, and your account at the top.
+Settings opens everything else: **Proposals**, **Insights**, **Bookmarks**, **Accounts**, **People**, **Import a statement** and **Add accounts and people found in statements**, **Trips**, **AI Connections**, **Display & currency**, **Data & privacy**, **Optimize your data**, **Try the demo**, **Tips**, **Tutorials**, **Help & about**, and your account at the top.
 
 ## On Mac
 
 The sidebar lists them all:
 
 - **Overview**: Dashboard, Reports, Calendar, Commitments, Insights, Proposals.
-- **Payments**: Accounts.
-- **People**: People.
-- At the bottom: **Add commitment**, **Settings** and the bookmark icon.
+- **Payments**: Accounts, and under it your starred accounts.
+- **People**: People, and under it your starred people.
+- At the bottom: **Add commitment**, **Settings** and the bookmark icon. **Settings** opens a menu with **Settings…** (⌘,), **What’s New**, **Send Feedback…**, **Check for Updates…** and **Quit longbook**.
+
+**Payments** and **People** fold away with a click on their name. Star an account or a person on its screen to keep it in the sidebar.
 
 ## What each one is
 
@@ -32,7 +34,7 @@ The sidebar lists them all:
 
 ## Settings
 
-On Mac, Settings has four tabs: **General**, **Account**, **AI** and **Data**. **AI Connections** is where you connect your AI, copy prompts, and set up Siri and Shortcuts.
+On Mac, Settings is a window of its own, like the Mac's System Settings. Its sidebar has a search field, your longbook account, then **General**, **Appearance**, **AI**, **Statements**, **Data & privacy** and **Tutorials**. Back and Forward (⌘[ and ⌘]) move between pages. **AI** is where you connect your AI, copy prompts, and set up Siri and Shortcuts; on iPhone that's **AI Connections**.
 
 ## Questions
 

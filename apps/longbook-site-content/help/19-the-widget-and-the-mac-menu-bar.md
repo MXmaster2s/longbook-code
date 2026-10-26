@@ -20,7 +20,7 @@ There is no Lock Screen widget.
 The longbook item in the menu bar shows the total due on the next payment day and how far away it is. The menu names each commitment due, lists transfers separately, and has **Open longbook**, **Refresh** and **Quit longbook**.
 
 - It stays while the app is running, even with every window closed.
-- longbook doesn't start itself at login.
+- In Settings, under **General**: **Launch at login** starts longbook when you log in, **Show the next payment in the menu bar** turns the item on or off, and **Hide the Dock icon** keeps longbook in the menu bar only.
 - It re-reads the folder when the day changes, the Mac wakes, and each time the menu opens.
 
 There is no widget for the Mac.

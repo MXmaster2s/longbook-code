@@ -15,7 +15,7 @@ The commitment form has a currency beside the amount. INR, USD, EUR and GBP are 
 
 ## Home currency
 
-In **Settings**, under **Display & currency**, **Home currency** sets which currency the dashboard leads with. **Automatic** leads with the one most recurring commitments use. The choice appears once your recurring commitments use more than one currency.
+On iPhone in **Settings**, under **Display & currency**, and on Mac in the Settings window under **General**, **Home currency** sets which currency the dashboard leads with. **Automatic** leads with the one most recurring commitments use. The choice appears once your recurring commitments use more than one currency.
 
 ## Questions
 
