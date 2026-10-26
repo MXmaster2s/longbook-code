@@ -192,6 +192,12 @@
       "height": 1144
     },
     {
+      "source": "blog-open-folder-share.png",
+      "out": "blog/media/open-any-folder/share.jpg",
+      "width": 1200,
+      "height": 630
+    },
+    {
       "source": "blog-reviews-share.png",
       "out": "blog/media/reviews-page/share.jpg",
       "width": 1200,

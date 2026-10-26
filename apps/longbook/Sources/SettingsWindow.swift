@@ -76,7 +76,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .ai: ["Claude", "ChatGPT", "MCP", "Access", "Keys", "Proposals", "Reorganise", "Prompts", "Shortcuts", "Siri", "Spotlight"]
         case .statements: ["Add accounts and people found", "Optimize your data", "Import a statement", "PDF", "CSV", "Bank", "Card"]
         case .privacy: ["iCloud", "Folder", "Finder", "Backups", "Move", "Usage", "Crash", "What leaves this device", "Card details",
-                        "Delete longbook"]
+                        "Open Another Folder", "Delete longbook"]
         case .tutorials: ["Replay", "Dashboard", "Commitments", "Calendar", "Reports", "Accounts", "People", "Insights", "Proposals"]
         }
     }
@@ -745,16 +745,15 @@ struct LoginItemsPage: View {
                 Toggle(isOn: menuBarBinding.measured("show_next_payment_in_menu_bar")) {
                     SettingsPaneRowLabel(title: "Show the next payment in the menu bar", symbol: "menubar.rectangle", tile: .blue)
                 }
-                .disabled(hidesDock)
                 Toggle(isOn: dockBinding.measured("hide_the_dock_icon")) {
                     SettingsPaneRowLabel(title: "Hide the Dock icon", symbol: "dock.rectangle", tile: .blue)
                 }
             } header: {
                 Text("Menu bar and Dock")
             } footer: {
-                SettingsNote(hidesDock
-                    ? "With the Dock icon hidden, the menu bar item opens longbook and its Settings, so it stays on."
-                    : "The menu bar shows your next payment, and opens longbook and its Settings.")
+                SettingsNote(showsMenuBar
+                    ? "The menu bar item shows your next payment, and opens longbook and its Settings."
+                    : "The menu bar item shows the longbook mark, and opens longbook and its Settings.")
             }
         }
         .onAppear { launchesAtLogin = LaunchAtLogin.isOn }
@@ -771,7 +770,7 @@ struct LoginItemsPage: View {
     }
 
     private var menuBarBinding: Binding<Bool> {
-        Binding(get: { showsMenuBar || hidesDock }, set: { showsMenuBar = $0 })
+        Binding(get: { showsMenuBar }, set: { if $0 != showsMenuBar { showsMenuBar = $0 } })
     }
 
     private var dockBinding: Binding<Bool> {

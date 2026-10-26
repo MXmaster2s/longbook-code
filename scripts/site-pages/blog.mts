@@ -21,6 +21,7 @@ export type PostBlock =
   | { kind: 'figure'; alt: string; src: string; caption: string }
   | { kind: 'audit'; title: string; alt: string; src: string; notes: { tag: string; text: string }[] }
   | { kind: 'film'; src: string; alt: string; caption: string }
+  | { kind: 'code'; lang: string; text: string }
 
 export interface Post {
   slug: string
@@ -55,8 +56,8 @@ export const headingId = (text: string): string =>
 
 // Blocks are runs of lines between blank lines: a heading, a picture on its own line, a list, a
 // quote (every line starting with ">"), a paragraph, a screen's audit between ":::audit" and ":::",
-// or a film between ":::film /blog/media/<name>.mp4" and ":::": its spoken description, then
-// optionally the caption under it.
+// a film between ":::film /blog/media/<name>.mp4" and ":::" (its description, then any caption),
+// or code fenced by "```", kept as written.
 export function parseBlocks(lines: string[], file: string): PostBlock[] {
   const out: PostBlock[] = []
   let run: string[] = []
@@ -83,6 +84,16 @@ export function parseBlocks(lines: string[], file: string): PostBlock[] {
       if (i >= lines.length) throw new Error(`${file}: ":::film ${film[1]}" is never closed`)
       if (inner.length < 1 || inner.length > 2) throw new Error(`${file}: the film ${film[1]} takes its description, then optionally a caption`)
       out.push({ kind: 'film', src: film[1]!, alt: inner[0]!, caption: inner[1] ?? '' })
+      continue
+    }
+    const fence = /^```([a-z]*)$/.exec(line)
+    if (fence) {
+      flush()
+      const inner: string[] = []
+      for (i++; i < lines.length && lines[i]!.trim() !== '```'; i++) inner.push(lines[i]!)
+      if (i >= lines.length) throw new Error(`${file}: a "${'```'}${fence[1]}" block is never closed`)
+      const indent = Math.min(...inner.filter((l) => l.trim()).map((l) => /^ */.exec(l)![0].length))
+      out.push({ kind: 'code', lang: fence[1]!, text: inner.map((l) => l.slice(Number.isFinite(indent) ? indent : 0)).join('\n') })
       continue
     }
     const h = /^(##|###) (.+)$/.exec(line)
@@ -127,6 +138,7 @@ const textsOf = (blocks: PostBlock[]): string[] => blocks.flatMap((b) => {
     case 'quote': return textsOf(b.blocks)
     case 'figure': case 'film': return [b.caption]
     case 'audit': return [b.title, ...b.notes.map((n) => n.text)]
+    case 'code': return []
   }
 })
 const picturesIn = (blocks: PostBlock[]): string[] => blocks.flatMap((b) =>
@@ -233,6 +245,7 @@ export function blockHtml(b: PostBlock, stills: Map<string, Still>): string {
       return `<figure class="bfig bfilm"><div class="film"><video controls playsinline preload="none" width="1280" height="720" ` +
         `poster="${posterOf(b.src)}" aria-label="${attr(b.alt)}"><source src="${b.src}" type="video/mp4"></video></div>` +
         `${b.caption ? `<figcaption>${inlineHtml(b.caption)}</figcaption>` : ''}</figure>`
+    case 'code': return `<pre class="bcode"><code${b.lang ? ` class="language-${b.lang}"` : ''}>${esc(b.text)}</code></pre>`
     case 'audit': {
       // A phone screen sits beside its comments; a Mac window is wide enough to sit above them.
       const s = stills.get(b.src)!
@@ -316,6 +329,7 @@ export function blockMd(b: PostBlock): string {
     case 'quote': return b.blocks.map(blockMd).join('\n\n').split('\n').map((l) => (l ? `> ${l}` : '>')).join('\n')
     case 'figure': return `![${b.alt}](${ORIGIN}${b.src}${b.caption ? ` "${b.caption.replace(/"/g, "'")}"` : ''})`
     case 'film': return `Film: [${b.alt}](${ORIGIN}${b.src}${b.caption ? ` "${b.caption.replace(/"/g, "'")}"` : ''})`
+    case 'code': return ['```' + b.lang, b.text, '```'].join('\n')
     case 'audit': return [`**${b.title}**`, '', `![${b.alt}](${ORIGIN}${b.src})`, '', 'Claude’s comments:', '',
       ...b.notes.map((n) => `- ${n.tag}: ${inlineMd(n.text)}`)].join('\n')
   }
