@@ -535,6 +535,11 @@
       "sha256": "96c89833dad1d71aed80befa4c357158d0d67a267b41cc683270a707530c2186"
     },
     {
+      "path": "blog/media/open-any-folder/share.jpg",
+      "bytes": 90131,
+      "sha256": "62b23bc8d8244042387fe32b979ecee9ffe1a466136dd0c081f10c0b2b927ab0"
+    },
+    {
       "path": "blog/media/reviews-page/embed.jpg",
       "bytes": 113720,
       "sha256": "a5db47e3f842df0af32284ccb2b524b43ef35bdb0b61dd67044c838c3b6ad5a2"

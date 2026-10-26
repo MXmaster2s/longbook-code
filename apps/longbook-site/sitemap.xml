@@ -116,7 +116,7 @@
   </url>
   <url>
     <loc>https://longbook.app/automations/</loc>
-    <lastmod>2026-10-24</lastmod>
+    <lastmod>2026-10-26</lastmod>
     <image:image><image:loc>https://longbook.app/features/img/iphone-own-ai.jpg</image:loc></image:image>
     <image:image><image:loc>https://longbook.app/features/img/mac-mcp-server.jpg</image:loc></image:image>
     <image:image><image:loc>https://longbook.app/features/img/iphone-automations.jpg</image:loc></image:image>
@@ -394,7 +394,12 @@
   </url>
   <url>
     <loc>https://longbook.app/blog/</loc>
-    <lastmod>2026-10-24</lastmod>
+    <lastmod>2026-10-26</lastmod>
+  </url>
+  <url>
+    <loc>https://longbook.app/blog/open-any-folder-in-longbook/</loc>
+    <lastmod>2026-10-26</lastmod>
+    <image:image><image:loc>https://longbook.app/blog/media/open-any-folder/share.jpg</image:loc></image:image>
   </url>
   <url>
     <loc>https://longbook.app/blog/how-to-show-reviews-about-your-product-to-the-world/</loc>

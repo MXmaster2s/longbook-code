@@ -905,6 +905,18 @@
   Content-Type: text/markdown; charset=utf-8
   Link: <https://longbook.app/reviews/>; rel="canonical"
 
+/blog/open-any-folder-in-longbook.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/blog/open-any-folder-in-longbook/>; rel="canonical"
+
+/blog/open-any-folder-in-longbook/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/blog/open-any-folder-in-longbook/>; rel="canonical"
+
+/blog/open-any-folder-in-longbook/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/blog/open-any-folder-in-longbook/>; rel="canonical"
+
 /blog/how-to-show-reviews-about-your-product-to-the-world.md
   Content-Type: text/markdown; charset=utf-8
   Link: <https://longbook.app/blog/how-to-show-reviews-about-your-product-to-the-world/>; rel="canonical"
