@@ -15,9 +15,6 @@ struct LongbookApp: App {
     @StateObject private var tray = TrayModel()
     @Environment(\.openWindow) private var openWindow
     @Environment(\.openSettings) private var openSettings
-    /// General's Menu bar and Dock switches: a hidden Dock icon keeps the menu bar item on.
-    @AppStorage(DockIcon.menuBarKey) private var showsMenuBar = true
-    @AppStorage(DockIcon.hiddenKey) private var hidesDock = false
     #endif
 
     #if os(macOS)
@@ -83,10 +80,10 @@ struct LongbookApp: App {
         #endif
 
         #if os(macOS)
-        // The desktop's menu-bar indicator, as a scene: the next payment beside the clock.
-        // Bound straight to the stored switch: a computed binding is rewritten on every
-        // pass, and the scene's write-back then redraws the app without end.
-        MenuBarExtra(isInserted: $showsMenuBar) {
+        // The desktop's menu-bar indicator, always present: the next payment beside the clock,
+        // or the mark alone when that switch is off. An isInserted binding on this scene
+        // redraws the app without end, so the switch changes the label instead.
+        MenuBarExtra {
             Group {
                 Text(tray.menuLine)
                 Divider()
@@ -109,11 +106,28 @@ struct LongbookApp: App {
             // Opening the menu re-reads the vault, so the line is never a stale answer.
             .onAppear { tray.refresh() }
         } label: {
-            Text(tray.title)
+            TrayLabel(tray: tray)
         }
         #endif
     }
 }
+
+#if os(macOS)
+/// The menu bar item's face: the next payment, or the book mark when the owner turned the
+/// line off. Its own view, so the switch redraws the label and never the app's scenes.
+private struct TrayLabel: View {
+    @ObservedObject var tray: TrayModel
+    @AppStorage(DockIcon.menuBarKey) private var showsPayment = true
+
+    var body: some View {
+        if showsPayment {
+            Text(tray.title)
+        } else {
+            Image(systemName: "book.closed")
+        }
+    }
+}
+#endif
 
 #if os(macOS) && DEBUG
 import AppKit
