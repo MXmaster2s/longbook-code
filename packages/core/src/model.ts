@@ -87,6 +87,8 @@ export interface Member {
   is_incomplete: boolean
   /** Where a shared report reaches them; never required. */
   email: string | null
+  /** True when the owner starred them: listed first, and in the Mac sidebar. */
+  starred?: boolean
   created_at: string
 }
 
@@ -115,6 +117,8 @@ export interface Account {
   balance?: number | null
   balance_date?: string | null
   is_incomplete: boolean
+  /** True when the owner starred it: listed first, and in the Mac sidebar. */
+  starred?: boolean
   created_at: string
 }
 
@@ -225,5 +229,17 @@ export interface Placeholder {
   id: string
   name: string
   group?: string
+  tag?: string
+}
+
+/**
+ * A person or an account the owner picked at setup, kept as a hint for reading statements:
+ * the vault's `hints[]`. Not a member or an account; one becomes real only when a statement
+ * or the owner names it.
+ */
+export interface Hint {
+  id: string
+  name: string
+  kind: 'member' | 'account'
   tag?: string
 }

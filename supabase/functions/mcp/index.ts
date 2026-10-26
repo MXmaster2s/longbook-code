@@ -3,7 +3,7 @@
 // one waits in mcp_pending_writes until the owner's app applies it, for review there.
 // Dispatch lives in engine.mjs, generated from packages/mcp.
 import { createClient } from 'npm:@supabase/supabase-js@2'
-import { LLMS_TXT, RateLimiter, RpcFailure, SCHEMA_JSON, failureBody, handleRpc, parseVault } from './engine.mjs'
+import { LLMS_TXT, RateLimiter, RpcFailure, SCHEMA_JSON, failureBody, handleRpc, parseHints, parseVault } from './engine.mjs'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
@@ -180,6 +180,8 @@ interface UserDoor {
   identity: Record<string, unknown>
   mayPropose: boolean
   toFillIn?: { id: string; name: string }[]
+  /** The hints setup kept, carried the same way; absent while the database does not send them. */
+  hints?: ReturnType<typeof parseHints>
   /** False when the account has no longbook Cloud; the database kept the memory back. */
   cloud?: boolean
 }
@@ -243,6 +245,7 @@ const oneHopUserDoor = async (supabase: any, withMemory: boolean): Promise<UserD
     }),
     mayPropose,
     toFillIn: placeholders(row.to_fill_in),
+    hints: parseHints(row.hints),
     cloud: row.cloud !== false,
   }
 }
@@ -385,6 +388,7 @@ Deno.serve(async (req: Request) => {
   let data: ReturnType<typeof parseVault> | null = null
   // The to_fill_in names when a handshake left the memory behind; data says them otherwise.
   let toFillIn: { id: string; name: string }[] | undefined
+  let hints: ReturnType<typeof parseHints> | undefined
   let identity: Record<string, unknown> = {}
   // Set only for a key carrying memory:propose; its absence is what makes a connection
   // read-only — the write tools never even appear in tools/list.
@@ -441,6 +445,7 @@ Deno.serve(async (req: Request) => {
     if (door.cloud === false && wantsMemory) return cloudRequired()
     data = door.data
     toFillIn = door.toFillIn
+    hints = door.hints
     identity = door.identity
     // The owner's own switch, read from their own row. Off is enforced in the database
     // too — this only decides whether the door is offered.
@@ -462,6 +467,7 @@ Deno.serve(async (req: Request) => {
   const ctx = {
     loadData: () => data,
     toFillIn: () => toFillIn ?? [],
+    hints: () => hints ?? [],
     llmsText: () => LLMS_TXT,
     schemaText: () => SCHEMA_JSON,
     identity: () => identity,

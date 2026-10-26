@@ -31,7 +31,8 @@ final class OnboardingSession {
                 if waitingNames.contains(name.lowercased()) || model.hasCommitment(named: name) { chosenCommitments.insert("\(card.id)|\(chip)") }
             }
         }
-        let accountNames = Set(model.accountNames.map { $0.lowercased() })
+        // An account picked before is in the book as a hint, or as an account an older setup made.
+        let accountNames = Set((model.accountNames + model.hints.filter { $0.kind == .account }.map(\.name)).map { $0.lowercased() })
         for card in OnboardingCards.accounts {
             for chip in card.chips where accountNames.contains(chip.lowercased()) { chosenAccounts.insert("\(card.id)|\(chip)") }
         }
@@ -77,7 +78,7 @@ struct OnboardingFlowView: View {
                 }
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             } else if session.waiting {
-                OnboardingWaitingView(commitments: model.commitmentCount + model.placeholders.count, accounts: model.accountNames.count,
+                OnboardingWaitingView(commitments: model.commitmentCount + model.placeholders.count, accounts: model.accountNames.count + model.hints.filter { $0.kind == .account }.count,
                                       onResume: { withAnimation(.easeOut(duration: 0.35)) { session.waiting = false } },
                                       onDemo: { withAnimation(.easeOut(duration: 0.3)) { session.showingDemo = true } },
                                       onClose: close)
@@ -130,9 +131,14 @@ struct OnboardingFlowView: View {
                                     onBack: { go(.accounts(card: OnboardingCards.accounts.count - 1)) },
                                     secondary: ("Continue", { go(.finish) }), onClose: close)
         case .accountsDone:
-            OnboardingMilestoneView(step: 2, clock: session.clock, heading: added(accountRows.count, "account", "accounts"),
-                                    rows: accountRows, buttonTitle: "Continue", onContinue: { go(.finish) },
-                                    onBack: { go(.accounts(card: OnboardingCards.accounts.count - 1)) }, onClose: close)
+            // The picks are hints, not rows: Done goes on, and the cards stay a tap away.
+            OnboardingMilestoneView(step: 2, clock: session.clock, heading: "Hints added",
+                                    summary: Self.hintsLine, rows: hintRows,
+                                    buttonTitle: replay ? "Done" : "Continue",
+                                    onContinue: { replay ? finish() : go(.finish) },
+                                    onBack: { go(.accounts(card: OnboardingCards.accounts.count - 1)) },
+                                    secondary: ("Add more hints", { session.accountCard = 0; go(.accounts(card: 0)) }),
+                                    secondaryGoesBack: true, onClose: close)
         case .finish, .done:
             OnboardingFinishView(model: model, auth: auth, clock: session.clock, onDone: finish, onNotNow: finish,
                                  onBack: { go(.accountsDone(empty: session.chosenAccounts.isEmpty)) }, onClose: close,
@@ -161,33 +167,36 @@ struct OnboardingFlowView: View {
         }
     }
 
-    private var accountRows: [OnboardingMilestoneView.Row] {
-        picks(in: OnboardingCards.accounts, from: session.chosenAccounts).map { card, chip in
-            OnboardingMilestoneView.Row(name: chip, badge: "Add balance later", tag: OnboardingCards.accountTag(chip, on: card))
-        }
+    /// What the last step says of the hints: what reads them, and where they are not.
+    private static let hintsLine = "Your AI reads these when it sorts your statements. They aren’t added to Accounts or People, so those lists hold only what your statements show."
+
+    /// Every account picked, then every person, each tagged a hint.
+    private var hintRows: [OnboardingMilestoneView.Row] {
+        let accounts = picks(in: OnboardingCards.accounts, from: session.chosenAccounts).map { $1 }
+        let people = picks(in: OnboardingCards.commitments, from: session.chosenCommitments).compactMap { OnboardingCards.memberRole($1, on: $0) }
+        return (accounts + people).map { OnboardingMilestoneView.Row(name: $0, badge: "Hint", tag: nil, isHint: true) }
     }
 
     private func picks(in cards: [OnboardingCard], from chosen: Set<String>) -> [(OnboardingCard, String)] {
         cards.flatMap { card in card.chips.filter { chosen.contains("\(card.id)|\($0)") }.map { (card, $0) } }
     }
 
-    /// The picks become to-fill-in commitments; a person picked becomes a member wearing
-    /// the role as name and tag; the owner is the first member.
+    /// The picks become to-fill-in commitments; a person picked becomes a hint wearing the
+    /// role, never a member; the owner is the first member.
     private func writeCommitments() {
         let picked = picks(in: OnboardingCards.commitments, from: session.chosenCommitments)
         let placeholders = picked.map { OnboardingCards.placeholder($1, on: $0) }.filter { !model.hasCommitment(named: $0.name) }
         model.setPlaceholders(placeholders)
         model.ensureMember("Self", role: "Self")
-        for (card, chip) in picked {
-            if let role = OnboardingCards.memberRole(chip, on: card) { model.ensureMember(role, role: role) }
-        }
+        let roles = picked.compactMap { card, chip in OnboardingCards.memberRole(chip, on: card) }
+        model.setHints(.member, roles.map { (name: $0, tag: $0) })
         model.markCommitmentsAsked()
     }
 
+    /// Accounts picked by kind are hints for reading statements; a statement adds the real one.
     private func writeAccounts() {
-        for (card, chip) in picks(in: OnboardingCards.accounts, from: session.chosenAccounts) {
-            model.ensureAccount(chip, tag: OnboardingCards.accountTag(chip, on: card))
-        }
+        let picked = picks(in: OnboardingCards.accounts, from: session.chosenAccounts)
+        model.setHints(.account, picked.map { card, chip in (name: chip, tag: OnboardingCards.accountTag(chip, on: card)) })
     }
 
     private func finishCommitments() {

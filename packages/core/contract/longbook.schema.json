@@ -250,6 +250,10 @@
             ],
             "description": "Their picture: a file name under the longbook folder's images/ folder, written by the app. Never a URL; it never leaves the folder. Read it, never write it."
           },
+          "starred": {
+            "type": "boolean",
+            "description": "True when the owner starred them: listed first on People, and in the Mac sidebar. Absent means not starred. Set only when the owner asks."
+          },
           "created_at": {
             "type": "string"
           }
@@ -376,6 +380,10 @@
             ],
             "format": "date",
             "description": "The day the balance was true, YYYY-MM-DD — a statement's closing date, or the day the owner typed it."
+          },
+          "starred": {
+            "type": "boolean",
+            "description": "True when the owner starred it: listed first on Accounts, and in the Mac sidebar. Absent means not starred. Set only when the owner asks."
           },
           "created_at": {
             "type": "string"
@@ -611,6 +619,39 @@
           "tag": {
             "type": "string",
             "description": "The library tag it will wear when it becomes a commitment."
+          }
+        }
+      }
+    },
+    "hints": {
+      "type": "array",
+      "description": "People and accounts the owner picked at setup, by role or by kind — \"Cook\", \"Savings account\" — kept as hints for reading statements. Not members and not accounts: nothing is billed to a hint and nothing points at one. A hint becomes a real person or account only when a statement or the owner names it, under that name. Optional; a vault without this array holds no hints.",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "kind"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable id; preserve it."
+          },
+          "name": {
+            "type": "string",
+            "description": "The role or kind as the owner picked it, e.g. \"Cook\", \"Credit card\"."
+          },
+          "kind": {
+            "enum": [
+              "member",
+              "account"
+            ],
+            "description": "Whether it hints at a person or an account."
+          },
+          "tag": {
+            "type": "string",
+            "description": "The tag the person or account would wear: a member role, or an account type such as \"bank account\"."
           }
         }
       }

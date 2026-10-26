@@ -1,5 +1,5 @@
 // Shapes shared by every LongbookStore implementation — not tied to any particular backend.
-import type { Commitment, Member, Account, MergeUndoRow, Group, ChargeRow, EntityKind, Tag, Placeholder } from './model'
+import type { Commitment, Member, Account, MergeUndoRow, Group, ChargeRow, EntityKind, Tag, Placeholder, Hint } from './model'
 
 export interface LoadedData {
   subs: Commitment[]
@@ -24,6 +24,8 @@ export interface LoadedData {
   tags?: Tag[]
   /** Commitments named at setup and waiting for details; `undefined` where a store cannot say. */
   toFillIn?: Placeholder[]
+  /** People and accounts picked at setup, kept as hints; `undefined` where a store cannot say. */
+  hints?: Hint[]
 }
 
 export interface MergeInput {

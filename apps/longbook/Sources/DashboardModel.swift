@@ -77,6 +77,8 @@ struct DashboardData {
         let name: String
         let count: Int
         let ink: Int?
+        /// Starred on People or Accounts: the only rows the Mac sidebar keeps.
+        var starred = false
     }
 
     struct CommitmentItem: Identifiable {
@@ -401,6 +403,7 @@ final class DashboardModel {
                 keepHostedCopyAlive()
             }
             settlePlaceholders(workspace)
+            settleHints()
             watchFolder(folder)
         } catch VaultReader.ReadError.notDownloaded where showsVault {
             // A newer version is on its way and a vault is already on screen. Ask for the
@@ -1083,14 +1086,14 @@ final class DashboardModel {
                 DashboardData.SidebarEntity(
                     id: method.id, name: method.name,
                     count: live.filter { $0.paymentMethodId == method.id }.count,
-                    ink: methodPalette.rank(method.id)
+                    ink: methodPalette.rank(method.id), starred: method.isStarred
                 )
             },
             sidebarMembers: vault.familyMembers.map { member in
                 DashboardData.SidebarEntity(
                     id: member.id, name: member.name,
                     count: live.filter { $0.familyMemberId == member.id }.count,
-                    ink: memberPalette.rank(member.id)
+                    ink: memberPalette.rank(member.id), starred: member.isStarred
                 )
             },
             vaultLocation: location,
@@ -1349,6 +1352,41 @@ final class DashboardModel {
         _ = try? WorkspaceStore.update(in: vaultFolder) { $0.commitmentsAsked = true }
     }
 
+    // MARK: people and accounts kept as hints
+
+    /// The people and accounts setup picked, kept for reading statements and never listed
+    /// on People or Accounts.
+    var hints: [SetupHint] { vault?.hints ?? [] }
+
+    /// One kind's hints replaced by these names; a name the book already holds as a real
+    /// person or account is not a hint, and the other kind's are left alone.
+    @discardableResult
+    func setHints(_ kind: SetupHint.Kind, _ picked: [(name: String, tag: String?)]) -> Bool {
+        let held = Set((kind == .member ? memberNames : accountNames).map { $0.lowercased() })
+        let kept = hints.filter { $0.kind == kind }
+        var next = hints.filter { $0.kind != kind }
+        var seen = Set<String>()
+        for pick in picked {
+            let key = pick.name.trimmingCharacters(in: .whitespaces).lowercased()
+            guard !key.isEmpty, !held.contains(key), seen.insert(key).inserted else { continue }
+            // A hint picked again keeps its id.
+            next.append(kept.first { $0.name.lowercased() == key }
+                ?? SetupHint(name: pick.name.trimmingCharacters(in: .whitespaces), kind: kind, tag: pick.tag))
+        }
+        guard next != hints else { return true }
+        return commit { VaultPatch.setHints(next, in: $0) }
+    }
+
+    /// A hint the book now holds by name, as a person or an account, has done its work.
+    private func settleHints() {
+        let waiting = hints
+        guard !waiting.isEmpty, !readOnly else { return }
+        let people = Set(memberNames.map { $0.lowercased() })
+        let accounts = Set(accountNames.map { $0.lowercased() })
+        let left = waiting.filter { !($0.kind == .member ? people : accounts).contains($0.name.lowercased()) }
+        if left.count != waiting.count { commit { VaultPatch.setHints(left, in: $0) } }
+    }
+
     // MARK: the first run
 
     /// Where the first run stands for this vault, from the sidecar; nil before it began.
@@ -1373,7 +1411,8 @@ final class DashboardModel {
         // App Review signs in on a fresh device with no statement to give, so its book opens as it is.
         if let signedInEmail, isReviewAccount(signedInEmail) { return true }
         return OnboardingCards.dashboardAllowed(commitments: commitmentCount + placeholders.count, charges: chargeCount,
-                                                accounts: accountNames.count, members: memberNames.count)
+                                                accounts: accountNames.count + hints.filter { $0.kind == .account }.count,
+                                                members: memberNames.count)
     }
 
     /// A person by role, once: the role is the name and the tag until the owner renames them.
@@ -1381,13 +1420,6 @@ final class DashboardModel {
         guard !memberNames.contains(where: { $0.caseInsensitiveCompare(name) == .orderedSame }),
               let id = addEntity(.familyMember, named: name) else { return }
         setEntityDetails(.familyMember, id: id, memberTag: .some(role))
-    }
-
-    /// An account by kind, once, wearing the tag its card gave it.
-    func ensureAccount(_ name: String, tag: String) {
-        guard !accountNames.contains(where: { $0.caseInsensitiveCompare(name) == .orderedSame }),
-              let id = addEntity(.paymentMethod, named: name) else { return }
-        setEntityDetails(.paymentMethod, id: id, accountTag: .some(tag))
     }
 
     /// A placeholder the form has made real, or one the reader let go.
@@ -2765,6 +2797,8 @@ final class DashboardModel {
         /// False for the bucket of commitments that name no account or person.
         let isReal: Bool
         let isIncomplete: Bool
+        /// Starred by the owner: listed first, and kept in the Mac sidebar.
+        var starred = false
         let commitments: Int
         let charges: Int
         let addedOn: Date?
@@ -2959,9 +2993,9 @@ final class DashboardModel {
         return drawCards(kind, only: id, vault: vault, ledger: ledger).first
     }
 
-    /// Every account or person as a card, in the file's order — an account linked to
-    /// another follows it. The bucket of commitments naming nobody comes last, and only
-    /// when it holds something.
+    /// Every account or person as a card, starred ones first, then in the file's order — an
+    /// account linked to another follows it. The bucket of commitments naming nobody comes
+    /// last, and only when it holds something.
     func entityCards(_ kind: VaultPatch.EntityKind) -> [EntityCard] {
         // Reading the vault first keeps the screen observing it; the cache is not observed.
         guard let vault else { return [] }
@@ -3003,7 +3037,7 @@ final class DashboardModel {
                     id: method.id, kind: kind, name: method.name, tag: method.tag,
                     photo: photoURL(method.photo),
                     ink: palette.rank(method.id), isReal: true, isIncomplete: method.isIncomplete ?? false,
-                    commitments: sums.commitments, charges: sums.charges, addedOn: addedDay(method.createdAt),
+                    starred: method.isStarred, commitments: sums.commitments, charges: sums.charges, addedOn: addedDay(method.createdAt),
                     balance: method.balance,
                     balanceDate: LB.parseDate(method.balanceDate),
                     balanceCurrency: currency,
@@ -3019,7 +3053,7 @@ final class DashboardModel {
                     id: member.id, kind: kind, name: member.name, tag: member.tag,
                     photo: photoURL(member.photo),
                     ink: people.rank(member.id), isReal: true, isIncomplete: member.isIncomplete ?? false,
-                    commitments: sums.commitments, charges: sums.charges, addedOn: addedDay(member.createdAt),
+                    starred: member.isStarred, commitments: sums.commitments, charges: sums.charges, addedOn: addedDay(member.createdAt),
                     balance: nil, balanceDate: nil, balanceCurrency: currency,
                     owner: nil, linked: nil,
                     accountCount: vault.paymentMethods.filter { $0.familyMemberId == member.id }.count,
@@ -3039,7 +3073,15 @@ final class DashboardModel {
                 owner: nil, linked: nil, accountCount: 0, next: loose.next, window: loose.window
             ))
         }
-        return cards
+        // Starred first, each side in the order above.
+        return cards.filter(\.starred) + cards.filter { !$0.starred }
+    }
+
+    /// Stars or unstars a person or an account: starred ones lead their list and stand in
+    /// the Mac sidebar.
+    @discardableResult
+    func setStarred(_ kind: VaultPatch.EntityKind, id: String, _ starred: Bool) -> Bool {
+        commit { try VaultPatch.setEntityDetails(kind, id: id, in: $0, now: Date(), starred: starred) }
     }
 
     /// Nothing to show yet — the state onboarding exists for.

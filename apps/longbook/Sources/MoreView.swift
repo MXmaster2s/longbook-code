@@ -12,6 +12,8 @@ struct MoreView: View {
     /// The demo longbook over the book, from the same group as Optimize your data.
     var onDemo: (() -> Void)? = nil
     @State private var importing = false
+    /// Whether a statement adds the accounts and people it finds; read by the importer.
+    @AppStorage(StatementFinds.key) private var addFound = true
     @Environment(\.openURL) private var openURL
 
     /// The tab, the sidebar row and the menu item all say Settings.
@@ -35,7 +37,7 @@ struct MoreView: View {
                 #endif
                 group("Import", [
                     Row("doc.text.magnifyingglass", 4, "Import a statement", "", .does { importing = true }),
-                ])
+                ] + importSwitches)
                 .tutorialTarget(.settingsImport)
                 group("Reports", [
                     Row("airplane", 7, "Trips", "", .opens(.trips)),
@@ -53,7 +55,7 @@ struct MoreView: View {
                     Row("lightbulb.max", 1, "Tips", "", .opens(.tips)),
                     Row("hand.point.up.left", 6, "Tutorials", "", .opens(.tutorials)),
                     Row("questionmark.circle", 8, "Help & about", "", .opens(.helpAbout)),
-                ] + updateRows)
+                ] + updateRows, footer: optimizeFooter)
                 group(nil, [
                     Row("rectangle.portrait.and.arrow.right", nil, "Sign out", "", .opens(.signOut), destructive: true),
                 ], danger: true)
@@ -71,6 +73,25 @@ struct MoreView: View {
             StatementImportView(model: model, auth: auth) { importing = false }
         }
         .lbScreenTitle(Self.screenTitle)
+    }
+
+    /// The switch for what a statement adds, on the phone; the Mac keeps it in its Settings window.
+    private var importSwitches: [Row] {
+        #if os(iOS)
+        [Row("person.crop.rectangle.stack", 4, "Add accounts and people found in statements", "",
+             .switches($addFound, detail: addFound ? StatementFinds.onDetail : StatementFinds.offDetail))]
+        #else
+        []
+        #endif
+    }
+
+    /// Under Support on the phone: what Optimize your data keeps, and where it does not go.
+    private var optimizeFooter: String? {
+        #if os(iOS)
+        "Optimize your data keeps your answers as hints for reading statements. Nothing is added to People or Accounts."
+        #else
+        nil
+        #endif
     }
 
     /// What changed in this version, and the way to a newer one. The App Store or
@@ -129,6 +150,8 @@ struct MoreView: View {
     private enum RowState {
         case opens(Destination)
         case does(() -> Void)
+        /// A setting held on this device, its detail saying what the current choice does.
+        case switches(Binding<Bool>, detail: String)
         case soon
         case plain
     }
@@ -154,9 +177,9 @@ struct MoreView: View {
         }
     }
 
-    /// A titled card of rows, the title a caption above it. `danger` washes the card for the
-    /// one destructive group.
-    private func group(_ title: String?, _ rows: [Row], danger: Bool = false) -> some View {
+    /// A titled card of rows, the title a caption above it and a footnote under it. `danger`
+    /// washes the card for the one destructive group.
+    private func group(_ title: String?, _ rows: [Row], danger: Bool = false, footer: String? = nil) -> some View {
         VStack(alignment: .leading, spacing: LBSpacing.s2) {
             if let title {
                 Text(title)
@@ -178,6 +201,13 @@ struct MoreView: View {
                 RoundedRectangle(cornerRadius: LBRadius.md, style: .continuous)
                     .strokeBorder(danger ? LBColor.danger.color.opacity(0.35) : LBColor.hairline.color, lineWidth: 1)
             )
+            if let footer {
+                Text(footer)
+                    .lbText(.footnote)
+                    .foregroundStyle(LBColor.textTertiary.color)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, LBSpacing.s1)
+            }
         }
     }
 
@@ -194,6 +224,24 @@ struct MoreView: View {
                 rowBody(row.symbol, ink: row.ink, row.title, row.subtitle, trailing: "chevron.right", separated: separated, destructive: row.destructive)
             }
             .buttonStyle(.plain)
+        case .switches(let isOn, let detail):
+            Toggle(isOn: isOn.measured("add_found_in_statements")) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(row.title)
+                        .lbText(.body)
+                        .foregroundStyle(LBColor.textPrimary.color)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text(detail)
+                        .lbText(.footnote)
+                        .foregroundStyle(LBColor.textTertiary.color)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .tint(LBColor.brand.color)
+            .padding(LBSpacing.s3)
+            .overlay(alignment: .bottom) {
+                if separated { Rectangle().fill(LBColor.hairline.color).frame(height: 1).padding(.leading, LBSpacing.s3) }
+            }
         case .soon:
             rowBody(row.symbol, ink: row.ink, row.title, row.subtitle, trailing: nil, soon: true, separated: separated)
                 .accessibilityElement(children: .combine)
