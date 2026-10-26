@@ -17,7 +17,8 @@
       "Optimize your data keeps the people and accounts you pick as hints for your AI, instead of adding them to People and Accounts.",
       "Star a person or an account to keep it at the top of its list. On the Mac, the sidebar shows only the starred ones.",
       "People and Accounts each have a search and a filter by relationship or type.",
-      "Importing a statement adds its account and the people it names. You can turn this off in Settings."
+      "Importing a statement adds its account and the people it names. You can turn this off in Settings.",
+      "Importing a statement also adds the accounts and people your transfers and card payments go to."
     ]
   },
   {

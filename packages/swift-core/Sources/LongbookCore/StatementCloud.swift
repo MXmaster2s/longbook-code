@@ -50,6 +50,29 @@ public enum StatementCloud {
         public let category: String?
         public let kind: String
         public let member: String?
+        /// The other account or person the line moves money to or from, when it prints one;
+        /// `counterpartKind` is "account" or "person". An answer without them reads as nil.
+        public let counterpart: String?
+        public let counterpartKind: String?
+
+        enum CodingKeys: String, CodingKey {
+            case date, amount, name, narration, account, category, kind, member, counterpart
+            case counterpartKind = "counterpart_kind"
+        }
+
+        public init(date: String, amount: Double, name: String, narration: String, account: String, category: String?,
+                    kind: String, member: String?, counterpart: String? = nil, counterpartKind: String? = nil) {
+            self.date = date
+            self.amount = amount
+            self.name = name
+            self.narration = narration
+            self.account = account
+            self.category = category
+            self.kind = kind
+            self.member = member
+            self.counterpart = counterpart
+            self.counterpartKind = counterpartKind
+        }
     }
 
     /// The charges task's answer for one piece.
@@ -188,7 +211,8 @@ public enum StatementCloud {
                 }
                 if date <= today { previous = date }
                 out.append(date == charge.date ? charge : Charge(date: date, amount: charge.amount, name: charge.name, narration: charge.narration,
-                                                                  account: charge.account, category: charge.category, kind: charge.kind, member: charge.member))
+                                                                  account: charge.account, category: charge.category, kind: charge.kind, member: charge.member,
+                                                                  counterpart: charge.counterpart, counterpartKind: charge.counterpartKind))
             }
             return out
         }

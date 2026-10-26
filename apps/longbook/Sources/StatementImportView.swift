@@ -77,6 +77,9 @@ struct StatementImportView: View {
     @State private var chosenRepeats: Set<String> = []
     @State private var members: [StatementCloud.Member] = []
     @State private var chosenMembers: Set<String> = []
+    /// Accounts on the other side of transfers and card payments, new to the book.
+    @State private var foundAccounts: [String] = []
+    @State private var chosenAccounts: Set<String> = []
     @State private var notes = ""
     @State private var currency = "INR"
     /// Whether the reader typed the currency. Until then the statement's own wins.
@@ -544,6 +547,7 @@ struct StatementImportView: View {
                         switch reviewTab {
                         case 1: membersSection
                         case 2: repeatsSection
+                        case 3: accountsSection
                         default: chargesSection
                         }
                         if !notes.isEmpty {
@@ -611,6 +615,7 @@ struct StatementImportView: View {
         var parts = chargesTally.map { [$0] } ?? []
         let people = members.count
         if people > 0 { parts.append("\(people) \(people == 1 ? "person" : "people")") }
+        if !foundAccounts.isEmpty { parts.append("\(foundAccounts.count) account\(foundAccounts.count == 1 ? "" : "s")") }
         if !repeats.isEmpty { parts.append("\(repeats.count) repeat\(repeats.count == 1 ? "" : "s")") }
         return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
@@ -620,6 +625,7 @@ struct StatementImportView: View {
             HStack(spacing: LBSpacing.s2) {
                 ChangeKindTab(title: "Charges", count: candidates.count, selected: reviewTab == 0) { pickTab(0) }
                 ChangeKindTab(title: "People", count: members.count, selected: reviewTab == 1) { pickTab(1) }
+                ChangeKindTab(title: "Accounts", count: foundAccounts.count, selected: reviewTab == 3) { pickTab(3) }
                 ChangeKindTab(title: "Repeats", count: repeats.count, selected: reviewTab == 2) { pickTab(2) }
             }
         }
@@ -680,6 +686,30 @@ struct StatementImportView: View {
             Button("Cancel", role: .cancel) { Measure.used("cancel") }
         } message: { _ in
             Text("As you would write it on a commitment.")
+        }
+    }
+
+    /// The accounts the statement's transfers and card payments go to or come from, as
+    /// names to tick. Ticked ones are added to Accounts.
+    private var accountsSection: some View {
+        VStack(alignment: .leading, spacing: LBSpacing.s2) {
+            LBSectionHeader("Accounts")
+                .foregroundStyle(LBColor.textTertiary.color)
+                .padding(.horizontal, LBSpacing.s1)
+            LBFlow {
+                ForEach(foundAccounts, id: \.self) { account in
+                    LBChip(account, style: .choice(selected: chosenAccounts.contains(account))) {
+                        if chosenAccounts.contains(account) { chosenAccounts.remove(account) } else { chosenAccounts.insert(account) }
+                    }
+                }
+            }
+            Text(foundAccounts.isEmpty
+                 ? "No other accounts on the statement."
+                 : "Accounts your transfers and card payments go to. Ticked ones are added to Accounts.")
+                .lbText(.footnote)
+                .foregroundStyle(LBColor.textTertiary.color)
+                .padding(.horizontal, LBSpacing.s1)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -1704,9 +1734,22 @@ struct StatementImportView: View {
                 .contains { words.contains($0) }
             return repeated.dates.count >= 3 || (repeated.dates.count >= 2 && recurringWord)
         }.map(\.name))
+        // The other side of each transfer and card payment: an account or a person the book
+        // does not hold yet, matched loosely, the people among the names to tick.
+        var others = StatementCounterparts.Found()
+        for read in files {
+            guard let prepared = read.prepared else { continue }
+            let more = prepared.counterparts(knownAccounts: model.accountNames + files.map(\.account) + others.accounts,
+                                             knownPeople: model.memberNames + seenMembers.map(\.name) + others.people)
+            others.accounts += more.accounts
+            others.people += more.people
+        }
+        seenMembers += others.people.map { StatementCloud.Member(name: $0, role: "", reason: "Named on a transfer") }
         members = seenMembers
-        // With the switch off, a person is added only when ticked here.
+        foundAccounts = others.accounts
+        // With the switch off, a person or an account is added only when ticked here.
         chosenMembers = StatementFinds.on ? Set(members.map(\.name)) : []
+        chosenAccounts = StatementFinds.on ? Set(foundAccounts) : []
         notes = said.joined(separator: " ")
         // The reading is done; the review opens when the reader is ready for it, not
         // from under a game half played.
@@ -1731,6 +1774,11 @@ struct StatementImportView: View {
             }
             for name in chosen {
                 guard model.addEntity(.familyMember, named: name) != nil else {
+                    throw WriteError.invalid(model.saveError ?? "That didn’t save.")
+                }
+            }
+            for name in foundAccounts where chosenAccounts.contains(name) {
+                guard model.addEntity(.paymentMethod, named: name) != nil else {
                     throw WriteError.invalid(model.saveError ?? "That didn’t save.")
                 }
             }
@@ -1838,11 +1886,11 @@ struct StatementImportView: View {
 }
 
 /// The Settings switch "Add accounts and people found in statements", on unless turned
-/// off. On, a statement adds its own account and every person its lines name; off, the
-/// lines still name them for the AI, and People lists only who the review ticks.
+/// off. On, a statement adds its own account, the accounts and people its transfers go to,
+/// and every person its lines name; off, Accounts and People list only what the review ticks.
 enum StatementFinds {
     static let key = "longbook.statements.addFound"
     static var on: Bool { UserDefaults.standard.object(forKey: key) as? Bool ?? true }
-    static let onDetail = "On: a statement adds its account and the people it names to Accounts and People."
+    static let onDetail = "On: a statement adds its account, the accounts its transfers go to and the people it names to Accounts and People."
     static let offDetail = "Off: statements still name them for your AI, but Accounts and People list only what you add."
 }

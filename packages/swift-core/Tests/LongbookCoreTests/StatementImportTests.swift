@@ -328,6 +328,64 @@ final class StatementImportTests: XCTestCase {
         XCTAssertEqual(local.map(\.direction), ["transfer", nil], "read on the device, a movement is marked the same way")
     }
 
+    func testTheOtherSideOfATransferBecomesAnAccountOrAPerson() throws {
+        let piece = """
+        {"account":"Kotak savings 1020",
+         "charges":[
+          {"date":"2026-07-02","amount":20000,"name":"To HDFC","narration":"TRF TO HDFC SAV","account":"Kotak savings 1020","category":null,"kind":"own_transfer","member":null,"counterpart":"TRF TO HDFC SAV ••4417","counterpart_kind":"account"},
+          {"date":"2026-07-03","amount":38000,"name":"Axis card bill","narration":"CRED CARD PYMT AXIS","account":"Kotak savings 1020","category":null,"kind":"card_bill","member":null,"counterpart":"CRED CARD PYMT AXIS ••1234","counterpart_kind":"account"},
+          {"date":"2026-07-04","amount":9000,"name":"Ramesh","narration":"UPI/RAMESH K","account":"Kotak savings 1020","category":null,"kind":"spend","member":null,"counterpart":"UPI/RAMESH K","counterpart_kind":"person"},
+          {"date":"2026-07-05","amount":500,"name":"Back home","narration":"TRF TO OWN","account":"Kotak savings 1020","category":null,"kind":"own_transfer","member":null,"counterpart":"Kotak savings ••1020","counterpart_kind":"account"},
+          {"date":"2026-07-06","amount":20000,"name":"To HDFC","narration":"TRF TO HDFC","account":"Kotak savings 1020","category":null,"kind":"own_transfer","member":null,"counterpart":"HDFC 4417","counterpart_kind":"account"},
+          {"date":"2026-07-07","amount":649,"name":"Netflix","narration":"NETFLIX","account":"Kotak savings 1020","category":null,"kind":"spend","member":null,"counterpart":null,"counterpart_kind":null},
+          {"date":"2026-07-08","amount":300,"name":"Sunita","narration":"UPI/SUNITA D","account":"Kotak savings 1020","category":null,"kind":"spend","member":null,"counterpart":"SUNITA D","counterpart_kind":"person"}
+         ],
+         "notes":""}
+        """
+        let answer = try JSONDecoder().decode(StatementCloud.ChargesAnswer.self, from: Data(piece.utf8))
+        XCTAssertEqual(answer.charges[0].counterpartKind, "account")
+        XCTAssertNil(answer.charges[5].counterpart)
+        let prepared = StatementCloud.Prepared.assemble([answer], review: .empty)
+        XCTAssertEqual(prepared.charges[2].counterpart, "UPI/RAMESH K", "the fields survive the date mending")
+
+        let found = prepared.counterparts(knownAccounts: ["Paytm wallet"], knownPeople: ["sunita d"])
+        XCTAssertEqual(found.accounts, ["HDFC savings ••4417", "Axis card ••1234"],
+                       "named as the owner says them; the statement's own account and a second spelling of one are left out")
+        XCTAssertEqual(found.people, ["Ramesh K"], "a person the book holds, matched loosely, is not added twice")
+
+        // Added as the import adds them, each is one row, and adding again finds it.
+        var vault: [String: Any] = [:]
+        for name in found.accounts { vault = try VaultPatch.ensureEntity(.paymentMethod, named: name, in: vault, now: Date()).vault }
+        for name in found.people { vault = try VaultPatch.ensureEntity(.familyMember, named: name, in: vault, now: Date()).vault }
+        vault = try VaultPatch.ensureEntity(.paymentMethod, named: "hdfc savings ••4417", in: vault, now: Date()).vault
+        let accounts = try XCTUnwrap(vault[VaultPatch.EntityKind.paymentMethod.rawValue] as? [[String: Any]])
+        XCTAssertEqual(accounts.compactMap { $0["name"] as? String }, ["HDFC savings ••4417", "Axis card ••1234"])
+        let people = try XCTUnwrap(vault[VaultPatch.EntityKind.familyMember.rawValue] as? [[String: Any]])
+        XCTAssertEqual(people.compactMap { $0["name"] as? String }, ["Ramesh K"])
+    }
+
+    func testCounterpartNamesReadTheWayTheOwnerSaysThem() {
+        XCTAssertEqual(StatementCounterparts.accountName("TRF TO HDFC SAV XX4417"), "HDFC savings ••4417")
+        XCTAssertEqual(StatementCounterparts.accountName("CRED CARD PYMT AXIS ••1234"), "Axis card ••1234")
+        XCTAssertEqual(StatementCounterparts.accountName("Paytm wallet"), "Paytm wallet")
+        XCTAssertEqual(StatementCounterparts.accountName("NEFT ••9876"), "Account ••9876")
+        XCTAssertEqual(StatementCounterparts.accountName("4111111111111111"), "Account ••1111", "a full number keeps its last four only")
+        XCTAssertNil(StatementCounterparts.accountName("TRF TO"))
+        XCTAssertEqual(StatementCounterparts.personName("UPI/RAMESH K"), "Ramesh K")
+        XCTAssertEqual(StatementCounterparts.personName("IMPS 9876543210 Asha Rao ramesh@okaxis"), "Asha Rao")
+        XCTAssertNil(StatementCounterparts.personName("UPI 12345"))
+        XCTAssertTrue(StatementCounterparts.sameAccount("HDFC Bank savings 4417", "HDFC savings ••4417"))
+        XCTAssertFalse(StatementCounterparts.sameAccount("SBI savings ••4417", "HDFC savings ••4417"))
+    }
+
+    func testAnOlderAnswerWithoutTheOtherSideStillReads() throws {
+        let decoded = try JSONDecoder().decode(StatementCloud.ChargesAnswer.self, from: Data(
+            #"{"account":"A","charges":[{"date":"2026-07-01","amount":5,"name":"N","narration":"N","account":"A","category":null,"kind":"spend","member":null}],"notes":""}"#.utf8))
+        XCTAssertNil(decoded.charges[0].counterpart)
+        XCTAssertNil(decoded.charges[0].counterpartKind)
+        XCTAssertEqual(StatementCloud.Prepared.assemble([decoded], review: .empty).counterparts(knownAccounts: [], knownPeople: []), .init())
+    }
+
     func testADateReadMonthFirstIsTurnedBack() {
         func charge(_ date: String, _ name: String) -> StatementCloud.Charge {
             .init(date: date, amount: 100, name: name, narration: name, account: "A", category: nil, kind: "spend", member: nil)
