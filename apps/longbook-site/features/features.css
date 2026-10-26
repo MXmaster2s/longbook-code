@@ -333,6 +333,10 @@ code { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.92
                     font-size:16px; line-height:1.6; }
 .prose blockquote p, .prose blockquote ol, .prose blockquote ul { margin:0 0 10px; }
 .prose blockquote > :last-child { margin-bottom:0; }
+/* Code, such as an example file, scrolls inside its own box rather than widening the column. */
+.prose pre.bcode { margin:24px 0; padding:18px 20px; overflow-x:auto; background:var(--lb-sunken); border:1px solid var(--lb-hairline);
+                   border-radius:var(--lb-radius-sm); color:var(--lb-text-primary); font-size:14px; line-height:1.55; }
+.prose pre.bcode code { background:none; border:0; padding:0; font-size:inherit; }
 /* A picture breaks out of the 760px column to 960px, and never past the page's gutters. */
 .bfig, .baud { margin:36px calc(50% - min(480px, 50vw - var(--lb-space-s6))); }
 .bfig img { display:block; width:100%; height:auto; border-radius:var(--lb-radius-lg);

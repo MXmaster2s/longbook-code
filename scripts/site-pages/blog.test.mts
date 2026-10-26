@@ -72,3 +72,14 @@ test('a post with a film carries it in its structured data', () => {
   const article = graph.find((n) => n['@type'] === 'BlogPosting') as { video?: unknown }
   assert.deepEqual(article.video, [{ '@id': `https://longbook.app${FILM}` }])
 })
+
+test('a code block keeps its lines as written, escaped on the page and fenced in the copy', () => {
+  const [b] = parseBlocks(['```json', '  {', '    "app": "<longbook>"', '  }', '```'], 'blog/x.md')
+  assert.deepEqual(b, { kind: 'code', lang: 'json', text: '{\n  "app": "<longbook>"\n}' })
+  assert.equal(blockHtml(b!, new Map()), '<pre class="bcode"><code class="language-json">{\n  "app": "&lt;longbook&gt;"\n}</code></pre>')
+  assert.equal(blockMd(b!), '```json\n{\n  "app": "<longbook>"\n}\n```')
+})
+
+test('a code block that is not closed is refused', () => {
+  assert.throws(() => parseBlocks(['```json', '{}'], 'blog/x.md'), /never closed/)
+})

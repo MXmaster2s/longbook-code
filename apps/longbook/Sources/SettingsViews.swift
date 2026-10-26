@@ -280,6 +280,9 @@ struct DataPrivacyView: View {
     @State private var moveError: String?
     @State private var vaultBytes = 0
     @State private var showingFiles = false
+    @State private var pickingFolder = false
+    @State private var checkingFolder = false
+    @State private var folderRefusal: FolderRefusal?
     #if os(macOS)
     @State private var confirmingDelete = false
     @State private var deleteError: String?
@@ -299,6 +302,7 @@ struct DataPrivacyView: View {
             }
             #endif
             yourLongbook
+            anotherFolder
             if let folder = model.vaultFolderURL, !inICloud(folder) { movePane(folder) }
             backupSection
             SwiftUI.Section {
@@ -338,6 +342,91 @@ struct DataPrivacyView: View {
         .background(LBColor.canvas.color)
         .lbScreenTitle("Data & privacy")
         .onAppear { vaultBytes = model.vaultFolderURL.map { VaultMigration.totalBytes(in: $0) } ?? 0 }
+        .onChange(of: model.vaultFolderURL) { _, folder in
+            vaultBytes = folder.map { VaultMigration.totalBytes(in: $0) } ?? 0
+        }
+        .measured("open_another_folder_picker", .sheet, when: pickingFolder)
+        .fileImporter(isPresented: $pickingFolder, allowedContentTypes: [.folder]) { result in
+            if case .success(let folder) = result { open(folder) }
+        }
+        .measured("folder_not_opened_notice", .alert, when: folderRefusal != nil)
+        .alert(folderRefusal?.title ?? "", isPresented: Binding(get: { folderRefusal != nil }, set: { if !$0 { folderRefusal = nil } }),
+               presenting: folderRefusal) { refusal in
+            if refusal.explainsFormat {
+                Button("Learn More") {
+                    Measure.used("folder_notice_learn_more")
+                    if let url = Self.formatPostURL { openURL(url) }
+                }
+            }
+            Button("OK", role: .cancel) { Measure.used("folder_notice_ok") }
+        } message: { refusal in
+            Text(refusal.line)
+        }
+    }
+
+    /// Why a picked folder was not opened, in the notice's own words.
+    private struct FolderRefusal {
+        let title: String
+        let line: String
+        /// A missing or foreign file points at the post about the format; a read failure does not.
+        let explainsFormat: Bool
+    }
+
+    static let formatPostURL = URL(string: "https://longbook.app/blog/open-any-folder-in-longbook/")
+    private static let formatTitle = "This file isn’t in longbook’s format"
+
+    /// Another folder, checked before longbook switches to it. The folder in use is never
+    /// written or moved, so it opens again the same way.
+    @ViewBuilder
+    private var anotherFolder: some View {
+        if !model.isDemo {
+            SwiftUI.Section {
+                Button { Measure.used("open_another_folder"); pickingFolder = true } label: {
+                    Text(checkingFolder ? "Checking…" : "Open Another Folder…")
+                        .lbText(.body)
+                        .foregroundStyle(LBColor.brandText.color)
+                }
+                .lbActionButtonStyle()
+                .disabled(checkingFolder)
+                .opacity(checkingFolder ? 0.45 : 1)
+                .lbListRowBackground()
+            } header: {
+                LBSectionHeader("Another folder")
+            } footer: {
+                Text("longbook reads and writes the folder you choose. Your current folder stays as it is.")
+                    .lbText(.footnote)
+                    .foregroundStyle(LBColor.textTertiary.color)
+            }
+        }
+    }
+
+    /// Switches only to a folder longbook's own reader opens; anything else keeps the current one.
+    private func open(_ folder: URL) {
+        checkingFolder = true
+        Task {
+            let verdict = await VaultFolderCheck.checkDownloading(folder)
+            checkingFolder = false
+            switch verdict {
+            case .opens:
+                VaultBookmark.save(folder)
+                model.load()
+            case .noDataFile:
+                folderRefusal = FolderRefusal(title: Self.formatTitle,
+                                              line: "No financial_memory.json was found in that folder.", explainsFormat: true)
+            case .notLongbookFormat:
+                folderRefusal = FolderRefusal(title: Self.formatTitle,
+                                              line: "longbook opens a financial_memory.json that follows its open format.",
+                                              explainsFormat: true)
+            case .notDownloaded:
+                folderRefusal = FolderRefusal(title: "That folder didn’t open",
+                                              line: "Its financial_memory.json is still in iCloud. Open the folder in \(fileApp) on Wi-Fi, then try again.",
+                                              explainsFormat: false)
+            case .unreadable:
+                folderRefusal = FolderRefusal(title: "That folder didn’t open",
+                                              line: "longbook couldn’t read that folder. Your current folder stays as it is.",
+                                              explainsFormat: false)
+            }
+        }
     }
 
     /// Where the folder is, how big, how much history, and the door to it.
