@@ -360,7 +360,7 @@ private struct SettingsBackItem: ToolbarContent {
                 .foregroundStyle(LBColor.brandText.color)
                 .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .help("Back to \(back)")
             .accessibilityLabel("Back to \(back)")
             .keyboardShortcut("[", modifiers: .command)
@@ -470,7 +470,7 @@ private struct SettingsSidebarButton<Label: View>: View {
                 }
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .accessibilityAddTraits(on ? .isSelected : [])
     }
 }
@@ -673,7 +673,7 @@ struct SettingsInfoButton: View {
                 .frame(width: 20, height: 20)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .help(text)
         .accessibilityLabel("More about this setting")
         .measured("settings_info", .popover, when: shown)
@@ -768,7 +768,7 @@ struct SettingsLinkRow: View {
             }
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
     }
 }
 
@@ -1088,7 +1088,7 @@ struct AppearanceSettingsPane: View {
             .frame(maxWidth: .infinity)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .accessibilityAddTraits(picked ? .isSelected : [])
     }
 }
@@ -1415,7 +1415,7 @@ struct TutorialsSettingsPane: View {
                     .foregroundStyle(LBColor.brandText.color)
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .frame(width: 52, alignment: .trailing)
             .accessibilityLabel("Replay the \(screen.title) tutorial")
         }

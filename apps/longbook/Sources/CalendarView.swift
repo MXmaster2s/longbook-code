@@ -175,11 +175,12 @@ struct CalendarView: View {
         Button(action: { Measure.used("step_month"); action() }) {
             Image(systemName: symbol)
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(disabled ? LBColor.textQuaternary.color : LBColor.textSecondary.color)
+                .foregroundStyle(LBColor.textSecondary.color)
                 .frame(width: 26, height: 26)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        // The style dims it when disabled; a quieter ink as well would dim it twice.
+        .lbButtonStyle(.fill)
         .disabled(disabled)
         .accessibilityLabel(symbol == "chevron.left" ? "Previous month" : "Next month")
     }
@@ -242,7 +243,7 @@ struct CalendarView: View {
             } label: {
                 cellBody(day)
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle(shape: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
             .accessibilityLabel(cellWord(day))
             .accessibilityHint("Shows the day’s details.")
             .accessibilityAddTraits(selected == day.id ? .isSelected : [])
@@ -507,7 +508,7 @@ struct CalendarView: View {
                             .lbText(.label)
                             .foregroundStyle(LBColor.brandText.color)
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                 }
             }
             Text(words.isEmpty ? "No payments" : words.joined(separator: ", "))
@@ -545,11 +546,11 @@ struct CalendarView: View {
                             .background(LBColor.chrome.color, in: Capsule())
                             .contentShape(Capsule())
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle(shape: Capsule())
                 }
             }
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: RoundedRectangle(cornerRadius: LBRadius.md, style: .continuous))
         .lbTapHaptic()
     }
 }

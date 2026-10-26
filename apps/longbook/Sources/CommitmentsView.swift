@@ -457,7 +457,7 @@ struct CommitmentsView: View {
             .padding(.vertical, 6)
             .background(LBColor.brand.color, in: Capsule())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: Capsule())
         .accessibilityLabel("Filtered to \(words). Tap to clear.")
     }
 

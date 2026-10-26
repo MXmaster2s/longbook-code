@@ -27,7 +27,7 @@ struct DangerButton: View {
                 .background(hovering ? LBColor.dangerFill.color : LBColor.chrome.color, in: Capsule())
                 .contentShape(Capsule())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: Capsule(), hovers: false)
         .onHover { hovering = $0 }
         .animation(.easeOut(duration: 0.12), value: hovering)
         .measured("danger_button_confirming", .dialog, when: confirming)
@@ -59,7 +59,7 @@ struct DangerLink: View {
                 .background(hovering ? LBColor.dangerFill.color : LBColor.chrome.color, in: Capsule())
                 .contentShape(Capsule())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: Capsule(), hovers: false)
         .onHover { hovering = $0 }
         .animation(.easeOut(duration: 0.12), value: hovering)
     }

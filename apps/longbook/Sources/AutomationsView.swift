@@ -132,7 +132,7 @@ struct AutomationsView: View {
                             .frame(minHeight: 36)
                             .background(LBColor.brand.color, in: Capsule())
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle(shape: Capsule())
                     Text("Lands in Proposals as one proposal.")
                         .lbText(.footnote)
                         .foregroundStyle(LBColor.textTertiary.color)
@@ -228,7 +228,7 @@ struct AutomationsView: View {
                             .frame(minHeight: 32)
                             .contentShape(Rectangle())
                         }
-                        .buttonStyle(.plain)
+                        .lbButtonStyle()
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityHint(open ? "Folds this group." : "Shows this group's prompts.")
                         if open {
@@ -269,7 +269,7 @@ struct AutomationsView: View {
                     .frame(width: 28, height: 34)
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .accessibilityLabel("What this prompt does")
             .measured("automations_explained", .popover, when: explained == row.id)
             .popover(isPresented: Binding(get: { explained == row.id }, set: { if !$0 { explained = nil } })) {
@@ -352,7 +352,7 @@ struct AutomationsView: View {
             .frame(minHeight: 34)
             .background(LBColor.brand.color, in: Capsule())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: Capsule())
         .accessibilityLabel(copied == key ? "Copied" : "Copy the prompt: \(title)")
     }
 
@@ -372,7 +372,7 @@ struct AutomationsView: View {
             .frame(minHeight: 34)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .accessibilityLabel(copied == key ? "Copied" : "Copy the prompt: \(title)")
     }
 

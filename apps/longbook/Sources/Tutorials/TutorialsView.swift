@@ -47,7 +47,7 @@ struct TutorialsView: View {
                     .padding(.horizontal, LBSpacing.s4)
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             rule
             ForEach(Array(screens.enumerated()), id: \.element) { index, screen in
                 row(screen, control: screen.replayControl)
@@ -85,7 +85,7 @@ struct TutorialsView: View {
                     .frame(minHeight: 32)
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .accessibilityLabel("Replay the \(screen.title) tutorial")
         }
         .frame(minHeight: 44)

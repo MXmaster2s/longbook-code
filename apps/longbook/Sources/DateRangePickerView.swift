@@ -61,7 +61,7 @@ struct DateRangePickerView: View {
                     .frame(width: 30, height: 30)
                     .background(LBColor.chrome.color, in: Circle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             #if os(macOS)
             .keyboardShortcut(.cancelAction)
             #endif
@@ -84,7 +84,7 @@ struct DateRangePickerView: View {
                 .padding(.vertical, LBSpacing.s2)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .disabled(empty)
     }
 }

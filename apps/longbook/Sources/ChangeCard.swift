@@ -55,7 +55,7 @@ struct ChangeKindTab: View {
             .background(selected ? LBColor.brand.color : LBColor.chrome.color, in: Capsule())
             .contentShape(Capsule())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: Capsule())
         .accessibilityLabel("\(title), \(count)")
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
@@ -85,7 +85,7 @@ struct ChangeHeaderButton: View {
                 )
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
         .help(title)
         .accessibilityLabel(title)
     }

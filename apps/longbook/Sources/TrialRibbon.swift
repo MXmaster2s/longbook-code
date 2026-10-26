@@ -46,7 +46,7 @@ struct TrialRibbon: View {
                             .frame(width: 44, height: 44)
                             .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                     .accessibilityLabel("Dismiss")
                 }
             }

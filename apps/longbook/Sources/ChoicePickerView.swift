@@ -67,7 +67,7 @@ struct ChoicePickerView: View {
                                 .frame(maxWidth: .infinity, minHeight: 36, alignment: .leading)
                                 .contentShape(Rectangle())
                         }
-                        .buttonStyle(.plain)
+                        .lbButtonStyle()
                         .lbListRowBackground()
                     }
                     ForEach(shown) { choice in
@@ -114,7 +114,7 @@ struct ChoicePickerView: View {
                 .lineLimit(1)
             HStack {
                 Button("Cancel", action: { Measure.used("cancel"); onDone() })
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                     .lbText(.body)
                     .foregroundStyle(LBColor.brandText.color)
                     .keyboardShortcut(.cancelAction)
@@ -133,7 +133,7 @@ struct ChoicePickerView: View {
                             .frame(width: 44, height: 44)
                             .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                     .accessibilityLabel("Add \(title.lowercased())")
                 }
             }
@@ -221,7 +221,7 @@ struct ChoicePickerView: View {
             .frame(maxWidth: .infinity, minHeight: 36, alignment: .leading)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .accessibilityLabel(choice.name)
         .accessibilityAddTraits(isOn ? [.isSelected] : [])
     }

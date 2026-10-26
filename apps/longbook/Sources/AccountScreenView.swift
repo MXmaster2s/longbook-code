@@ -150,7 +150,7 @@ struct AccountScreenView: View {
                     .frame(maxWidth: .infinity, minHeight: 44)
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .refundRequestSheet(for: refund.id, isPresented: $refunding) { _ in
                 Task { await entitlement.refresh() }
             }
@@ -176,7 +176,7 @@ struct AccountScreenView: View {
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .disabled(store.busy)
         Text("One purchase, not a subscription, for every platform. Receipts are in your App Store purchase history.")
             .lbText(.footnote)
@@ -234,7 +234,7 @@ struct AccountScreenView: View {
                 )
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
     }
 
     // MARK: actions
@@ -253,7 +253,7 @@ struct AccountScreenView: View {
                 .background(LBColor.chrome.color, in: Capsule())
                 .contentShape(Capsule())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: Capsule())
         .padding(.top, LBSpacing.s6)
         .measured("account_screen_deleting", .sheet, when: deleting)
         .sheet(isPresented: $deleting) {
@@ -270,7 +270,7 @@ struct AccountScreenView: View {
     private var signOutButton: some View {
         #if os(macOS)
         Button { Measure.used("sign_out"); signingOut = true } label: { plainLabel("Sign Out…") }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .measured("account_screen_signing_out", .sheet, when: signingOut)
             .sheet(isPresented: $signingOut) {
                 VStack(spacing: 0) {
@@ -287,7 +287,7 @@ struct AccountScreenView: View {
             }
         #else
         NavigationLink(value: Destination.signOut) { plainLabel("Sign out") }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
         #endif
     }
 

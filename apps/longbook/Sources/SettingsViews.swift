@@ -419,7 +419,7 @@ struct DataPrivacyView: View {
                                 .foregroundStyle(LBColor.textPrimary.color)
                                 .contentShape(Rectangle())
                         }
-                        .buttonStyle(.plain)
+                        .lbButtonStyle()
                         .disabled(checkingFolder)
                     } trailing: {
                         SettingsInfoButton(
@@ -464,7 +464,7 @@ struct DataPrivacyView: View {
                         SettingsRow("Delete longbook…", tone: LBColor.danger.color)
                             .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                     .measured("settings_confirming_delete", .dialog, when: confirmingDelete)
                     .confirmationDialog("Move your longbook to the Bin?", isPresented: $confirmingDelete, titleVisibility: .visible) {
                         Button("Move to Bin", role: .destructive) { Measure.used("move_to_bin"); deleteFolder(folder) }

@@ -32,7 +32,7 @@ struct TipsView: View {
             NavigationLink(value: destination) {
                 TipsTicker.card(tip, chevron: true)
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
         case .link(let url):
             Button {
                 Measure.used("open_tip_link")
@@ -40,7 +40,7 @@ struct TipsView: View {
             } label: {
                 TipsTicker.card(tip, chevron: true)
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
         case .importStatement:
             Button {
                 Measure.used("tip_import_statement")
@@ -48,7 +48,7 @@ struct TipsView: View {
             } label: {
                 TipsTicker.card(tip, chevron: true)
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
         }
     }
 }

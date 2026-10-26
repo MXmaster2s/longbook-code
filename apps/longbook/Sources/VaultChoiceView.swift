@@ -183,7 +183,7 @@ struct VaultChoiceView: View {
                             in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
         .lbTapHaptic()
         .disabled(busy)
     }
@@ -240,7 +240,7 @@ struct VaultChoiceView: View {
                             in: RoundedRectangle(cornerRadius: LBRadius.xs, style: .continuous))
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .keyboardShortcut(isDefault ? .defaultAction : nil)
         .disabled(busy)
     }
@@ -316,7 +316,7 @@ struct VaultChoiceView: View {
                 .padding(.horizontal, LBSpacing.s3)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .disabled(busy)
         .accessibilityLabel("Sign out and return to sign in")
         .padding(.top, LBSpacing.s2)
@@ -335,7 +335,7 @@ struct VaultChoiceView: View {
                 )
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .disabled(busy)
     }
 
@@ -354,7 +354,7 @@ struct VaultChoiceView: View {
                 .padding(.vertical, LBSpacing.s2)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .disabled(busy)
     }
 }

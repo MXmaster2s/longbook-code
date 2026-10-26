@@ -157,7 +157,7 @@ struct OnboardingFinishView: View {
             .background(LBColor.chrome.color, in: Capsule())
             .contentShape(Capsule())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: Capsule())
     }
 
     // MARK: doing

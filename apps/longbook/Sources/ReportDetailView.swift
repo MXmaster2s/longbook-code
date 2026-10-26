@@ -356,7 +356,7 @@ struct ReportDetailView: View {
             .frame(minHeight: 30)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .accessibilityElement(children: .combine)
         .accessibilityHint("Narrows the charges below to this account")
     }
@@ -378,7 +378,7 @@ struct ReportDetailView: View {
                             picked: narrowing.category == slice.label
                         )
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                     .lbTapHaptic()
                 }
                 ForEach(Array(ring.foreign.enumerated()), id: \.offset) { _, slice in
@@ -447,7 +447,7 @@ struct ReportDetailView: View {
                         .frame(minHeight: 28)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .lbTapHaptic()
             }
         }
@@ -733,7 +733,7 @@ struct ReportDetailView: View {
             .padding(.vertical, LBSpacing.s2)
             .background(LBColor.chrome.color, in: Capsule())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: Capsule())
     }
 }
 

@@ -266,7 +266,7 @@ struct ChangesView: View {
         Group {
             if let edit = line.edit {
                 Button(action: { Measure.used("edit"); edit() }) { lineRow(line) }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                     .accessibilityHint("Opens this row to edit it.")
             } else {
                 lineRow(line)
@@ -506,11 +506,11 @@ struct ChangesView: View {
                 HStack(spacing: LBSpacing.s2) {
                     if let edit = line.edit {
                         Button(action: { Measure.used("edit"); edit() }) { capsule("Edit…", filled: true) }
-                            .buttonStyle(.plain)
+                            .lbButtonStyle()
                     }
                     if let target = line.delete {
                         Button { Measure.used("delete"); deleting = target } label: { capsule("Delete…", filled: false, danger: true) }
-                            .buttonStyle(.plain)
+                            .lbButtonStyle()
                     }
                 }
                 if line.edit == nil, line.delete == nil, line.verb == .removed {
@@ -829,7 +829,7 @@ struct ChangesView: View {
                     .foregroundStyle(LBColor.brandText.color)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .accessibilityHint("Shows every kept version.")
             }
             #if os(macOS)
@@ -893,7 +893,7 @@ struct ChangesView: View {
                             .background(LBColor.chrome.color, in: Capsule())
                             .contentShape(Capsule())
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle(shape: Capsule())
                     .accessibilityLabel("Dismiss this suggestion")
                 }
                 .accessibilityElement(children: .combine)
@@ -982,7 +982,7 @@ struct ChangesView: View {
             } label: {
                 ChangeActionLabel(title: "Undo All", symbol: "arrow.uturn.backward", filled: false, wide: wide)
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .accessibilityHint("Writes the previous state back as a new change.")
             Button {
                 Measure.used("keep_all")
@@ -992,7 +992,7 @@ struct ChangesView: View {
             } label: {
                 ChangeActionLabel(title: "Keep All", symbol: "checkmark.circle.fill", filled: true, wide: wide)
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .accessibilityHint("Adopts the proposal as it stands, on every device.")
         }
     }
@@ -1237,7 +1237,7 @@ struct ChangesView: View {
                     .foregroundStyle(LBColor.textPrimary.color)
                 Spacer()
                 Button("Done") { Measure.used("done"); showingHistory = false }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                     .lbText(.body)
                     .foregroundStyle(LBColor.brandText.color)
                     .keyboardShortcut(.cancelAction)
@@ -1276,7 +1276,7 @@ struct ChangesView: View {
                                 .frame(maxWidth: .infinity, minHeight: 36)
                                 .contentShape(Rectangle())
                         }
-                        .buttonStyle(.plain)
+                        .lbButtonStyle()
                         .lbListRowBackground()
                     } footer: {
                         Text("Clearing frees \(historySizeWords) on this device and in your longbook folder. It cannot be undone.")
@@ -1408,7 +1408,7 @@ struct ChangesView: View {
                 }
                 .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .accessibilityLabel("\(sourceWord(entry)), \(entry.at.formatted(date: .abbreviated, time: .shortened))")
             .accessibilityHint(expanded.contains(entry.hash) ? "Collapses this version." : "Shows what this version changed.")
 
@@ -1466,7 +1466,7 @@ struct ChangesView: View {
                 .background(LBColor.chrome.color, in: Capsule())
                 .contentShape(Capsule())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: Capsule())
         .accessibilityHint("Writes this version back as a new change. Nothing is lost.")
         .measured("changes_confirming_restore", .dialog, when: confirmingRestore == entry.hash)
         .confirmationDialog(

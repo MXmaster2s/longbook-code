@@ -792,7 +792,7 @@ struct RootView: View {
                     .background(LBColor.chrome.color, in: Capsule())
                     .contentShape(Capsule())
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle(shape: Capsule())
                 .accessibilityLabel("Back")
                 Spacer()
             }
@@ -850,7 +850,7 @@ struct RootView: View {
                 .padding(.vertical, 4)
                 .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .tutorialTarget(.addCommitment)
             .accessibilityLabel("Add a commitment")
             .accessibilityShowsLargeContentViewer { Label("Add", systemImage: "plus.circle.fill") }
@@ -886,7 +886,7 @@ struct RootView: View {
             .padding(.vertical, 4)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(label)
         .accessibilityAddTraits(active ? [.isButton, .isSelected] : .isButton)

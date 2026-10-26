@@ -249,7 +249,7 @@ struct DashboardView: View {
                         }
                         .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                     .lbTapHaptic()
                 }
             }
@@ -271,7 +271,7 @@ struct DashboardView: View {
                 .background(filled ? LBColor.brand.color : LBColor.chrome.color, in: Capsule())
                 .contentShape(Capsule())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: Capsule())
     }
 
     private func note(_ title: String, _ body: String) -> some View {
@@ -320,7 +320,7 @@ struct DashboardView: View {
                     : Destination.commitments(ListFilter(day: LB.toISO(day.date)))) {
                     heroFace(data)
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .lbTapHaptic()
             } else {
                 heroFace(data)
@@ -475,7 +475,7 @@ struct DashboardView: View {
             }
             #endif
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(data.activeCount + model.placeholders.count) commitments, \(statWords(data)), opens the list")
@@ -698,7 +698,7 @@ struct DashboardView: View {
                     .frame(minHeight: 30)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .lbTapHaptic()
             }
             }
@@ -757,7 +757,7 @@ struct DashboardView: View {
                     .foregroundStyle(LBColor.brandText.color)
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .lbTapHaptic()
         }
         .lbText(.footnote)
@@ -780,7 +780,7 @@ struct DashboardView: View {
                 .frame(minHeight: 32)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .lbTapHaptic()
     }
 
@@ -869,7 +869,7 @@ struct DashboardView: View {
             .frame(minHeight: 30)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
     }
 
     /// The turn, as a control as well as a gesture — a swipe nobody guesses is no door.
@@ -893,7 +893,7 @@ struct DashboardView: View {
             .frame(minHeight: 36)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
     }
 
     /// One control, on every panel that answers for months, wearing their words. It opens a
@@ -922,7 +922,7 @@ struct DashboardView: View {
             .frame(minHeight: 44)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: Capsule())
         // Swiping steps every chosen month together, the way a calendar page turns:
         // left-to-right goes back, right-to-left goes forward. The card below keeps its
         // own swipe for the flip, so the two never collide.
@@ -1027,7 +1027,7 @@ struct DashboardView: View {
                             .frame(minHeight: 30)
                             .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                     .lbTapHaptic()
                 }
                 if data.methods.count > legend.count {
@@ -1090,7 +1090,7 @@ struct DashboardView: View {
                         NavigationLink(value: Destination.commitment(id: charge.sub.id)) {
                             accountChargeRow(charge)
                         }
-                        .buttonStyle(.plain)
+                        .lbButtonStyle()
                         .lbTapHaptic()
                     }
                 }
@@ -1162,7 +1162,7 @@ struct DashboardView: View {
                 .background(selected ? LBColor.brand.color : LBColor.chrome.color, in: Capsule())
                 .contentShape(Capsule())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: Capsule())
         .accessibilityLabel("\(slice.name), \(slice.charges.count) charge\(slice.charges.count == 1 ? "" : "s")")
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
@@ -1250,7 +1250,7 @@ struct DashboardView: View {
             .frame(maxWidth: fills ? .infinity : nil, minHeight: 32, alignment: .leading)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .lbTapHaptic()
     }
 
@@ -1322,7 +1322,7 @@ struct DashboardView: View {
                         NavigationLink(value: listing(data, category: slice.name)) {
                             categoryTile(slice, scope: data.scope)
                         }
-                        .buttonStyle(.plain)
+                        .lbButtonStyle()
                     }
                 }
                 #else
@@ -1332,7 +1332,7 @@ struct DashboardView: View {
                             NavigationLink(value: listing(data, category: slice.name)) {
                                 categoryTile(slice, scope: data.scope)
                             }
-                            .buttonStyle(.plain)
+                            .lbButtonStyle()
                             .lbTapHaptic()
                         }
                     }
@@ -1463,7 +1463,7 @@ private struct DashboardEmpty: View {
                         .background(LBColor.brand.color, in: Capsule())
                         .contentShape(Capsule())
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle(shape: Capsule())
                 .padding(.top, LBSpacing.s1)
             }
         }
@@ -1539,7 +1539,7 @@ private struct DashboardRail: View {
                     NavigationLink(value: Destination.commitments(ListFilter())) {
                         toFillCard
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                     .lbTapHaptic()
                 }
                 if rail.charges.isEmpty {
@@ -1564,7 +1564,7 @@ private struct DashboardRail: View {
                     NavigationLink(value: Destination.commitment(id: charge.sub.id)) {
                         railCard(charge, looksBack: rail.looksBack)
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                     .lbTapHaptic()
                 }
                 if rail.looksBack {
@@ -1767,7 +1767,7 @@ private struct DashboardRail: View {
             .padding(.horizontal, 6)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .accessibilityLabel(back ? "Show the last 30 payments" : "Back to the next 30 payments")
     }
 

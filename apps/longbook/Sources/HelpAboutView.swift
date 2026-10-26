@@ -87,7 +87,7 @@ struct HelpAboutView: View {
             } label: {
                 SettingsRowLabel(symbol: "bubble.left", ink: 8, title: "Support", subtitle: "", trailing: "chevron.right")
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
         }
     }
 
@@ -107,7 +107,7 @@ struct HelpAboutView: View {
                             trailing: "arrow.up.right", separated: index < rows.count - 1
                         )
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                 }
             }
         }

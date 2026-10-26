@@ -48,7 +48,7 @@ struct DeleteAccountSheet: View {
                                 .frame(maxWidth: .infinity, minHeight: 44)
                                 .background(LBColor.chrome.color, in: Capsule())
                         }
-                        .buttonStyle(.plain)
+                        .lbButtonStyle(shape: Capsule())
                         Text("Send it to your own email, Files or AirDrop before you go.")
                             .lbText(.footnote)
                             .foregroundStyle(LBColor.textTertiary.color)
@@ -107,7 +107,7 @@ struct DeleteAccountSheet: View {
                         .background(LBColor.dangerFill.color, in: Capsule())
                         .opacity(confirmed && !busy ? 1 : 0.4)
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle(shape: Capsule())
                 .disabled(!confirmed || busy)
                 if let error {
                     Text(error)
@@ -116,7 +116,7 @@ struct DeleteAccountSheet: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Button("Keep My Account", action: { Measure.used("keep_my_account"); onClose() })
-                    .buttonStyle(.plain)
+                    .lbButtonStyle(shape: Capsule())
                     .lbText(.label)
                     .foregroundStyle(LBColor.brandText.color)
                     .frame(maxWidth: .infinity, minHeight: 44)

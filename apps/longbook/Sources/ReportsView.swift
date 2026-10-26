@@ -134,7 +134,7 @@ struct ReportsView: View {
                     .padding(.vertical, LBSpacing.s2)
                     .background(LBColor.brand.color, in: Capsule())
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle(shape: Capsule())
             }
         }
     }
@@ -226,14 +226,14 @@ struct ReportsView: View {
             LBCommitmentRow(name: report.title, facts: reportFacts(report), amount: total ?? "", ink: LBColor.brand,
                             selected: isPicked, symbol: reportSymbol(report))
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: RoundedRectangle(cornerRadius: LBRadius.md, style: .continuous))
         .accessibilityAddTraits(isPicked ? .isSelected : [])
         #else
         NavigationLink(value: Destination.report(id: report.id)) {
             LBCommitmentRow(name: report.title, facts: reportFacts(report), amount: total ?? "", ink: LBColor.brand,
                             symbol: reportSymbol(report))
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: RoundedRectangle(cornerRadius: LBRadius.md, style: .continuous))
         #endif
     }
 

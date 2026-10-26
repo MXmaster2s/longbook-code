@@ -156,7 +156,7 @@ struct SetupBanksView: View {
             )
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: RoundedRectangle(cornerRadius: LBRadius.md, style: .continuous))
         .accessibilityLabel(bank.name)
         .accessibilityAddTraits(picked ? [.isSelected] : [])
     }
@@ -187,7 +187,7 @@ struct SetupBanksView: View {
             )
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: RoundedRectangle(cornerRadius: LBRadius.md, style: .continuous))
         .accessibilityLabel("More banks")
     }
 
@@ -221,7 +221,7 @@ struct SetupBanksView: View {
                         .padding(.vertical, LBSpacing.s3)
                         .background(LBColor.brand.color, in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle(shape: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
             }
             .padding(.horizontal, LBSpacing.s4)
             .padding(.bottom, LBSpacing.s4)
@@ -239,7 +239,7 @@ struct SetupBanksView: View {
                         .frame(minHeight: 32)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
             }
             .padding(.horizontal, LBSpacing.s4)
             .padding(.top, LBSpacing.s2)
@@ -276,7 +276,7 @@ struct SetupBanksView: View {
                         .font(.system(size: 14))
                         .foregroundStyle(LBColor.textQuaternary.color)
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .accessibilityLabel("Clear the search")
             }
         }
@@ -317,7 +317,7 @@ struct SetupBanksView: View {
                         .frame(minHeight: 32)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
             }
             .padding(LBSpacing.s3)
             .background(LBColor.card.color, in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
@@ -343,7 +343,7 @@ struct SetupBanksView: View {
                 .background(LBColor.card.color, in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
                 .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle(shape: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
             .accessibilityLabel("Add a bank by name")
         }
     }
@@ -365,7 +365,7 @@ struct SetupBanksView: View {
             .background(LBColor.card.color, in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
         .accessibilityLabel(bank.name)
         .accessibilityAddTraits(picked ? [.isSelected] : [])
     }
@@ -394,7 +394,7 @@ struct SetupBanksView: View {
             .background(LBColor.card.color, in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
         .accessibilityLabel(bank.name)
         .accessibilityAddTraits([.isSelected])
     }
@@ -435,7 +435,7 @@ struct SetupBanksView: View {
                         .frame(minHeight: 32)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
             }
             Rectangle().fill(LBColor.hairline.color).frame(height: 1)
             Text("Which accounts do you have with \(bank.short)?")
@@ -533,7 +533,7 @@ struct SetupBanksView: View {
                         .frame(minHeight: 32)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
             }
             if let refusal {
                 Text(refusal)
@@ -553,7 +553,7 @@ struct SetupBanksView: View {
                     .padding(.vertical, LBSpacing.s3)
                     .background(LBColor.brand.color, in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle(shape: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
         }
         .padding(.horizontal, LBSpacing.s4)
         .padding(.bottom, LBSpacing.s4)

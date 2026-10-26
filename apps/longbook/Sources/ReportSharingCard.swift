@@ -159,7 +159,7 @@ struct ReportSharingCard: View {
                         .frame(width: 44, height: 44)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .accessibilityLabel("Copy \(label)")
             }
         }
@@ -202,7 +202,7 @@ struct ReportSharingCard: View {
                 .padding(.vertical, LBSpacing.s2)
                 .background(filled ? LBColor.brand.color : LBColor.chrome.color, in: Capsule())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: Capsule())
         .disabled(busy)
     }
 
@@ -367,7 +367,7 @@ private struct ShareCreatedSheet: View {
                     .padding(.vertical, LBSpacing.s3)
                     .background(LBColor.brand.color, in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle(shape: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
         }
         .padding(LBSpacing.s4)
         .frame(maxWidth: 520)
@@ -406,7 +406,7 @@ private struct ShareCreatedSheet: View {
                     .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .accessibilityLabel("Copy \(label)")
         }
         .frame(minHeight: 36)

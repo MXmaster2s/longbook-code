@@ -122,7 +122,7 @@ struct CommitmentDetailView: View {
                         .frame(width: 44, height: 44)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .accessibilityLabel("Close")
             }
         }
@@ -270,7 +270,7 @@ struct CommitmentDetailView: View {
                 )
                 .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle(shape: RoundedRectangle(cornerRadius: LBRadius.md, style: .continuous))
             .accessibilityHint("Shows every \(noun) before today.")
         }
     }
@@ -345,7 +345,7 @@ struct CommitmentDetailView: View {
                             Measure.used("show_less")
                             withAnimation(.snappy(duration: 0.2)) { notesOpen.toggle() }
                         }
-                        .buttonStyle(.plain)
+                        .lbButtonStyle()
                         .lbText(.label)
                         .foregroundStyle(LBColor.brandText.color)
                     }
@@ -410,7 +410,7 @@ struct CommitmentDetailView: View {
             .background(LBColor.brand.color.opacity(0.12), in: Capsule())
             .contentShape(Capsule())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: Capsule())
     }
 
     /// In the header, beside the close control, so it is in reach without scrolling.
@@ -423,7 +423,7 @@ struct CommitmentDetailView: View {
                 .frame(minHeight: 44)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .accessibilityHint("Opens the edit sheet.")
     }
 
@@ -500,7 +500,7 @@ struct CommitmentHistoryView: View {
                                 chevron: true
                             )
                         }
-                        .buttonStyle(.plain)
+                        .lbButtonStyle()
                         .lbListRowBackground()
                     }
                 } header: {

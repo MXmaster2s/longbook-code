@@ -270,7 +270,7 @@ struct EntityEditView: View {
                     .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .accessibilityLabel("Close")
             // On the X, as the commitment form has it: the root already carries the delete
             // question, and one view presents one dialog reliably.
@@ -325,7 +325,7 @@ struct EntityEditView: View {
                         .foregroundStyle(LBColor.brandText.color)
                         .frame(minHeight: 32)
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .onChange(of: photoItem) { _, item in
                     guard let item else { return }
                     Task {
@@ -334,7 +334,7 @@ struct EntityEditView: View {
                 }
                 if hasPhoto {
                     Button("Remove") { Measure.used("remove"); photoData = nil; removingPhoto = true }
-                        .buttonStyle(.plain)
+                        .lbButtonStyle()
                         .lbText(.label)
                         .foregroundStyle(LBColor.textSecondary.color)
                 }
@@ -411,7 +411,7 @@ struct EntityEditView: View {
                     .contentShape(Rectangle())
                 }
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .accessibilityLabel("\(label), \(tag.map(EntityCopy.tagWord) ?? "none")")
         }
         .measured("entity_edit_picking_tag", .sheet, when: pickingTag)
@@ -620,7 +620,7 @@ struct EntityEditView: View {
             Button { Measure.used("link_an_account"); pickingAccount = true } label: {
                 EntityActionLabel(title: "Link an Account", symbol: "plus", prominent: true, fills: true)
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .disabled(linkable.isEmpty)
             .opacity(linkable.isEmpty ? 0.5 : 1)
             if allAccounts.isEmpty {
@@ -657,7 +657,7 @@ struct EntityEditView: View {
                     .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .padding(.trailing, -LBSpacing.s2)
             .accessibilityLabel("Unlink \(account.name)")
         }
@@ -753,7 +753,7 @@ struct EntityEditView: View {
                 .background(LBColor.card.color, in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
         .padding(.top, LBSpacing.s4)
     }
 
@@ -770,7 +770,7 @@ struct EntityEditView: View {
                     deleteButton(fills: false)
                     Spacer(minLength: LBSpacing.s3)
                     Button(action: { Measure.used("cancel"); close() }) { decision("Cancel", ink: LBColor.textPrimary, fill: LBColor.chrome.color, fills: false) }
-                        .buttonStyle(.plain)
+                        .lbButtonStyle()
                     saveButton(fills: false)
                 }
             } else {
@@ -824,7 +824,7 @@ struct EntityEditView: View {
             decision("Save", ink: ready ? LBColor.onBrand : LBColor.textTertiary,
                      fill: ready ? LBColor.brand.color : LBColor.chrome.color, fills: fills)
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
         .disabled(!ready)
     }
 
@@ -837,7 +837,7 @@ struct EntityEditView: View {
                      fill: hoveringDelete ? LBColor.dangerFill.color : LBColor.danger.color.opacity(0.10),
                      border: LBColor.danger.color.opacity(0.45), fills: fills)
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .onHover { hoveringDelete = $0 }
     }
 
@@ -1060,7 +1060,7 @@ struct EntityEditView: View {
                         .contentShape(Rectangle())
                         .padding(-9)
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .accessibilityLabel("Add a \(noun)")
             }
         }
@@ -1098,7 +1098,7 @@ struct EntityEditView: View {
             .background(LBColor.chrome.color, in: Capsule())
             .contentShape(Capsule())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: Capsule())
     }
 }
 

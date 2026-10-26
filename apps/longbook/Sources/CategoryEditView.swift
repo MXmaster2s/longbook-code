@@ -99,7 +99,7 @@ struct CategoryEditView: View {
                     .frame(width: 30, height: 30)
                     .background(LBColor.chrome.color, in: Circle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .accessibilityLabel("Close without saving")
         }
     }
@@ -165,7 +165,7 @@ struct CategoryEditView: View {
                     .background(LBColor.card.color, in: RoundedRectangle(cornerRadius: LBRadius.xs, style: .continuous))
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .accessibilityHint("Opens \(sub.name)")
             }
         }
@@ -184,7 +184,7 @@ struct CategoryEditView: View {
                 .frame(width: 26, height: 26)
                 .background(LBColor.chrome.color, in: Circle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .accessibilityLabel(label)
     }
 
@@ -201,7 +201,7 @@ struct CategoryEditView: View {
                         in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous)
                     )
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle(shape: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
             .disabled(!changed)
             // The other door to delete. Gating only the context menu left this one telling
             // the same lie: a seeded tag has no registry entry to remove, so it returns.

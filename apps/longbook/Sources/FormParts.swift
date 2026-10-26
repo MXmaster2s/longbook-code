@@ -140,7 +140,7 @@ struct FormQuestion<Trailing: View>: View {
                 .contentShape(Rectangle())
                 .padding(-9)
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .accessibilityLabel("Add a \(noun)")
     }
 
@@ -157,7 +157,7 @@ struct FormQuestion<Trailing: View>: View {
                 .contentShape(Rectangle())
                 .padding(-9)
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .accessibilityLabel("See every \(noun)")
     }
 }
@@ -190,7 +190,7 @@ struct MoneyButton: View {
                 .contentShape(Rectangle())
                 .padding(-9)
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .accessibilityLabel((income ? "Money in" : (transfer ? "Transfer" : "Money out")) + ". Tap to change which way it moves.")
     }
 }
@@ -558,7 +558,7 @@ struct FormDateControl<Trailing: View>: View {
                     }
                 }
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
     }
 
     /// "6 Aug 2026 (in 8 days)" — the date and what it means. A date in a form is a fact,
@@ -1214,7 +1214,7 @@ struct MoneyPicker: View {
                         .frame(width: 30, height: 30)
                         .background(LBColor.chrome.color, in: Circle())
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .accessibilityLabel("Close")
             }
             // Out is written as absence; the core decides what the file keeps of the others.
@@ -1282,7 +1282,7 @@ struct MoneyPicker: View {
             )
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }

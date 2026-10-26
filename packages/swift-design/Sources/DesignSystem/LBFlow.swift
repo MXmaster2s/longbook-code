@@ -124,7 +124,7 @@ public struct LBChip: View {
             }
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
 

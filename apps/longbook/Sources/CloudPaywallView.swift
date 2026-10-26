@@ -150,7 +150,7 @@ struct CloudPaywallView: View {
                 .background(LBColor.brand.color, in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
         .disabled(store.busy)
     }
 
@@ -162,7 +162,7 @@ struct CloudPaywallView: View {
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
     }
 
     private func link(_ title: String, _ url: URL) -> some View {
@@ -177,7 +177,7 @@ struct CloudPaywallView: View {
             .frame(minHeight: 32)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
     }
 
     private func bullet(_ text: String) -> some View {

@@ -187,7 +187,7 @@ struct SetupPickerView: View {
                         .padding(.vertical, LBSpacing.s2)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
             }
             if let refusal {
                 Text(refusal)
@@ -207,7 +207,7 @@ struct SetupPickerView: View {
                     .padding(.vertical, LBSpacing.s3)
                     .background(LBColor.brand.color, in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle(shape: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
         }
         .padding(.horizontal, LBSpacing.s4)
         .padding(.bottom, LBSpacing.s4)

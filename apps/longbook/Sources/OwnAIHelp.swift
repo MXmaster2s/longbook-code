@@ -108,7 +108,7 @@ struct OwnAIHelp: View {
                         .padding(.vertical, LBSpacing.s3)
                         .background(LBColor.brand.color, in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle(shape: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
             }
         }
         // Outside any navigation stack, so the MCP screen is reached as a sheet with its own way back.
@@ -154,7 +154,7 @@ struct OwnAIHelp: View {
                             .frame(minHeight: 32)
                             .background(LBColor.brand.color, in: Capsule())
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle(shape: Capsule())
                     .disabled(enabling || !auth.isSignedIn)
                 }
                 // The short line, and every fact of the full one a tap away under Learn More.
@@ -171,7 +171,7 @@ struct OwnAIHelp: View {
                     Button("Learn More") { Measure.used("learn_more"); withAnimation(.easeOut(duration: 0.2)) { showingTerms = true } }
                         .lbText(.footnote)
                         .foregroundStyle(LBColor.brandText.color)
-                        .buttonStyle(.plain)
+                        .lbButtonStyle()
                 }
                 if let problem {
                     Text(problem)
@@ -295,7 +295,7 @@ struct OwnAIHelp: View {
             .frame(minHeight: 28)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .accessibilityLabel(markedURL ? "Connector added" : "Mark the connector as added")
     }
 
@@ -340,7 +340,7 @@ struct OwnAIHelp: View {
                     .padding(.vertical, LBSpacing.s3)
                     .background(LBColor.brand.color, in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle(shape: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
             }
         }
     }
@@ -360,7 +360,7 @@ struct OwnAIHelp: View {
             .frame(minHeight: 28)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
     }
 
     /// For an AI that cannot write into the folder — one that lives in a browser — the
@@ -390,7 +390,7 @@ struct OwnAIHelp: View {
             .background(LBColor.card.color, in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
     }
 
     private func copy(_ value: String) {

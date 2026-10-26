@@ -38,13 +38,13 @@ struct TripsView: View {
                             tile("airplane.departure", ink: 7)
                         }
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                     .lbListRowBackground()
                 }
                 Button { Measure.used("add_a_past_trip"); flow = .past } label: {
                     LBListRow("Add a past trip", chevron: true) { tile("calendar.badge.plus", ink: 2) }
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .lbListRowBackground()
             } footer: {
                 #if os(iOS)
@@ -240,7 +240,7 @@ struct ReportListRow: View {
             .background(LBColor.card.color, in: RoundedRectangle(cornerRadius: LBRadius.md, style: .continuous))
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(shape: RoundedRectangle(cornerRadius: LBRadius.md, style: .continuous))
         .accessibilityElement(children: .combine)
     }
 }
