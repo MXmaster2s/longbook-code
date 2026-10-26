@@ -17,6 +17,7 @@ struct SidebarView: View {
     @AppStorage("longbook.sidebar.membersFolded") private var membersFolded = false
     @AppStorage("appearance") private var appearance = LBAppearance.system.rawValue
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.openSettings) private var openSettings
 
     /// The screen on show. The harness paints its screen as the stack root with an empty
     /// path, so the row it names stays lit there too.
@@ -36,10 +37,11 @@ struct SidebarView: View {
 
     private static let bookmarks = Destination.commitments(ListFilter(bookmarked: true))
 
-    /// Settings stays lit on every pane behind its door, not just the door itself.
+    /// The settings live in their own window; the row stays lit on the help and update
+    /// screens its menu and the Help menu open here.
     private var isSettings: Bool {
         switch shown {
-        case .more, .accountDetails, .billing, .display, .privacy, .mcpServer, .helpAbout, .signOut, .updates, .trips: return true
+        case .helpAbout, .updates, .tips, .trips: return true
         default: return false
         }
     }
@@ -54,7 +56,8 @@ struct SidebarView: View {
 
     var body: some View {
         // Header and the bottom row are pinned; only the lists between them scroll, so Add
-        // commitment survives any window height. Settings is the app menu's (⌘,).
+        // commitment survives any window height. Settings opens a menu whose first item
+        // opens the Settings window (⌘,).
         VStack(alignment: .leading, spacing: 0) {
             header
                 // Room for the window controls: the sidebar runs under the hidden
@@ -104,7 +107,7 @@ struct SidebarView: View {
                     .tutorialTarget(.addCommitment)
                 // Settings keeps the row; the two quick doors sit at its right edge.
                 HStack(spacing: LBSpacing.s1) {
-                    navRow("gearshape", "Settings", active: isSettings) { path = [.more] }
+                    settingsMenu
                     iconButton(
                         colorScheme == .dark ? "sun.max" : "moon",
                         colorScheme == .dark ? "Switch to the light appearance" : "Switch to the dark appearance",
@@ -125,6 +128,42 @@ struct SidebarView: View {
         .overlay(alignment: .trailing) {
             Rectangle().fill(LBColor.hairline.color).frame(width: 1)
         }
+    }
+
+    /// The Settings row's menu: the Settings window first, then the app's own doors.
+    private var settingsMenu: some View {
+        Menu {
+            Button("Settings…") {
+                Measure.used("sidebar_settings", .menuItem)
+                openSettings()
+            }
+            .keyboardShortcut(",", modifiers: .command)
+            Button("What’s New") {
+                Measure.used("sidebar_whats_new", .menuItem)
+                if path.last != .updates { path.append(.updates) }
+            }
+            Button("Send Feedback…") {
+                Measure.used("sidebar_send_feedback", .menuItem)
+                SupportCenter.shared.open()
+            }
+            Button("Check for Updates…") {
+                Measure.used("sidebar_check_for_updates", .menuItem)
+                AppUpdates.askFromMenu()
+            }
+            Divider()
+            Button("Quit longbook") {
+                Measure.used("sidebar_quit", .menuItem)
+                NSApplication.shared.terminate(nil)
+            }
+            .keyboardShortcut("q", modifiers: .command)
+        } label: {
+            rowLabel("gearshape", "Settings", active: isSettings)
+        }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityLabel("Settings")
     }
 
     private var header: some View {
@@ -202,25 +241,7 @@ struct SidebarView: View {
         action: @escaping () -> Void
     ) -> some View {
         Button(action: { Measure.used("waiting_for_review"); action() }) {
-            HStack(spacing: LBSpacing.s2) {
-                Image(systemName: symbol).font(.system(size: 12, weight: .medium))
-                Text(title).lbText(.bodySM)
-                Spacer(minLength: 0)
-                if attention {
-                    Circle()
-                        .fill(LBColor.urgent.color)
-                        .frame(width: 6, height: 6)
-                        .accessibilityLabel("waiting for review")
-                }
-            }
-            .foregroundStyle(active ? LBColor.onBrandTint.color : LBColor.textSecondary.color)
-            .padding(.horizontal, LBSpacing.s2)
-            .padding(.vertical, 6)
-            .background(
-                active ? LBColor.brand.color.opacity(0.16) : .clear,
-                in: RoundedRectangle(cornerRadius: LBRadius.xs, style: .continuous)
-            )
-            .contentShape(Rectangle())
+            rowLabel(symbol, title, active: active, attention: attention)
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
@@ -247,6 +268,29 @@ struct SidebarView: View {
         } else {
             ForEach(starred) { row($0) }
         }
+    }
+
+    /// A row's face, shared by the rows and the Settings menu.
+    private func rowLabel(_ symbol: String, _ title: String, active: Bool, attention: Bool = false) -> some View {
+        HStack(spacing: LBSpacing.s2) {
+            Image(systemName: symbol).font(.system(size: 12, weight: .medium))
+            Text(title).lbText(.bodySM)
+            Spacer(minLength: 0)
+            if attention {
+                Circle()
+                    .fill(LBColor.urgent.color)
+                    .frame(width: 6, height: 6)
+                    .accessibilityLabel("waiting for review")
+            }
+        }
+        .foregroundStyle(active ? LBColor.onBrandTint.color : LBColor.textSecondary.color)
+        .padding(.horizontal, LBSpacing.s2)
+        .padding(.vertical, 6)
+        .background(
+            active ? LBColor.brand.color.opacity(0.16) : .clear,
+            in: RoundedRectangle(cornerRadius: LBRadius.xs, style: .continuous)
+        )
+        .contentShape(Rectangle())
     }
 
     /// One account or member, straight to its filtered commitments — the same door the

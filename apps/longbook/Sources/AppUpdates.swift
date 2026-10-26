@@ -82,14 +82,55 @@ enum AppUpdates {
     }
 
     #if os(macOS)
+    /// General's Check for updates automatically switch, on unless turned off.
+    static let automaticKey = "longbook.updates.automatic"
+    private static let lastCheckKey = "longbook.updates.lastCheck"
+
+    /// While the switch is on, at most once a day: an App Store copy asks the store for its
+    /// version and, when a newer one is out, says so in the menu item's alert. TestFlight has
+    /// no such answer, so a TestFlight copy is never asked.
+    @MainActor
+    static func checkIfDue() {
+        let defaults = UserDefaults.standard
+        guard defaults.object(forKey: automaticKey) as? Bool ?? true else { return }
+        if let last = defaults.object(forKey: lastCheckKey) as? Date, Date().timeIntervalSince(last) < 86_400 { return }
+        defaults.set(Date(), forKey: lastCheckKey)
+        Task { @MainActor in
+            guard await place() == .appStore, let latest = await storeVersion() else { return }
+            let installed = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+            if isNewer(latest, than: installed) { askFromMenu(headline: "A newer version of longbook is out") }
+        }
+    }
+
+    /// The store's current version for this app, from Apple's public lookup; nil on any failure.
+    private static func storeVersion() async -> String? {
+        guard let url = URL(string: "https://itunes.apple.com/lookup?id=\(appStoreID)"),
+              let (data, _) = try? await URLSession.shared.data(from: url),
+              let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let first = (object["results"] as? [[String: Any]])?.first else { return nil }
+        return first["version"] as? String
+    }
+
+    /// Dotted numbers compared part by part, so 1.10.0 is newer than 1.9.2.
+    static func isNewer(_ candidate: String, than installed: String) -> Bool {
+        let a = candidate.split(separator: ".").map { Int($0) ?? 0 }
+        let b = installed.split(separator: ".").map { Int($0) ?? 0 }
+        for index in 0..<max(a.count, b.count) {
+            let x = index < a.count ? a[index] : 0
+            let y = index < b.count ? b[index] : 0
+            if x != y { return x > y }
+        }
+        return false
+    }
+
     /// The menu item's route: the same question as the Settings row, asked in an alert, since a
     /// command has no view of its own to present one from.
     @MainActor
-    static func askFromMenu() {
+    static func askFromMenu(headline: String = title) {
         Task { @MainActor in
             let place = await place()
             let alert = NSAlert()
-            alert.messageText = title
+            alert.messageText = headline
             let changes = currentRelease.map { "\n\nWhat’s new in \($0.version):\n" + UpdatesView.shown($0.changes).map { "• " + $0 }.joined(separator: "\n") } ?? ""
             alert.informativeText = versionLine + " is on this Mac." + changes + "\n\n" + message(for: place)
             alert.addButton(withTitle: button(for: place))

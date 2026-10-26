@@ -31,6 +31,8 @@ extension Notification.Name {
     static let longbookSetUpAgain = Notification.Name("longbook.setUpAgain")
     /// Support, asked of the main window from the Help menu or the Settings window.
     static let longbookSupport = Notification.Name("longbook.support")
+    /// The demo longbook over the main window, asked from the Settings window.
+    static let longbookShowDemo = Notification.Name("longbook.showDemo")
 }
 
 struct LongbookCommands: Commands {
@@ -57,7 +59,8 @@ struct LongbookCommands: Commands {
             .keyboardShortcut("n", modifiers: .command)
             .disabled(!menu.shellReady)
         }
-        // Settings… (⌘,) is the Settings scene's own item; nothing replaces it.
+        // Settings… (⌘,) is the Settings scene's own item; nothing replaces it. The sidebar's
+        // Settings menu opens the same window.
         CommandGroup(after: .newItem) {
             Divider()
             Button("Import Statement…") {

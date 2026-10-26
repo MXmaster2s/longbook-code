@@ -6,6 +6,8 @@
     "changes": [
       "Getting started takes three steps: welcome and sign in, activate your longbook, then import a statement. Once a statement is kept, your longbook opens.",
       "The setup questions moved to Settings as Optimize your data, where your answers help longbook read your statements.",
+      "On the Mac, Settings in the sidebar opens a menu, and Settings… opens the Settings window, with panes for General, Appearance, Account, AI, Statements, Data & privacy, Tutorials and About.",
+      "On the Mac, longbook can open at login, check for updates on its own, and hide its Dock icon while the menu bar shows the next payment.",
       "On the Mac, Move to iCloud and Back Up Now in Settings are buttons.",
       "On the Mac, an AI connected to longbook on this computer now sees every choice its tools offer, such as listing cancelled commitments or reading one chapter of the guide.",
       "An AI connected to longbook now reads longbook's guide for the task before it writes, and is told which part to read when it hasn't.",

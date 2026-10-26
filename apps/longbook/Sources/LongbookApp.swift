@@ -14,11 +14,23 @@ struct LongbookApp: App {
     /// The tray's own vault read — the menu bar answers with every window closed.
     @StateObject private var tray = TrayModel()
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.openSettings) private var openSettings
+    /// General's Menu bar and Dock switches: a hidden Dock icon keeps the menu bar item on.
+    @AppStorage(DockIcon.menuBarKey) private var showsMenuBar = true
+    @AppStorage(DockIcon.hiddenKey) private var hidesDock = false
     #endif
 
-    #if os(macOS) && DEBUG
+    #if os(macOS)
     init() {
+        #if DEBUG
         Snapshot.runIfAsked()
+        #endif
+        // Once the app has finished launching: the Dock icon as the owner left it, and the
+        // daily update check while its switch is on.
+        Task { @MainActor in
+            DockIcon.applyStored()
+            AppUpdates.checkIfDue()
+        }
     }
     #elseif os(iOS)
     init() {
@@ -72,7 +84,7 @@ struct LongbookApp: App {
 
         #if os(macOS)
         // The desktop's menu-bar indicator, as a scene: the next payment beside the clock.
-        MenuBarExtra {
+        MenuBarExtra(isInserted: Binding(get: { showsMenuBar || hidesDock }, set: { showsMenuBar = $0 })) {
             Group {
                 Text(tray.menuLine)
                 Divider()
@@ -80,6 +92,12 @@ struct LongbookApp: App {
                     Measure.used("open_longbook")
                     // Activation alone raises a process that may have no window left.
                     openWindow(id: LongbookWindow.main)
+                    NSApp.activate(ignoringOtherApps: true)
+                }
+                // With the Dock icon hidden there is no app menu, so Settings is offered here too.
+                Button("Settings…") {
+                    Measure.used("menu_bar_settings")
+                    openSettings()
                     NSApp.activate(ignoringOtherApps: true)
                 }
                 Button("Refresh") { Measure.used("refresh"); tray.refresh() }
@@ -193,13 +211,9 @@ private struct SnapshotScreenHost: View {
         default: return .commitments(card: 0)
         }
     }
-    static func settingsTab(_ id: String) -> Destination {
-        switch id {
-        case "account": .accountDetails
-        case "ai": .mcpServer
-        case "data": .privacy
-        default: .display
-        }
+    static func settingsTab(_ id: String) -> SettingsPane {
+        if id == "data" { return .privacy }
+        return SettingsPane(rawValue: id) ?? .general
     }
     @State private var model = DashboardModel()
     @StateObject private var auth = AuthViewModel()
@@ -265,34 +279,17 @@ private struct SnapshotScreenHost: View {
     }
 }
 
-/// The Settings window at its own width. An offscreen window draws no toolbar, so the tab
-/// bar macOS puts there is drawn here as a stand-in, with the picked tab's content beneath.
+/// The Settings window at its own width, sidebar and picked pane, with the harness's model.
 private struct SnapshotSettingsWindow: View {
     let model: DashboardModel
     @ObservedObject var auth: AuthViewModel
     @ObservedObject var entitlement: EntitlementStore
-    let picked: Destination
+    let picked: SettingsPane
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: LBSpacing.s2) {
-                ForEach(SettingsTabs.tabs, id: \.title) { item in
-                    VStack(spacing: 2) {
-                        Image(systemName: item.symbol).font(.system(size: 18))
-                        Text(item.title).font(.system(size: 11))
-                    }
-                    .foregroundStyle(item.root == picked ? LBColor.brandText.color : LBColor.textSecondary.color)
-                    .frame(width: 64, height: 48)
-                    .background(item.root == picked ? LBColor.chrome.color : .clear, in: RoundedRectangle(cornerRadius: 6))
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, LBSpacing.s2)
-            .background(LBColor.card.color)
-            SettingsTab(root: picked, model: model, auth: auth, entitlement: entitlement, toMainWindow: { _ in })
-        }
-        .frame(width: 720)
-        .border(LBColor.hairline.color)
+        SettingsWindowContent(model: model, auth: auth, entitlement: entitlement, picked: .constant(picked), toMainWindow: { _ in })
+            .frame(width: 820, height: 640)
+            .border(LBColor.hairline.color)
     }
 }
 
