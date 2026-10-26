@@ -3,8 +3,8 @@ import DesignSystem
 import LongbookCore
 import SwiftUI
 
-/// The Mac sidebar: the vault's own shape — sections, accounts, people — wearing the
-/// same identity inks as the dashboard. Flat surface, not the system material: depth in
+/// The Mac sidebar: the vault's own shape — sections, starred accounts and people —
+/// in the dashboard's identity inks. Flat surface, not the system material: depth in
 /// this design is a tone step. Only the dashboard is a destination yet; the rest are
 /// visibly on their way rather than silently dead.
 struct SidebarView: View {
@@ -80,7 +80,7 @@ struct SidebarView: View {
                         foldLabel("Payments", folded: $paymentsFolded).padding(.top, LBSpacing.s3)
                         navRow(LBGlyph.account, "Accounts", active: shown == .accounts) { path = [.accounts] }
                         if !paymentsFolded {
-                            ForEach(data.sidebarMethods) { row in
+                            starredRows(data.sidebarMethods, none: "Star an account on Accounts to keep it here.") { row in
                                 entityRow(row, destination: .commitments(ListFilter(methodId: row.id)))
                             }
                         }
@@ -88,7 +88,7 @@ struct SidebarView: View {
                         foldLabel("People", folded: $membersFolded).padding(.top, LBSpacing.s3)
                         navRow("person.2", "People", active: shown == .members) { path = [.members] }
                         if !membersFolded {
-                            ForEach(data.sidebarMembers) { row in
+                            starredRows(data.sidebarMembers, none: "Star a person on People to keep them here.") { row in
                                 entityRow(row, destination: .commitments(ListFilter(memberId: row.id)))
                             }
                         }
@@ -224,6 +224,29 @@ struct SidebarView: View {
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
+    }
+
+    /// Only the starred rows of a group; with none starred, one quiet line saying how to keep one here.
+    @ViewBuilder
+    private func starredRows<Row: View>(
+        _ rows: [DashboardData.SidebarEntity], none: String, row: @escaping (DashboardData.SidebarEntity) -> Row
+    ) -> some View {
+        let starred = rows.filter(\.starred)
+        if starred.isEmpty {
+            HStack(alignment: .firstTextBaseline, spacing: LBSpacing.s2) {
+                Image(systemName: "star")
+                    .font(.system(size: 9, weight: .medium))
+                    .accessibilityHidden(true)
+                Text(none)
+                    .lbText(.footnote)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .foregroundStyle(LBColor.textTertiary.color)
+            .padding(.horizontal, LBSpacing.s2)
+            .padding(.vertical, 4)
+        } else {
+            ForEach(starred) { row($0) }
+        }
     }
 
     /// One account or member, straight to its filtered commitments — the same door the

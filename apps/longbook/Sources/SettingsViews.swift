@@ -457,7 +457,7 @@ struct DataPrivacyView: View {
         } header: {
             LBSectionHeader("Optimize your data")
         } footer: {
-            Text("Your commitments, accounts and people, kept in your longbook as hints for reading statements, by longbook’s AI or yours.")
+            Text("Your answers are kept as hints for reading your statements. They aren’t added to People or Accounts.")
                 .lbText(.footnote)
                 .foregroundStyle(LBColor.textTertiary.color)
         }

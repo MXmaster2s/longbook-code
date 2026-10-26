@@ -1705,7 +1705,8 @@ struct StatementImportView: View {
             return repeated.dates.count >= 3 || (repeated.dates.count >= 2 && recurringWord)
         }.map(\.name))
         members = seenMembers
-        chosenMembers = Set(members.map(\.name))
+        // With the switch off, a person is added only when ticked here.
+        chosenMembers = StatementFinds.on ? Set(members.map(\.name)) : []
         notes = said.joined(separator: " ")
         // The reading is done; the review opens when the reader is ready for it, not
         // from under a game half played.
@@ -1719,14 +1720,23 @@ struct StatementImportView: View {
             // A member ticked is a person in the book, whatever the lines say; the lines
             // that name them carry them. One unticked stays a name on the line. A name the
             // writer refuses stops the add here, its refusal on the review.
-            let chosen = Array(chosenMembers)
+            var chosen = Array(chosenMembers)
+            // With the switch on, a person a kept line names is added too, matched loosely.
+            if StatementFinds.on {
+                for row in rows where row.keep {
+                    guard let named = row.member?.trimmingCharacters(in: .whitespacesAndNewlines), !named.isEmpty,
+                          !(chosen + model.memberNames).contains(where: { nameKey($0) == nameKey(named) }) else { continue }
+                    chosen.append(named)
+                }
+            }
             for name in chosen {
                 guard model.addEntity(.familyMember, named: name) != nil else {
                     throw WriteError.invalid(model.saveError ?? "That didn’t save.")
                 }
             }
             for index in rows.indices {
-                if let member = rows[index].member, !chosenMembers.contains(member), !model.memberNames.contains(member) {
+                if let member = rows[index].member, !chosen.contains(member),
+                   !model.memberNames.contains(where: { nameKey($0) == nameKey(member) }) {
                     rows[index].member = nil
                 } else if rows[index].member == nil, rows[index].keep,
                           let carried = chosen.first(where: { Self.names($0, in: rows[index]) }) {
@@ -1744,10 +1754,14 @@ struct StatementImportView: View {
             // Each file lands on its own account, from its own copy in documents.
             for read in files where read.prepared != nil {
                 let mine = rows.filter { $0.file == read.id }
+                let named = read.account.trimmingCharacters(in: .whitespaces)
+                // With the switch on, the statement's own account is added even when no line is kept.
+                if StatementFinds.on, !named.isEmpty, model.addEntity(.paymentMethod, named: named) == nil {
+                    throw WriteError.invalid(model.saveError ?? "That didn’t save.")
+                }
                 guard mine.contains(where: \.keep) else { continue }
                 let source = try model.fileStatement(read.url)
                 firstSource = firstSource ?? source
-                let named = read.account.trimmingCharacters(in: .whitespaces)
                 var attached: [String: [[String: Any]]] = [:]
                 var ownRows: [StatementCandidate] = []
                 for row in mine {
@@ -1821,4 +1835,14 @@ struct StatementImportView: View {
         }
         return false
     }
+}
+
+/// The Settings switch "Add accounts and people found in statements", on unless turned
+/// off. On, a statement adds its own account and every person its lines name; off, the
+/// lines still name them for the AI, and People lists only who the review ticks.
+enum StatementFinds {
+    static let key = "longbook.statements.addFound"
+    static var on: Bool { UserDefaults.standard.object(forKey: key) as? Bool ?? true }
+    static let onDetail = "On: a statement adds its account and the people it names to Accounts and People."
+    static let offDetail = "Off: statements still name them for your AI, but Accounts and People list only what you add."
 }
