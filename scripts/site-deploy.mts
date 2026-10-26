@@ -12,6 +12,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { eachLimited, fetchWithRetry, uncached } from './site-fetch.mts'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const SITE_DIR = join(ROOT, 'apps/longbook-site')
@@ -108,12 +109,12 @@ const siteFiles: Carried[] = [
 const carried = [...kitFiles, ...siteFiles]
 let kitFromLive = 0
 let siteFromLive = 0
-for (const file of carried) {
+await eachLimited(carried, 6, async (file) => {
   const built = join(SITE_DIR, file.at)
   let bytes: Buffer | null = existsSync(built) ? readFileSync(built) : null
   if (!bytes || sha256(bytes) !== file.sha256) {
-    const live = await fetch(`${SITE_ORIGIN}/${file.at}`, { headers: { 'cache-control': 'no-cache' } })
-    bytes = live.ok ? Buffer.from(await live.arrayBuffer()) : null
+    const live = await fetchWithRetry(uncached(`${SITE_ORIGIN}/${file.at}`), { headers: { 'cache-control': 'no-cache' } })
+    bytes = live.ok ? live.bytes : null
     if (file.list === 'media-kit/files.json') kitFromLive += 1
     else siteFromLive += 1
   }
@@ -125,7 +126,7 @@ for (const file of carried) {
   const into = join(deployDir, file.at)
   mkdirSync(dirname(into), { recursive: true })
   writeFileSync(into, bytes)
-}
+})
 
 // Without a token the CLI deploys with its own sign-in — and with neither it opens a browser and
 // waits, which no script may start on anyone's behalf. `status` answers without prompting, but
@@ -197,8 +198,8 @@ if (VERIFY) {
 // Reading the deploy back is the point: the failure this guards against is invisible in the
 // deploy's own output. The edge functions are what a file listing cannot see; without them
 // longbook.app/mcp answers a browser with a JSON-RPC error instead of the page.
-const explainer = await fetch(origin + '/mcp', { headers: { accept: 'text/html' } })
-const explainerBody = explainer.ok ? await explainer.text() : ''
+const explainer = await fetchWithRetry(origin + '/mcp', { headers: { accept: 'text/html' }, retry404: true })
+const explainerBody = explainer.ok ? explainer.bytes.toString('utf8') : ''
 if (!explainerBody.startsWith('<!doctype html')) {
   console.error(`\n${origin}/mcp answered ${explainer.status} without the explainer page.`)
   console.error('The edge functions did not deploy. Deploy again from the site directory itself.')
@@ -206,11 +207,11 @@ if (!explainerBody.startsWith('<!doctype html')) {
 }
 
 // The page itself, byte for byte against the export, so what was checked is what was published.
-const home = await fetch(origin + '/', { headers: { 'cache-control': 'no-cache' } })
+const home = await fetchWithRetry(uncached(origin + '/'), { headers: { 'cache-control': 'no-cache' }, retry404: true })
 // Cloudflare strips the email_off markers it honours, and a draft on Netlify keeps them, so both
 // sides are compared without them.
 const unmarked = (html: string): string => html.replace(/<!--\/?email_off-->/g, '')
-const homeBody = unmarked(plainHtml(await home.text()))
+const homeBody = unmarked(plainHtml(home.bytes.toString('utf8')))
 const homeFile = unmarked(readFileSync(join(deployDir, 'index.html'), 'utf8'))
 if (home.status !== 200 || homeBody !== homeFile) {
   console.error(`\n${origin}/ answered ${home.status} and does not match the exported index.html.`)
@@ -220,14 +221,14 @@ if (home.status !== 200 || homeBody !== homeFile) {
 console.log(`\nverified ${origin}/mcp — the explainer page is served, so the edge functions are live.`)
 console.log(`verified ${origin}/ — byte-identical to the exported index.html.`)
 
-for (const file of carried) {
-  const served = await fetch(`${origin}/${file.at}`, { headers: { 'cache-control': 'no-cache' } })
-  const bytes = served.ok ? Buffer.from(await served.arrayBuffer()) : Buffer.alloc(0)
+await eachLimited(carried, 6, async (file) => {
+  const served = await fetchWithRetry(uncached(`${origin}/${file.at}`), { headers: { 'cache-control': 'no-cache' }, retry404: true })
+  const bytes = served.ok ? served.bytes : Buffer.alloc(0)
   if (sha256(bytes) !== file.sha256) {
     console.error(`\n${origin}/${file.at} answered ${served.status} and does not match ${file.list}.`)
     process.exit(1)
   }
-}
+})
 if (kitFiles.length) console.log(`verified ${origin}/media-kit/files — all ${kitFiles.length} match media-kit/files.json.`)
 if (siteFiles.length) console.log(`verified ${origin}/features/img and /og — all ${siteFiles.length} match built.json.`)
 if (DRAFT) console.log(`\nDraft: ${origin} — live longbook.app is unchanged.`)
