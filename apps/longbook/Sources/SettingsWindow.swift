@@ -76,7 +76,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .ai: ["Claude", "ChatGPT", "MCP", "Access", "Keys", "Proposals", "Reorganise", "Prompts", "Shortcuts", "Siri", "Spotlight"]
         case .statements: ["Add accounts and people found", "Optimize your data", "Import a statement", "PDF", "CSV", "Bank", "Card"]
         case .privacy: ["iCloud", "Folder", "Finder", "Backups", "Move", "Usage", "Crash", "What leaves this device", "Card details",
-                        "Delete longbook"]
+                        "Open Another Folder", "Delete longbook"]
         case .tutorials: ["Replay", "Dashboard", "Commitments", "Calendar", "Reports", "Accounts", "People", "Insights", "Proposals"]
         }
     }
