@@ -83,6 +83,7 @@
     "site:og": "tsx scripts/site-og.mts",
     "site:media": "tsx scripts/site-media.mts",
     "site:deploy": "tsx scripts/site-deploy.mts",
+    "site:deploy:test": "tsx --test scripts/site-fetch.test.mts",
     "email:preview": "tsx scripts/preview-purchase-email.mts",
     "email:test": "tsx --test scripts/purchase-email.test.mts scripts/confirm-purchase.test.mts scripts/auth-emails.test.mts scripts/account-notice.test.mts scripts/auth-email.test.mts",
     "auth-emails": "tsx scripts/auth-emails.mts",
