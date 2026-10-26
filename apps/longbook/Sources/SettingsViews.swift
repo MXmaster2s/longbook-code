@@ -383,7 +383,7 @@ struct DataPrivacyView: View {
                     .lbText(.body)
                     .foregroundStyle(LBColor.brandText.color)
             }
-            .buttonStyle(.borderless)
+            .lbBorderlessButtonStyle()
             .lbListRowBackground()
             #endif
         } header: {
@@ -413,7 +413,7 @@ struct DataPrivacyView: View {
                 .frame(minHeight: 32)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.borderless)
+        .lbBorderlessButtonStyle()
     }
 
     private func valueRow(_ label: String, _ value: String) -> some View {
@@ -470,7 +470,7 @@ struct DataPrivacyView: View {
                         .lbText(.body)
                         .foregroundStyle(LBColor.danger.color)
                 }
-                .buttonStyle(.borderless)
+                .lbBorderlessButtonStyle()
                 .lbListRowBackground()
                 .measured("settings_confirming_delete", .dialog, when: confirmingDelete)
                 .confirmationDialog("Move your longbook to the Bin?", isPresented: $confirmingDelete, titleVisibility: .visible) {

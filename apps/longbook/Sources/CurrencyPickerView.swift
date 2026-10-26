@@ -66,7 +66,7 @@ struct CurrencyPickerView: View {
                     .frame(width: 30, height: 30)
                     .background(LBColor.chrome.color, in: Circle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .accessibilityLabel("Close")
         }
     }
@@ -123,7 +123,7 @@ struct CurrencyPickerView: View {
             )
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .disabled(taken)
         .accessibilityLabel("\(entry.code), \(entry.name)\(taken ? ", already listed" : "")")
     }

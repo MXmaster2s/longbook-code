@@ -76,6 +76,7 @@ struct ConsentSheet: View {
         HStack(spacing: LBSpacing.s2) {
             Button("Read on web") { Measure.used("read_on_web"); openURL(Self.policyURL) }
                 .buttonStyle(.link)
+                .lbLinkPointer()
             Spacer(minLength: LBSpacing.s3)
             Button("Not Now", action: { Measure.used("not_now"); onDecline() })
                 .keyboardShortcut(.cancelAction)

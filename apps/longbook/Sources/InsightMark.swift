@@ -33,7 +33,7 @@ struct InsightMark: View {
                         .contentShape(Rectangle())
                 }
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .accessibilityLabel(labelled ? "1 note" : "Insight")
             .accessibilityHint("Shows the note")
             .measured("insight_mark_open", .popover, when: open)

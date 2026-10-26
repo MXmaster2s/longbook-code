@@ -61,7 +61,7 @@ struct PhotoPickRow: View {
         HStack(spacing: LBSpacing.s3) {
             preview
             Button(has ? "Change Photo…" : "Choose Photo…") { Measure.used("change_photo"); choosing = true }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .lbText(.label)
                 .foregroundStyle(LBColor.brandText.color)
                 .fileImporter(isPresented: $choosing, allowedContentTypes: [.image]) { result in
@@ -72,7 +72,7 @@ struct PhotoPickRow: View {
                 }
             if has {
                 Button("Remove") { Measure.used("remove"); picked = nil; removing = true }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                     .lbText(.label)
                     .foregroundStyle(LBColor.textSecondary.color)
             }

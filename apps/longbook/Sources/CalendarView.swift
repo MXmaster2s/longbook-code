@@ -179,7 +179,7 @@ struct CalendarView: View {
                 .frame(width: 26, height: 26)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .disabled(disabled)
         .accessibilityLabel(symbol == "chevron.left" ? "Previous month" : "Next month")
     }
@@ -242,7 +242,7 @@ struct CalendarView: View {
             } label: {
                 cellBody(day)
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .accessibilityLabel(cellWord(day))
             .accessibilityHint("Shows the day’s details.")
             .accessibilityAddTraits(selected == day.id ? .isSelected : [])
@@ -507,7 +507,7 @@ struct CalendarView: View {
                             .lbText(.label)
                             .foregroundStyle(LBColor.brandText.color)
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                 }
             }
             Text(words.isEmpty ? "No payments" : words.joined(separator: ", "))
@@ -545,11 +545,11 @@ struct CalendarView: View {
                             .background(LBColor.chrome.color, in: Capsule())
                             .contentShape(Capsule())
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                 }
             }
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .lbTapHaptic()
     }
 }

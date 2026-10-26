@@ -147,7 +147,7 @@ struct MCPServerView: View {
                                     .frame(minHeight: 34)
                                     .background(LBColor.brand.color, in: Capsule())
                             }
-                            .buttonStyle(.plain)
+                            .lbButtonStyle()
                             Button {
                                 Measure.used("not_now")
                                 confirmingEnable = false
@@ -160,7 +160,7 @@ struct MCPServerView: View {
                                     .frame(minHeight: 34)
                                     .contentShape(Rectangle())
                             }
-                            .buttonStyle(.plain)
+                            .lbButtonStyle()
                         }
                     }
                     .padding(LBSpacing.s3)
@@ -202,7 +202,7 @@ struct MCPServerView: View {
                     .frame(minHeight: 34)
                     .background(LBColor.brand.color, in: Capsule())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
         }
     }
 
@@ -235,7 +235,7 @@ struct MCPServerView: View {
                         .frame(minHeight: 34)
                         .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                     .accessibilityLabel("Copy a ready prompt with the address")
                 }
             }
@@ -362,7 +362,7 @@ struct MCPServerView: View {
                 .frame(minHeight: 32)
                 .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .accessibilityHint(showingKeys ? "Hides the access keys" : "Shows the access keys, for tools that cannot sign in")
             if showingKeys { accessKeysPanel }
         }
@@ -402,7 +402,7 @@ struct MCPServerView: View {
                                 .background(LBColor.brand.color, in: Capsule())
                                 .contentShape(Capsule())
                         }
-                        .buttonStyle(.plain)
+                        .lbButtonStyle()
                         .disabled(keyBusy || newKeyName.trimmingCharacters(in: .whitespaces).isEmpty)
                     }
                     // What the key may do, in words rather than scope names. Nothing here
@@ -425,7 +425,7 @@ struct MCPServerView: View {
                                         )
                                         .contentShape(Capsule())
                                 }
-                                .buttonStyle(.plain)
+                                .lbButtonStyle()
                                 .accessibilityAddTraits(newKeyScope == scope ? [.isSelected] : [])
                             }
                         }
@@ -457,7 +457,7 @@ struct MCPServerView: View {
                                         .frame(width: 44, height: 44)
                                         .contentShape(Rectangle())
                                 }
-                                .buttonStyle(.plain)
+                                .lbButtonStyle()
                                 .accessibilityLabel("Copy the new key")
                             }
                             .padding(.horizontal, LBSpacing.s3)
@@ -475,7 +475,7 @@ struct MCPServerView: View {
                                     .background(LBColor.chrome.color, in: Capsule())
                                     .contentShape(Capsule())
                             }
-                            .buttonStyle(.plain)
+                            .lbButtonStyle()
                             .accessibilityHint("Stores the key in this Mac’s keychain so an agent can read it without a file.")
                             if let keychainWord {
                                 Text(keychainWord)
@@ -586,13 +586,14 @@ struct MCPServerView: View {
                                 .background(claudeConfigured ? LBColor.chrome.color : LBColor.brand.color, in: Capsule())
                                 .contentShape(Capsule())
                         }
-                        .buttonStyle(.plain)
+                        .lbButtonStyle()
                     }
                     Link(destination: Self.desktopHelp) {
                         Text("How Claude Desktop connects")
                             .lbText(.footnote)
                             .foregroundStyle(LBColor.brandText.color)
                     }
+                    .lbLinkPointer()
                     // For any other local MCP client: the configuration to paste, folded away.
                     Button {
                         Measure.used("advanced")
@@ -609,7 +610,7 @@ struct MCPServerView: View {
                         .frame(minHeight: 28)
                         .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                     if showingConfig {
                         Button {
                             Measure.used("copied")
@@ -623,7 +624,7 @@ struct MCPServerView: View {
                                 .background(LBColor.chrome.color, in: Capsule())
                                 .contentShape(Capsule())
                         }
-                        .buttonStyle(.plain)
+                        .lbButtonStyle()
                         .accessibilityHint("Copies the MCP config for any other local client.")
                     }
                     if let macSetupWord {

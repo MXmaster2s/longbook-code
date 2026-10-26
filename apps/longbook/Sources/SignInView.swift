@@ -323,7 +323,7 @@ struct SignInView: View {
                     .foregroundStyle(LBColor.urgent.color)
                     .fixedSize(horizontal: false, vertical: true)
                 if let feedback {
-                    Link("Give feedback", destination: feedback)
+                    Link("Give feedback", destination: feedback).lbLinkPointer()
                         .lbText(.footnote)
                         .foregroundStyle(LBColor.brandText.color)
                 }

@@ -315,7 +315,7 @@ struct HelpArticleView: View {
                 Button("Done") { Measure.used("support_article_done"); onDone() }
                     .lbText(.body)
                     .foregroundStyle(LBColor.brandText.color)
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
             }
             .padding(.horizontal, LBSpacing.s4)
             .padding(.vertical, LBSpacing.s3)
@@ -524,7 +524,7 @@ struct SupportScreen: View {
                     .frame(width: 32, height: 32)
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .help("Ask a person")
             .accessibilityLabel("Ask a person")
             #if os(iOS)
@@ -539,7 +539,7 @@ struct SupportScreen: View {
                     .frame(width: 28, height: 28)
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .help("Hide Support")
             .accessibilityLabel("Hide Support")
             #endif
@@ -605,7 +605,7 @@ struct SupportScreen: View {
                         .background(LBColor.card.color, in: Capsule())
                         .overlay(Capsule().strokeBorder(LBColor.hairline.color))
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .modifier(Arrive(delay: Double(index) * LBMotion.stagger, reduceMotion: reduceMotion))
             }
         }
@@ -689,7 +689,7 @@ struct SupportScreen: View {
                         .padding(.vertical, 6)
                         .background(LBColor.brand.color.opacity(0.12), in: Capsule())
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
             }
         }
     }
@@ -713,7 +713,7 @@ struct SupportScreen: View {
                             .frame(width: 28, height: 24)
                             .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                     .disabled(message.rating != nil)
                     .accessibilityLabel(up ? "Helpful" : "Not helpful")
                     .transition(.opacity)
@@ -743,7 +743,7 @@ struct SupportScreen: View {
                 .padding(.vertical, 8)
                 .background(primary ? LBColor.brand.color : LBColor.chrome.color, in: Capsule())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
     }
 
     private func note(_ text: String, error: Bool = false) -> some View {
@@ -807,7 +807,7 @@ struct SupportScreen: View {
                         .frame(width: 36, height: 36)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .disabled(center.behind == nil)
                 .help("Attach a screenshot for the team")
                 .accessibilityLabel(center.screenshotAttached ? "Remove the screenshot" : "Attach a screenshot for the team")
@@ -831,7 +831,7 @@ struct SupportScreen: View {
                             .frame(width: 36, height: 36)
                             .background(LBColor.brand.color, in: Circle())
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                     .keyboardShortcut(.return, modifiers: .command)
                     .accessibilityLabel("Send")
                     .transition(reduceMotion ? .opacity : .scale(scale: 0.4).combined(with: .opacity))
@@ -864,7 +864,7 @@ struct SupportScreen: View {
                 Image(systemName: "xmark.circle.fill")
                     .foregroundStyle(LBColor.textTertiary.color)
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .accessibilityLabel("Remove the screenshot")
         }
         .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
@@ -1006,7 +1006,7 @@ struct SupportButton: View {
             }
             .shadow(color: .black.opacity(0.3), radius: 10, y: 4)
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .accessibilityLabel(center.active ? "Support, conversation open" : "Support")
     }
 }
@@ -1065,7 +1065,7 @@ struct SupportPrivacyRows: View {
                     .lbText(.bodySM)
                     .foregroundStyle(cleared ? LBColor.textTertiary.color : LBColor.brandText.color)
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .disabled(cleared)
         }
     }

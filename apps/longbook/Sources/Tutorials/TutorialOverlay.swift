@@ -231,7 +231,7 @@ private struct TutorialCard: View {
                             .frame(minHeight: 32)
                             .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                     .keyboardShortcut(.cancelAction)
                 }
                 Spacer(minLength: LBSpacing.s2)

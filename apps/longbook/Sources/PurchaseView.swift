@@ -54,9 +54,9 @@ struct PurchaseView: View {
                 OnboardingSecondaryButton(title: "See Demo") { demo = true }
             }
             HStack(spacing: LBSpacing.s1) {
-                Link("Terms of Use", destination: Self.termsURL)
+                Link("Terms of Use", destination: Self.termsURL).lbLinkPointer()
                 Text("·")
-                Link("Privacy Policy", destination: Self.privacyURL)
+                Link("Privacy Policy", destination: Self.privacyURL).lbLinkPointer()
             }
             .lbText(.footnote)
             .foregroundStyle(LBColor.textTertiary.color)

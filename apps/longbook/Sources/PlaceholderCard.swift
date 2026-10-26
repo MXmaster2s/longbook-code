@@ -20,7 +20,7 @@ struct PlaceholderCard: View {
         // Two siblings, never a button inside a button: the face is the Edit button and
         // Remove lies over it in its own place, so a tap on Remove cannot reach Edit.
         Button(action: { Measure.used("edit_placeholder"); onEdit() }) { face }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .lbTapHaptic()
             .accessibilityLabel("Edit \(placeholder.name)")
             .accessibilityHint("Opens the form to add its amount and day")
@@ -61,7 +61,7 @@ struct PlaceholderCard: View {
             if live {
                 word("Edit").hidden()
                 Button(action: { Measure.used("remove"); onRemove() }) { word("Remove") }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                     .lbTapHaptic()
                     .accessibilityLabel("Remove \(placeholder.name)")
             } else {

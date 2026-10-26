@@ -53,7 +53,7 @@ struct DayPickerView: View {
                     .frame(minHeight: 34)
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .keyboardShortcut(.defaultAction)
             // On the Mac the sheet has no swipe down, so Escape closes it too.
             #if os(macOS)
@@ -64,7 +64,7 @@ struct DayPickerView: View {
                     .padding(LBSpacing.s2)
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .keyboardShortcut(.cancelAction)
             .accessibilityLabel("Close")
             #endif

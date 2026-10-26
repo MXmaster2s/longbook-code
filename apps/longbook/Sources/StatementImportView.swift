@@ -334,7 +334,7 @@ struct StatementImportView: View {
                     }
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .accessibilityHint("Opens the steps for your own AI")
                 if setup {
                     Button(action: { Measure.used("skip"); onDone() }) {
@@ -347,7 +347,7 @@ struct StatementImportView: View {
                         .frame(maxWidth: .infinity, minHeight: 32)
                         .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                 }
             }
         }
@@ -385,6 +385,7 @@ struct StatementImportView: View {
                             .foregroundStyle(LBColor.brandText.color)
                             .frame(minHeight: 32)
                     }
+                    .lbLinkPointer()
                 }
             }
             Spacer(minLength: 0)
@@ -527,7 +528,7 @@ struct StatementImportView: View {
                     .frame(maxWidth: .infinity, minHeight: 32)
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
         }
     }
 
@@ -583,13 +584,13 @@ struct StatementImportView: View {
                 Button { Measure.used("discard"); confirmingClose = true } label: {
                     ChangeActionLabel(title: "Discard", symbol: "xmark", filled: false, wide: true)
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 Button { Measure.used("checkmark_circle_fill"); add() } label: {
                     ChangeActionLabel(title: addTitle, symbol: "checkmark.circle.fill", filled: true, wide: true)
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .disabled(keptCount == 0 || !accountsNamed)
-                .opacity(keptCount > 0 && accountsNamed ? 1 : 0.5)
+                .lbPhoneDimmed(keptCount == 0 || !accountsNamed)
             }
             if let tally = reviewTally {
                 Text(tally)
@@ -869,7 +870,7 @@ struct StatementImportView: View {
                     .padding(LBSpacing.s3)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .accessibilityHint(showingCharges ? "Hides every line" : "Shows every line")
                 if showingCharges {
                     keepAllRow
@@ -1003,7 +1004,7 @@ struct StatementImportView: View {
                         .frame(width: 30, height: 30)
                         .background(LBColor.chrome.color, in: Circle())
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .accessibilityLabel("Close")
             }
         }
@@ -1020,7 +1021,7 @@ struct StatementImportView: View {
                 Button("Done") { Measure.used("done"); ownAI = false }
                     .lbText(.body)
                     .foregroundStyle(LBColor.brandText.color)
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                     .keyboardShortcut(.cancelAction)
             }
             ScrollView {
@@ -1080,7 +1081,7 @@ struct StatementImportView: View {
                 .frame(minHeight: 32)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .disabled(!enabled)
     }
 
@@ -1221,7 +1222,8 @@ struct StatementImportView: View {
                     .frame(width: 28, height: 44)
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            // A checkbox: pressed on the box, never a hover.
+            .lbButtonStyle(hovers: false)
             .disabled(locked)
             .accessibilityLabel(candidate.keep ? "Kept. Tap to leave out." : "Left out. Tap to keep.")
             Button {
@@ -1236,7 +1238,7 @@ struct StatementImportView: View {
                 )
                 .opacity(candidate.keep ? 1 : 0.7)
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .accessibilityHint("Opens the line to edit it.")
         }
     }
@@ -1431,7 +1433,7 @@ struct StatementImportView: View {
             .padding(.vertical, LBSpacing.s3)
             .background(LBColor.brand.color.opacity(enabled ? 1 : 0.4), in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .disabled(!enabled)
     }
 

@@ -203,7 +203,7 @@ struct OnboardingCardStep: View {
             .opacity(ready ? 0.85 : 0.5)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .animation(.easeOut(duration: 0.2), value: ready)
         .accessibilityLabel("Next card")
     }

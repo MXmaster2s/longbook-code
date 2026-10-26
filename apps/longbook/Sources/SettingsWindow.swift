@@ -516,6 +516,7 @@ struct AboutSettingsPane: View {
                 if let url { openURL(url) }
             }
             .buttonStyle(.link)
+            .lbLinkPointer()
             .foregroundStyle(LBColor.brandText.color)
         }
     }

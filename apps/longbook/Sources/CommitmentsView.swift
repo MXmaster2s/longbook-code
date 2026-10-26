@@ -457,7 +457,7 @@ struct CommitmentsView: View {
             .padding(.vertical, 6)
             .background(LBColor.brand.color, in: Capsule())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .accessibilityLabel("Filtered to \(words). Tap to clear.")
     }
 
@@ -1084,9 +1084,9 @@ struct CommitmentsView: View {
                     }
                 }
                 .lbGroupedList()
-                // A right click focused the row and macOS drew its focus ring in the system
-                // accent, a green box on some Macs. The card's own tint already says chosen.
-                .focusEffectDisabled()
+                // A right click focuses the row; its ring shows only while the keyboard drives,
+                // so a click never leaves one. The card's own tint already says chosen.
+                .lbKeyboardFocusEffects()
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -1101,7 +1101,11 @@ struct CommitmentsView: View {
     /// single click back while it waited for the second.
     private func pickable<V: View>(_ id: String, rows: [LedgerRow], _ content: V) -> some View {
         let row = rows.first { $0.id == id }
+        // A click only chooses, so the card hovers but has no pressed look. Tab reaches it;
+        // Return or Space chooses it as a click does.
         return content
+            .lbHoverWash()
+            .lbKeyboardFocusable(radius: LBRadius.md) { selection = [id] }
             .contentShape(Rectangle())
             .onTapGesture {
                 let now = Date()

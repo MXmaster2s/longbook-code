@@ -126,7 +126,7 @@ struct MonthPickerView: View {
                         .padding(LBSpacing.s2)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .keyboardShortcut(.cancelAction)
                 .accessibilityLabel("Close")
                 #endif
@@ -157,7 +157,7 @@ struct MonthPickerView: View {
                 .frame(minHeight: 34)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .disabled(atCurrent)
         .frame(maxWidth: .infinity)
         .accessibilityLabel("Back to the current month")
@@ -186,7 +186,7 @@ struct MonthPickerView: View {
                 .frame(minHeight: 34)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .accessibilityLabel(selecting ? "Done" : "Select several months")
     }
 
@@ -205,7 +205,7 @@ struct MonthPickerView: View {
                 .background(LBColor.chrome.color, in: Circle())
                 .contentShape(Circle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .disabled(!open)
         .accessibilityLabel(delta < 0 ? "Previous year" : "Next year")
     }
@@ -282,7 +282,7 @@ struct MonthPickerView: View {
             .opacity(gated && !isWarned && !isAsking ? 0.38 : 1)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .disabled(!open)
         .accessibilityLabel(isAsking ? "Add data for \(Self.months[index]) \(year)" : "\(Self.months[index]) \(year)")
         .accessibilityValue(gated && !isAsking ? "No charges" : "")

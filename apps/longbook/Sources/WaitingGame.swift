@@ -108,7 +108,7 @@ struct WaitingGame: View {
                     .background(LBColor.brand.color, in: Capsule())
                     .contentShape(Capsule())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .padding(.top, LBSpacing.s1)
         }
         .padding(LBSpacing.s4)
@@ -130,7 +130,7 @@ struct WaitingGame: View {
                 .padding(LBSpacing.s2)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .accessibilityLabel(paused ? "Continue the game" : "Pause the game")
     }
 }

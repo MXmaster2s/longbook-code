@@ -154,7 +154,7 @@ struct DemoLongbookView: View {
                     .background(LBColor.chrome.color, in: Capsule())
                     .contentShape(Capsule())
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .accessibilityLabel("Back")
                 Spacer()
             }
