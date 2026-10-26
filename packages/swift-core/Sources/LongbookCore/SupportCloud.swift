@@ -1,8 +1,8 @@
 import Foundation
 
 /// longbook Support's server: the conversation goes up, the answer streams back as it is
-/// written, then the articles it used. It also rates an answer, emails a code that proves
-/// an address, and sends the conversation to the team. Signed out, a random id is counted.
+/// written, then the articles it used, and a rating on one answer goes up later. Signed out,
+/// a support-only random id is counted.
 public enum SupportCloud {
     public struct Turn: Codable, Sendable, Equatable {
         public let role: String
@@ -47,8 +47,6 @@ public enum SupportCloud {
     }
 
     private struct Reply: Decodable {
-        let sent: Bool?
-        let email: String?
         let error: String?
         let code: String?
     }
@@ -69,7 +67,7 @@ public enum SupportCloud {
         } catch {
             throw Failure.busy("Support can't be reached. Check your connection and try again.")
         }
-        let reply = (try? JSONDecoder().decode(Reply.self, from: data)) ?? Reply(sent: nil, email: nil, error: nil, code: nil)
+        let reply = (try? JSONDecoder().decode(Reply.self, from: data)) ?? Reply(error: nil, code: nil)
         guard (response as? HTTPURLResponse)?.statusCode == 200 else {
             let words = reply.error ?? "That didn't go through. Try again in a minute."
             throw reply.code == "limit" ? Failure.limit(words) : Failure.busy(words)
@@ -80,29 +78,6 @@ public enum SupportCloud {
     /// A thumbs up or down on one answer. Best effort: a lost rating is not worth an error.
     public static func rate(answer id: Int, key: String, up: Bool, askerId: String, token: String?) async {
         _ = try? await post(["action": "feedback", "answer_id": id, "key": key, "rating": up ? "up" : "down"], askerId: askerId, token: token)
-    }
-
-    /// A six-digit code to the address, so the team's reply can go there.
-    public static func requestCode(email: String, askerId: String, token: String?) async throws {
-        _ = try await post(["action": "code", "email": email], askerId: askerId, token: token)
-    }
-
-    /// The conversation to the team: `reply` to a proven address (or the signed-in account's),
-    /// `review` with no address at all. Answers the address the reply will go to.
-    @discardableResult
-    public static func send(
-        _ turns: [Turn], review: Bool, email: String?, code: String?, rating: Bool?, app: String,
-        screenshotPNG: Data?, askerId: String, token: String?
-    ) async throws -> String? {
-        var fields: [String: Any] = [
-            "action": "send", "kind": review ? "review" : "reply", "app": app,
-            "messages": turns.map { ["role": $0.role, "content": $0.content] },
-        ]
-        if let email { fields["email"] = email }
-        if let code { fields["code"] = code }
-        if let rating { fields["rating"] = rating ? "up" : "down" }
-        if let screenshotPNG { fields["screenshot"] = screenshotPNG.base64EncodedString() }
-        return try await post(fields, askerId: askerId, token: token).email
     }
 
     public static func ask(_ turns: [Turn], askerId: String, token: String?) -> AsyncThrowingStream<Event, Error> {
@@ -125,7 +100,7 @@ public enum SupportCloud {
                         var data = Data()
                         for try await byte in bytes { data.append(byte) }
                         let said = try? JSONDecoder().decode(Line.self, from: data)
-                        let words = said?.error ?? "Support couldn't answer just now. Try again in a minute, or tap Email us."
+                        let words = said?.error ?? "Support couldn't answer just now. Try again in a minute, or email the team."
                         throw said?.code == "limit" ? Failure.limit(words) : Failure.busy(words)
                     }
                     for try await line in bytes.lines where line.hasPrefix("data: ") {
@@ -140,7 +115,7 @@ public enum SupportCloud {
                 } catch is CancellationError {
                     continuation.finish()
                 } catch {
-                    continuation.finish(throwing: Failure.busy("Support can't be reached. Check your connection, or tap Email us."))
+                    continuation.finish(throwing: Failure.busy("Support can't be reached. Check your connection, or email the team."))
                 }
             }
             continuation.onTermination = { _ in task.cancel() }

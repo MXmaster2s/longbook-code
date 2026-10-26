@@ -31,4 +31,4 @@ No. The next payment stays in view in the iPhone widget and the Mac menu bar.
 Family Sharing gives each person longbook with their own folder. To show someone your month, share a monthly report: they open a link with a password, no app needed.
 
 ### Still stuck?
-Ask Support for a reply from the team, or write to contact@longbook.app.
+In Support, tap **Ask a person** to open an email to the team, or write to contact@longbook.app.

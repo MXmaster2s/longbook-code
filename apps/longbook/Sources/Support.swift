@@ -3,6 +3,7 @@ import LongbookCore
 import StoreKit
 import SwiftUI
 #if os(iOS)
+import MessageUI
 import UIKit
 typealias SupportImage = UIImage
 #else
@@ -12,7 +13,7 @@ typealias SupportImage = NSImage
 
 /// Support: longbook's AI answering from the help articles, asked about once (the consent
 /// sheet), opened from Settings and Help & about, and from every screen while a conversation
-/// is recent. A person replies by email when asked. The conversation lives on this device.
+/// is recent. A person is reached by the user's own email. The conversation lives on this device.
 @MainActor
 final class SupportCenter: ObservableObject {
     static let shared = SupportCenter()
@@ -22,34 +23,34 @@ final class SupportCenter: ObservableObject {
     private static let reviewAskedKey = "longbook.support.reviewAsked"
     /// A conversation counts as open for a day after its last message.
     private static let openFor: TimeInterval = 24 * 60 * 60
-    static let offer = "Want me to ask someone on the team to reply to you by email?"
+    static let offer = "Want me to open an email to the team with this conversation in it?"
+    static let address = "contact@longbook.app"
 
-    /// Where a reply by email has got to: offered, asking for the address, waiting for the
-    /// code, sending, or sent. Shown as one card at the foot of the conversation.
-    enum ReplyStep: Equatable {
-        case offered
-        case address(error: String?)
-        case code(email: String, error: String?)
-        case sending
-        case sent(email: String)
-        case failed(String)
-    }
-
-    /// What follows a rating: after a thumbs up, the App Store; after a thumbs down, sending
-    /// the conversation to the team to review.
+    /// What follows a rating: after a thumbs up, the App Store; after a thumbs down, an email
+    /// to the team about the answer.
     enum Follow: Equatable {
         case appStore
-        case review(sending: Bool)
-        case reviewed
+        case review
+    }
+
+    /// An email ready for the phone's Mail sheet.
+    struct MailDraft: Identifiable {
+        let id = UUID()
+        let subject: String
+        let body: String
+        let screenshot: Data?
     }
 
     @Published var presented = false
     @Published var askingConsent = false
     @Published private(set) var messages: [SupportMessage] = []
     @Published private(set) var answering = false
-    @Published var replyStep: ReplyStep?
+    /// The offer of an email to the team is waiting for a yes or a no.
+    @Published var offering = false
     @Published var follow: Follow?
-    /// The screen behind Support, taken the moment it opened, and whether it goes to the team.
+    @Published var mailDraft: MailDraft?
+    @Published var mailNote: String?
+    /// The screen behind Support, taken the moment it opened, and whether it goes in the email.
     @Published private(set) var behind: SupportImage?
     @Published var screenshotAttached = false
     private var asking: Task<Void, Never>?
@@ -65,7 +66,7 @@ final class SupportCenter: ObservableObject {
             messages = saved
         }
         // An offer left unanswered last time is still open.
-        if messages.last?.text.contains("reply to you by email?") == true { replyStep = .offered }
+        if messages.last?.text.contains("email to the team") == true { offering = true }
     }
 
     func open() {
@@ -86,8 +87,8 @@ final class SupportCenter: ObservableObject {
 
     func close() {
         presented = false
-        if case .sent = replyStep { replyStep = nil }
-        if follow == .reviewed || follow == .appStore { follow = nil }
+        mailNote = nil
+        if follow == .appStore { follow = nil }
     }
 
     /// A random id for counting questions when signed out, apart from usage data's install id.
@@ -107,7 +108,7 @@ final class SupportCenter: ObservableObject {
     func send(_ text: String, token: String?) {
         let question = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !question.isEmpty, !answering else { return }
-        if replyStep == .offered { replyStep = nil }
+        offering = false
         follow = nil
         messages.append(SupportMessage(role: .user, text: question))
         let turns = turns
@@ -122,13 +123,13 @@ final class SupportCenter: ObservableObject {
                     case .done(let id, let key, let sources, let email):
                         update(answer.id) { $0.serverId = id; $0.serverKey = key; $0.sources = sources }
                         // An answer that ends on the offer gets its buttons, whatever the server said.
-                        if email || (messages.last?.text.contains("reply to you by email") ?? false) { replyStep = .offered }
+                        if email || (messages.last?.text.contains("email to the team") ?? false) { offering = true }
                     }
                 }
             } catch {
                 let words = (error as? SupportCloud.Failure)?.message ?? "Support couldn't answer just now. Try again in a minute."
                 update(answer.id) { $0.text = words; $0.failed = true }
-                replyStep = .offered
+                offering = true
             }
             answering = false
             save()
@@ -150,61 +151,101 @@ final class SupportCenter: ObservableObject {
         asking?.cancel()
         messages = []
         answering = false
-        replyStep = nil
+        offering = false
         follow = nil
         UserDefaults.standard.removeObject(forKey: Self.conversationKey)
         UserDefaults.standard.removeObject(forKey: Self.askerKey)
     }
 
-    // MARK: a person, by email
+    // MARK: a person, by the user's own email
 
-    /// The envelope in the bar: the offer, as if Support had made it.
+    /// The person icon in the bar: the offer, as if Support had made it.
     func askForPerson() {
-        guard replyStep == nil || replyStep == .offered else { return }
         if messages.last?.text != Self.offer {
             messages.append(SupportMessage(role: .assistant, text: Self.offer))
             save()
         }
-        replyStep = .offered
+        offering = true
     }
 
-    /// Yes to the offer: signed in, straight to sending to the account's address; else the address.
-    func acceptReply(email: String?, token: String?) {
-        if let email, token != nil { sendForReply(email: email, code: nil, token: token) } else { replyStep = .address(error: nil) }
-    }
-
-    func requestCode(_ email: String, token: String?) {
-        let address = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        replyStep = .sending
-        Task {
-            do {
-                try await SupportCloud.requestCode(email: address, askerId: askerId, token: token)
-                replyStep = .code(email: address, error: nil)
-            } catch {
-                replyStep = .address(error: (error as? SupportCloud.Failure)?.message)
+    /// The email a person reads: a line to write in, the conversation, and the details.
+    func mailBody(rating: Bool?, limit: Int? = nil) -> String {
+        var said = turns.map { "\($0.role == "user" ? "Me" : "longbook Support"): \($0.content)" }
+        var details = ["App: \(AppVersion.line)", "Device: \(Self.device)"]
+        if let rating { details.append("Rating: \(rating ? "Helpful" : "Not helpful")") }
+        func compose(_ trimmed: Bool) -> String {
+            let log = (trimmed ? ["(Earlier messages trimmed.)"] : []) + said
+            return "Hi longbook team,\n\n\n\n— The conversation —\n\n\(log.joined(separator: "\n\n"))\n\n— Details —\n\(details.joined(separator: "\n"))"
+        }
+        var body = compose(false)
+        // A mailto link carries only so much: the oldest messages go first.
+        if let limit {
+            while body.count > limit, said.count > 1 {
+                said.removeFirst()
+                body = compose(true)
             }
+            if body.count > limit { body = String(body.prefix(limit)) }
+        }
+        return body
+    }
+
+    private static var device: String {
+        #if os(iOS)
+        "\(UIDevice.current.model), iOS \(UIDevice.current.systemVersion)"
+        #else
+        "Mac, macOS \(ProcessInfo.processInfo.operatingSystemVersionString)"
+        #endif
+    }
+
+    /// Opens the user's own email to the team: the phone's Mail sheet or the Mac's mail app,
+    /// with the screenshot when attached; without a mail account, a mailto link instead.
+    func emailTeam(review: Bool, rating: Bool? = nil, openURL: OpenURLAction) {
+        offering = false
+        follow = nil
+        let subject = review ? "longbook Support: an answer that didn't help" : "longbook Support: a question for the team"
+        let shot = screenshotAttached ? behind.flatMap(SupportScreenshot.png) : nil
+        #if os(iOS)
+        if MFMailComposeViewController.canSendMail() {
+            mailDraft = MailDraft(subject: subject, body: mailBody(rating: rating), screenshot: shot)
+            return
+        }
+        if let image = behind, screenshotAttached {
+            UIPasteboard.general.image = image
+            mailNote = "The screenshot is copied. In your email, touch and hold and tap Paste."
+        }
+        #else
+        var items: [Any] = [mailBody(rating: rating)]
+        if let shot, let file = SupportScreenshot.save(shot) { items.append(file) }
+        if let service = NSSharingService(named: .composeEmail) {
+            service.recipients = [Self.address]
+            service.subject = subject
+            if service.canPerform(withItems: items) {
+                service.perform(withItems: items)
+                mailOpened()
+                return
+            }
+        }
+        #endif
+        guard let url = Self.mailto(subject: subject, body: mailBody(rating: rating, limit: 1_800)) else { return }
+        openURL(url) { opened in
+            if opened { self.mailOpened() } else { self.mailNote = "No mail app is set up here. Write to \(Self.address) from any email." ; self.offering = true }
         }
     }
 
-    func sendForReply(email: String, code: String?, token: String?) {
-        replyStep = .sending
-        Task {
-            do {
-                let to = try await SupportCloud.send(
-                    turns, review: false, email: email, code: code, rating: nil, app: AppVersion.line,
-                    screenshotPNG: screenshotPNG, askerId: askerId, token: token)
-                replyStep = .sent(email: to ?? email)
-                messages.append(SupportMessage(role: .assistant, text: "Done. Someone on the team will reply to you at \(to ?? email). You'll get a copy of this conversation there too."))
-                save()
-            } catch let failure as SupportCloud.Failure {
-                replyStep = code == nil ? .failed(failure.message) : .code(email: email, error: failure.message)
-            } catch {
-                replyStep = .failed("That didn't go through. Try again in a minute.")
-            }
+    /// Support's line once the email is open in the user's mail app.
+    func mailOpened() {
+        let words = "Your email to the team is ready. Send it from your mail app and someone will reply to you there."
+        if messages.last?.text != words {
+            messages.append(SupportMessage(role: .assistant, text: words))
+            save()
         }
     }
 
-    private var screenshotPNG: Data? { screenshotAttached ? behind.flatMap(SupportScreenshot.png) : nil }
+    static func mailto(subject: String, body: String) -> URL? {
+        let safe = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~")
+        func encoded(_ text: String) -> String { text.addingPercentEncoding(withAllowedCharacters: safe) ?? "" }
+        return URL(string: "mailto:\(address)?subject=\(encoded(subject))&body=\(encoded(body))")
+    }
 
     // MARK: ratings
 
@@ -216,23 +257,13 @@ final class SupportCenter: ObservableObject {
             // The App Store is asked about once, after the first answer that helped.
             if !UserDefaults.standard.bool(forKey: Self.reviewAskedKey) { follow = .appStore }
         } else {
-            follow = .review(sending: false)
+            follow = .review
         }
     }
 
     func appStoreAsked() {
         UserDefaults.standard.set(true, forKey: Self.reviewAskedKey)
         follow = nil
-    }
-
-    func sendForReview(token: String?) {
-        follow = .review(sending: true)
-        Task {
-            _ = try? await SupportCloud.send(
-                turns, review: true, email: nil, code: nil, rating: false, app: AppVersion.line,
-                screenshotPNG: screenshotPNG, askerId: askerId, token: token)
-            follow = .reviewed
-        }
     }
 }
 
@@ -376,7 +407,47 @@ enum SupportScreenshot {
         #endif
     }
 
+    #if os(macOS)
+    /// The screenshot as a file, for the mail app to attach.
+    static func save(_ png: Data) -> URL? {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("longbook-support", isDirectory: true)
+        let file = folder.appendingPathComponent("longbook screenshot.png")
+        guard (try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)) != nil,
+              (try? png.write(to: file)) != nil else { return nil }
+        return file
+    }
+    #endif
 }
+
+#if os(iOS)
+/// The phone's Mail sheet, addressed to the team and filled, with the screenshot when attached.
+private struct SupportMailView: UIViewControllerRepresentable {
+    let draft: SupportCenter.MailDraft
+    let onDone: (Bool) -> Void
+
+    func makeCoordinator() -> Coordinator { Coordinator(onDone: onDone) }
+
+    func makeUIViewController(context: Context) -> MFMailComposeViewController {
+        let mail = MFMailComposeViewController()
+        mail.mailComposeDelegate = context.coordinator
+        mail.setToRecipients([SupportCenter.address])
+        mail.setSubject(draft.subject)
+        mail.setMessageBody(draft.body, isHTML: false)
+        if let shot = draft.screenshot { mail.addAttachmentData(shot, mimeType: "image/png", fileName: "longbook screenshot.png") }
+        return mail
+    }
+
+    func updateUIViewController(_ controller: MFMailComposeViewController, context: Context) {}
+
+    final class Coordinator: NSObject, MFMailComposeViewControllerDelegate {
+        let onDone: (Bool) -> Void
+        init(onDone: @escaping (Bool) -> Void) { self.onDone = onDone }
+        func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
+            onDone(result == .sent || result == .saved)
+        }
+    }
+}
+#endif
 
 // MARK: the sheet, the panel
 
@@ -390,11 +461,8 @@ struct SupportScreen: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.requestReview) private var requestReview
     @State private var draft = ""
-    @State private var address = ""
-    @State private var code = ""
     @State private var reading: HelpArticle?
     @FocusState private var typing: Bool
-    @FocusState private var filling: Bool
 
     private static let starters = [
         "How do I import a bank statement?",
@@ -402,7 +470,7 @@ struct SupportScreen: View {
         "How do I get a refund?",
         "Where is my data kept?",
     ]
-    private static let greeting = "Hi, I'm longbook's AI. Ask me anything about longbook. Please don't share amounts, or account or card numbers. If I can't help, someone on the team will reply by email."
+    private static let greeting = "Hi, I'm longbook's AI. Ask me anything about longbook. Please don't share amounts, or account or card numbers. If I can't help, I'll open an email to the team for you."
 
     var body: some View {
         VStack(spacing: 0) {
@@ -416,6 +484,14 @@ struct SupportScreen: View {
             HelpArticleView(article: article) { reading = nil }
         }
         #if os(iOS)
+        .measured("support_mail", .sheet, when: center.mailDraft != nil)
+        .sheet(item: $center.mailDraft) { draft in
+            SupportMailView(draft: draft) { sent in
+                center.mailDraft = nil
+                if sent { center.mailOpened() }
+            }
+            .ignoresSafeArea()
+        }
         .presentationDetents([.large])
         .presentationBackground(LBColor.canvas.color)
         #endif
@@ -491,28 +567,24 @@ struct SupportScreen: View {
                                 insertion: .move(edge: .bottom).combined(with: .opacity),
                                 removal: .opacity))
                     }
-                    if let replyStep = center.replyStep { replyCard(replyStep).transition(cardMotion) }
+                    if center.offering { offerCard.transition(cardMotion) }
                     if let follow = center.follow { followCard(follow).transition(cardMotion) }
                     Color.clear.frame(height: 1).id("end")
                 }
                 .padding(LBSpacing.s4)
                 .animation(rise, value: center.messages.count)
-                .animation(spring, value: center.replyStep)
+                .animation(spring, value: center.offering)
                 .animation(spring, value: center.follow)
             }
             .scrollDismissesKeyboard(.interactively)
             .onChange(of: center.messages.last?.text) { _, _ in withAnimation(rise) { scroller.scrollTo("end", anchor: .bottom) } }
             .onChange(of: center.messages.count) { _, _ in withAnimation(rise) { scroller.scrollTo("end", anchor: .bottom) } }
-            .onChange(of: center.replyStep) { _, _ in
-                // A card that grows lays out a beat later; scroll again once it has.
+            .onChange(of: center.offering) { _, _ in
+                // A card lays out a beat later; scroll again once it has.
                 withAnimation(rise) { scroller.scrollTo("end", anchor: .bottom) }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { withAnimation(rise) { scroller.scrollTo("end", anchor: .bottom) } }
             }
             .onChange(of: center.follow) { _, _ in withAnimation(rise) { scroller.scrollTo("end", anchor: .bottom) } }
-            .onChange(of: filling) { _, now in
-                // The keyboard takes a moment to rise; the card follows it up once it has.
-                if now { DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { withAnimation(rise) { scroller.scrollTo("end", anchor: .bottom) } } }
-            }
             .onAppear { scroller.scrollTo("end", anchor: .bottom) }
         }
     }
@@ -681,79 +753,15 @@ struct SupportScreen: View {
             .fixedSize(horizontal: false, vertical: true)
     }
 
-    private func field(_ prompt: String, text: Binding<String>, code: Bool = false) -> some View {
-        TextField(prompt, text: text)
-            .lbText(.bodySM)
-            .textFieldStyle(.plain)
-            .focused($filling)
-            .autocorrectionDisabled()
-            #if os(iOS)
-            .textInputAutocapitalization(.never)
-            .keyboardType(code ? .numberPad : .emailAddress)
-            .textContentType(code ? .oneTimeCode : .emailAddress)
-            #endif
-            .padding(.horizontal, LBSpacing.s3)
-            .padding(.vertical, 9)
-            .background(LBColor.sunken.color, in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous).strokeBorder(LBColor.hairline.color))
-    }
-
-    @ViewBuilder
-    private func replyCard(_ step: SupportCenter.ReplyStep) -> some View {
-        switch step {
-        case .offered:
-            card {
-                HStack(spacing: LBSpacing.s2) {
-                    pill("Yes, ask the team", measure: "support_reply_yes") {
-                        Task {
-                            let token = await auth.accessToken()
-                            withAnimation(spring) { center.acceptReply(email: auth.email, token: token) }
-                        }
-                    }
-                    pill("No thanks", primary: false, measure: "support_reply_no") { withAnimation(spring) { center.replyStep = nil } }
-                }
-                if center.screenshotAttached { note("Your screenshot goes with it.") }
+    /// Yes or no to an email to the team, opened in the user's own mail with this conversation.
+    private var offerCard: some View {
+        card {
+            HStack(spacing: LBSpacing.s2) {
+                pill("Email the team", measure: "support_email_team") { withAnimation(spring) { center.emailTeam(review: false, openURL: openURL) } }
+                pill("No thanks", primary: false, measure: "support_email_no") { withAnimation(spring) { center.offering = false } }
             }
-        case .address(let error):
-            card {
-                Text("Which email should we reply to?").lbText(.bodySM).foregroundStyle(LBColor.textPrimary.color)
-                field("you@example.com", text: $address)
-                    .onSubmit { sendCode() }
-                if let error { note(error, error: true) } else { note("We'll send a code to check it's yours.") }
-                pill("Send code", measure: "support_send_code") { sendCode() }
-                    .disabled(!address.contains("@"))
-            }
-        case .code(let email, let error):
-            card {
-                Text("Enter the code we sent to \(email).").lbText(.bodySM).foregroundStyle(LBColor.textPrimary.color)
-                field("6-digit code", text: $code, code: true)
-                    .onSubmit { sendReply(email) }
-                if let error { note(error, error: true) }
-                HStack(spacing: LBSpacing.s2) {
-                    pill("Send to the team", measure: "support_send_reply") { sendReply(email) }
-                        .disabled(code.filter(\.isNumber).count != 6)
-                    pill("Change email", primary: false, measure: "support_other_email") { code = ""; center.replyStep = .address(error: nil) }
-                }
-            }
-        case .sending:
-            card {
-                HStack(spacing: LBSpacing.s2) {
-                    ProgressView().controlSize(.small)
-                    note("Sending…")
-                }
-            }
-        case .sent:
-            EmptyView()
-        case .failed(let words):
-            card {
-                note(words, error: true)
-                HStack(spacing: LBSpacing.s2) {
-                    pill("Try again", measure: "support_retry") { center.replyStep = .offered }
-                    pill("Write to us", primary: false, measure: "support_write") {
-                        if let url = FeedbackMail.url(subject: "longbook Support") { openURL(url) }
-                    }
-                }
-            }
+            note(center.screenshotAttached ? "Opens your email with this conversation and your screenshot." : "Opens your email with this conversation in it.")
+            if let words = center.mailNote { note(words) }
         }
     }
 
@@ -770,46 +778,16 @@ struct SupportScreen: View {
                     pill("Not now", primary: false, measure: "support_rate_later") { withAnimation(spring) { center.appStoreAsked() } }
                 }
             }
-        case .review(let sending):
+        case .review:
             card {
-                Text("Sorry that didn't help. Can I send this conversation to the longbook team so they can do better?")
+                Text("Sorry that didn't help. Want to email the team about it? I'll open your email with this conversation in it.")
                     .lbText(.bodySM).foregroundStyle(LBColor.textPrimary.color)
                     .fixedSize(horizontal: false, vertical: true)
-                if sending {
-                    HStack(spacing: LBSpacing.s2) { ProgressView().controlSize(.small); note("Sending…") }
-                } else {
-                    HStack(spacing: LBSpacing.s2) {
-                        pill("Send it", measure: "support_review_send") {
-                            Task {
-                                let token = await auth.accessToken()
-                                withAnimation(spring) { center.sendForReview(token: token) }
-                            }
-                        }
-                        pill("No thanks", primary: false, measure: "support_review_no") { withAnimation(spring) { center.follow = nil } }
-                    }
-                    note("No email address goes with it.")
+                HStack(spacing: LBSpacing.s2) {
+                    pill("Email the team", measure: "support_review_send") { withAnimation(spring) { center.emailTeam(review: true, rating: false, openURL: openURL) } }
+                    pill("No thanks", primary: false, measure: "support_review_no") { withAnimation(spring) { center.follow = nil } }
                 }
             }
-        case .reviewed:
-            supportRow { bubble("Thanks, the team will read it.") }
-        }
-    }
-
-    private func sendCode() {
-        guard address.contains("@") else { return }
-        Task {
-            let token = await auth.accessToken()
-            withAnimation(spring) { center.requestCode(address, token: token) }
-        }
-    }
-
-    private func sendReply(_ email: String) {
-        let digits = code.filter(\.isNumber)
-        guard digits.count == 6 else { return }
-        Task {
-            let token = await auth.accessToken()
-            withAnimation(spring) { center.sendForReply(email: email, code: digits, token: token) }
-            code = ""
         }
     }
 
@@ -874,7 +852,7 @@ struct SupportScreen: View {
                 .frame(width: 44, height: 64)
                 .clipShape(RoundedRectangle(cornerRadius: LBRadius.xs, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: LBRadius.xs, style: .continuous).strokeBorder(LBColor.hairline.color))
-            Text("Goes to the team if you ask for a reply, never to the AI. Check it first, it may show amounts.")
+            Text("Goes in your email to the team, never to the AI. Check it first, it may show amounts.")
                 .lbText(.footnote)
                 .foregroundStyle(LBColor.textSecondary.color)
                 .fixedSize(horizontal: false, vertical: true)
@@ -1066,7 +1044,7 @@ struct SupportPrivacyRows: View {
                 Text("Support")
                     .lbText(.body)
                     .foregroundStyle(LBColor.textPrimary.color)
-                Text("Your questions go through our server, which keeps none of them, to Anthropic's Claude, which answers from our help articles. A screenshot goes only to the team, when you ask for a reply by email.")
+                Text("Your questions go through our server, which keeps none of them, to Anthropic's Claude, which answers from our help articles. A screenshot goes only in an email you send the team from your own mail.")
                     .lbText(.bodySM)
                     .foregroundStyle(LBColor.textSecondary.color)
                     .fixedSize(horizontal: false, vertical: true)

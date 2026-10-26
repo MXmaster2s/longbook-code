@@ -32,7 +32,7 @@ Every change your AI makes waits on the **Proposals** screen with its name on it
 
 - Check that you're signed in to the same longbook account in the app and in your AI.
 - Remove the connector and add it again.
-- Still stuck? Ask Support for a reply from the team, and tell us which AI you use and the message it shows.
+- Still stuck? In Support, tap **Ask a person** to open an email to the team, and tell us which AI you use and the message it shows.
 
 Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.
 

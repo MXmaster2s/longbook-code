@@ -16,16 +16,16 @@ To show a problem, describe it, or send a screenshot with the figures cropped or
 
 ## Who answers
 
-longbook Support is an AI. It answers from these help articles, using Anthropic's Claude through longbook's server. When it doesn't know, or you'd rather ask a person, it offers to have someone on the team reply to you by email. It checks your address with a code first, unless you're signed in, then sends the conversation to the team with a copy to you.
+longbook Support is an AI. It answers from these help articles, using Anthropic's Claude through longbook's server. When it doesn't know, or you'd rather ask a person, tap **Ask a person**: it opens your own email to contact@longbook.app with the conversation in it, and you send it yourself. Someone on the team replies to you by email.
 
 ## What Support keeps
 
 - **On your device:** your conversation, so you can come back to it.
 - **On our server:** nothing you wrote. We only count questions, note which articles answered them and how you rated them, and, when an article was missing, a short topic with no names or numbers, so we know what to write next.
-- **In our inbox:** a conversation you ask us to answer or review, as an email.
+- **In our inbox:** only an email you choose to send us.
 - **At Anthropic:** your messages are used only to answer you, kept briefly under its commercial terms, and never used to train its models.
 
-A screenshot never goes to the AI. It goes only with a conversation you choose to send to the team.
+A screenshot never goes to the AI. It goes only in an email you send the team yourself.
 
 ## Forget your conversation
 

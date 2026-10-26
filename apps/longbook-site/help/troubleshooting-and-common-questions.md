@@ -44,7 +44,7 @@ Family Sharing gives each person longbook with their own folder. To show someone
 
 ### Still stuck?
 
-Ask Support for a reply from the team, or write to contact@longbook.app.
+In Support, tap **Ask a person** to open an email to the team, or write to contact@longbook.app.
 
 Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.
 

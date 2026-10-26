@@ -26,7 +26,7 @@ If a family member doesn't see longbook as purchased, check that purchase sharin
 
 ## Charged twice?
 
-Ask Support for a reply from the team, and tell us the date of each charge. Please don't send card numbers. Apple's receipt email is enough.
+In Support, tap **Ask a person** to open an email to the team, and tell us the date of each charge. Please don't send card numbers. Apple's receipt email is enough.
 
 Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.
 

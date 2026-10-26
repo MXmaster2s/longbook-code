@@ -5,8 +5,9 @@
   var ENDPOINT = 'https://xbrnijgctmovoqbbmgmb.supabase.co/functions/v1/support';
   // Public by design: an anon key is meant to ship in client code.
   var ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhicm5pamdjdG1vdm9xYmJtZ21iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3NzQ0NDQsImV4cCI6MjEwMTM1MDQ0NH0.ZamrPyf3UmAmbqzzAcce_Ocb1bKNq19wVxTtaC32a-g';
-  var OFFER = 'Want me to ask someone on the team to reply to you by email?';
-  var GREETING = "Hi, I'm longbook's AI. Ask me anything about longbook. Please don't share amounts, or account or card numbers. If I can't help, someone on the team will reply by email.";
+  var OFFER = 'Want me to open an email to the team with this conversation in it?';
+  var TEAM = 'contact@longbook.app';
+  var GREETING = "Hi, I'm longbook's AI. Ask me anything about longbook. Please don't share amounts, or account or card numbers. If I can't help, I'll open an email to the team for you.";
   var STARTERS = ['How do I import a bank statement?', 'How do I connect Claude or ChatGPT?', 'How do I get a refund?', 'Where is my data kept?'];
   var asker = 'web-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
   var turns = [];
@@ -33,10 +34,9 @@
     '.lbs-pill{border:1px solid var(--lb-hairline);background:var(--lb-card);color:var(--lb-text-primary);border-radius:999px;padding:7px 12px;font:inherit;font-size:14px;cursor:pointer;transition:background .15s}.lbs-pill:hover{background:var(--lb-chrome)}',
     '.lbs-pill.pri{background:var(--lb-brand);border-color:var(--lb-brand);color:var(--lb-on-brand)}.lbs-pill:disabled{opacity:.5;cursor:default}',
     '.lbs-card{margin-left:36px;padding:12px;border-radius:18px;background:var(--lb-card);border:1px solid color-mix(in srgb,var(--lb-brand) 35%,transparent);display:flex;flex-direction:column;gap:10px;animation:lbs-in .3s cubic-bezier(.16,1,.3,1)}',
-    '.lbs-card p{margin:0;font-size:14px}.lbs-card .note{color:var(--lb-text-tertiary);font-size:12px}.lbs-card .err{color:var(--lb-danger,#db5f75);font-size:12px}',
+    '.lbs-card p{margin:0;font-size:14px}.lbs-card .note{color:var(--lb-text-tertiary);font-size:12px}',
     '.lbs-card .acts{display:flex;gap:8px;flex-wrap:wrap}',
-    '.lbs-in{width:100%;box-sizing:border-box;padding:9px 12px;border-radius:12px;border:1px solid var(--lb-hairline);background:var(--lb-sunken);color:var(--lb-text-primary);font:inherit;font-size:15px}',
-    '.lbs-foot{display:flex;gap:8px;align-items:flex-end;padding:12px;background:var(--lb-chrome);border-top:1px solid var(--lb-hairline)}',
+        '.lbs-foot{display:flex;gap:8px;align-items:flex-end;padding:12px;background:var(--lb-chrome);border-top:1px solid var(--lb-hairline)}',
     '.lbs-foot textarea{flex:1;resize:none;max-height:120px;overflow-y:auto;scrollbar-width:none;padding:9px 12px;border-radius:18px;border:1px solid var(--lb-hairline);background:var(--lb-card);color:var(--lb-text-primary);font:inherit;font-size:15px;line-height:1.4}',
     '.lbs-send{width:36px;height:36px;border-radius:50%;border:0;background:var(--lb-brand);color:var(--lb-on-brand);cursor:pointer;display:grid;place-items:center;transform:scale(.4);opacity:0;transition:transform .32s cubic-bezier(.34,1.56,.64,1),opacity .2s;pointer-events:none}',
     '.lbs-send.on{transform:none;opacity:1;pointer-events:auto}',
@@ -197,7 +197,7 @@
       under.appendChild(thumbs);
     }
     if (under.childNodes.length) row.after(under);
-    if (e.email || answer.indexOf('reply to you by email') >= 0) offer();
+    if (e.email || answer.indexOf('email to the team') >= 0) offer();
     scrollEnd();
   }
 
@@ -217,9 +217,30 @@
   }
   function acts() { var a = el('div', 'acts'); for (var i = 0; i < arguments.length; i++) a.appendChild(arguments[i]); return a; }
 
+  // The visitor's own mail app, addressed to the team, with the conversation and the details.
+  // A mailto link carries only so much, so the oldest messages go first.
+  function emailTeam(review, rating) {
+    clearCard();
+    var said = turns.map(function (x) { return (x.role === 'user' ? 'Me' : 'longbook Support') + ': ' + x.content; });
+    var details = ['From: longbook.app' + location.pathname, 'Browser: ' + navigator.userAgent.slice(0, 120)];
+    if (rating) details.push('Rating: ' + (rating === 'up' ? 'Helpful' : 'Not helpful'));
+    function compose(trimmed) {
+      var log = (trimmed ? ['(Earlier messages trimmed.)'] : []).concat(said);
+      return 'Hi longbook team,\n\n\n\n— The conversation —\n\n' + log.join('\n\n') + '\n\n— Details —\n' + details.join('\n');
+    }
+    var body = compose(false);
+    while (body.length > 1800 && said.length > 1) { said.shift(); body = compose(true); }
+    if (body.length > 1800) body = body.slice(0, 1800);
+    var subject = review ? "longbook Support: an answer that didn't help" : 'longbook Support: a question for the team';
+    location.href = 'mailto:' + TEAM + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+    var ready = 'Your email to the team is ready. Send it from your mail app and someone will reply to you there.';
+    supportRow(rich(ready));
+    turns.push({ role: 'assistant', content: ready });
+  }
   function offer() {
     card(function (c) {
-      c.appendChild(acts(pill('Yes, ask the team', true, addressCard), pill('No thanks', false, clearCard)));
+      c.appendChild(acts(pill('Email the team', true, function () { emailTeam(false); }), pill('No thanks', false, clearCard)));
+      c.appendChild(el('p', 'note', 'Opens your email with this conversation in it.'));
     });
   }
   function askForPerson() {
@@ -227,69 +248,10 @@
     if (!last || last.content !== OFFER) { supportRow(rich(OFFER)); turns.push({ role: 'assistant', content: OFFER }); }
     offer();
   }
-  function addressCard(error) {
-    card(function (c) {
-      c.appendChild(el('p', '', 'Which email should we reply to?'));
-      var field = el('input', 'lbs-in');
-      field.type = 'email';
-      field.placeholder = 'you@example.com';
-      field.autocomplete = 'email';
-      c.appendChild(field);
-      c.appendChild(el('p', typeof error === 'string' ? 'err' : 'note', typeof error === 'string' ? error : "We'll send a code to check it's yours."));
-      var go = pill('Send code', true, function () {
-        var email = field.value.trim().toLowerCase();
-        if (email.indexOf('@') < 1) return;
-        go.disabled = true;
-        post({ action: 'code', email: email }).then(function (r) { return r.json().then(function (j) { return [r.ok, j]; }); })
-          .then(function (x) { if (x[0]) codeCard(email); else addressCard(x[1].error || "The code couldn't be sent."); })
-          .catch(function () { addressCard("The code couldn't be sent. Try again in a minute."); });
-      });
-      field.onkeydown = function (e) { if (e.key === 'Enter') go.click(); };
-      c.appendChild(acts(go));
-      setTimeout(function () { field.focus(); }, 50);
-    });
-  }
-  function codeCard(email, error) {
-    card(function (c) {
-      c.appendChild(el('p', '', 'Enter the code we sent to ' + email + '.'));
-      var field = el('input', 'lbs-in');
-      field.inputMode = 'numeric';
-      field.autocomplete = 'one-time-code';
-      field.placeholder = '6-digit code';
-      c.appendChild(field);
-      if (error) c.appendChild(el('p', 'err', error));
-      var go = pill('Send to the team', true, function () {
-        var code = field.value.replace(/\D/g, '');
-        if (code.length !== 6) return;
-        go.disabled = true;
-        post({ action: 'send', kind: 'reply', email: email, code: code, messages: turns, app: 'Website' })
-          .then(function (r) { return r.json().then(function (j) { return [r.ok, j]; }); })
-          .then(function (x) {
-            if (!x[0]) { codeCard(email, x[1].error || "That didn't go through."); return; }
-            clearCard();
-            var done = 'Done. Someone on the team will reply to you at ' + email + ". You'll get a copy of this conversation there too.";
-            supportRow(rich(done));
-            turns.push({ role: 'assistant', content: done });
-          })
-          .catch(function () { codeCard(email, "That didn't go through. Try again in a minute."); });
-      });
-      field.onkeydown = function (e) { if (e.key === 'Enter') go.click(); };
-      c.appendChild(acts(go, pill('Change email', false, addressCard)));
-      setTimeout(function () { field.focus(); }, 50);
-    });
-  }
   function reviewCard() {
     card(function (c) {
-      c.appendChild(el('p', '', "Sorry that didn't help. Can I send this conversation to the longbook team so they can do better?"));
-      var go = pill('Send it', true, function () {
-        go.disabled = true;
-        post({ action: 'send', kind: 'review', rating: 'down', messages: turns, app: 'Website' }).finally(function () {
-          clearCard();
-          supportRow('Thanks, the team will read it.');
-        });
-      });
-      c.appendChild(acts(go, pill('No thanks', false, clearCard)));
-      c.appendChild(el('p', 'note', 'No email address goes with it.'));
+      c.appendChild(el('p', '', "Sorry that didn't help. Want to email the team about it? I'll open your email with this conversation in it."));
+      c.appendChild(acts(pill('Email the team', true, function () { emailTeam(true, 'down'); }), pill('No thanks', false, clearCard)));
     });
   }
 
