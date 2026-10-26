@@ -412,7 +412,7 @@ struct StatementsSettingsPane: View {
                 Toggle("Add accounts and people found in statements", isOn: $addsFound.measured("add_accounts_and_people_found"))
             } footer: {
                 SettingsNote(addsFound
-                    ? "When you import a statement, every account and person it names is added to Accounts and People, the other side of a transfer too."
+                    ? "When you import a statement, its account and every person it names are added to Accounts and People."
                     : "Off: statements still name them for your AI, but Accounts and People list only what you add.")
             }
             Section {
@@ -423,7 +423,7 @@ struct StatementsSettingsPane: View {
                     }
                 }
             } footer: {
-                SettingsNote("Your commitments, accounts and people, kept in your longbook as hints for reading statements, by longbook’s AI or yours.")
+                SettingsNote("Your answers are kept as hints for reading your statements. They aren’t added to People or Accounts.")
             }
             Section {
                 LabeledContent("Import a statement") {

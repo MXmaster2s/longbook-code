@@ -36,6 +36,45 @@ public struct CommitmentPlaceholder: Identifiable, Equatable, Sendable, Codable 
     var raw: [String: String] { ["id": id, "name": name, "group": group, "tag": tag] }
 }
 
+/// A person or an account picked at setup, by role or kind — "Cook", "Savings account" —
+/// kept in the vault as `hints` for reading statements. Never a member or an account: one
+/// becomes real only when a statement or the owner names it.
+public struct SetupHint: Identifiable, Equatable, Sendable, Codable {
+    public enum Kind: String, Codable, Sendable { case member, account }
+
+    public let id: String
+    public let name: String
+    public let kind: Kind
+    /// The tag the person or account would wear: a role, or an account type.
+    public let tag: String?
+
+    public init(id: String = UUID().uuidString.lowercased(), name: String, kind: Kind, tag: String? = nil) {
+        self.id = id
+        self.name = name
+        self.kind = kind
+        self.tag = tag
+    }
+
+    enum CodingKeys: String, CodingKey { case id, name, kind, tag }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(String.self, forKey: .id)
+        name = try c.decode(String.self, forKey: .name)
+        guard !name.trimmingCharacters(in: .whitespaces).isEmpty else {
+            throw DecodingError.dataCorruptedError(forKey: .name, in: c, debugDescription: "a hint has a name")
+        }
+        kind = try c.decode(Kind.self, forKey: .kind)
+        tag = try c.decodeIfPresent(String.self, forKey: .tag).flatMap { $0.isEmpty ? nil : $0 }
+    }
+
+    var raw: [String: Any] {
+        var out: [String: Any] = ["id": id, "name": name, "kind": kind.rawValue]
+        if let tag, !tag.isEmpty { out["tag"] = tag }
+        return out
+    }
+}
+
 public enum CommitmentSuggestions {
     public struct Group: Identifiable, Equatable, Sendable {
         public let name: String

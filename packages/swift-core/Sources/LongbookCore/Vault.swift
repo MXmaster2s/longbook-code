@@ -222,10 +222,14 @@ public struct FamilyMember: Codable, Identifiable {
     public var avatarSeed: String?
     public var email: String?               // where a shared report reaches them; never required
     public var photo: String?               // their picture: a file under the folder's people/, written by the app
+    /// Starred by the owner: listed first, and kept in the Mac sidebar. Absent reads as not.
+    public var starred: Bool?
     public var createdAt: String?
 
+    public var isStarred: Bool { starred == true }
+
     enum CodingKeys: String, CodingKey {
-        case id, name, tag, details, email, photo
+        case id, name, tag, details, email, photo, starred
         case nameKey = "name_key"
         case isIncomplete = "is_incomplete"
         case avatarSeed = "avatar_seed"
@@ -269,7 +273,11 @@ public struct PaymentMethod: Codable, Identifiable {
     public var balance: Double?
     public var balanceDate: String?
     public var photo: String?               // its picture: a file under the folder's images/, written by the Mac app
+    /// Starred by the owner: listed first, and kept in the Mac sidebar. Absent reads as not.
+    public var starred: Bool?
     public var createdAt: String?
+
+    public var isStarred: Bool { starred == true }
 
     /// The details key a vault may hold a card's printed name under. Edit Account shows it as a
     /// line of the notes, and its Save takes it out of details.
@@ -279,7 +287,7 @@ public struct PaymentMethod: Codable, Identifiable {
     public var linkedAccountId: String? { parentAccountId }
 
     enum CodingKeys: String, CodingKey {
-        case id, name, tag, details, nickname, institution, last4, balance, notes, photo
+        case id, name, tag, details, nickname, institution, last4, balance, notes, photo, starred
         case nameKey = "name_key"
         case isIncomplete = "is_incomplete"
         case familyMemberId = "member_id"
@@ -411,9 +419,11 @@ public struct Vault: Codable {
     public var groups: [VaultGroup]?
     /// Named at setup, waiting for details. Absent means nothing waits.
     public var toFillIn: [CommitmentPlaceholder]?
+    /// People and accounts picked at setup, kept as hints for reading statements.
+    public var hints: [SetupHint]?
 
     enum CodingKeys: String, CodingKey {
-        case app, version, tags, groups, charges
+        case app, version, tags, groups, charges, hints
         case toFillIn = "to_fill_in"
         case subscriptions = "commitments"
         case familyMembers = "members"
@@ -440,13 +450,14 @@ public struct Vault: Codable {
             .compactMap(\.value) ?? []
         groups = try c.decodeIfPresent([VaultGroup].self, forKey: .groups)
         toFillIn = (try? c.decodeIfPresent([Lossy<CommitmentPlaceholder>].self, forKey: .toFillIn))?.compactMap(\.value)
+        hints = (try? c.decodeIfPresent([Lossy<SetupHint>].self, forKey: .hints))?.compactMap(\.value)
     }
 
     public init(
         app: String, version: Int = VAULT_FORMAT_VERSION, subscriptions: [Subscription],
         familyMembers: [FamilyMember] = [], paymentMethods: [PaymentMethod] = [],
         tags: [TagDef]? = nil, charges: [ChargeRow] = [], groups: [VaultGroup]? = nil,
-        toFillIn: [CommitmentPlaceholder]? = nil
+        toFillIn: [CommitmentPlaceholder]? = nil, hints: [SetupHint]? = nil
     ) {
         self.app = app
         self.version = version
@@ -456,6 +467,7 @@ public struct Vault: Codable {
         self.tags = tags
         self.charges = charges
         self.toFillIn = toFillIn
+        self.hints = hints
         self.groups = groups
     }
 }

@@ -37,7 +37,9 @@ export const INSTRUCTIONS =
   `withdrawals, own transfers — unless the owner wants one remembered (direction "transfer", ` +
   `shown, never summed), or the memory holds that bill as a transfer row: add_charges on ` +
   `it, paid. Direction rides along a promotion. Tags from the library first; members only ` +
-  `when the owner named them. When commitments answers with to_fill_in, those names come first. accounts and members list ` +
+  `when the owner named them. When commitments answers with to_fill_in, those names come first. hints are the people and ` +
+  `accounts the owner picked at setup, by role or kind: read statements with them in mind, and add one as a person or an ` +
+  `account only once a statement or the owner names it. accounts and members list ` +
   `what the memory holds; update_account and update_person change them. Write in one batch, then ` +
   `stop and say "review it in the app's Proposals screen" — the owner keeps or undoes it ` +
   `there; never loop write-review-rewrite. Never write a card number, CVV, ` +
@@ -68,18 +70,36 @@ export const INSTRUCTIONS =
 
 /**
  * The instructions for one connection: the working method, plus the names waiting in
- * to_fill_in when the memory holds any, so an agent knows its first job at connect time.
+ * to_fill_in and the hints setup kept, when the memory holds any, so an agent knows its
+ * first job at connect time.
  */
-export function instructionsFor(data: Pick<LoadedData, 'toFillIn'> | null): string {
+export function instructionsFor(data: Pick<LoadedData, 'toFillIn' | 'hints'> | null): string {
   const waiting = data?.toFillIn ?? []
-  if (waiting.length === 0) return INSTRUCTIONS
+  const hinted = hintsSentence(data?.hints ?? [])
+  if (waiting.length === 0) return hinted ? `${INSTRUCTIONS} ${hinted}` : INSTRUCTIONS
   return (
     `${INSTRUCTIONS} Waiting in to_fill_in, named by the owner without details: ` +
     `${waiting.map((p) => `“${p.name}”`).join(', ')}. These come first: search every statement for ` +
     `each one by name, loosely (a person paid on the 1st can be a salary), and write what you ` +
     `find with add_commitments under the same name. For the rest, ask the owner in one table — ` +
     `commitment | your question | your best guess — and say a spoken answer is fine. If the ` +
-    `statements do not reach far enough, ask for older or longer statements before guessing.`
+    `statements do not reach far enough, ask for older or longer statements before guessing.` +
+    (hinted ? ` ${hinted}` : '')
+  )
+}
+
+/** The words for the people and accounts setup kept as hints, quoted; empty when none. */
+export function hintsSentence(hints: NonNullable<LoadedData['hints']>): string {
+  if (hints.length === 0) return ''
+  const quoted = (kind: 'member' | 'account') => hints.filter((h) => h.kind === kind).map((h) => `“${h.name}”`).join(', ')
+  const people = quoted('member')
+  const accounts = quoted('account')
+  const said = [people ? `people ${people}` : '', accounts ? `accounts ${accounts}` : ''].filter(Boolean).join('; ')
+  return (
+    `Hints from setup, picked by the owner by role or kind: ${said}. Read statements with them in mind: ` +
+    `a payment to a person each month may be the cook, a statement's account may be the savings account. ` +
+    `They are not in members or accounts, so never write a charge to a hint's name; add the person or the ` +
+    `account under the name the statement or the owner gives, with add_person or add_account.`
   )
 }
 

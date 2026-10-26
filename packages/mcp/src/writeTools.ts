@@ -1129,6 +1129,13 @@ function describeAccount(vault: RawVault, rows: Record<string, unknown>[], row: 
     if (typeof row.balance !== 'number') throw new VaultWriteError('This account holds no balance to date — give balance with balance_date.')
     row.balance_date = set.balance_date
   }
+  if (set.starred !== undefined) setStar(row, set.starred)
+}
+
+/** The star as the app writes it: true when set, and no key at all when not. */
+function setStar(row: Record<string, unknown>, starred: boolean): void {
+  if (starred) row.starred = true
+  else delete row.starred
 }
 
 /** What describes a person, written onto their row: mirrors VaultPatch.setEntityDetails for a member. */
@@ -1140,6 +1147,7 @@ function describeMember(vault: RawVault, row: Record<string, unknown>, set: Memb
     row.tag = tag
     if (tag) ensureTag(vault, 'member', tag, now)
   }
+  if (set.starred !== undefined) setStar(row, set.starred)
 }
 
 export function updateAccount(dir: string, editedBy: string, input: UpdateAccountInput): unknown {

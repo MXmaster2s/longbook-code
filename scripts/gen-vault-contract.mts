@@ -15,7 +15,7 @@ import { PROMPTS, PROMPT_GROUPS } from '../packages/core/src/prompts'
 // Source of truth. REFUND_DAYS must match StoreClient.refundDays in the app; PRICE_USD and
 // CLOUD_USD are prose only (App Store Connect owns the real prices) — all are named here so a change is one grep away.
 const DATA_FORMAT_VERSION = 3
-const CONTRACT_REVISION = 45 // the Changes screen is called Proposals. 44: read before writing: read_guide hands out a guide_key, every write passes it back, and a write without one is warned. 43: pay upfront: a 7-day refund replaces the trial, and a purchase includes 12 months of Cloud. 42: pictures: accounts, commitments and tags may carry a photo too, all under images/. 41:people: the tools are people, spending_by_person, add_person and update_person; a person may carry a photo; a tag's icon is one of the library's. 40:the weekly page prompt; 39: every prompt names "my longbook"; the trial is three days; a
+const CONTRACT_REVISION = 45 // the Changes screen is called Proposals; setup's people and accounts are hints[]; a person or an account may be starred. 44: read before writing: read_guide hands out a guide_key, every write passes it back, and a write without one is warned. 43: pay upfront: a 7-day refund replaces the trial, and a purchase includes 12 months of Cloud. 42: pictures: accounts, commitments and tags may carry a photo too, all under images/. 41:people: the tools are people, spending_by_person, add_person and update_person; a person may carry a photo; a tag's icon is one of the library's. 40:the weekly page prompt; 39: every prompt names "my longbook"; the trial is three days; a
 const REFUND_DAYS = 7
 const PRICE_USD = 38
 const CLOUD_USD = 4
@@ -177,6 +177,7 @@ function schema(): object {
             avatar_seed: { type: 'string', description: 'Cosmetic only.' },
             email: { type: ['string', 'null'], description: 'Where a shared report reaches them; never required.' },
             photo: { type: ['string', 'null'], description: 'Their picture: a file name under the longbook folder\'s images/ folder, written by the app. Never a URL; it never leaves the folder. Read it, never write it.' },
+            starred: { type: 'boolean', description: 'True when the owner starred them: listed first on People, and in the Mac sidebar. Absent means not starred. Set only when the owner asks.' },
             created_at: { type: 'string' },
           },
         },
@@ -227,6 +228,7 @@ function schema(): object {
               format: 'date',
               description: "The day the balance was true, YYYY-MM-DD — a statement's closing date, or the day the owner typed it.",
             },
+            starred: { type: 'boolean', description: 'True when the owner starred it: listed first on Accounts, and in the Mac sidebar. Absent means not starred. Set only when the owner asks.' },
             created_at: { type: 'string' },
           },
         },
@@ -310,6 +312,20 @@ function schema(): object {
             name: { type: 'string', description: 'The name as the owner ticked or typed it.' },
             group: { type: 'string', description: 'The setup group it came from, e.g. "Household help".' },
             tag: { type: 'string', description: 'The library tag it will wear when it becomes a commitment.' },
+          },
+        },
+      },
+      hints: {
+        type: 'array',
+        description: 'People and accounts the owner picked at setup, by role or by kind — "Cook", "Savings account" — kept as hints for reading statements. Not members and not accounts: nothing is billed to a hint and nothing points at one. A hint becomes a real person or account only when a statement or the owner names it, under that name. Optional; a vault without this array holds no hints.',
+        items: {
+          type: 'object',
+          required: ['id', 'name', 'kind'],
+          properties: {
+            id: { type: 'string', description: 'Stable id; preserve it.' },
+            name: { type: 'string', description: 'The role or kind as the owner picked it, e.g. "Cook", "Credit card".' },
+            kind: { enum: ['member', 'account'], description: 'Whether it hints at a person or an account.' },
+            tag: { type: 'string', description: 'The tag the person or account would wear: a member role, or an account type such as "bank account".' },
           },
         },
       },
@@ -552,13 +568,20 @@ statements hold:
   name with no line at all — ask for older or longer statements before you guess. A guess
   written as a fact is the one mistake the owner cannot see in the Proposals screen.
 
-**Setup's accounts and people come first too.** Setup also wrote accounts named by their kind
-— "Savings account", "Credit card" — and people named by their role — "Maid", "Cook" — beside
-"Self", the owner. Put each statement on the account of its kind and rename that account to
-the statement's own first (\`update_account\`, "HDFC savings 4521"); then write its charges
-under the new name, since a charge written to a name the memory does not hold makes a new
-account. Rename a role's person with \`update_person\` once the owner gives the name. Never
-add either twice, and never add the owner again.
+**Setup's hints come with them.** Setup also asked which accounts the owner pays from and who
+they pay, and kept the answers in \`hints\` — accounts by their kind, "Savings account",
+"Credit card", and people by their role, "Maid", "Cook". Hints are not accounts or people:
+nothing is billed to one. Read each statement with them in mind — a monthly payment to Sunita
+may be the cook, the statement's account may be the savings account — and add the account or
+person under the name the statement or the owner gives (\`add_account\`, \`add_person\`,
+"HDFC savings 4521", "Sunita"), never under the hint's own word. Both doors show them beside
+\`to_fill_in\`: in the instructions at connect, in \`whoami\`, and in every \`commitments\`
+answer with its \`hints_note\`. An older setup wrote accounts and people by kind and role as
+real rows instead: put each statement on the account of its kind and rename that account to
+the statement's own first (\`update_account\`); then write its charges under the new name, since
+a charge written to a name the memory does not hold makes a new account. Rename a role's person
+with \`update_person\` once the owner gives the name. "Self" is the owner. Never add either
+twice, and never add the owner again.
 
 **1. Say where you are in time.** Before reading a line, name what the statement covers and
 where today is: "HDFC savings, 1–31 July 2026; today is 4 September, so this is two months
@@ -998,6 +1021,15 @@ every one with what it holds.
 \`add_person\` and \`add_account\` make a person or an account the owner named, with what is
 known — a name already held is refused rather than doubled; \`update_person\` and
 \`update_account\` change one that exists. Name a person only when the owner did.
+
+**A star keeps one first.** The owner stars the people and accounts they look at most:
+\`starred: true\` lists them first on People and Accounts, and only starred ones stand in
+the Mac sidebar. \`update_person\` and \`update_account\` take \`starred\` in their set; set it
+only when the owner asks, never to tidy.
+
+**Hints are not people or accounts.** \`hints[]\` holds what setup asked: people by role
+("Cook") and accounts by kind ("Savings account"). Use them to read statements, and add the
+real person or account under the name a statement or the owner gives; leave the hint alone.
 
 **A person's tag is their role in the owner's finances** — landlord, household help,
 family, tenant, a professional they pay. Set it with \`update_person\` when the owner says
@@ -1548,7 +1580,8 @@ number, an account number, an OTP or a tax id anywhere.
   user | mark_paid | plan | email), note, written_at. The only place an occurrence exists.
 - \`members[]\`, \`accounts[]\` — who a commitment is for, and what it is billed to. The \`people\`
   tool lists the first; the file keeps its older key. Both carry
-  a tag, and details — longbook's own, read as stored, never written; an account also notes
+  a tag, details — longbook's own, read as stored, never written — and starred (true when
+  the owner starred one to keep it first; set it only when they ask); an account also notes
   (its details, one per line, a card's name among them), member_id (the person it belongs
   to) and parent_account_id (its linked account).
 - \`tags[]\` — the vocabulary: kind (commitment | member | account), name and icon. No tag
@@ -1561,6 +1594,10 @@ number, an account number, an OTP or a tax id anywhere.
   statement, and nobody has filled in: id, name, group, tag. Not commitments. Find each
   one's amount and day, write it with \`add_commitments\` under the same name, and the entry
   goes; ask the owner for what you cannot find.
+- \`hints[]\` — optional; people and accounts the owner picked at setup by role or kind: id,
+  name, kind (member | account), tag. Not members or accounts, and nothing points at one. Read
+  statements with them in mind; add the person or account under the name a statement or the
+  owner gives, and leave the hint alone.
 - \`_provenance\` — optional map keyed by record id: who last edited it, when, from what source.
   longbook adds \`reviewed_by\`/\`reviewed_at\` when the owner keeps your change and keeps an
   entry for a row it removed; leave both alone and replace the whole entry when you edit a row.

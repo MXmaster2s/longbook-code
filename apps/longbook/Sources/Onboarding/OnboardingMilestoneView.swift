@@ -11,6 +11,8 @@ struct OnboardingMilestoneView: View {
         /// What the row waits for: "Add amount later", "Add balance later".
         let badge: String
         let tag: String?
+        /// A hint: the badge is drawn as a tinted pill.
+        var isHint = false
         var id: String { name }
     }
 
@@ -25,10 +27,12 @@ struct OnboardingMilestoneView: View {
     let onContinue: () -> Void
     let onBack: () -> Void
     var secondary: (title: String, action: () -> Void)? = nil
+    /// The secondary returns to the cards, so the forward keys follow the primary instead.
+    var secondaryGoesBack = false
     /// Setup reopened from More: the way out.
     var onClose: (() -> Void)? = nil
 
-    private var onForward: () -> Void { secondary?.action ?? onContinue }
+    private var onForward: () -> Void { secondaryGoesBack ? onContinue : (secondary?.action ?? onContinue) }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -106,9 +110,18 @@ struct OnboardingMilestoneView: View {
                     .background(LBColor.chrome.color, in: RoundedRectangle(cornerRadius: LBRadius.xs, style: .continuous))
             }
             Spacer(minLength: LBSpacing.s2)
-            Text(row.badge)
-                .lbText(.footnote)
-                .foregroundStyle(LBColor.textTertiary.color)
+            if row.isHint {
+                Text(row.badge)
+                    .lbText(.footnote)
+                    .foregroundStyle(LBColor.brandText.color)
+                    .padding(.horizontal, LBSpacing.s2)
+                    .padding(.vertical, 2)
+                    .background(LBColor.brand.color.opacity(0.16), in: Capsule())
+            } else {
+                Text(row.badge)
+                    .lbText(.footnote)
+                    .foregroundStyle(LBColor.textTertiary.color)
+            }
         }
         .padding(.horizontal, LBSpacing.s4)
         .padding(.vertical, LBSpacing.s3)
