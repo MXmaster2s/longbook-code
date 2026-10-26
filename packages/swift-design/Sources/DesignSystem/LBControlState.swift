@@ -3,10 +3,9 @@ import SwiftUI
 import AppKit
 #endif
 
-/// The Mac's control states, after Apple's Human Interface Guidelines: a hover wash only on
-/// what answers a click, a pressed look at once, the accent ring for the keyboard only,
-/// disabled at 40%, and a selection that greys when its window is not in front. Each theme
-/// draws its own values; the iPhone keeps the system's plain press.
+/// The Mac's control states, after Apple's guidelines: hover only on what answers a click,
+/// pressed at once, the accent ring for the keyboard only, disabled at 40%, and a selection
+/// that greys when its window is not in front.
 public enum LBState {
     /// Under the pointer: white 7% on dark, black 5% on light. Fades in over 0.12 s.
     public static let hover = LBStateWash(dark: (white: 1, alpha: 0.07), light: (white: 0, alpha: 0.05))
