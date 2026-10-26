@@ -4,6 +4,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { hasCloud } from '../_shared/has-cloud.ts'
 import { shareFor, withinShare } from '../_shared/statement-shares.ts'
+import { COUNTERPART_INSTRUCTIONS, COUNTERPART_PROPERTIES, COUNTERPART_REQUIRED, tidyCounterparts } from '../_shared/statement-counterpart.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
@@ -73,7 +74,7 @@ interface Request_ {
 
 const CHARGE = {
   type: 'object', additionalProperties: false,
-  required: ['date', 'amount', 'name', 'narration', 'account', 'category', 'kind', 'member'],
+  required: ['date', 'amount', 'name', 'narration', 'account', 'category', 'kind', 'member', ...COUNTERPART_REQUIRED],
   properties: {
     date: { type: 'string', description: 'YYYY-MM-DD' },
     amount: { type: 'number' },
@@ -83,6 +84,7 @@ const CHARGE = {
     category: { type: ['string', 'null'], description: 'One of the given categories, or null' },
     kind: { type: 'string', enum: ['spend', 'for_member', 'fee', 'own_transfer', 'card_bill', 'income'] },
     member: { type: ['string', 'null'], description: 'The member this is for, when kind is for_member' },
+    ...COUNTERPART_PROPERTIES,
   },
 }
 
@@ -164,6 +166,7 @@ function chargesInstructions(body: Request_): string {
       : 'Name the account from the header (bank, kind, last four digits when printed), e.g. "HDFC savings 4417" or "Axis card 4402".',
     'Mark the kind of every line. spend: money that bought something. fee: a bank charge, tax or interest paid. for_member: money paid for or to a person in the owner\'s life (a cook, a child\'s school, a spouse), naming the member. own_transfer: money moved between the owner\'s own accounts, to the owner\'s own name, ATM withdrawals, wallet loads (Paytm, PhonePe, Amazon Pay balance, Google Pay top-up). card_bill: a payment of a credit card bill, including through CRED, Cheq or a bank\'s "CC payment" line. income: salary, refunds, cashback, interest received, an advance received, anything credited.',
     'A member is named only when the line itself carries that person\'s name. Never put a person on a merchant, a shop or a payee whose name is not theirs, and never guess a person from a role or an amount; when unsure, member is null and the kind is spend.',
+    COUNTERPART_INSTRUCTIONS,
     'The statement\'s own columns settle the kind before its words do: a line in the credit column (Cr, Deposit, Credit), or after which the running balance rose, is income whatever the narration says; a line in the debit column (Dr, Withdrawal) is money out even when the narration reads like a receipt.',
     'A scanned page is read as printed: every line of the table, however faint; a digit that cannot be read is said so in notes rather than guessed.',
     `Categories, use exactly these words or null: ${body.categories.join(', ')}.`,
@@ -453,5 +456,7 @@ Deno.serve(async (req: Request) => {
   const { error: kept } = await service.rpc('statement_import_spend', { p_user: user.id, p_import: importId, p_tokens: asked.tokens })
   if (kept) console.error('ledger update', kept.message)
   if (!asked.ok) return asked.response
-  return json({ ...asked.result, model: asked.model, tokens: asked.tokens, budget_left: Math.max(0, allowance - asked.tokens) })
+  // Both readers' answers pass the same tidy: no counterpart leaves with more than four digits.
+  const result = body.task === 'charges' ? tidyCounterparts(asked.result) : asked.result
+  return json({ ...result, model: asked.model, tokens: asked.tokens, budget_left: Math.max(0, allowance - asked.tokens) })
 })
