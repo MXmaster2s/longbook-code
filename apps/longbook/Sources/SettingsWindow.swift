@@ -412,7 +412,7 @@ struct StatementsSettingsPane: View {
                 Toggle("Add accounts and people found in statements", isOn: $addsFound.measured("add_accounts_and_people_found"))
             } footer: {
                 SettingsNote(addsFound
-                    ? "When you import a statement, its account and every person it names are added to Accounts and People."
+                    ? "When you import a statement, its account, the accounts its transfers and card payments go to, and every person it names are added to Accounts and People."
                     : "Off: statements still name them for your AI, but Accounts and People list only what you add.")
             }
             Section {
