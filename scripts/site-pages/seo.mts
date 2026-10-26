@@ -294,7 +294,11 @@ const SECURITY = [
 // reaches with ?v=<hash> a year, since a change is a new address; fonts a month; the rest,
 // linked by a bare path, a day.
 const ONE_YEAR = '  Cache-Control: public, max-age=31536000, immutable'
+// The Support scripts load from every page by a bare path: checked on each visit instead.
+const REVALIDATE = '  Cache-Control: public, max-age=0, must-revalidate'
 const CACHE = [
+  '/support.js', REVALIDATE, '',
+  '/support-chat.js', REVALIDATE, '',
   '/tokens.css', ONE_YEAR, '',
   '/site.css', ONE_YEAR, '',
   '/features/features.css', ONE_YEAR, '',
