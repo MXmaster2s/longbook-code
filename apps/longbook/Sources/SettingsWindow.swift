@@ -70,7 +70,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         switch self {
         case .account: ["Account", "Email", "Plan", "Purchase", "longbook Cloud", "Subscription", "Sign Out", "Refund", "Delete Account"]
         case .general: ["About", "Software Update", "Check for updates", "What’s New", "Home currency", "Login Items", "Launch at login",
-                        "Menu Bar", "Dock", "Help", "Feedback", "Tips", "Demo", "Suggest a feature", "Report a problem", "Contact",
+                        "Menu Bar", "Dock", "Help", "Support", "Feedback", "Tips", "Demo", "Suggest a feature", "Report a problem", "Contact",
                         "Terms", "Privacy policy", "Source code", "Version"]
         case .appearance: ["Automatic", "Light", "Dark", "Theme"]
         case .ai: ["Claude", "ChatGPT", "MCP", "Access", "Keys", "Proposals", "Reorganise", "Prompts", "Shortcuts", "Siri", "Spotlight"]
@@ -123,10 +123,6 @@ struct SettingsWindowView: View {
             .frame(minWidth: 760, idealWidth: 820, minHeight: 540, idealHeight: 640)
             .background(CentersSheets())
             .preferredColorScheme((LBAppearance(rawValue: appearance) ?? .dark).colorScheme)
-            .overlay(alignment: .bottomTrailing) {
-                SupportButton { toMainWindow(.longbookSupport) }
-                    .padding(LBSpacing.s6)
-            }
             .onAppear { model.loadIfNeeded() }
     }
 
@@ -248,8 +244,9 @@ struct SettingsNavigator {
     let screens: Binding<[Destination]>
 }
 
-/// One pane's own stack, with back and forward in the toolbar as System Settings has them. A
-/// pushed page names itself in the toolbar; the pane's root is named by its header card.
+/// One pane's own stack, titled as System Settings is: the pane's root has no bar of its own and is
+/// named by its header card; a pushed page puts a back button and its name in the title bar. ⌘[ and
+/// ⌘] go back and forward.
 struct SettingsStack<Root: View>: View {
     let model: DashboardModel
     @ObservedObject var auth: AuthViewModel
@@ -271,34 +268,42 @@ struct SettingsStack<Root: View>: View {
                         .navigationTitle(page.title)
                         .navigationBarBackButtonHidden(true)
                         .environment(\.lbPageHeader, nil)
-                        .environment(\.lbPageTitleHidden, false)
+                        // Where the title bar names the page, the page draws no second title.
+                        .environment(\.lbPageTitleHidden, !page.title.isEmpty)
+                        .toolbar {
+                            ToolbarItem(placement: .navigation) {
+                                Button {
+                                    Measure.used("settings_back")
+                                    back()
+                                } label: {
+                                    Label("Back", systemImage: "chevron.left")
+                                }
+                                .help("Back")
+                                .keyboardShortcut("[", modifiers: .command)
+                            }
+                        }
                 }
         }
-        .toolbar {
-            ToolbarItem(placement: .navigation) {
-                ControlGroup {
-                    Button {
-                        Measure.used("settings_back")
-                        guard let last = path.popLast() else { return }
-                        ahead.append(last)
-                    } label: {
-                        Label("Back", systemImage: "chevron.left")
-                    }
-                    .disabled(path.isEmpty)
-                    .keyboardShortcut("[", modifiers: .command)
-                    Button {
-                        Measure.used("settings_forward")
-                        guard let next = ahead.popLast() else { return }
-                        path.append(next)
-                    } label: {
-                        Label("Forward", systemImage: "chevron.right")
-                    }
-                    .disabled(ahead.isEmpty)
-                    .keyboardShortcut("]", modifiers: .command)
-                }
-                .controlGroupStyle(.navigation)
+        // Forward has no button, as in System Settings; its shortcut lives here, out of sight.
+        .background {
+            Button {
+                Measure.used("settings_forward")
+                guard let next = ahead.popLast() else { return }
+                path.append(next)
+            } label: {
+                EmptyView()
             }
+            .keyboardShortcut("]", modifiers: .command)
+            .disabled(ahead.isEmpty)
+            .opacity(0)
+            .frame(width: 0, height: 0)
+            .accessibilityHidden(true)
         }
+    }
+
+    private func back() {
+        guard let last = path.popLast() else { return }
+        ahead.append(last)
     }
 
     private func open(_ page: SettingsPage) {
@@ -929,6 +934,12 @@ struct HelpSettingsPage: View {
                 }
             }
             Section {
+                LabeledContent("longbook Support") {
+                    Button("Ask Support…") {
+                        Measure.used("about_ask_support")
+                        toMainWindow(.longbookSupport)
+                    }
+                }
                 LabeledContent("Send feedback") {
                     Button("Write…") {
                         Measure.used("about_send_feedback")
