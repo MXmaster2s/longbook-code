@@ -134,6 +134,7 @@ struct RootView: View {
     @State private var model = AppSession.shared.model
     @StateObject private var auth = AppSession.shared.auth
     @StateObject private var entitlement = AppSession.shared.entitlement
+    @Environment(\.openSettings) private var openSettings
     #else
     @State private var model = DashboardModel()
     @StateObject private var auth = AuthViewModel()
@@ -656,6 +657,16 @@ struct RootView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .longbookSupport)) { _ in
             support.open()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .longbookShowDemo)) { _ in
+            showingDemo = true
+        }
+        // Settings is a window of its own on the Mac: anything that still asks for the
+        // Settings screen here opens the window instead.
+        .onChange(of: path) { _, new in
+            guard new.last == .more else { return }
+            path.removeLast()
+            openSettings()
         }
         .measured("root_importing_statement", .sheet, when: importingStatement)
         .sheet(isPresented: $importingStatement) {

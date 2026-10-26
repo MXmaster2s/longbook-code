@@ -283,21 +283,22 @@ struct DataPrivacyView: View {
     #if os(macOS)
     @State private var confirmingDelete = false
     @State private var deleteError: String?
+    @Environment(\.lbPageTitleHidden) private var titleHidden
     #endif
     @Environment(\.openURL) private var openURL
 
     var body: some View {
         List {
             #if os(macOS)
-            LBPageTitle("Data & privacy")
-                .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear)
+            // The Settings window's title already names the pane.
+            if !titleHidden {
+                LBPageTitle("Data & privacy")
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+            }
             #endif
             yourLongbook
             if let folder = model.vaultFolderURL, !inICloud(folder) { movePane(folder) }
-            #if os(macOS)
-            optimizeSection
-            #endif
             backupSection
             SwiftUI.Section {
                 Text("longbook never stores a full card number, CVV, expiry, PIN or password: a save carrying one is refused.")
@@ -316,6 +317,17 @@ struct DataPrivacyView: View {
             } header: {
                 LBSectionHeader("What longbook keeps")
             }
+            #if os(macOS)
+            // The Mac's Settings window has no Help & about pane, so the account of what
+            // leaves the device, and its two switches, sit here.
+            SwiftUI.Section {
+                DataLeavingCard(model: model)
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets())
+            } header: {
+                LBSectionHeader("What leaves this device")
+            }
+            #endif
             deleteSection
         }
         .lbGroupedList()
@@ -446,23 +458,6 @@ struct DataPrivacyView: View {
                 .foregroundStyle(LBColor.textTertiary.color)
         }
     }
-
-    #if os(macOS)
-    /// The first-run cards again, whose picks the book keeps as hints for reading statements.
-    private var optimizeSection: some View {
-        SwiftUI.Section {
-            Button("Optimize…") { Measure.used("optimize_your_data"); NotificationCenter.default.post(name: .longbookSetUpAgain, object: nil) }
-                .lbActionButtonStyle()
-                .lbListRowBackground()
-        } header: {
-            LBSectionHeader("Optimize your data")
-        } footer: {
-            Text("Your commitments, accounts and people, kept in your longbook as hints for reading statements, by longbook’s AI or yours.")
-                .lbText(.footnote)
-                .foregroundStyle(LBColor.textTertiary.color)
-        }
-    }
-    #endif
 
     /// The Mac moves the folder to the Bin, asking first; the phone says where to delete it.
     @ViewBuilder

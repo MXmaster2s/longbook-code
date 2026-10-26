@@ -6,7 +6,6 @@ import SwiftUI
 /// device, with the switch for usage and crash data beside the fact it governs.
 struct HelpAboutView: View {
     let model: DashboardModel
-    @AppStorage(Telemetry.shareUsageKey) private var shareUsage = true
     @Environment(\.openURL) private var openURL
 
     private struct LinkRow: Identifiable {
@@ -18,14 +17,14 @@ struct HelpAboutView: View {
         var id: String { title }
     }
 
-    private static let ideasURL = URL(string: "https://insigh.to/b/longbook")
-    private static let faqURL = URL(string: "https://longbook.app/faq/")
-    private static let contactURL = URL(string: "https://longbook.app/contact/")
-    private static let privacyURL = URL(string: "https://longbook.app/privacy-policy/")
-    private static let termsURL = URL(string: "https://longbook.app/terms/")
-    private static let sourceURL = URL(string: "https://longbook.app/source/")
+    static let ideasURL = URL(string: "https://insigh.to/b/longbook")
+    static let faqURL = URL(string: "https://longbook.app/faq/")
+    static let contactURL = URL(string: "https://longbook.app/contact/")
+    static let privacyURL = URL(string: "https://longbook.app/privacy-policy/")
+    static let termsURL = URL(string: "https://longbook.app/terms/")
+    static let sourceURL = URL(string: "https://longbook.app/source/")
 
-    private static var problemURL: URL? { FeedbackMail.url(subject: "longbook problem report") }
+    static var problemURL: URL? { FeedbackMail.url(subject: "longbook problem report") }
 
     var body: some View {
         SettingsScreen(title: "Help & about", note: "") {
@@ -42,11 +41,7 @@ struct HelpAboutView: View {
                 LinkRow(symbol: "envelope", ink: 8, title: "Contact", subtitle: "contact@longbook.app", url: Self.contactURL),
             ])
             LBSectionHeader("What leaves this device")
-            leaving
-            Text("longbook never sells your data, and never uses your financial data for analytics or advertising.")
-                .lbText(.footnote)
-                .foregroundStyle(LBColor.textTertiary.color)
-                .fixedSize(horizontal: false, vertical: true)
+            DataLeavingCard(model: model)
             LBSectionHeader("Legal")
             links([
                 LinkRow(symbol: "hand.raised", ink: 11, title: "Privacy policy", subtitle: "", url: Self.privacyURL),
@@ -117,53 +112,64 @@ struct HelpAboutView: View {
             }
         }
     }
+}
 
-    // MARK: what leaves this device
-
+/// Each kind of data that leaves the device, with the switches for statements and for usage
+/// and crash data beside the facts they govern. Help & about and the Mac's Data & privacy
+/// pane both show it.
+struct DataLeavingCard: View {
+    let model: DashboardModel
+    @AppStorage(Telemetry.shareUsageKey) private var shareUsage = true
     @AppStorage(AIConsent.statements.key) private var statementsConsent = false
 
-    private var leaving: some View {
-        LBCard {
-            VStack(alignment: .leading, spacing: LBSpacing.s3) {
-                fact("Account", "Your email and account ID, to sign you in. With Google, also your name and the address of your picture.")
-                rule
-                fact("Purchase", "Apple’s transaction ID, to unlock the licence.")
-                rule
-                fact(
-                    "Hosted copy",
-                    "A copy of your memory file for your AI to read, only while AI access is on. Deleted when you turn it off or after 90 days without the app.",
-                    state: model.hostedPush ? "On" : "Off"
-                )
-                rule
-                fact("Statements", "Sent through longbook’s server to Anthropic, whose Claude model first checks it is a statement and then reads it with your category, person and account names. longbook keeps none of it.")
-                // Withdrawing is turning this off: the next statement or Reorganise asks again.
-                Toggle(isOn: $statementsConsent.measured("let_an_ai_read_statements_and_reorganise")) {
-                    Text("Let an AI read statements and Reorganise")
-                        .lbText(.bodySM)
-                        .foregroundStyle(LBColor.textPrimary.color)
-                }
-                .tint(LBColor.brand.color)
-                rule
-                SupportPrivacyRows()
-                rule
-                fact("Shared reports", "Kept with your account until the link expires or you revoke it.")
-                rule
-                fact("Tags", "Each tag’s kind, name and icon, so your devices share them. Never a commitment’s name, amount, date or note.")
-                rule
-                fact("Usage and crash data", "Counts of what you do, how long the app is open, errors it handles and who changed your file, plus crash reports. Sent under a random ID that stays on this device and is never tied to your account; turning this off deletes the ID. Never a name, amount, date or note.")
-                Toggle(isOn: Binding(
-                    get: { shareUsage },
-                    set: { on in
-                        shareUsage = on
-                        Telemetry.shared.setEnabled(on)
+    var body: some View {
+        VStack(alignment: .leading, spacing: LBSpacing.s4) {
+            LBCard {
+                VStack(alignment: .leading, spacing: LBSpacing.s3) {
+                    fact("Account", "Your email and account ID, to sign you in. With Google, also your name and the address of your picture.")
+                    rule
+                    fact("Purchase", "Apple’s transaction ID, to unlock the licence.")
+                    rule
+                    fact(
+                        "Hosted copy",
+                        "A copy of your memory file for your AI to read, only while AI access is on. Deleted when you turn it off or after 90 days without the app.",
+                        state: model.hostedPush ? "On" : "Off"
+                    )
+                    rule
+                    fact("Statements", "Sent through longbook’s server to Anthropic, whose Claude model first checks it is a statement and then reads it with your category, person and account names. longbook keeps none of it.")
+                    // Withdrawing is turning this off: the next statement or Reorganise asks again.
+                    Toggle(isOn: $statementsConsent.measured("let_an_ai_read_statements_and_reorganise")) {
+                        Text("Let an AI read statements and Reorganise")
+                            .lbText(.bodySM)
+                            .foregroundStyle(LBColor.textPrimary.color)
                     }
-                ).measured("share_usage_and_crash_data")) {
-                    Text("Share usage and crash data")
-                        .lbText(.bodySM)
-                        .foregroundStyle(LBColor.textPrimary.color)
+                    .tint(LBColor.brand.color)
+                    rule
+                    SupportPrivacyRows()
+                    rule
+                    fact("Shared reports", "Kept with your account until the link expires or you revoke it.")
+                    rule
+                    fact("Tags", "Each tag’s kind, name and icon, so your devices share them. Never a commitment’s name, amount, date or note.")
+                    rule
+                    fact("Usage and crash data", "Counts of what you do, how long the app is open, errors it handles and who changed your file, plus crash reports. Sent under a random ID that stays on this device and is never tied to your account; turning this off deletes the ID. Never a name, amount, date or note.")
+                    Toggle(isOn: Binding(
+                        get: { shareUsage },
+                        set: { on in
+                            shareUsage = on
+                            Telemetry.shared.setEnabled(on)
+                        }
+                    ).measured("share_usage_and_crash_data")) {
+                        Text("Share usage and crash data")
+                            .lbText(.bodySM)
+                            .foregroundStyle(LBColor.textPrimary.color)
+                    }
+                    .tint(LBColor.brand.color)
                 }
-                .tint(LBColor.brand.color)
             }
+            Text("longbook never sells your data, and never uses your financial data for analytics or advertising.")
+                .lbText(.footnote)
+                .foregroundStyle(LBColor.textTertiary.color)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
