@@ -85,103 +85,59 @@ final class AppSession {
     private init() {}
 }
 
-/// The Settings window (⌘,): a toolbar of tabs, as a Mac app's settings are. What is not a
-/// setting lives in the menus: Import in File, Optimize Your Data and Tips in Help, Check for
-/// Updates in the app menu, Trips in Go.
-struct SettingsWindowView: View {
-    @ObservedObject private var auth = AppSession.shared.auth
-    @ObservedObject private var entitlement = AppSession.shared.entitlement
-    @AppStorage("appearance") private var appearance = LBAppearance.system.rawValue
-    @Environment(\.openWindow) private var openWindow
-
-    private var model: DashboardModel { AppSession.shared.model }
-
-    var body: some View {
-        SettingsTabs(model: model, auth: auth, entitlement: entitlement, toMainWindow: toMainWindow)
-            .frame(minWidth: 600, idealWidth: 720, minHeight: 520, idealHeight: 720)
-            .background(LBColor.canvas.color)
-            .background(CentersSheets())
-            .preferredColorScheme((LBAppearance(rawValue: appearance) ?? .dark).colorScheme)
-            .overlay(alignment: .bottomTrailing) {
-                SupportButton { toMainWindow(.longbookSupport) }
-                    .padding(LBSpacing.s6)
-            }
-            .onAppear { model.loadIfNeeded() }
-    }
-
-    private func toMainWindow(_ name: Notification.Name) {
-        openWindow(id: LongbookWindow.main)
-        NSApp.activate(ignoringOtherApps: true)
-        NotificationCenter.default.post(name: name, object: nil)
-    }
-}
-
-/// The settings themselves, one tab each: General, Account, AI and Data.
-struct SettingsTabs: View {
+/// One pane's own stack, so a screen it opens comes back to the pane it was opened from. A
+/// pushed screen shows its own title, since the window's names only the pane.
+struct SettingsTab<Root: View>: View {
     let model: DashboardModel
     @ObservedObject var auth: AuthViewModel
     @ObservedObject var entitlement: EntitlementStore
     let toMainWindow: (Notification.Name) -> Void
-    @State private var picked: Destination
+    let root: (Binding<[Destination]>) -> Root
+    @State private var path: [Destination] = []
 
     init(
         model: DashboardModel, auth: AuthViewModel, entitlement: EntitlementStore,
-        start: Destination = .display, toMainWindow: @escaping (Notification.Name) -> Void
+        toMainWindow: @escaping (Notification.Name) -> Void,
+        @ViewBuilder root: @escaping (Binding<[Destination]>) -> Root
     ) {
         self.model = model
         self.auth = auth
         self.entitlement = entitlement
         self.toMainWindow = toMainWindow
-        _picked = State(initialValue: start)
+        self.root = root
     }
-
-    /// Each tab's screen, name and symbol, in toolbar order.
-    static let tabs: [(root: Destination, title: String, symbol: String)] = [
-        (.display, "General", "gearshape"),
-        (.accountDetails, "Account", "person.crop.circle"),
-        (.mcpServer, "AI", "sparkles"),
-        (.privacy, "Data", "lock"),
-        (.tutorials, "Tutorials", "hand.point.up.left"),
-    ]
-
-    var body: some View {
-        TabView(selection: $picked) {
-            ForEach(Self.tabs, id: \.title) { item in
-                tab(item.root)
-                    .tabItem { Label(item.title, systemImage: item.symbol) }
-                    .tag(item.root)
-            }
-        }
-        .environmentObject(entitlement)
-    }
-
-    func tab(_ root: Destination) -> some View {
-        SettingsTab(root: root, model: model, auth: auth, entitlement: entitlement, toMainWindow: toMainWindow)
-    }
-}
-
-/// One tab's own stack, so a screen it opens comes back to the tab it was opened from.
-struct SettingsTab: View {
-    let root: Destination
-    let model: DashboardModel
-    @ObservedObject var auth: AuthViewModel
-    @ObservedObject var entitlement: EntitlementStore
-    let toMainWindow: (Notification.Name) -> Void
-    @State private var path: [Destination] = []
 
     var body: some View {
         NavigationStack(path: $path) {
-            screen(root)
-                .navigationDestination(for: Destination.self) { screen($0) }
+            root($path)
+                .navigationDestination(for: Destination.self) {
+                    screen($0, path: $path).environment(\.lbPageTitleHidden, false)
+                }
         }
     }
 
-    private func screen(_ destination: Destination) -> some View {
+    fileprivate func screen(_ destination: Destination, path: Binding<[Destination]>) -> DestinationScreen {
         DestinationScreen(
-            destination: destination, model: model, auth: auth, entitlement: entitlement, path: $path,
+            destination: destination, model: model, auth: auth, entitlement: entitlement, path: path,
             importStatement: { toMainWindow(.longbookImport) },
             setUpAgain: { toMainWindow(.longbookSetUpAgain) }
         )
+    }
+}
+
+extension SettingsTab where Root == DestinationScreen {
+    /// A pane whose root is one of the app's own screens.
+    init(
+        root destination: Destination, model: DashboardModel, auth: AuthViewModel, entitlement: EntitlementStore,
+        toMainWindow: @escaping (Notification.Name) -> Void
+    ) {
+        self.init(model: model, auth: auth, entitlement: entitlement, toMainWindow: toMainWindow) { path in
+            DestinationScreen(
+                destination: destination, model: model, auth: auth, entitlement: entitlement, path: path,
+                importStatement: { toMainWindow(.longbookImport) },
+                setUpAgain: { toMainWindow(.longbookSetUpAgain) }
+            )
+        }
     }
 }
 #endif

@@ -67,6 +67,7 @@ public extension View {
 /// iPhone it draws nothing: `lbScreenTitle` puts the name in the bar.
 public struct LBPageTitle: View {
     private let title: String
+    @Environment(\.lbPageTitleHidden) private var hidden
 
     public init(_ title: String) {
         self.title = title
@@ -74,12 +75,27 @@ public struct LBPageTitle: View {
 
     public var body: some View {
         #if os(macOS)
-        Text(title)
-            .lbText(.largeTitle)
-            .foregroundStyle(LBColor.textPrimary.color)
-            .accessibilityAddTraits(.isHeader)
+        if !hidden {
+            Text(title)
+                .lbText(.largeTitle)
+                .foregroundStyle(LBColor.textPrimary.color)
+                .accessibilityAddTraits(.isHeader)
+        }
         #else
         EmptyView()
         #endif
+    }
+}
+
+private struct LBPageTitleHiddenKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+public extension EnvironmentValues {
+    /// True where a window's own title already names the page, as in a Settings pane, so
+    /// the page draws no second title.
+    var lbPageTitleHidden: Bool {
+        get { self[LBPageTitleHiddenKey.self] }
+        set { self[LBPageTitleHiddenKey.self] = newValue }
     }
 }
