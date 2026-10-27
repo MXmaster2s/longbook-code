@@ -301,7 +301,7 @@ struct SettingsStack<Root: View>: View {
         case .about:
             AboutSettingsPage()
         case .softwareUpdate:
-            SoftwareUpdatePage(open: open)
+            SoftwareUpdatePage()
         case .loginItems:
             LoginItemsPage()
         case .help:
@@ -947,8 +947,9 @@ struct GeneralSettingsPane: View {
 
 /// General › Software Update: this version with Check Now, the daily check, and what's new.
 struct SoftwareUpdatePage: View {
-    let open: (SettingsPage) -> Void
     @AppStorage(AppUpdates.automaticKey) private var checksUpdates = true
+    /// What's New over this window, the same sheet the main window opens after an update.
+    @State private var showingWhatsNew = false
 
     var body: some View {
         SettingsCanvas {
@@ -970,9 +971,13 @@ struct SoftwareUpdatePage: View {
                     title: "What’s New in \(AppVersion.marketing)", symbol: "sparkles.rectangle.stack", tile: .orange,
                     control: "about_whats_new"
                 ) {
-                    open(.screen(.updates))
+                    showingWhatsNew = true
                 }
             }
+        }
+        .measured("whats_new", .sheet, when: showingWhatsNew)
+        .sheet(isPresented: $showingWhatsNew) {
+            WhatsNewView { showingWhatsNew = false }
         }
     }
 }
