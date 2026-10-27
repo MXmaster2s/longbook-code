@@ -59,8 +59,7 @@ struct LongbookCommands: Commands {
             .keyboardShortcut("n", modifiers: .command)
             .disabled(!menu.shellReady)
         }
-        // Settings… (⌘,) is the Settings scene's own item; nothing replaces it. The sidebar's
-        // Settings menu opens the same window.
+        // Settings… (⌘,) is the Settings scene's own item; nothing replaces it.
         CommandGroup(after: .newItem) {
             Divider()
             Button("Import Statement…") {
@@ -70,6 +69,8 @@ struct LongbookCommands: Commands {
             .keyboardShortcut("i", modifiers: .command)
             .disabled(!menu.shellReady)
         }
+        // View › Show/Hide Sidebar (⌃⌘S), the system's command for the system's sidebar.
+        SidebarCommands()
         // Without this group macOS answers "Help is not available for longbook": the app has no
         // Help Book. The usage switch sits here too, so it can be found without opening Settings.
         CommandGroup(replacing: .help) {
@@ -113,6 +114,8 @@ struct LongbookCommands: Commands {
             Button("Insights") { Measure.used("insights", .menuItem); go([.insights]) }.keyboardShortcut("5", modifiers: .command).disabled(!menu.shellReady)
             Button("Proposals") { Measure.used("changes", .menuItem); go([.changes]) }.keyboardShortcut("6", modifiers: .command).disabled(!menu.shellReady)
             Button("Trips") { Measure.used("trips", .menuItem); go([.trips]) }.keyboardShortcut("7", modifiers: .command).disabled(!menu.shellReady)
+            Button("Bookmarks") { Measure.used("bookmarks", .menuItem); go([.commitments(ListFilter(bookmarked: true))]) }
+                .keyboardShortcut("8", modifiers: .command).disabled(!menu.shellReady)
             Divider()
             Button("Back") {
                 Measure.used("back", .menuItem)

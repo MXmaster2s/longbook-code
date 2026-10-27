@@ -90,8 +90,9 @@ enum ScreenTutorial: String, CaseIterable, Identifiable {
                              "Here you see every payment coming up in the next 30 days, in the order you pay them."),
                 TutorialStep(.dashboardSpending, "Your spending",
                              "Here you see what you spent this month, day by day. \(Self.tap.capitalizedFirst) the month to look at another."),
-                TutorialStep(.addCommitment, "Add anything", Self.mac
-                             ? "Click Add commitment to put in a commitment or an expense, from any screen."
+                // The Mac's + sits in the window's toolbar, which the overlay cannot light.
+                TutorialStep(Self.mac ? nil : .addCommitment, "Add anything", Self.mac
+                             ? "Click + in the toolbar, or press ⌘N, to put in a commitment or an expense from any screen."
                              : "Tap Add to put in a commitment or an expense, from any screen."),
                 TutorialStep(nil, "Every screen has its own tutorial",
                              "When you open a screen for the first time, a short tutorial like this one shows you around. You can replay any of them in Settings > Tutorials."),

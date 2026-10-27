@@ -96,21 +96,6 @@ enum Destination: Hashable {
         case .tutorials: "tutorials"
         }
     }
-
-    /// A place the sidebar itself opens, so it needs no door back. A filtered list, a single
-    /// commitment, a report, or a settings pane is reached from somewhere and needs one.
-    var isSidebarRoot: Bool {
-        switch self {
-        case .reports, .calendar, .insights, .changes, .accounts, .members:
-            true
-        case .commitments(let filter):
-            // An account's or a person's list is the sidebar's own row, so neither is a door.
-            filter.scope == nil && filter.day == nil && filter.months.isEmpty && filter.category == nil && !filter.bookmarked
-                && filter.from == nil && filter.to == nil
-        default:
-            false
-        }
-    }
 }
 
 /// One vault load feeds every pane. iPhone gets tabs; the Mac wraps the same stack in
@@ -495,6 +480,8 @@ struct RootView: View {
                         .transition(.opacity)
                 }
             }
+            // The window's toolbar is the book's; the demo draws its own chrome.
+            .toolbar(showing ? .hidden : .visible, for: .windowToolbar)
             .animation(.easeOut(duration: 0.25), value: showing)
             #endif
         }
@@ -538,8 +525,7 @@ struct RootView: View {
     private var replayable: some View { ribboned }
 
     /// The trial ribbon sits outside every screen rather than on one, so it survives
-    /// navigation. It rides under the shell on the Mac, where the top strip is the hidden
-    /// title bar's.
+    /// navigation. It rides under the shell on the Mac, where the top is the window's toolbar.
     private var ribboned: some View {
         VStack(spacing: 0) {
             #if os(iOS)
@@ -603,27 +589,30 @@ struct RootView: View {
     @ViewBuilder
     private var shell: some View {
         #if os(macOS)
-        // A plain split, not NavigationSplitView: this design's sidebar is a flat tone
-        // step, and the system chrome would draw its own material over it.
-        HStack(spacing: 0) {
-            SidebarView(model: model, path: $path) { addingRenewal = true }
+        // The system split: the sidebar brings its toggle, the View menu command, drag to
+        // resize and the person's sidebar size; the detail's stack puts each screen's title,
+        // toolbar, search and back button in the window's toolbar.
+        NavigationSplitView {
+            SidebarView(model: model, path: $path)
+        } detail: {
             NavigationStack(path: $path) {
                 Group {
                     #if DEBUG
                     // The harness shows its screen as the root; a push does not paint offscreen.
-                    if let screen = Self.snapshotDestination() { destinationView(screen) }
-                    else { DashboardView(model: model, auth: auth, path: $path) }
+                    if let screen = Self.snapshotDestination() { destinationView(screen).toolbar { macAddItem(for: screen) } }
+                    else { DashboardView(model: model, auth: auth, path: $path).toolbar { macAddItem(for: nil) } }
                     #else
-                    DashboardView(model: model, auth: auth, path: $path)
+                    DashboardView(model: model, auth: auth, path: $path).toolbar { macAddItem(for: nil) }
                     #endif
                 }
-                .navigationDestination(for: Destination.self) {
-                    // The system back chevron would float into the hidden title
-                    // bar; the in-pane bar and the shortcut are the doors back.
-                    destinationView($0).navigationBarBackButtonHidden(true)
+                .navigationDestination(for: Destination.self) { destination in
+                    destinationView(destination).toolbar { macAddItem(for: destination) }
                 }
             }
-            .safeAreaInset(edge: .top, spacing: 0) { macTopInsets }
+            // The review notice is the phone's, in the same seat: the full diff and Undo live
+            // on the Proposals screen, and the strip hides itself there.
+            .safeAreaInset(edge: .top, spacing: 0) { ReviewCard(model: model, path: $path) }
+            .toolbarBackground(LBColor.canvas.color, for: .windowToolbar)
             .measured("support_panel", .sheet, when: support.presented)
             .inspector(isPresented: Binding(get: { support.presented }, set: { if !$0 { support.close() } })) {
                 SupportScreen(auth: auth)
@@ -631,7 +620,6 @@ struct RootView: View {
             }
         }
         .background(LBColor.canvas.color)
-        .ignoresSafeArea()
         // Focus rings for the keyboard only: Tab shows them, a click puts them away.
         .lbKeyboardFocusEffects()
         // Half of a 13-inch Air is 735pt, and macOS clamps a window to its minimum rather
@@ -779,44 +767,20 @@ struct RootView: View {
     }
 
     #if os(macOS)
-    /// The review notice is the phone's, in the same seat: the full diff and Undo live on
-    /// the Changes screen, and the strip hides itself there.
-    private var macTopInsets: some View {
-        VStack(spacing: 0) {
-            ReviewCard(model: model, path: $path, clearsTitleBar: false)
-            macBackBar
-        }
-    }
-
-    /// A slim bar with one door back. The sidebar replaces the path, so its own
-    /// destinations need no door; anything pushed on top of them does, Settings included,
-    /// and so does a page that arrived by a link — a commitment opened from the dashboard.
-    @ViewBuilder
-    private var macBackBar: some View {
-        if path.count > 1 || path.last.map({ !$0.isSidebarRoot }) == true {
-            HStack {
+    /// The toolbar's + on every screen, as Notes and Reminders keep theirs: ⌘N in the File
+    /// menu is the same door. Accounts and People carry their own Add, so the + stays off them.
+    @ToolbarContentBuilder
+    private func macAddItem(for destination: Destination?) -> some ToolbarContent {
+        if destination != .accounts, destination != .members {
+            ToolbarItem(placement: .primaryAction) {
                 Button {
-                    Measure.used("back")
-                    path.removeLast()
+                    Measure.used("toolbar_add")
+                    addingRenewal = true
                 } label: {
-                    HStack(spacing: LBSpacing.s1) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 11, weight: .semibold))
-                        Text("Back").lbText(.label)
-                    }
-                    .foregroundStyle(LBColor.textSecondary.color)
-                    .padding(.horizontal, LBSpacing.s2)
-                    .padding(.vertical, 4)
-                    .background(LBColor.chrome.color, in: Capsule())
-                    .contentShape(Capsule())
+                    Label("Add commitment", systemImage: "plus")
                 }
-                .lbButtonStyle()
-                .accessibilityLabel("Back")
-                Spacer()
+                .help("Add a commitment")
             }
-            .padding(.horizontal, LBSpacing.s4)
-            .padding(.top, LBSpacing.s4)
-            .padding(.bottom, LBSpacing.s1)
         }
     }
     #endif
