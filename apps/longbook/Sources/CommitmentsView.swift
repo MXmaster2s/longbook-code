@@ -887,8 +887,18 @@ struct CommitmentsView: View {
         VStack(spacing: 0) {
             if case .loaded(let data) = model.state {
                 let rows = ledgerRows(data)
-                macHeader(data, rows: rows)
+                narrowedLine(data)
+                    .padding(.horizontal, LBSpacing.s4)
+                    .padding(.top, LBSpacing.s3)
                 macCards(data, rows: rows)
+                    .toolbar { macToolbar(data, rows: rows) }
+                    .searchable(text: $search, placement: .toolbar, prompt: "Search")
+                    .onMacCommand(.markPaid) { togglePaid(selected(rows)) }
+                    .onMacCommand(.bookmark) { toggleBookmarks(selected(rows)) }
+                    .onMacCommand(.edit) { if let only = selected(rows).first, selected(rows).count == 1 { edit(only) } }
+                    .onMacCommand(.toggleInspector) { if selection.isEmpty { selection = rows.first.map { [$0.id] } ?? [] } else { selection = [] } }
+                    // The menu bar's Commitment items follow what is chosen here.
+                    .onChange(of: menuKey(rows), initial: true) { _, _ in tellMenu(selected(rows)) }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .lbInspector(isPresented: inspectorShown, width: 360) {
                         inspector(rows)
@@ -919,80 +929,95 @@ struct CommitmentsView: View {
         rows.filter { selection.contains($0.id) }
     }
 
-    /// The page's title and the selection's actions on one line — the window's toolbar,
-    /// drawn in the page — then search, the side, and the one Filter menu.
-    private func macHeader(_ data: DashboardData, rows: [LedgerRow]) -> some View {
-        let chosen = selected(rows)
-        let charges: [DashboardModel.ChargeItem] = chosen.compactMap {
+    /// The charges ahead among the chosen rows: what Mark Paid acts on.
+    private func chosenCharges(_ chosen: [LedgerRow]) -> [DashboardModel.ChargeItem] {
+        chosen.compactMap {
             if case .charge(let charge) = $0.kind, !charge.isPast { return charge }
             return nil
         }
-        let ids = Array(Set(chosen.compactMap(\.subId)))
-        let allPaid = !charges.isEmpty && charges.allSatisfy(\.isPaid)
-        let allSaved = !ids.isEmpty && ids.allSatisfy { model.bookmarks.contains($0) }
-        return VStack(alignment: .leading, spacing: LBSpacing.s3) {
-            HStack(alignment: .firstTextBaseline, spacing: LBSpacing.s2) {
-                LBPageTitle(screenTitle)
-                Spacer()
-                Button(allPaid ? "Mark Unpaid" : "Mark Paid") {
-                    Measure.used("mark_unpaid")
-                    for charge in charges {
-                        model.setPaid(subscriptionId: charge.subId, dateISO: charge.dateISO, paid: !allPaid)
-                    }
-                }
-                .disabled(charges.isEmpty)
-                Button(allSaved ? "Remove Bookmark" : "Bookmark") {
-                    Measure.used("remove_bookmark")
-                    for id in ids where model.bookmarks.contains(id) == allSaved { model.toggleBookmark(id) }
-                }
-                .disabled(ids.isEmpty)
-                Button("Edit") { Measure.used("edit"); if let only = chosen.first { edit(only) } }
-                    .disabled(chosen.count != 1)
-                Button {
-                    Measure.used("add")
-                    formTarget = .add
-                } label: {
-                    Label("Add", systemImage: "plus")
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(LBColor.brand.color)
-                .tutorialTarget(.commitmentsAdd)
-                .accessibilityLabel("Add a commitment")
-            }
-            .controlSize(.large)
-            HStack(spacing: LBSpacing.s2) {
-                searchField
-                    .tutorialTarget(.commitmentsSearch)
-                LBSegmented(selection: $when, choices: [(ListScope.upcoming, "Upcoming"), (ListScope.past, "Past")])
-                    .frame(width: 180)
-                    .accessibilityLabel("Show")
-                    .tutorialTarget(.commitmentsScope)
-                filterMenu(data)
-            }
-            narrowedLine(data)
-        }
-        .padding(.horizontal, LBSpacing.s4)
-        .padding(.top, LBSpacing.s6)
-        .padding(.bottom, LBSpacing.s3)
     }
 
-    private var searchField: some View {
-        HStack(spacing: LBSpacing.s2) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(LBColor.textTertiary.color)
-            TextField("", text: $search, prompt: Text("Search").foregroundStyle(LBColor.textTertiary.color))
-                .textFieldStyle(.plain)
-                .lbText(.body)
-                .foregroundStyle(LBColor.textPrimary.color)
+    private func chosenIds(_ chosen: [LedgerRow]) -> [String] { Array(Set(chosen.compactMap(\.subId))) }
+
+    private func allPaid(_ chosen: [LedgerRow]) -> Bool {
+        let charges = chosenCharges(chosen)
+        return !charges.isEmpty && charges.allSatisfy(\.isPaid)
+    }
+
+    private func allBookmarked(_ chosen: [LedgerRow]) -> Bool {
+        let ids = chosenIds(chosen)
+        return !ids.isEmpty && ids.allSatisfy { model.bookmarks.contains($0) }
+    }
+
+    private func togglePaid(_ chosen: [LedgerRow]) {
+        let paid = allPaid(chosen)
+        for charge in chosenCharges(chosen) {
+            model.setPaid(subscriptionId: charge.subId, dateISO: charge.dateISO, paid: !paid)
         }
-        .padding(.horizontal, LBSpacing.s3)
-        .padding(.vertical, 6)
-        .background(LBColor.card.color, in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous)
-                .strokeBorder(LBColor.hairline.color, lineWidth: 1)
-        )
+    }
+
+    private func toggleBookmarks(_ chosen: [LedgerRow]) {
+        let saved = allBookmarked(chosen)
+        for id in chosenIds(chosen) where model.bookmarks.contains(id) == saved { model.toggleBookmark(id) }
+    }
+
+    /// Changes whenever the menu's answer would: the choice, its paid marks, its bookmarks.
+    private func menuKey(_ rows: [LedgerRow]) -> String {
+        let chosen = selected(rows)
+        return "\(chosen.map(\.id).sorted()) \(chosenCharges(chosen).count) \(allPaid(chosen)) \(allBookmarked(chosen))"
+    }
+
+    private func tellMenu(_ chosen: [LedgerRow]) {
+        let menu = MenuState.shared
+        menu.chosenRows = chosen.count
+        menu.chosenCharges = !chosenCharges(chosen).isEmpty
+        menu.chosenAllPaid = allPaid(chosen)
+        menu.chosenAllBookmarked = allBookmarked(chosen)
+        menu.inspectorShown = !chosen.isEmpty
+    }
+
+    /// The window's toolbar for this screen: the side, the one Filter menu, then the chosen
+    /// rows' actions as one borderless group. Search and + are placed by the system.
+    @ToolbarContentBuilder
+    private func macToolbar(_ data: DashboardData, rows: [LedgerRow]) -> some ToolbarContent {
+        let chosen = selected(rows)
+        let paid = allPaid(chosen)
+        let saved = allBookmarked(chosen)
+        ToolbarItem(placement: .principal) {
+            Picker("Show", selection: $when) {
+                Text("Upcoming").tag(ListScope.upcoming)
+                Text("Past").tag(ListScope.past)
+            }
+            .pickerStyle(.segmented)
+            .help("Upcoming or past charges")
+        }
+        ToolbarItemGroup(placement: .primaryAction) {
+            filterMenu(data)
+            Button {
+                Measure.used("mark_paid")
+                togglePaid(chosen)
+            } label: {
+                Label(paid ? "Mark Unpaid" : "Mark Paid", systemImage: paid ? LBGlyph.unpaid : LBGlyph.paid)
+            }
+            .help(paid ? "Mark Unpaid" : "Mark Paid")
+            .disabled(chosenCharges(chosen).isEmpty)
+            Button {
+                Measure.used("bookmark")
+                toggleBookmarks(chosen)
+            } label: {
+                Label(saved ? "Remove Bookmark" : "Bookmark", systemImage: saved ? "bookmark.slash" : "bookmark")
+            }
+            .help(saved ? "Remove Bookmark" : "Bookmark")
+            .disabled(chosenIds(chosen).isEmpty)
+            Button {
+                Measure.used("edit")
+                if let only = chosen.first { edit(only) }
+            } label: {
+                Label("Edit", systemImage: "pencil")
+            }
+            .help("Edit")
+            .disabled(chosen.count != 1)
+        }
     }
 
     /// Every narrowing in one menu; each is a submenu that ticks its choice.

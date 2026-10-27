@@ -37,34 +37,37 @@ public extension View {
     }
 
     /// A screen's name where the platform puts it. On iPhone it is the navigation bar's
-    /// Large Title, which folds into the bar on scroll; on the Mac this does nothing, and
-    /// the page draws `LBPageTitle` itself.
+    /// Large Title, which folds into the bar on scroll; on the Mac it is the window's title,
+    /// inline in the toolbar. An empty name leaves the Mac's title as it stands.
+    @ViewBuilder
     func lbScreenTitle(_ title: String, large: Bool = true) -> some View {
         #if os(iOS)
         navigationTitle(title)
             .navigationBarTitleDisplayMode(large ? .large : .inline)
         #else
-        self
+        if title.isEmpty { self } else { navigationTitle(title) }
         #endif
     }
 
-    /// A screen's name with actions at the trailing end of the iPhone navigation bar. The
-    /// Mac shows the same actions wherever the page puts them.
+    /// A screen's name with actions at the trailing end of the iPhone navigation bar, and
+    /// of the Mac's window toolbar.
     func lbScreenTitle<Trailing: View>(
         _ title: String, large: Bool = true, @ViewBuilder trailing: () -> Trailing
     ) -> some View {
-        #if os(iOS)
         let actions = trailing()
+        #if os(iOS)
         return lbScreenTitle(title, large: large)
             .toolbar { ToolbarItemGroup(placement: .topBarTrailing) { actions } }
         #else
-        return self
+        return lbScreenTitle(title, large: large)
+            .toolbar { ToolbarItemGroup(placement: .primaryAction) { actions } }
         #endif
     }
 }
 
-/// The page's own title on the Mac, where there is no navigation bar to hold one. On
-/// iPhone it draws nothing: `lbScreenTitle` puts the name in the bar.
+/// The page's own title on the Mac, where a window's toolbar does not already name the
+/// screen (`lbPageTitleHidden`). On iPhone it draws nothing: `lbScreenTitle` puts the name
+/// in the bar.
 public struct LBPageTitle: View {
     private let title: String
     @Environment(\.lbPageTitleHidden) private var hidden
@@ -99,8 +102,8 @@ private struct LBPageHeaderKey: EnvironmentKey {
 }
 
 public extension EnvironmentValues {
-    /// True where a window's own title already names the page, as in a Settings pane, so
-    /// the page draws no second title.
+    /// True where a window's own title already names the page, as in the main window's
+    /// toolbar or a Settings pane, so the page draws no second title.
     var lbPageTitleHidden: Bool {
         get { self[LBPageTitleHiddenKey.self] }
         set { self[LBPageTitleHiddenKey.self] = newValue }

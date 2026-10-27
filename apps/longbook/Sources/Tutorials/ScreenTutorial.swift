@@ -101,16 +101,19 @@ enum ScreenTutorial: String, CaseIterable, Identifiable {
             [
                 // The phone's search bar is the system's and moves with the screen, so its
                 // step is a card on its own there.
-                TutorialStep(Self.mac ? .commitmentsSearch : nil, "Find anything", Self.mac
-                             ? "Search your commitments by name, category, person or account."
+                // The Mac's search, side and + sit in the window's toolbar, which the
+                // overlay cannot light either.
+                TutorialStep(nil, "Find anything", Self.mac
+                             ? "Use the search field in the toolbar to find a commitment by name, category, person or account."
                              : "Use the search bar to find a commitment by name, category, person or account."),
-                TutorialStep(.commitmentsScope, "Upcoming and past",
-                             "Upcoming shows what you pay next. Past shows what you have already paid."),
+                TutorialStep(Self.mac ? nil : .commitmentsScope, "Upcoming and past", Self.mac
+                             ? "Upcoming and Past in the toolbar: Upcoming shows what you pay next, Past what you have already paid."
+                             : "Upcoming shows what you pay next. Past shows what you have already paid."),
                 TutorialStep(.commitmentsFirst, "Your commitment", Self.mac
                              ? "Here you see when it is due, how much, and its category, person and account. Click it to open it; right-click it to mark it paid."
                              : "Here you see when it is due, how much, and its category, person and account. Tap it to open it; swipe it to mark it paid."),
-                TutorialStep(.commitmentsAdd, "Add a commitment", Self.mac
-                             ? "Click Add to put in a commitment by hand, or import a statement to add many at once."
+                TutorialStep(Self.mac ? nil : .commitmentsAdd, "Add a commitment", Self.mac
+                             ? "Click + in the toolbar to put in a commitment by hand, or import a statement to add many at once."
                              : "Tap Add to put in a commitment by hand, or import a statement to add many at once."),
             ]
         case .calendar:
@@ -135,8 +138,8 @@ enum ScreenTutorial: String, CaseIterable, Identifiable {
                 TutorialStep(.entityList, "Your accounts", Self.mac
                              ? "Every bank account and card you pay from, with its balance. Select one to see it on the right."
                              : "Every bank account and card you pay from, with its balance. Tap one to see what is paid from it."),
-                TutorialStep(.entityAdd, "Add an account", Self.mac
-                             ? "Click Add Account to put in another account or card."
+                TutorialStep(Self.mac ? nil : .entityAdd, "Add an account", Self.mac
+                             ? "Click + in the toolbar to put in another account or card."
                              : "Tap Add to put in another account or card."),
             ]
         case .people:
@@ -144,8 +147,8 @@ enum ScreenTutorial: String, CaseIterable, Identifiable {
                 TutorialStep(.entityList, "Your people", Self.mac
                              ? "Everyone you pay for: family, staff, anyone else. Select a name to see it on the right."
                              : "Everyone you pay for: family, staff, anyone else. Tap a name to see what is theirs."),
-                TutorialStep(.entityAdd, "Add a person", Self.mac
-                             ? "Click Add Person to put in someone new."
+                TutorialStep(Self.mac ? nil : .entityAdd, "Add a person", Self.mac
+                             ? "Click + in the toolbar to put in someone new."
                              : "Tap Add to put in someone new."),
             ]
         case .insights:

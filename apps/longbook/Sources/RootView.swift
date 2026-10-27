@@ -609,6 +609,8 @@ struct RootView: View {
                     destinationView(destination).toolbar { macAddItem(for: destination) }
                 }
             }
+            // The toolbar names each screen, so no page draws its own large title.
+            .environment(\.lbPageTitleHidden, true)
             // The review notice is the phone's, in the same seat: the full diff and Undo live
             // on the Proposals screen, and the strip hides itself there.
             .safeAreaInset(edge: .top, spacing: 0) { ReviewCard(model: model, path: $path) }
@@ -678,6 +680,8 @@ struct RootView: View {
         // screen. Saying so is what keeps a command from being offered and then ignored.
         .onAppear { MenuState.shared.shellReady = true }
         .onDisappear { MenuState.shared.shellReady = false }
+        // The screen on show, so the menu bar offers that screen's toolbar actions.
+        .onChange(of: path, initial: true) { _, new in MenuState.shared.screen = new.last }
         #else
         NavigationStack(path: $path) {
             Group {
