@@ -75,7 +75,7 @@ public enum OnboardingCards {
                      "High-yield savings", "Money market account", "Multi-currency account", "Certificate of deposit", "Cash ISA", "TFSA"]
             cards = ["Debit card", "Credit card", "Prepaid card", "Charge card", "Store card", "Business card", "Corporate card", "Virtual card",
                      "Travel card", "Secured credit card"]
-            wallets = ["Apple Pay", "Google Pay", "UPI", "PayPal", "Venmo", "Cash App", "Zelle", "Samsung Wallet", "Amazon Pay", "Interac e-Transfer",
+            wallets = ["Apple Pay", "Google Pay", "PayPal", "Venmo", "Cash App", "Zelle", "Samsung Wallet", "Amazon Pay", "Interac e-Transfer",
                        "Revolut", "Wise", "Wero", "iDEAL", "Bizum", "Swish", "MobilePay", "Twint", "Vipps"]
         }
         return [
