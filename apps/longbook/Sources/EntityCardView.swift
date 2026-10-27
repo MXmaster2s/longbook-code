@@ -558,13 +558,13 @@ struct EntityCardView: View {
                 Button { Measure.used("open_commitment"); open(next.commitmentId) } label: {
                     EntityMomentRow(moment: next)
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .accessibilityHint("Opens this commitment.")
             } else if style == .list {
                 NavigationLink(value: Destination.commitment(id: next.commitmentId)) {
                     EntityMomentRow(moment: next)
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .accessibilityHint("Opens this commitment.")
             } else {
                 EntityMomentRow(moment: next, showsChevron: false)
@@ -634,7 +634,7 @@ struct EntityCardView: View {
         Button(action: { Measure.used("add_commitment"); actions.addCommitment() }) {
             EntityActionLabel(title: "Add Commitment", symbol: "plus", prominent: true, fills: fills)
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .accessibilityLabel("Add a commitment for \(card.name)")
     }
 
@@ -642,7 +642,7 @@ struct EntityCardView: View {
         Button(action: { Measure.used("edit"); actions.edit() }) {
             EntityActionLabel(title: "Edit", symbol: "pencil", prominent: false, fills: fills)
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .accessibilityLabel("Edit \(card.name)")
     }
 
@@ -652,7 +652,7 @@ struct EntityCardView: View {
             : Destination.commitments(ListFilter(memberId: card.id))) {
             EntityActionLabel(title: "Show All", symbol: "list.bullet", prominent: false, fills: fills)
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .accessibilityLabel(isAccount ? "Commitments paid from \(card.name)" : "Commitments for \(card.name)")
     }
 }

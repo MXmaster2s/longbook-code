@@ -80,7 +80,7 @@ struct InsightsView: View {
             Button { Measure.used("open_insight"); open(row) } label: {
                 insightRowBody(row)
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             Button { Measure.used("remove_insight"); model.removeInsight(row.id) } label: {
                 Image(systemName: "xmark")
                     .font(.system(size: 10, weight: .semibold))
@@ -88,7 +88,7 @@ struct InsightsView: View {
                     .frame(width: 30, height: 30)
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .lbTapHaptic()
             .padding(.top, LBSpacing.s2)
             .padding(.trailing, LBSpacing.s2)

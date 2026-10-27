@@ -43,7 +43,7 @@ struct EntityRecentPanel: View {
                     Button { Measure.used("open_commitment"); open(moment.commitmentId) } label: {
                         EntityMomentRow(moment: moment)
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                     .accessibilityHint("Opens \(moment.name)")
                 }
             }
@@ -54,7 +54,7 @@ struct EntityRecentPanel: View {
                         .foregroundStyle(LBColor.brandText.color)
                         .frame(minHeight: 28)
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
             }
         }
     }
@@ -126,7 +126,7 @@ struct EntityQuickActions: View {
             )
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .accessibilityElement(children: .combine)
     }
 
@@ -151,7 +151,7 @@ struct EntityQuickActions: View {
             .padding(.vertical, LBSpacing.s1)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .accessibilityHint("Opens \(sub.name)")
     }
 }

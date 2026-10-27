@@ -243,7 +243,7 @@ struct RenewalFormView: View {
         #if os(macOS)
         // Shorter than the window minimum, so the sheet never runs past its bottom.
         .frame(minWidth: 560, idealWidth: 560, minHeight: 520, idealHeight: 640)
-        .focusEffectDisabled()
+        .lbKeyboardFocusEffects()
         #endif
         .background(LBColor.canvas.color)
         // A click on the window behind closes the sheet as the X does: a dirty form asks first.
@@ -470,7 +470,7 @@ struct RenewalFormView: View {
                     .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .accessibilityLabel("Close without saving")
             .measured("renewal_form_confirming_discard", .dialog, when: confirmingDiscard)
             .confirmationDialog(discardTitle, isPresented: $confirmingDiscard, titleVisibility: .visible) {
@@ -548,7 +548,7 @@ struct RenewalFormView: View {
             .background(LBColor.chrome.color, in: Capsule())
             .contentShape(Capsule())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
     }
 
     // MARK: questions
@@ -624,7 +624,7 @@ struct RenewalFormView: View {
                 .frame(minHeight: 32)
                 .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .formContentColumn()
             .accessibilityValue(showsMore ? "Shown" : "Hidden")
             if showsMore {
@@ -1141,7 +1141,7 @@ struct RenewalFormView: View {
                             .padding(.vertical, LBSpacing.s2)
                             .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                 } else {
                     dateButton(LB.longDate(cancellingOn ?? Date())) { pickingCancel = true }
                     keepingButton
@@ -1162,7 +1162,7 @@ struct RenewalFormView: View {
                 .padding(.vertical, LBSpacing.s2)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
     }
 
     // MARK: actions
@@ -1172,13 +1172,13 @@ struct RenewalFormView: View {
             if isGone {
                 footnote(goneNote)
                 Button(action: { Measure.used("close"); onDone() }) { primaryLabel("Close") }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
             } else {
                 #if os(macOS)
                 footer
                 #else
                 Button(action: { Measure.used("attempt_save"); attemptSave() }) { primaryLabel(primaryWord) }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                 if isEditing { destructive } else { addAnother }
                 #endif
             }
@@ -1205,10 +1205,10 @@ struct RenewalFormView: View {
                     .padding(.vertical, LBSpacing.s2)
                     .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .keyboardShortcut(.cancelAction)
             Button(action: { Measure.used("attempt_save"); attemptSave() }) { primaryLabel(primaryWord, fills: false) }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .keyboardShortcut(.defaultAction)
         }
     }
@@ -1249,7 +1249,7 @@ struct RenewalFormView: View {
     private var destructive: some View {
         if removesCharge {
             Button { Measure.used("remove_this_charge"); confirmingRemove = true } label: { dangerLabel("Remove This Charge") }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
         } else {
             Button {
                 Measure.used("tap_again_to_delete_it_forever")
@@ -1261,7 +1261,7 @@ struct RenewalFormView: View {
             } label: {
                 dangerLabel(confirmingDelete ? "Tap Again to Delete It Forever" : "Delete Commitment")
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
         }
     }
 
@@ -1306,7 +1306,7 @@ struct RenewalFormView: View {
             .padding(.vertical, LBSpacing.s2)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
     }
 
     /// A clean sheet for the next one — every field, so nothing from the saved row rides along
@@ -1535,7 +1535,7 @@ private struct PlannedCountPicker: View {
                         .frame(width: 30, height: 30)
                         .background(LBColor.chrome.color, in: Circle())
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .accessibilityLabel("Close")
             }
             Picker("Times", selection: $count) {

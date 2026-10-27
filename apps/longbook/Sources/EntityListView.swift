@@ -146,7 +146,7 @@ struct EntityListView: View {
                 .frame(width: 28, height: 28)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.borderless)
+        .lbBorderlessButtonStyle(.rounded(LBRadius.xs))
         .opacity(card.isReal ? 1 : 0)
         .disabled(!card.isReal)
         .accessibilityLabel(card.starred ? "Starred" : "Star")
@@ -559,7 +559,7 @@ struct EntityListView: View {
                         Spacer()
                         if card.isReal {
                             Button("Edit") { Measure.used("edit"); editing = target(card) }
-                                .buttonStyle(.plain)
+                                .lbButtonStyle()
                                 .lbText(.label)
                                 .foregroundStyle(LBColor.brandText.color)
                         }
@@ -640,7 +640,7 @@ struct EntityDetailView: View {
                                 .background(LBColor.card.color, in: RoundedRectangle(cornerRadius: LBRadius.md, style: .continuous))
                                 .contentShape(Rectangle())
                         }
-                        .buttonStyle(.plain)
+                        .lbButtonStyle()
                     }
                 } else {
                     Text("This is no longer in your folder.")
@@ -734,13 +734,13 @@ private struct EntityNameCard: View {
                 Button(action: { Measure.used("add"); addNamed() }) {
                     EntityActionLabel(title: "Add \(word.capitalized)", symbol: "plus", prominent: true, fills: true)
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .disabled(cleanName.isEmpty)
-                .opacity(cleanName.isEmpty ? 0.5 : 1)
+                .lbPhoneDimmed(cleanName.isEmpty)
                 Button(action: { Measure.used("cancel"); cancel() }) {
                     EntityActionLabel(title: "Cancel", symbol: "xmark", prominent: false, fills: true)
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
             }
         }
         .padding(LBSpacing.s4)

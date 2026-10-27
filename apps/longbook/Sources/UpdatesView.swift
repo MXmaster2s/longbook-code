@@ -85,7 +85,7 @@ struct UpdatesView: View {
                     .frame(minHeight: 32)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .accessibilityHint(showingEarlier ? "Hides the earlier versions." : "Shows what changed in earlier versions.")
                 if showingEarlier {
                     ForEach(earlier) { version in
@@ -112,7 +112,7 @@ struct UpdatesView: View {
                     .background(LBColor.brand.color, in: Capsule())
                     .contentShape(Capsule())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             Text(AppUpdates.message(for: place))
                 .lbText(.footnote)
                 .foregroundStyle(LBColor.textTertiary.color)

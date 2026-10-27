@@ -107,7 +107,7 @@ struct MoreView: View {
         NavigationLink(value: Destination.accountDetails) {
             identityBody
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .accessibilityHint("Opens your account and plan")
     }
 
@@ -217,12 +217,12 @@ struct MoreView: View {
             NavigationLink(value: destination) {
                 rowBody(row.symbol, ink: row.ink, row.title, row.subtitle, trailing: "chevron.right", separated: separated, destructive: row.destructive)
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
         case .does(let action):
             Button(action: { Measure.used("more_row"); action() }) {
                 rowBody(row.symbol, ink: row.ink, row.title, row.subtitle, trailing: "chevron.right", separated: separated, destructive: row.destructive)
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
         case .switches(let isOn, let detail):
             Toggle(isOn: isOn.measured("add_found_in_statements")) {
                 VStack(alignment: .leading, spacing: 2) {

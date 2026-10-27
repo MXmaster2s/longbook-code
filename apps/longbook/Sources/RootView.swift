@@ -632,8 +632,8 @@ struct RootView: View {
         }
         .background(LBColor.canvas.color)
         .ignoresSafeArea()
-        // Rings would fight the design's own focus language — selection is a fill here.
-        .focusEffectDisabled()
+        // Focus rings for the keyboard only: Tab shows them, a click puts them away.
+        .lbKeyboardFocusEffects()
         // Half of a 13-inch Air is 735pt, and macOS clamps a window to its minimum rather
         // than refusing to tile — so a floor above that overlapped the app beside it. With
         // the sidebar put away the panes still have their measure.
@@ -810,7 +810,7 @@ struct RootView: View {
                     .background(LBColor.chrome.color, in: Capsule())
                     .contentShape(Capsule())
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .accessibilityLabel("Back")
                 Spacer()
             }
@@ -868,7 +868,7 @@ struct RootView: View {
                 .padding(.vertical, 4)
                 .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .tutorialTarget(.addCommitment)
             .accessibilityLabel("Add a commitment")
             .accessibilityShowsLargeContentViewer { Label("Add", systemImage: "plus.circle.fill") }
@@ -904,7 +904,7 @@ struct RootView: View {
             .padding(.vertical, 4)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(label)
         .accessibilityAddTraits(active ? [.isButton, .isSelected] : .isButton)

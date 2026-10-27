@@ -419,7 +419,7 @@ struct DataPrivacyView: View {
                                 .foregroundStyle(LBColor.textPrimary.color)
                                 .contentShape(Rectangle())
                         }
-                        .buttonStyle(.plain)
+                        .lbButtonStyle()
                         .disabled(checkingFolder)
                     } trailing: {
                         SettingsInfoButton(
@@ -464,7 +464,7 @@ struct DataPrivacyView: View {
                         SettingsRow("Delete longbook…", tone: LBColor.danger.color)
                             .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle(.rounded(LBRadius.xs))
                     .measured("settings_confirming_delete", .dialog, when: confirmingDelete)
                     .confirmationDialog("Move your longbook to the Bin?", isPresented: $confirmingDelete, titleVisibility: .visible) {
                         Button("Move to Bin", role: .destructive) { Measure.used("move_to_bin"); deleteFolder(folder) }
@@ -520,7 +520,7 @@ struct DataPrivacyView: View {
                 }
                 .lbActionButtonStyle()
                 .disabled(checkingFolder)
-                .opacity(checkingFolder ? 0.45 : 1)
+                .lbPhoneDimmed(checkingFolder, to: 0.45)
                 .lbListRowBackground()
             } header: {
                 LBSectionHeader("Another folder")
@@ -605,7 +605,7 @@ struct DataPrivacyView: View {
                     .lbText(.body)
                     .foregroundStyle(LBColor.brandText.color)
             }
-            .buttonStyle(.borderless)
+            .lbBorderlessButtonStyle()
             .lbListRowBackground()
             #endif
         } header: {
@@ -635,7 +635,7 @@ struct DataPrivacyView: View {
                 .frame(minHeight: 32)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.borderless)
+        .lbBorderlessButtonStyle()
     }
 
     private func valueRow(_ label: String, _ value: String) -> some View {
@@ -692,7 +692,7 @@ struct DataPrivacyView: View {
                         .lbText(.body)
                         .foregroundStyle(LBColor.danger.color)
                 }
-                .buttonStyle(.borderless)
+                .lbBorderlessButtonStyle()
                 .lbListRowBackground()
                 .measured("settings_confirming_delete", .dialog, when: confirmingDelete)
                 .confirmationDialog("Move your longbook to the Bin?", isPresented: $confirmingDelete, titleVisibility: .visible) {

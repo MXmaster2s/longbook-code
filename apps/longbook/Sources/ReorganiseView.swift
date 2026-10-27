@@ -66,7 +66,7 @@ struct ReorganiseView: View {
             Spacer()
             if stage != .running {
                 Button("Done", action: { Measure.used("done"); onDone() })
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                     .lbText(.label)
                     .foregroundStyle(LBColor.brandText.color)
                     .keyboardShortcut(.cancelAction)
@@ -172,7 +172,7 @@ struct ReorganiseView: View {
                 .padding(.vertical, LBSpacing.s3)
                 .background(LBColor.brand.color.opacity(enabled ? 1 : 0.4), in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle()
         .disabled(!enabled)
     }
 }

@@ -6499,6 +6499,9 @@ size})).sort((o,l)=>Object.values(l.totalByCurrency).reduce((c,h)=>c+h,0)-Object
   --lb-danger: #DB5F75;
   --lb-danger-fill: #D33955;
   --lb-neutral-fold: #63636B;
+  --lb-state-hover: rgba(255, 255, 255, 0.07);
+  --lb-state-pressed: rgba(0, 0, 0, 0.25);
+  --lb-state-selection-inactive: rgba(255, 255, 255, 0.12);
   --lb-data-0: #DD86DA;
   --lb-data-1: #907905;
   --lb-data-2: #1ABCE8;

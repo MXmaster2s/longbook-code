@@ -113,14 +113,23 @@ struct OnboardingPrimaryButton: View {
     let action: () -> Void
     @State private var hinting = false
 
+    /// The Mac keeps the brand face and dims the whole button to 40%, as its controls do.
+    private var faceLit: Bool {
+        #if os(macOS)
+        true
+        #else
+        enabled
+        #endif
+    }
+
     var body: some View {
         Button(action: { Measure.used("onboarding_primary"); action() }) {
             Text(title)
                 .lbText(.body)
-                .foregroundStyle(enabled ? LBColor.onBrand.color : LBColor.textTertiary.color)
+                .foregroundStyle(faceLit ? LBColor.onBrand.color : LBColor.textTertiary.color)
                 .frame(maxWidth: .infinity)
                 .frame(minHeight: 46)
-                .background(enabled ? LBColor.brand.color : LBColor.hairline.color,
+                .background(faceLit ? LBColor.brand.color : LBColor.hairline.color,
                             in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
                 .contentShape(Rectangle())
         }
@@ -340,15 +349,20 @@ enum OnboardingMotion {
 }
 
 /// A press that answers the finger: the button settles a little and a light tap is felt.
+/// The Mac takes the shared control states instead: a hover wash and the pressed shade.
 struct OnboardingPressStyle: ButtonStyle {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func makeBody(configuration: Configuration) -> some View {
+        #if os(macOS)
+        LBStateButtonStyle().makeBody(configuration: configuration)
+        #else
         configuration.label
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.97 : 1)
             .opacity(configuration.isPressed ? 0.88 : 1)
             .animation(OnboardingMotion.press, value: configuration.isPressed)
             .sensoryFeedback(.impact(weight: .light), trigger: configuration.isPressed) { _, pressed in pressed }
+        #endif
     }
 }
 

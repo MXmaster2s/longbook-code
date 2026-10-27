@@ -60,6 +60,11 @@ public enum LBColorLight {
     public static let danger = LBColorValue(0xB8283F)
     public static let dangerFill = LBColorValue(0xD33955)
 
+    // Control states: black on paper where the dark palette lays white.
+    public static let stateHover = LBWash(0x000000, opacity: 0.05)
+    public static let statePressed = LBWash(0x000000, opacity: 0.12)
+    public static let stateSelectionInactive = LBWash(0x000000, opacity: 0.08)
+
     /// Identity inks by rank. Each keeps its dark sibling's hue family — shifts are held
     /// within 12° — so a category does not change colour when the appearance does. Vivid
     /// on paper means deep: every pair is 11+ OKLab units apart and clears 3:1 on canvas,

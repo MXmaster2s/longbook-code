@@ -160,7 +160,7 @@ struct SidebarView: View {
             rowLabel("gearshape", "Settings", active: isSettings)
         }
         .menuStyle(.button)
-        .buttonStyle(.plain)
+        .lbButtonStyle(.rounded(LBRadius.xs))
         .menuIndicator(.hidden)
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityLabel("Settings")
@@ -212,7 +212,7 @@ struct SidebarView: View {
             .padding(.horizontal, LBSpacing.s2)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(.rounded(LBRadius.xs))
         .accessibilityLabel(text)
         .accessibilityHint(folded.wrappedValue ? "Shows the rows" : "Hides the rows")
     }
@@ -226,13 +226,10 @@ struct SidebarView: View {
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(active ? LBColor.onBrandTint.color : LBColor.textSecondary.color)
                 .frame(width: 30, height: 30)
-                .background(
-                    active ? LBColor.brand.color.opacity(0.16) : .clear,
-                    in: RoundedRectangle(cornerRadius: LBRadius.xs, style: .continuous)
-                )
+                .lbSelectionFill(active, in: RoundedRectangle(cornerRadius: LBRadius.xs, style: .continuous))
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(.rounded(LBRadius.xs))
         .accessibilityLabel(label)
     }
 
@@ -243,7 +240,7 @@ struct SidebarView: View {
         Button(action: { Measure.used("waiting_for_review"); action() }) {
             rowLabel(symbol, title, active: active, attention: attention)
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(.rounded(LBRadius.xs))
         .accessibilityElement(children: .combine)
     }
 
@@ -286,10 +283,7 @@ struct SidebarView: View {
         .foregroundStyle(active ? LBColor.onBrandTint.color : LBColor.textSecondary.color)
         .padding(.horizontal, LBSpacing.s2)
         .padding(.vertical, 6)
-        .background(
-            active ? LBColor.brand.color.opacity(0.16) : .clear,
-            in: RoundedRectangle(cornerRadius: LBRadius.xs, style: .continuous)
-        )
+        .lbSelectionFill(active, in: RoundedRectangle(cornerRadius: LBRadius.xs, style: .continuous))
         .contentShape(Rectangle())
     }
 
@@ -315,13 +309,10 @@ struct SidebarView: View {
             }
             .padding(.horizontal, LBSpacing.s2)
             .padding(.vertical, 4)
-            .background(
-                shown == destination ? LBColor.brand.color.opacity(0.16) : .clear,
-                in: RoundedRectangle(cornerRadius: LBRadius.xs, style: .continuous)
-            )
+            .lbSelectionFill(shown == destination, in: RoundedRectangle(cornerRadius: LBRadius.xs, style: .continuous))
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .lbButtonStyle(.rounded(LBRadius.xs))
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(row.name), \(row.count) commitments")
     }

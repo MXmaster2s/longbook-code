@@ -259,7 +259,7 @@ struct SetupFlowView: View {
                         .padding(.vertical, LBSpacing.s3)
                         .background(LBColor.brand.color, in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
             }
             .padding(.horizontal, LBSpacing.s4)
             .padding(.bottom, LBSpacing.s4)
@@ -329,7 +329,7 @@ struct SetupFlowView: View {
                                 .frame(width: 44, height: 44)
                                 .contentShape(Rectangle())
                         }
-                        .buttonStyle(.plain)
+                        .lbButtonStyle()
                         .accessibilityLabel("Go back a step")
                     }
                     Spacer()
@@ -341,7 +341,7 @@ struct SetupFlowView: View {
                                 .frame(width: 44, height: 44)
                                 .contentShape(Rectangle())
                         }
-                        .buttonStyle(.plain)
+                        .lbButtonStyle()
                         .accessibilityLabel("Close setup")
                     }
                 }

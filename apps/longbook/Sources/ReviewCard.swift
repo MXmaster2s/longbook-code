@@ -41,7 +41,7 @@ struct ReviewCard: View {
                     } label: {
                         capsule("Show proposal", ink: LBColor.onBrand, fill: LBColor.brand)
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                     .accessibilityHint("Opens the Proposals screen.")
                     Button {
                         Measure.used("keep_changes")
@@ -54,7 +54,7 @@ struct ReviewCard: View {
                     } label: {
                         capsule("Keep proposal", ink: LBColor.textSecondary, fill: LBColor.chrome)
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                     .accessibilityHint("Adopts the proposal as it stands, on every device.")
                 }
                 if let refusal {

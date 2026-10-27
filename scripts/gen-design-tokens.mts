@@ -29,6 +29,11 @@ function palette(file: string): Palette {
   for (const m of src.matchAll(/public static let (\w+) = LBColorValue\(0x([0-9A-Fa-f]{6})\)/g)) {
     colors.push([m[1] as string, `#${(m[2] as string).toUpperCase()}`])
   }
+  // State washes are black or white at an opacity, so they travel as rgba.
+  for (const m of src.matchAll(/public static let (\w+) = LBWash\(0x([0-9A-Fa-f]{6}), opacity: ([\d.]+)\)/g)) {
+    const n = parseInt(m[2] as string, 16)
+    colors.push([m[1] as string, `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${Number(m[3])})`])
+  }
 
   const rampBlock = src.match(/dataRamp: \[LBColorValue\] = \[([\s\S]*?)\]/)?.[1] ?? ''
   const dataRamp = [...rampBlock.matchAll(/0x([0-9A-Fa-f]{6})/g)].map((m) => `#${(m[1] as string).toUpperCase()}`)

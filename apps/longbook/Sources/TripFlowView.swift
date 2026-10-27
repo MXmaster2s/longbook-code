@@ -89,7 +89,7 @@ struct TripFlowView: View {
                         .frame(width: 44, height: 44)
                         .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .lbButtonStyle()
                 .accessibilityLabel("Close")
             }
             HStack(spacing: LBSpacing.s1) {
@@ -112,7 +112,7 @@ struct TripFlowView: View {
                             .frame(width: 44, height: 44)
                             .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .lbButtonStyle()
                     .accessibilityLabel("Go back a step")
                     Spacer()
                 }
@@ -296,7 +296,7 @@ struct TripFlowView: View {
                     .background((finishing && !canFinish) ? LBColor.chrome.color : LBColor.brand.color,
                                 in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
             }
-            .buttonStyle(.plain)
+            .lbButtonStyle()
             .disabled(finishing && !canFinish)
         }
         .padding(.horizontal, LBSpacing.s4)
