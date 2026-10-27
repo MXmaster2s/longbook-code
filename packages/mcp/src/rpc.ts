@@ -137,7 +137,7 @@ interface RpcMessage {
   params?: Record<string, unknown>
 }
 
-const PROTOCOLS = ['2025-06-18', '2025-03-26', '2024-11-05']
+export const PROTOCOLS = ['2025-06-18', '2025-03-26', '2024-11-05']
 
 // The same four renderers the stdio server serves — no second arithmetic.
 const CARD_RENDER: Record<string, (data: LoadedData, today: Date) => string> = {

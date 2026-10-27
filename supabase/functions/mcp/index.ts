@@ -3,7 +3,7 @@
 // one waits in mcp_pending_writes until the owner's app applies it, for review there.
 // Dispatch lives in engine.mjs, generated from packages/mcp.
 import { createClient } from 'npm:@supabase/supabase-js@2'
-import { LLMS_TXT, RateLimiter, RpcFailure, SCHEMA_JSON, failureBody, handleRpc, parseHints, parseVault } from './engine.mjs'
+import { LLMS_TXT, RateLimiter, RpcFailure, SCHEMA_JSON, SERVER_CARD, failureBody, handleRpc, parseHints, parseVault } from './engine.mjs'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
@@ -33,6 +33,19 @@ const RESOURCE_METADATA = {
   resource: PUBLIC_URL,
   authorization_servers: [`${SUPABASE_URL}/auth/v1`],
   bearer_methods_supported: ['header'],
+}
+
+/** The Server Card (MCP SEP-2127) at <server>/server-card: public, cacheable, revalidated by ETag. */
+const CARD_BODY = JSON.stringify(SERVER_CARD)
+const CARD_TAG = `"${Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(CARD_BODY))))
+  .slice(0, 8).map((b) => b.toString(16).padStart(2, '0')).join('')}"`
+const CARD_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET',
+  'Access-Control-Allow-Headers': 'Content-Type, If-None-Match',
+  'Access-Control-Expose-Headers': 'ETag',
+  'Cache-Control': 'public, max-age=3600',
+  ETag: CARD_TAG,
 }
 
 const tooMany = (retryAfterSeconds: number) =>
@@ -346,9 +359,14 @@ const tally = async (
 }
 
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response(null, { headers: CORS_HEADERS })
-
   const url = new URL(req.url)
+  if (url.pathname.endsWith('/server-card')) {
+    if (req.method === 'OPTIONS') return new Response(null, { headers: CARD_HEADERS })
+    if (req.method !== 'GET') return new Response(null, { status: 405, headers: { ...CARD_HEADERS, Allow: 'GET' } })
+    if (req.headers.get('if-none-match') === CARD_TAG) return new Response(null, { status: 304, headers: CARD_HEADERS })
+    return new Response(CARD_BODY, { headers: { ...CARD_HEADERS, 'Content-Type': 'application/mcp-server-card+json' } })
+  }
+  if (req.method === 'OPTIONS') return new Response(null, { headers: CORS_HEADERS })
   if (req.method === 'GET' && url.pathname.endsWith('/.well-known/oauth-protected-resource')) {
     return new Response(JSON.stringify(RESOURCE_METADATA), { headers: JSON_HEADERS })
   }
