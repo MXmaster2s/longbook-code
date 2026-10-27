@@ -19,7 +19,7 @@ const bundle = buildSync({
       "export { parseHints, parseVault, VaultReadError } from './parse.ts'\n" +
       "export { RateLimiter } from './rateLimit.ts'\n" +
       "export { failureBody } from './failure.ts'\n" +
-      "export { digest, reorganiseInstructions, REORGANISE_SHAPE, takeProposals } from './reorganise.ts'\n" +
+      "export { carryOf, digest, partition, readCarry, reorganiseInstructions, REORGANISE_SHAPE, takeProposals } from './reorganise.ts'\n" +
       "export { guideSection } from '@longbook/core'\n",
     resolveDir: join(ROOT, 'packages/mcp/src'),
     loader: 'ts',
