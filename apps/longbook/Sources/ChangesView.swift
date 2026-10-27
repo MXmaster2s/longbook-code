@@ -337,7 +337,7 @@ struct ChangesView: View {
                         .tutorialTarget(.changesDetail)
                 }
         }
-        .lbScreenTitle("Proposals")
+        .lbScreenTitle("Proposals", count: review == nil ? nil : groups.reduce(0) { $0 + $1.lines.count })
         .toolbar { macToolbar(review) }
         .onMacCommand(.refresh) { Task { await refreshAll() } }
         .onMacCommand(.history) { showingHistory = true }
@@ -372,7 +372,8 @@ struct ChangesView: View {
     /// a View menu command.
     @ToolbarContentBuilder
     private func macToolbar(_ review: Review?) -> some ToolbarContent {
-        ToolbarItemGroup(placement: .primaryAction) {
+        ToolbarItem(placement: .primaryAction) {
+          ControlGroup {
             Button {
                 Measure.used("refresh")
                 Task { await refreshAll() }
@@ -403,6 +404,7 @@ struct ChangesView: View {
                 .padding(LBSpacing.s4)
                 .frame(width: 320)
             }
+          }
         }
     }
 

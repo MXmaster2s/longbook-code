@@ -333,14 +333,16 @@ struct EntityListView: View {
         let rows = rows(cards)
         let chosen = rows.first { $0.id == selection }?.card
         return VStack(spacing: 0) {
-            if !isAccount {
-                Text("The people your commitments are for.")
-                    .lbText(.body)
-                    .foregroundStyle(LBColor.textSecondary.color)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, LBSpacing.s4)
-                    .padding(.vertical, LBSpacing.s3)
+            VStack(alignment: .leading, spacing: LBSpacing.s3) {
+                MacSearchField(text: $search, prompt: isAccount ? "Search accounts" : "Search people")
+                if !isAccount {
+                    Text("The people your commitments are for.")
+                        .lbText(.body)
+                        .foregroundStyle(LBColor.textSecondary.color)
+                }
             }
+            .padding(.horizontal, LBSpacing.s4)
+            .padding(.vertical, LBSpacing.s3)
             if model.saveError != nil || naming || cards.isEmpty {
                 VStack(alignment: .leading, spacing: LBSpacing.s3) {
                     saveErrorLine
@@ -366,19 +368,21 @@ struct EntityListView: View {
             inspector(chosen)
                 .background(LBColor.canvas.color)
         }
-        .lbScreenTitle(screenTitle)
+        .lbScreenTitle(screenTitle, count: cards.count)
         .toolbar { macToolbar(chosen, choices: tagChoices(all)) }
-        .searchable(text: $search, placement: .toolbar, prompt: isAccount ? "Search accounts" : "Search people")
         .onMacCommand(.newEntity) { startNaming() }
     }
 
-    /// The window's toolbar for this screen: the one filter, Add commitment for the chosen
-    /// row, and the screen's own +. Search is placed by the system.
+    /// The window's toolbar for this screen, in bordered groups: the one filter; Add
+    /// commitment for the chosen row and the screen's own +.
     @ToolbarContentBuilder
     private func macToolbar(_ chosen: DashboardModel.EntityCard?, choices: [String]) -> some ToolbarContent {
         let real = chosen?.isReal == true ? chosen : nil
-        ToolbarItemGroup(placement: .primaryAction) {
-            filterMenu(choices)
+        ToolbarItem(placement: .primaryAction) {
+            ControlGroup { filterMenu(choices) }
+        }
+        ToolbarItem(placement: .primaryAction) {
+          ControlGroup {
             Button {
                 Measure.used("add_commitment")
                 if let real { addingFor = target(real) }
@@ -391,6 +395,7 @@ struct EntityListView: View {
                 Label("Add \(word)", systemImage: "plus")
             }
             .help("Add \(word)")
+          }
         }
     }
 

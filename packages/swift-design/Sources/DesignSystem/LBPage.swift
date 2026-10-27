@@ -36,33 +36,88 @@ public extension View {
             .frame(maxWidth: .infinity)
     }
 
-    /// A screen's name where the platform puts it. On iPhone it is the navigation bar's
-    /// Large Title, which folds into the bar on scroll; on the Mac it is the window's title,
-    /// inline in the toolbar. An empty name leaves the Mac's title as it stands.
+    /// A screen's name where the platform puts it: the iPhone navigation bar's Large Title,
+    /// which folds on scroll, or the Mac window toolbar's 17 pt title with `count` in a pill
+    /// beside it. An empty name leaves the Mac's toolbar as it stands.
     @ViewBuilder
-    func lbScreenTitle(_ title: String, large: Bool = true) -> some View {
+    func lbScreenTitle(_ title: String, large: Bool = true, count: Int? = nil) -> some View {
         #if os(iOS)
         navigationTitle(title)
             .navigationBarTitleDisplayMode(large ? .large : .inline)
         #else
-        if title.isEmpty { self } else { navigationTitle(title) }
+        if title.isEmpty {
+            self
+        } else {
+            navigationTitle(title).modifier(LBToolbarTitleModifier(title: title, count: count))
+        }
         #endif
     }
 
     /// A screen's name with actions at the trailing end of the iPhone navigation bar, and
-    /// of the Mac's window toolbar.
+    /// as one bordered group at the trailing end of the Mac's window toolbar.
     func lbScreenTitle<Trailing: View>(
-        _ title: String, large: Bool = true, @ViewBuilder trailing: () -> Trailing
+        _ title: String, large: Bool = true, count: Int? = nil, @ViewBuilder trailing: () -> Trailing
     ) -> some View {
         let actions = trailing()
         #if os(iOS)
         return lbScreenTitle(title, large: large)
             .toolbar { ToolbarItemGroup(placement: .topBarTrailing) { actions } }
         #else
-        return lbScreenTitle(title, large: large)
-            .toolbar { ToolbarItemGroup(placement: .primaryAction) { actions } }
+        return lbScreenTitle(title, large: large, count: count)
+            .toolbar { ToolbarItem(placement: .primaryAction) { ControlGroup { actions } } }
         #endif
     }
+}
+
+#if os(macOS)
+/// The toolbar's own 17 pt title in place of the system's, where the system's can be
+/// removed (macOS 15); before that the system title stands alone.
+private struct LBToolbarTitleModifier: ViewModifier {
+    let title: String
+    let count: Int?
+
+    func body(content: Content) -> some View {
+        if #available(macOS 15.0, *) {
+            content
+                .toolbar(removing: .title)
+                .toolbar { ToolbarItem(placement: .navigation) { LBToolbarTitle(title: title, count: count) } }
+        } else {
+            content
+        }
+    }
+}
+
+/// The Mac toolbar's name for the screen on show, and how many things it lists.
+public struct LBToolbarTitle: View {
+    let title: String
+    let count: Int?
+
+    public init(title: String, count: Int?) {
+        self.title = title
+        self.count = count
+    }
+
+    public var body: some View {
+        HStack(spacing: LBSpacing.s2) {
+            Text(title)
+                .lbText(.windowTitle)
+                .foregroundStyle(LBColor.textPrimary.color)
+            if let count {
+                Text("\(count)")
+                    .lbText(.footnote)
+                    .foregroundStyle(LBColor.textSecondary.color)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 3)
+                    .background(LBColor.chrome.color, in: Capsule())
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isHeader)
+    }
+}
+#endif
+
+public extension View {
 }
 
 /// The page's own title on the Mac, where a window's toolbar does not already name the

@@ -24,6 +24,8 @@ struct ListFilter: Hashable {
     /// The Date chip's window as ISO days, either end open. No door passes one yet.
     var from: String? = nil
     var to: String? = nil
+    /// Words typed in the dashboard's search field, carried into the list's own.
+    var search: String? = nil
 }
 
 #if DEBUG
@@ -772,18 +774,23 @@ struct RootView: View {
 
     #if os(macOS)
     /// The toolbar's + on every screen, as Notes and Reminders keep theirs: ⌘N in the File
-    /// menu is the same door. Accounts and People carry their own Add, so the + stays off them.
+    /// menu is the same door. Commitments, Accounts and People carry their own Add.
     @ToolbarContentBuilder
     private func macAddItem(for destination: Destination?) -> some ToolbarContent {
-        if destination != .accounts, destination != .members {
+        switch destination {
+        case .accounts, .members, .commitments, .commitment:
+            ToolbarItem(placement: .primaryAction) { EmptyView() }
+        default:
             ToolbarItem(placement: .primaryAction) {
-                Button {
-                    Measure.used("toolbar_add")
-                    addingRenewal = true
-                } label: {
-                    Label("Add commitment", systemImage: "plus")
+                ControlGroup {
+                    Button {
+                        Measure.used("toolbar_add")
+                        addingRenewal = true
+                    } label: {
+                        Label("Add commitment", systemImage: "plus")
+                    }
+                    .help("Add a commitment")
                 }
-                .help("Add a commitment")
             }
         }
     }

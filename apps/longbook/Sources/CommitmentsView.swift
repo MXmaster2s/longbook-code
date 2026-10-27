@@ -117,6 +117,7 @@ struct CommitmentsView: View {
         _memberId = State(initialValue: filter.memberId)
         _pickedCategory = State(initialValue: filter.category)
         _onlyBookmarked = State(initialValue: filter.bookmarked)
+        _search = State(initialValue: filter.search ?? "")
         // A door may name its side; otherwise the window decides, so this month and today
         // open on what is still coming, and a day or month gone on what landed.
         var opens: ListScope = switch filter.scope {
@@ -887,16 +888,20 @@ struct CommitmentsView: View {
         VStack(spacing: 0) {
             if case .loaded(let data) = model.state {
                 let rows = ledgerRows(data)
-                narrowedLine(data)
-                    .padding(.horizontal, LBSpacing.s4)
-                    .padding(.top, LBSpacing.s3)
+                VStack(alignment: .leading, spacing: LBSpacing.s3) {
+                    MacSearchField(text: $search, prompt: "Search commitments")
+                    narrowedLine(data)
+                }
+                .padding(.horizontal, LBSpacing.s4)
+                .padding(.top, LBSpacing.s3)
                 macCards(data, rows: rows)
+                    .lbScreenTitle(screenTitle, count: rows.count)
                     .toolbar { macToolbar(data, rows: rows) }
-                    .searchable(text: $search, placement: .toolbar, prompt: "Search")
+                    .onMacCommand(.refresh) { model.load() }
                     .onMacCommand(.markPaid) { togglePaid(selected(rows)) }
                     .onMacCommand(.bookmark) { toggleBookmarks(selected(rows)) }
                     .onMacCommand(.edit) { if let only = selected(rows).first, selected(rows).count == 1 { edit(only) } }
-                    .onMacCommand(.toggleInspector) { if selection.isEmpty { selection = rows.first.map { [$0.id] } ?? [] } else { selection = [] } }
+                    .onMacCommand(.toggleInspector) { toggleInspector(rows) }
                     // The menu bar's Commitment items follow what is chosen here.
                     .onChange(of: menuKey(rows), initial: true) { _, _ in tellMenu(selected(rows)) }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -961,6 +966,11 @@ struct CommitmentsView: View {
         for id in chosenIds(chosen) where model.bookmarks.contains(id) == saved { model.toggleBookmark(id) }
     }
 
+    /// The inspector follows the choice: hiding it clears the choice, showing it picks the first row.
+    private func toggleInspector(_ rows: [LedgerRow]) {
+        if selection.isEmpty { selection = rows.first.map { [$0.id] } ?? [] } else { selection = [] }
+    }
+
     /// Changes whenever the menu's answer would: the choice, its paid marks, its bookmarks.
     private func menuKey(_ rows: [LedgerRow]) -> String {
         let chosen = selected(rows)
@@ -976,14 +986,14 @@ struct CommitmentsView: View {
         menu.inspectorShown = !chosen.isEmpty
     }
 
-    /// The window's toolbar for this screen: the side, the one Filter menu, then the chosen
-    /// rows' actions as one borderless group. Search and + are placed by the system.
+    /// The window's toolbar for this screen, in bordered groups: the side; Filter and
+    /// Refresh; the chosen rows' Mark Paid, Bookmark and Edit; Add and the inspector.
     @ToolbarContentBuilder
     private func macToolbar(_ data: DashboardData, rows: [LedgerRow]) -> some ToolbarContent {
         let chosen = selected(rows)
         let paid = allPaid(chosen)
         let saved = allBookmarked(chosen)
-        ToolbarItem(placement: .principal) {
+        ToolbarItem(placement: .primaryAction) {
             Picker("Show", selection: $when) {
                 Text("Upcoming").tag(ListScope.upcoming)
                 Text("Past").tag(ListScope.past)
@@ -991,8 +1001,20 @@ struct CommitmentsView: View {
             .pickerStyle(.segmented)
             .help("Upcoming or past charges")
         }
-        ToolbarItemGroup(placement: .primaryAction) {
-            filterMenu(data)
+        ToolbarItem(placement: .primaryAction) {
+            ControlGroup {
+                filterMenu(data)
+                Button {
+                    Measure.used("refresh")
+                    model.load()
+                } label: {
+                    Label("Refresh", systemImage: "arrow.clockwise")
+                }
+                .help("Refresh: re-reads your longbook folder")
+            }
+        }
+        ToolbarItem(placement: .primaryAction) {
+          ControlGroup {
             Button {
                 Measure.used("mark_paid")
                 togglePaid(chosen)
@@ -1017,6 +1039,26 @@ struct CommitmentsView: View {
             }
             .help("Edit")
             .disabled(chosen.count != 1)
+          }
+        }
+        ToolbarItem(placement: .primaryAction) {
+            ControlGroup {
+                Button {
+                    Measure.used("add")
+                    formTarget = .add
+                } label: {
+                    Label("Add commitment", systemImage: "plus")
+                }
+                .help("Add a commitment")
+                Button {
+                    Measure.used("toggle_inspector")
+                    toggleInspector(rows)
+                } label: {
+                    Label(chosen.isEmpty ? "Show Inspector" : "Hide Inspector", systemImage: "sidebar.trailing")
+                }
+                .help(chosen.isEmpty ? "Show Inspector" : "Hide Inspector")
+                .disabled(rows.isEmpty)
+            }
         }
     }
 

@@ -4,15 +4,11 @@ import LongbookCore
 import SwiftUI
 
 /// The Mac sidebar: the system's list in the sidebar style, on the design's flat tone. Its
-/// rows, selection, symbol column, section folding and size setting are the system's; only
-/// the material is turned off, so depth stays a tone step.
+/// rows, selection, symbol column and size setting are the system's; only the material is
+/// off. Starred accounts and people sit indented under Accounts and People.
 struct SidebarView: View {
     let model: DashboardModel
     @Binding var path: [Destination]
-    /// The two entity sections fold as the system folds a sidebar section. Remembered per
-    /// machine, like the sidebar's own visibility.
-    @AppStorage("longbook.sidebar.paymentsFolded") private var paymentsFolded = false
-    @AppStorage("longbook.sidebar.membersFolded") private var membersFolded = false
 
     /// One row: a screen, or one starred account or person.
     enum Row: Hashable {
@@ -77,27 +73,19 @@ struct SidebarView: View {
 
     var body: some View {
         List(selection: selection) {
-            Section("Overview") {
-                row(.dashboard, "Dashboard", "square.grid.2x2.fill")
-                row(.reports, "Reports", "chart.bar")
-                row(.calendar, "Calendar", LBGlyph.date)
-                row(.commitments, "Commitments", LBGlyph.commitment)
-                row(.insights, "Insights", "lightbulb")
-                row(.changes, "Proposals", LBGlyph.change, attention: model.outsideChangeFrom != nil)
-            }
+            row(.dashboard, "Dashboard", "square.grid.2x2.fill")
+            row(.reports, "Reports", "chart.bar")
+            row(.calendar, "Calendar", LBGlyph.date)
+            row(.commitments, "Commitments", LBGlyph.commitment)
+            row(.insights, "Insights", "lightbulb")
+            row(.changes, "Proposals", LBGlyph.change, attention: model.outsideChangeFrom != nil)
             if case .loaded(let data) = model.state {
-                Section(isExpanded: unfolded($paymentsFolded)) {
-                    row(.accounts, "Accounts", LBGlyph.account)
-                    starredRows(data.sidebarMethods, none: "Star an account on Accounts to keep it here.") { .account($0.id) }
-                } header: {
-                    Text("Payments")
-                }
-                Section(isExpanded: unfolded($membersFolded)) {
-                    row(.members, "People", "person.2")
-                    starredRows(data.sidebarMembers, none: "Star a person on People to keep them here.") { .member($0.id) }
-                } header: {
-                    Text("People")
-                }
+                row(.accounts, "Accounts", LBGlyph.account)
+                    .padding(.top, LBSpacing.s3)
+                starredRows(data.sidebarMethods) { .account($0.id) }
+                row(.members, "People", "person.2")
+                    .padding(.top, LBSpacing.s3)
+                starredRows(data.sidebarMembers) { .member($0.id) }
             }
         }
         .listStyle(.sidebar)
@@ -105,11 +93,6 @@ struct SidebarView: View {
         .scrollContentBackground(.hidden)
         .background(LBColor.sunken.color)
         .navigationSplitViewColumnWidth(min: 200, ideal: 220, max: 320)
-    }
-
-    /// The section's open state, stored as folded.
-    private func unfolded(_ folded: Binding<Bool>) -> Binding<Bool> {
-        Binding(get: { !folded.wrappedValue }, set: { folded.wrappedValue = !$0 })
     }
 
     /// A screen's row: the symbol on the system's column, the name at the body size.
@@ -127,31 +110,23 @@ struct SidebarView: View {
         .tag(id)
     }
 
-    /// Only the starred rows of a group; with none starred, one quiet line saying how to keep one here.
-    @ViewBuilder
+    /// The starred rows of a group, indented under the group's own row as a channel list is.
     private func starredRows(
-        _ rows: [DashboardData.SidebarEntity], none: String, id: @escaping (DashboardData.SidebarEntity) -> Row
+        _ rows: [DashboardData.SidebarEntity], id: @escaping (DashboardData.SidebarEntity) -> Row
     ) -> some View {
-        let starred = rows.filter(\.starred)
-        if starred.isEmpty {
-            Text(none)
-                .lbText(.footnote)
-                .foregroundStyle(LBColor.textTertiary.color)
-                .selectionDisabled()
-        } else {
-            ForEach(starred) { entity in
-                Label {
-                    Text(entity.name).lbText(.body).lineLimit(1)
-                } icon: {
-                    Circle()
-                        .fill(LBColor.dataInk(rank: entity.ink).color)
-                        .frame(width: 8, height: 8)
-                        .accessibilityHidden(true)
-                }
-                .badge(entity.count)
-                .tag(id(entity))
-                .accessibilityLabel("\(entity.name), \(entity.count) commitments")
+        ForEach(rows.filter(\.starred)) { entity in
+            Label {
+                Text(entity.name).lbText(.body).lineLimit(1)
+            } icon: {
+                Circle()
+                    .fill(LBColor.dataInk(rank: entity.ink).color)
+                    .frame(width: 8, height: 8)
+                    .accessibilityHidden(true)
             }
+            .padding(.leading, 20)
+            .badge(entity.count)
+            .tag(id(entity))
+            .accessibilityLabel("\(entity.name), \(entity.count) commitments")
         }
     }
 }

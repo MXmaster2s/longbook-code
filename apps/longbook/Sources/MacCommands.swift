@@ -17,6 +17,8 @@ enum MacCommand: Hashable {
     case today, previousMonth, nextMonth
     case refresh, history, howItWorks
     case toggleInspector
+    /// The cursor into the list's search field.
+    case find
 }
 
 /// Whether a window is on screen with the ledger in it, which screen, and what is chosen.
@@ -119,8 +121,14 @@ struct LongbookCommands: Commands {
             .keyboardShortcut("i", modifiers: .command)
             .disabled(!menu.shellReady)
         }
+        // Edit › Find puts the cursor in the list's search field.
+        CommandGroup(after: .textEditing) {
+            Button("Find") { Measure.used("find", .menuItem); menu.send(.find) }
+                .keyboardShortcut("f", modifiers: .command)
+                .disabled(!on("commitments", "commitment", "accounts", "members"))
+        }
         // View › Show/Hide Sidebar (⌃⌘S), the system's command for the system's sidebar,
-        // then the Commitments inspector and the Proposals screen's tools.
+        // then the Commitments inspector and the screens' Refresh and the Proposals tools.
         SidebarCommands()
         CommandGroup(after: .sidebar) {
             Button(menu.inspectorShown ? "Hide Inspector" : "Show Inspector") {
@@ -130,9 +138,9 @@ struct LongbookCommands: Commands {
             .keyboardShortcut("i", modifiers: [.command, .option])
             .disabled(!onCommitments)
             Divider()
-            Button("Refresh Proposals") { Measure.used("refresh_proposals", .menuItem); menu.send(.refresh) }
+            Button("Refresh") { Measure.used("refresh", .menuItem); menu.send(.refresh) }
                 .keyboardShortcut("r", modifiers: .command)
-                .disabled(!on("changes"))
+                .disabled(!on("changes", "commitments", "commitment"))
             Button("History…") { Measure.used("proposals_history", .menuItem); menu.send(.history) }
                 .disabled(!on("changes"))
             Button("How Proposals Work") { Measure.used("how_proposals_work", .menuItem); menu.send(.howItWorks) }

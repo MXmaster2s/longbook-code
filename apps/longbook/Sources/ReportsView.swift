@@ -41,7 +41,7 @@ struct ReportsView: View {
             }
             // Reading a file in is an import; it sits in the bar, a tap away, without
             // leading a page that is for browsing.
-            .lbScreenTitle("Reports") {
+            .lbScreenTitle("Reports", count: model.reports().reports.count) {
                 Button("Import Statement") { Measure.used("import_statement"); importing = true }
                     .help("Import a statement")
                     .accessibilityLabel("Import a statement")

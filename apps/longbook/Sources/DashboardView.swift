@@ -21,6 +21,8 @@ struct DashboardView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// The month card turned to its list of expenses.
     @State private var monthFlipped = false
+    /// Words in the Mac toolbar's search field, handed to Commitments on Return.
+    @State private var search = ""
     /// Each flip card's front height: the back takes it, so turning a card never resizes it.
     @State private var monthFrontHeight: CGFloat = 0
     @State private var accountsFrontHeight: CGFloat = 0
@@ -113,6 +115,15 @@ struct DashboardView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(LBColor.canvas.color)
         .lbScreenTitle("Dashboard")
+        #if os(macOS)
+        // The toolbar's search field: Return opens Commitments narrowed to the words.
+        .searchable(text: $search, placement: .toolbar, prompt: "Search")
+        .onSubmit(of: .search) {
+            guard !search.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+            path.append(.commitments(ListFilter(search: search)))
+            search = ""
+        }
+        #endif
         .onAppear {
             #if DEBUG
             if ProcessInfo.processInfo.environment["LONGBOOK_SNAPSHOT_SCREEN"] == "monthpicker" { pickingMonth = true }
