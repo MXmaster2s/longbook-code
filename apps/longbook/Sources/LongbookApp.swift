@@ -22,10 +22,11 @@ struct LongbookApp: App {
         #if DEBUG
         Snapshot.runIfAsked()
         #endif
-        // Once the app has finished launching: the Dock icon as the owner left it, and the
-        // daily update check while its switch is on.
+        // Once the app has finished launching: the Dock icon and the menu bar shortcut as
+        // they were left, and the daily update check while its switch is on.
         Task { @MainActor in
             DockIcon.applyStored()
+            MenuBarShortcut.applyStored()
             AppUpdates.checkIfDue()
         }
     }
