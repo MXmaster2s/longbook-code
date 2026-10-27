@@ -2649,7 +2649,9 @@ final class DashboardModel {
                 out.append((def.name, def.icon ?? TagLibrary.entry(kind: kind, name: def.name)?.icon))
             }
         }
-        for entry in TagLibrary.entries(kind: kind) {
+        // A regional tag (UPI) is offered only in its region; a vault already wearing it
+        // lists it in its own registry above, so nothing it holds goes missing.
+        for entry in TagLibrary.entries(kind: kind) where Regional.offersLibraryTag(kind: kind, name: entry.name) {
             if seen.insert(entry.nameKey).inserted { out.append((entry.name, entry.icon)) }
         }
         return out

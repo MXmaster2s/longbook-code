@@ -42,8 +42,6 @@ public enum OnboardingCards {
     /// The chips a region's people recognise: its account kinds, its cards, its wallets. A
     /// region not listed gets the universal set. The library tag each card writes is the same.
     public static func accounts(for region: String?) -> [OnboardingCard] {
-        let euro: Set<String> = ["AT", "BE", "DE", "ES", "FI", "FR", "IE", "IT", "NL", "PT", "GR", "LU", "SK", "SI", "EE", "LV", "LT", "MT", "CY", "HR",
-                                 "CH", "SE", "NO", "DK", "PL", "CZ"]
         let banks: [String], cards: [String], wallets: [String]
         switch region ?? "" {
         case "IN":
@@ -68,7 +66,7 @@ public enum OnboardingCards {
             banks = ["Transaction account", "Savings account", "Offset account", "Term deposit", "Superannuation", "Joint account", "Business account"]
             cards = ["Credit card", "Debit card", "Prepaid card"]
             wallets = ["Apple Pay", "Google Pay", "PayPal", "PayID", "Afterpay"]
-        case let code where euro.contains(code):
+        case let code where Regional.europe.contains(code):
             banks = ["Current account", "Savings account", "Joint account", "Business account", "Multi-currency account", "Fixed deposit"]
             cards = ["Debit card", "Credit card", "Prepaid card", "Business card"]
             wallets = ["Apple Pay", "Google Pay", "PayPal", "Revolut", "Wise", "N26", "Wero", "iDEAL", "Bizum", "Swish", "MobilePay", "Twint", "Vipps"]
@@ -123,6 +121,41 @@ public enum OnboardingCards {
     public static func dashboardAllowed(commitments: Int, charges: Int, accounts: Int, members: Int) -> Bool {
         commitments >= minimums.commitments && charges >= minimums.charges
             && accounts >= minimums.accounts && members >= minimums.members
+    }
+}
+
+/// What changes with the device's region outside the onboarding cards: the example a new
+/// account's name field shows, and the library tags only one region's people use. The same
+/// signal as the cards, `Locale.current.region`.
+public enum Regional {
+    /// The countries the cards treat as Europe.
+    public static let europe: Set<String> = ["AT", "BE", "DE", "ES", "FI", "FR", "IE", "IT", "NL", "PT", "GR", "LU", "SK", "SI", "EE", "LV", "LT",
+                                             "MT", "CY", "HR", "CH", "SE", "NO", "DK", "PL", "CZ"]
+
+    /// The "Name the account" field's example, in the region's own words.
+    public static var accountNameExample: String { accountNameExample(for: Locale.current.region?.identifier) }
+
+    public static func accountNameExample(for region: String?) -> String {
+        switch region ?? "" {
+        case "IN": return "HDFC savings"
+        case "US": return "Chase checking"
+        case let code where europe.contains(code): return "Current account"
+        default: return "Everyday savings"
+        }
+    }
+
+    /// Library tags offered only in one region, as "kind:name" to the region's code. A vault
+    /// that already wears one keeps it, since the vault's own registry lists it.
+    static let regionOnlyTags: [String: String] = ["account:upi": "IN"]
+
+    /// Whether the shipped library offers this tag on a device in this region.
+    public static func offersLibraryTag(kind: String, name: String, region: String?) -> Bool {
+        guard let only = regionOnlyTags["\(kind):\(name.lowercased())"] else { return true }
+        return region == only
+    }
+
+    public static func offersLibraryTag(kind: String, name: String) -> Bool {
+        offersLibraryTag(kind: kind, name: name, region: Locale.current.region?.identifier)
     }
 }
 
