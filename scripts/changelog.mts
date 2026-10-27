@@ -24,3 +24,18 @@ export function newestRelease(json: string): Release {
   if (!newest) throw new Error('changelog.json names no release')
   return newest
 }
+
+/** What stops the newest entry describing the build project.yml makes; empty when it does. */
+export function changelogProblems(projectYml: string, changelogJson: string): string[] {
+  const version = /MARKETING_VERSION: "([^"]+)"/.exec(projectYml)?.[1]
+  const build = /CURRENT_PROJECT_VERSION: "(\d+)"/.exec(projectYml)?.[1]
+  const newest = newestRelease(changelogJson)
+  const problems: string[] = []
+  if (newest.version !== version) problems.push(`changelog names ${newest.version}, project.yml builds ${version}`)
+  if (String(newest.build) !== build) problems.push(`changelog names build ${newest.build}, project.yml builds ${build}`)
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(newest.date)) problems.push(`the newest entry's date "${newest.date}" is not a day`)
+  const long = newest.changes.filter((c) => c.length > 300)
+  if (long.length) problems.push(`${long.length} change(s) run past 300 characters`)
+  if (newest.changes.join(' ').length > 4000) problems.push('the notes run past TestFlight\'s 4000 characters')
+  return problems
+}

@@ -39,21 +39,7 @@ struct UpdatesView: View {
     static func shown(_ changes: [String]) -> [String] {
         changes
             .filter { !$0.hasPrefix("Nothing you will see") }
-            .map(firstSentence)
-    }
-
-    private static func firstSentence(_ text: String) -> String {
-        var index = text.startIndex
-        while let stop = text[index...].firstIndex(of: ".") {
-            let next = text.index(after: stop)
-            // A full stop ends the sentence only before a space and a capital, so "1.3.6" holds.
-            if next < text.endIndex, text[next] == " ",
-               let after = text[next...].dropFirst().first, after.isUppercase {
-                return String(text[..<next])
-            }
-            index = next
-        }
-        return text
+            .map(WhatsNew.firstSentence)
     }
 
     var body: some View {
