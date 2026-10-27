@@ -1,0 +1,10 @@
+{
+  "specVersion": "1.0",
+  "entries": [
+    {
+      "identifier": "urn:air:longbook.app:mcp:mcp",
+      "type": "application/mcp-server-card+json",
+      "url": "https://longbook.app/mcp/server-card"
+    }
+  ]
+}
