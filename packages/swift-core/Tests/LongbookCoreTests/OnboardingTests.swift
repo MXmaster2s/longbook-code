@@ -74,4 +74,20 @@ final class OnboardingTests: XCTestCase {
         XCTAssertNil(read.onboardingStage)
         XCTAssertEqual(read.onboardingDevice, "iPhone")
     }
+
+    func testTheAccountNameExampleFollowsTheRegion() {
+        XCTAssertEqual(Regional.accountNameExample(for: "IN"), "HDFC savings")
+        XCTAssertEqual(Regional.accountNameExample(for: "US"), "Chase checking")
+        XCTAssertEqual(Regional.accountNameExample(for: "DE"), "Current account")
+        XCTAssertEqual(Regional.accountNameExample(for: "BR"), "Everyday savings")
+        XCTAssertEqual(Regional.accountNameExample(for: nil), "Everyday savings")
+    }
+
+    func testTheUpiTagIsOfferedOnlyInIndiaAndStaysInTheLibrary() {
+        XCTAssertTrue(Regional.offersLibraryTag(kind: "account", name: "upi", region: "IN"))
+        XCTAssertFalse(Regional.offersLibraryTag(kind: "account", name: "upi", region: "US"))
+        XCTAssertFalse(Regional.offersLibraryTag(kind: "account", name: "UPI", region: nil))
+        XCTAssertTrue(Regional.offersLibraryTag(kind: "account", name: "wallet", region: "US"))
+        XCTAssertNotNil(TagLibrary.entry(kind: "account", name: "upi"))
+    }
 }

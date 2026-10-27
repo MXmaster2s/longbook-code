@@ -80,8 +80,8 @@ const preflight = (): Check[] => {
     { ok: ascKey() !== null, what: 'App Store Connect key (both ids and the .p8)', fix: 'see docs/releasing-ios.md' },
     { ok: (() => { try { sh('xcodegen', ['--version']); return true } catch { return false } })(), what: 'xcodegen', fix: 'brew install xcodegen' },
     { ok: readFileSync(join(APP_DIR, 'LongbookMac.entitlements'), 'utf8').includes('com.apple.security.app-sandbox'), what: 'The Mac entitlements carry the sandbox', fix: 'edit apps/longbook/LongbookMac.entitlements' },
-    // TestFlight ships what was tested: the app on the owner's devices, unchanged since.
-    { ok: untested === null, what: 'The app on your devices, unchanged since', fix: untested ?? '' },
+    // TestFlight ships what was tested: the latest build on the owner's devices, unchanged since.
+    { ok: untested === null, what: 'The latest device build, unchanged since', fix: untested ?? '' },
   ]
 }
 
@@ -175,7 +175,7 @@ const main = () => {
   execFileSync('xcrun', ['altool', '--upload-app', '-f', pkg, '-t', 'macos', '--apiKey', key.id, '--apiIssuer', key.issuer], { stdio: 'inherit' })
   console.log(`\nUploaded ${marketing} (${build}) for the Mac. It appears in TestFlight for Mac once Apple has processed it.`)
   markOnTestFlight()
-  console.log(`Recorded build ${build} as on TestFlight in apps/longbook/device-builds.json; the next device build takes ${Number(build) + 1}. Commit that file.`)
+  console.log(`Recorded build ${build} as on TestFlight in apps/longbook/device-builds.json. Commit that file.`)
 }
 
 main()

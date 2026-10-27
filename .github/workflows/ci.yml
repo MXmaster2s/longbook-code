@@ -51,6 +51,7 @@ jobs:
       - run: npm run email:test
       - run: npm run auth-emails:check
       - run: npm run sessions:test
+      - run: npm run device-build:test
       - run: npm run review:test
       - run: npm run cloud:test
       - run: npm run statements:test

@@ -22,12 +22,11 @@ struct PurchaseView: View {
     private static let included = [
         "7-day Refund Policy",
         "Includes your iPhone and Mac",
-        "Includes Family Sharing",
         "Built-in AI features",
         "Compatibility with your AI",
         "Ownership of your data in your iCloud",
         "Future updates and enhancements",
-        "12 months of longbook Cloud",
+        "12 months of longbook Cloud, then optional",
         "Customer Support",
     ]
 
@@ -43,6 +42,7 @@ struct PurchaseView: View {
             }
             .multilineTextAlignment(.center)
             .fixedSize(horizontal: false, vertical: true)
+            familySharingCard
             includedDisclosure
         } actions: {
             BuyButton(auth: auth, entitlement: entitlement, fullWidth: true)
@@ -69,6 +69,36 @@ struct PurchaseView: View {
         }
         .task { await store.load() }
         .modifier(RootView.DemoCover(showing: $demo, auth: auth))
+    }
+
+    /// Family Sharing stated on its own card under the subtitle, so it is read before the
+    /// purchase rather than found in the list.
+    private var familySharingCard: some View {
+        LBCard(radius: LBRadius.md, padding: LBSpacing.s3) {
+            HStack(alignment: .top, spacing: LBSpacing.s3) {
+                Image(systemName: "person.2.fill")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundStyle(LBColor.onBrand.color)
+                    .frame(width: 40, height: 40)
+                    .background(LBColor.brand.color, in: RoundedRectangle(cornerRadius: LBRadius.xs, style: .continuous))
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Family Sharing included")
+                        .lbText(.headline)
+                        .foregroundStyle(LBColor.textPrimary.color)
+                    Text("Everyone in your Apple family gets longbook on their own account and devices.")
+                        .lbText(.footnote)
+                        .foregroundStyle(LBColor.textSecondary.color)
+                }
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .overlay(
+            RoundedRectangle(cornerRadius: LBRadius.md, style: .continuous)
+                .strokeBorder(LBColor.hairline.color, lineWidth: 1)
+        )
+        .accessibilityElement(children: .combine)
     }
 
     /// Closed, one line under the price; open, the promises drop in under it.

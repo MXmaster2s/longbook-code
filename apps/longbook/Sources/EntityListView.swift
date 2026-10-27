@@ -709,7 +709,7 @@ private struct EntityNameCard: View {
                 .foregroundStyle(LBColor.textPrimary.color)
             TextField(
                 "", text: $typedName,
-                prompt: Text(isAccount ? "HDFC savings" : "Their name").foregroundStyle(LBColor.textTertiary.color)
+                prompt: Text(isAccount ? Regional.accountNameExample : "Their name").foregroundStyle(LBColor.textTertiary.color)
             )
             .textFieldStyle(.plain)
             .lbText(.body)
