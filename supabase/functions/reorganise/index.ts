@@ -1,10 +1,11 @@
-// "Reorganise my longbook": the app sends the book, Claude reads it with the guide's own
-// chapter and answers proposals, sieved here by the same validator both doors use. The
-// app applies them as one change in Proposals. A run counts against a monthly share.
+// "Reorganise my longbook": the app sends the book once per part, Claude reads that part
+// with the guide's own chapter and answers proposals, sieved here by the same validator
+// both doors use. The app applies every part as one change. A run counts against a share.
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { hasCloud } from '../_shared/has-cloud.ts'
 import { shareFor, withinShare } from '../_shared/statement-shares.ts'
-import { LLMS_TXT, digest, guideSection, parseVault, reorganiseInstructions, REORGANISE_SHAPE, takeProposals } from '../mcp/engine.mjs'
+import { LLMS_TXT, carryOf, digest, guideSection, parseVault, partition, readCarry, reorganiseInstructions, REORGANISE_SHAPE, takeProposals } from '../mcp/engine.mjs'
+import { partAsked, runVerdict } from './run.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
@@ -19,7 +20,9 @@ const SHARES = {
 /** The book as sent, and what the model may read and write of it. */
 const MAX_VAULT_BYTES = 2_000_000
 const DIGEST_CHARS = 160_000
-const MAX_OUTPUT_TOKENS = 32_000
+/** One part's answer, and the most it may take: well inside the function's 150 s. */
+const MAX_OUTPUT_TOKENS = 7_000
+const MODEL_TIMEOUT_MS = 110_000
 /** The ledger shares the statements' table; a run's id wears this so neither counts the other. */
 const LEDGER_PREFIX = 'reorg-'
 
@@ -33,20 +36,28 @@ const json = (data: unknown, status = 200) =>
 
 const SHARE_SPENT = "longbook's server has reorganised your longbook as often as it can for now. Try again next month, or ask your own AI with the \"Reorganise my longbook\" prompt."
 const NOT_NOW = 'Your longbook could not be reorganised right now. Try again in a minute.'
+const TOO_LARGE = 'This longbook is larger than the server reorganises. Ask your own AI with the prompt instead.'
+const STALE = 'This pass has run its course. Start it again.'
 
 interface Request_ {
   /** One id per run, chosen by the app. */
   run_id: string
-  /** The book's financial_memory.json, as text. */
+  /** The book's financial_memory.json, as text, the same for every part. */
   vault: string
+  /** Which part, from 0. */
+  part?: number
+  /** What earlier parts chose, as the last answer gave it. */
+  carry?: unknown
 }
 
-type Ledger = { fresh: boolean } | { spent: string; resets_on: string }
+type Ledger = { fresh: boolean } | { spent: string; resets_on: string } | { stale: true }
 
 // deno-lint-ignore no-explicit-any
-async function ledger(service: any, userId: string, runId: string, cloud: boolean): Promise<Ledger> {
-  const { data: row } = await service.from('statement_imports').select('outcome').eq('user_id', userId).eq('import_id', runId).maybeSingle()
-  if (row && row.outcome !== 'refused') return { fresh: false }
+async function ledger(service: any, userId: string, runId: string, cloud: boolean, part: number, parts: number): Promise<Ledger> {
+  const { data: row } = await service.from('statement_imports').select('outcome, calls, started_at').eq('user_id', userId).eq('import_id', runId).maybeSingle()
+  const verdict = runVerdict(row ?? null, part, parts)
+  if (verdict === 'stale') return { stale: true }
+  if (verdict === 'continue') return { fresh: false }
   const since = new Date(Date.now() - 31 * 24 * 60 * 60 * 1000).toISOString()
   const { data: recent } = await service.from('statement_imports').select('started_at')
     .eq('user_id', userId).eq('outcome', 'read').like('import_id', `${LEDGER_PREFIX}%`).gte('started_at', since)
@@ -65,12 +76,13 @@ async function mark(service: any, userId: string, runId: string, outcome: 'read'
 async function ask(instructions: string, text: string): Promise<{ ok: true; result: unknown; tokens: number } | { ok: false; response: Response; tokens: number }> {
   const answer = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
+    signal: AbortSignal.timeout(MODEL_TIMEOUT_MS),
     headers: { 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
     body: JSON.stringify({
       model: ANTHROPIC_MODEL,
       max_tokens: MAX_OUTPUT_TOKENS,
       system: instructions,
-      messages: [{ role: 'user', content: [{ type: 'text', text: `The longbook, as a digest:\n\n${text}\n\nReorganise it and answer in the shape.` }] }],
+      messages: [{ role: 'user', content: [{ type: 'text', text: `The longbook, as a digest:\n\n${text}\n\nReorganise this part and answer in the shape.` }] }],
       output_config: { format: { type: 'json_schema', schema: REORGANISE_SHAPE } },
     }),
   }).catch(() => null)
@@ -78,7 +90,11 @@ async function ask(instructions: string, text: string): Promise<{ ok: true; resu
     console.error('anthropic', 'unreachable')
     return { ok: false, response: json({ error: NOT_NOW }, 502), tokens: 0 }
   }
-  const raw = await answer.text()
+  const raw = await answer.text().catch(() => null)
+  if (raw === null) {
+    console.error('anthropic', 'timed out')
+    return { ok: false, response: json({ error: NOT_NOW }, 504), tokens: 0 }
+  }
   if (!answer.ok) {
     let type = ''
     try { type = String(JSON.parse(raw)?.error?.type ?? '') } catch { /* unlogged */ }
@@ -112,7 +128,7 @@ Deno.serve(async (req: Request) => {
   if (!ANTHROPIC_API_KEY) return json({ error: 'The server has no model key yet.' }, 503)
 
   const length = Number(req.headers.get('content-length') ?? 0)
-  if (length > MAX_VAULT_BYTES + 10_000) return json({ error: 'This longbook is larger than the server reorganises. Ask your own AI with the prompt instead.' }, 413)
+  if (length > MAX_VAULT_BYTES + 100_000) return json({ error: TOO_LARGE }, 413)
   let body: Request_
   try {
     body = await req.json()
@@ -122,7 +138,7 @@ Deno.serve(async (req: Request) => {
   const runId = typeof body.run_id === 'string' ? body.run_id.trim() : ''
   if (!/^[A-Za-z0-9-]{8,56}$/.test(runId)) return json({ error: 'The longbook could not be read.' }, 400)
   if (typeof body.vault !== 'string' || !body.vault) return json({ error: 'No longbook was sent.' }, 400)
-  if (body.vault.length > MAX_VAULT_BYTES) return json({ error: 'This longbook is larger than the server reorganises. Ask your own AI with the prompt instead.' }, 413)
+  if (body.vault.length > MAX_VAULT_BYTES) return json({ error: TOO_LARGE }, 413)
   let data
   try {
     data = parseVault(body.vault)
@@ -131,15 +147,22 @@ Deno.serve(async (req: Request) => {
   }
   const chapter = guideSection(LLMS_TXT, 'reorganise-my-longbook')
   if (!chapter) return json({ error: 'The server has no method yet.' }, 503)
+  const plan: string[][] = partition(data)
+  const part = partAsked(body.part, plan.length)
+  if (part === 'whole_too_large') return json({ error: TOO_LARGE }, 413)
+  if (part === null) return json({ error: 'The longbook could not be read.' }, 400)
+  const scope = { index: part, count: plan.length, ids: new Set(plan[part]), carry: readCarry(body.carry) }
 
   const service = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
   const cloud = await hasCloud(service, user.id)
   const ledgerId = LEDGER_PREFIX + runId
-  const row = await ledger(service, user.id, ledgerId, cloud)
+  const row = await ledger(service, user.id, ledgerId, cloud, part, plan.length)
+  if ('stale' in row) return json({ error: STALE, code: 'stale_run' }, 409)
   if ('spent' in row) return json({ error: row.spent, code: 'share_spent', resets_on: row.resets_on }, 429)
   if (row.fresh) await mark(service, user.id, ledgerId, 'read')
 
-  const asked = await ask(reorganiseInstructions(chapter.text, new Date().toISOString().slice(0, 10)), digest(data, DIGEST_CHARS))
+  const today = new Date().toISOString().slice(0, 10)
+  const asked = await ask(reorganiseInstructions(chapter.text, today, scope), digest(data, DIGEST_CHARS, scope))
   const { error: kept } = await service.rpc('statement_import_spend', { p_user: user.id, p_import: ledgerId, p_tokens: asked.tokens })
   if (kept) console.error('ledger update', kept.message)
   if (!asked.ok) {
@@ -147,6 +170,9 @@ Deno.serve(async (req: Request) => {
     await mark(service, user.id, ledgerId, 'refused')
     return asked.response
   }
-  const taken = takeProposals(asked.result, data)
-  return json({ proposals: taken.proposals, dropped: taken.dropped, summary: taken.summary, model: ANTHROPIC_MODEL, tokens: asked.tokens })
+  const taken = takeProposals(asked.result, data, scope)
+  return json({
+    proposals: taken.proposals, dropped: taken.dropped, summary: taken.summary, model: ANTHROPIC_MODEL, tokens: asked.tokens,
+    part, parts: plan.length, carry: carryOf(scope.carry, taken.proposals),
+  })
 })
