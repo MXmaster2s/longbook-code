@@ -277,6 +277,8 @@ export function sitemap(entries: SitemapEntry[]): string {
 const MD_HEADERS = (canonical: string): string[] => [
   '  Content-Type: text/markdown; charset=utf-8',
   `  Link: <${canonical}>; rel="canonical"`,
+  // The page stays the one in results; agents still follow the copy's links.
+  '  X-Robots-Tag: noindex, follow',
 ]
 
 // Every response gets these. No frames from other sites, no camera, microphone or location,
@@ -338,6 +340,9 @@ export function headersFile(features: Feature[], pages: MdPage[] = []): string {
     md([`/features/${f.slug}.md`, `/features/${f.slug}/index.md`, `/features/${f.slug}/index.html.md`], pageUrl(f.slug))
   }
   for (const p of pages) md([p.md, ...(p.variants ?? mdVariants(p.md))], p.canonical)
+  out.push('# Where agents find the MCP server: the catalog names its Server Card (MCP SEP-2127).',
+    '/.well-known/ai-catalog.json', '  Content-Type: application/ai-catalog+json', '  Access-Control-Allow-Origin: *',
+    '  Cache-Control: public, max-age=3600', '')
   out.push('# A shared report is private to the people holding its link and password.', '/r/*',
     '  X-Robots-Tag: noindex, nofollow', '')
   return out.join('\n')
