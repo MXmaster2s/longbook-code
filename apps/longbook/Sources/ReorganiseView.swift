@@ -2,8 +2,8 @@ import DesignSystem
 import LongbookCore
 import SwiftUI
 
-/// "Reorganise my longbook": one sheet that says what the pass does, runs it on the server,
-/// and says what came back. Nothing applies by itself beyond the one change that waits in
+/// "Reorganise my longbook": one sheet that says what the pass does, runs it on the server
+/// part by part, and says what came back. Nothing applies by itself beyond the one change that waits in
 /// Changes, where the owner keeps or undoes the whole pass at once.
 struct ReorganiseView: View {
     let model: DashboardModel
@@ -18,6 +18,8 @@ struct ReorganiseView: View {
     @State private var summary = ""
     @State private var applied = 0
     @State private var skipped = 0
+    /// The part being read and how many there are, once the pass has begun.
+    @State private var reading = (part: 1, of: 1)
 
     private static let pitch = "longbook's AI reads your whole longbook and proposes it the way you'd keep it: names as you'd say them, every row categorised, people and accounts linked, doubles merged, nothing lost. Amounts and dates are never touched."
 
@@ -96,11 +98,11 @@ struct ReorganiseView: View {
         VStack(alignment: .leading, spacing: LBSpacing.s3) {
             HStack(spacing: LBSpacing.s2) {
                 ProgressView().controlSize(.small)
-                Text("Reading your longbook…")
+                Text(reading.of > 1 ? "Reading part \(reading.part) of \(reading.of)…" : "Reading your longbook…")
                     .lbText(.body)
                     .foregroundStyle(LBColor.textPrimary.color)
             }
-            Text("A minute or two for a full book. Leave this open.")
+            Text("About a minute a part. Leave this open.")
                 .lbText(.footnote)
                 .foregroundStyle(LBColor.textTertiary.color)
         }
@@ -146,10 +148,11 @@ struct ReorganiseView: View {
 
     private func run() async {
         guard let text = model.vaultText else { return }
+        reading = (1, ReorganiseCloud.partCount(vaultText: text))
         stage = .running
         let token = await auth.accessToken()
         do {
-            let answer = try await ReorganiseCloud.run(vaultText: text, token: token)
+            let answer = try await ReorganiseCloud.run(vaultText: text, token: token) { part, of in reading = (part, of) }
             let landed = try model.reorganise(answer.proposals)
             summary = answer.summary
             applied = landed.applied
