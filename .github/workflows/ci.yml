@@ -55,6 +55,8 @@ jobs:
       - run: npm run cloud:test
       - run: npm run statements:test
       - run: npm run changelog:check
+      - run: npm run dev-tools:test
+      - run: npm run release:doctor
 
       # These two read a commit range, not the tree. Their default (origin/main..HEAD) is
       # empty on a push to main, so the range is computed here: a new branch or a force
