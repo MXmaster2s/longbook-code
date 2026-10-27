@@ -140,7 +140,7 @@ struct SidebarView: View {
             .keyboardShortcut(",", modifiers: .command)
             Button("What’s New") {
                 Measure.used("sidebar_whats_new", .menuItem)
-                if path.last != .updates { path.append(.updates) }
+                WhatsNewCenter.shared.open()
             }
             Button("Send Feedback…") {
                 Measure.used("sidebar_send_feedback", .menuItem)

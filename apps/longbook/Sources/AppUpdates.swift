@@ -113,14 +113,7 @@ enum AppUpdates {
 
     /// Dotted numbers compared part by part, so 1.10.0 is newer than 1.9.2.
     static func isNewer(_ candidate: String, than installed: String) -> Bool {
-        let a = candidate.split(separator: ".").map { Int($0) ?? 0 }
-        let b = installed.split(separator: ".").map { Int($0) ?? 0 }
-        for index in 0..<max(a.count, b.count) {
-            let x = index < a.count ? a[index] : 0
-            let y = index < b.count ? b[index] : 0
-            if x != y { return x > y }
-        }
-        return false
+        WhatsNew.isNewer(candidate, than: installed)
     }
 
     /// The menu item's route: the same question as the Settings row, asked in an alert, since a

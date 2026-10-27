@@ -94,10 +94,9 @@ struct MoreView: View {
         #endif
     }
 
-    /// What changed in this version, and the way to a newer one. The App Store or
-    /// TestFlight does the updating; the screen only opens that page.
+    /// What changed in this version, the same sheet that opens once after an update.
     private var updateRows: [Row] {
-        [Row("arrow.down.circle", 2, AppUpdates.screenTitle, "", .opens(.updates))]
+        [Row("arrow.down.circle", 2, AppUpdates.screenTitle, "", .does { WhatsNewCenter.shared.open() })]
     }
 
     // MARK: identity

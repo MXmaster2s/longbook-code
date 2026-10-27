@@ -466,6 +466,10 @@ struct RootView: View {
         }
         .onAppear { model.load() }
         .task(id: loadedKey) { await openOnboardingIfDue() }
+        // Setup pending means a new install here: this version counts as seen.
+        .onChange(of: onboarding == nil, initial: true) { _, none in
+            if !none, !setupReplay { WhatsNewCenter.shared.recordInstall() }
+        }
         .lbDismissesKeyboardOnTap()
         .modifier(DemoCover(showing: $showingDemo, auth: auth))
     }
@@ -550,6 +554,15 @@ struct RootView: View {
         .background(LBColor.canvas.color)
         // A screen's tutorial stands over the whole window, tab bar and sidebar included.
         .overlay { TutorialOverlay() }
+        // What's New after an update, once the book has settled: never over a tutorial or the
+        // demo, so it waits for either to end.
+        .modifier(WhatsNewPresenter())
+        .task {
+            try? await Task.sleep(for: .milliseconds(1200))
+            offerWhatsNew()
+        }
+        .onChange(of: TutorialCenter.shared.active == nil) { _, free in if free { offerWhatsNew() } }
+        .onChange(of: showingDemo) { _, showing in if !showing { offerWhatsNew() } }
         .onReceive(NotificationCenter.default.publisher(for: .longbookOpenTutorial)) { note in
             if let screen = note.object as? ScreenTutorial { open(screen) }
         }
@@ -751,6 +764,11 @@ struct RootView: View {
         #else
         path = screen.destination.map { [$0] } ?? []
         #endif
+    }
+
+    private func offerWhatsNew() {
+        guard TutorialCenter.shared.active == nil, !showingDemo else { return }
+        WhatsNewCenter.shared.openIfDue()
     }
 
     /// Settings' Optimize your data, from whichever window holds it: the commitment and
