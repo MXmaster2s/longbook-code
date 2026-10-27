@@ -21,7 +21,13 @@
       "An AI connected to longbook now reads longbook's guide for the task before it writes, and is told which part to read when it hasn't.",
       "The Changes screen is now called Proposals, so it no longer reads like Charges at a glance.",
       "Each screen shows a short tutorial the first time you open it. Replay any of them in Settings > Tutorials.",
-      "Support inside the app: ask a question and longbook's AI answers from the help articles, or email a person."
+      "Support inside the app: ask a question and longbook's AI answers from the help articles, or email a person.",
+      "Optimize your data keeps the people and accounts you pick as hints for your AI, instead of adding them to People and Accounts.",
+      "Star a person or an account to keep it at the top of its list. On the Mac, the sidebar shows only the starred ones.",
+      "People and Accounts each have a search and a filter by relationship or type.",
+      "Importing a statement adds its account and the people it names. You can turn this off in Settings.",
+      "Importing a statement also adds the accounts and people your transfers and card payments go to.",
+      "Settings > Data & privacy can open a longbook from another folder, and leaves your current folder as it is."
     ]
   },
   {

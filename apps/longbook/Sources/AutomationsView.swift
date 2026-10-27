@@ -8,6 +8,10 @@ import SwiftUI
 struct AutomationsView: View {
     let model: DashboardModel
     @ObservedObject var auth: AuthViewModel
+    #if os(macOS)
+    /// The share of the screen a Settings window page shows; the whole screen elsewhere.
+    var part: AutomationsPart = .all
+    #endif
 
     /// The copy button last pressed, as place plus prompt id: the daily-round prompt sits in the
     /// morning card and in the list, and only the one pressed turns to Copied.
@@ -66,6 +70,26 @@ struct AutomationsView: View {
     private static func key(_ place: Place, _ id: String) -> String { "\(place.rawValue)/\(id)" }
 
     var body: some View {
+        #if os(macOS)
+        if part == .all {
+            screen
+        } else {
+            SettingsCanvas {
+                if part == .prompts {
+                    section("Claude automation") { claudeCard }
+                    section("Prompts for your AI") { promptsCard }
+                } else {
+                    section("Shortcuts automations") { shortcutsCard }
+                    section("Siri and Spotlight") { siriCard }
+                }
+            }
+        }
+        #else
+        screen
+        #endif
+    }
+
+    private var screen: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: LBSpacing.s6) {
                 LBPageTitle("AI Connections")
@@ -379,3 +403,10 @@ private struct AdaptiveStack<Content: View>: View {
         #endif
     }
 }
+
+#if os(macOS)
+/// Which share of the AI Connections screen a Settings window page shows.
+enum AutomationsPart {
+    case all, prompts, shortcuts
+}
+#endif

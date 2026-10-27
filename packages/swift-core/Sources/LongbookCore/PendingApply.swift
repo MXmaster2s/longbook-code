@@ -355,7 +355,7 @@ public enum PendingApply {
 
     /// The fields that describe a person or an account, as add_member and add_account carry them.
     private static let describing = ["tag", "email", "linked_to", "parent", "parent_account", "member", "notes",
-                                     "balance", "balance_date", "card_name", "details"]
+                                     "balance", "balance_date", "card_name", "details", "starred"]
 
     /// A new person or account, written as ensureEntity writes a placeholder and then described;
     /// a name the list already holds is refused rather than doubled, in the form's own words.
@@ -465,14 +465,24 @@ public enum PendingApply {
             }
         }
 
+        // The star, on either kind; anything but a boolean is refused as the doors refuse it.
+        var starred: Bool? = nil
+        if let sent = set["starred"], !(sent is NSNull) {
+            guard let flag = sent as? Bool, CFGetTypeID(sent as CFTypeRef) == CFBooleanGetTypeID() else {
+                throw ApplyError.invalid("A star is on or off.")
+            }
+            starred = flag
+        }
+
         let described = accountTag != nil || parentAccountId != nil || email != nil || balance != nil || balanceDate != nil
-            || memberTag != nil || ownerMemberId != nil || accountNotes != nil
+            || memberTag != nil || ownerMemberId != nil || accountNotes != nil || starred != nil
         if described {
             vault = try VaultPatch.setEntityDetails(
                 kind, id: id, in: vault, now: now,
                 accountTag: accountTag, parentAccountId: parentAccountId, email: email,
                 balance: balance, balanceDate: balanceDate,
-                memberTag: memberTag, ownerMemberId: ownerMemberId, accountNotes: accountNotes
+                memberTag: memberTag, ownerMemberId: ownerMemberId, accountNotes: accountNotes,
+                starred: starred
             )
             if case .some(.some(let tag)) = accountTag {
                 vault = VaultPatch.ensureTag(kind: "account", named: tag, in: vault, now: now)

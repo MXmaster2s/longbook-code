@@ -625,9 +625,10 @@ struct RootView: View {
         // than refusing to tile — so a floor above that overlapped the app beside it. With
         // the sidebar put away the panes still have their measure.
         .frame(minWidth: 720, minHeight: 620)
-        // While a conversation is open and the panel is put away, the button brings it back.
+        // Once Support was opened, or while a conversation is recent, the button brings the
+        // put-away panel back.
         .overlay(alignment: .bottomTrailing) {
-            if support.active && !support.presented {
+            if (support.active || support.opened) && !support.presented {
                 SupportButton().padding(LBSpacing.s6)
             }
         }
@@ -717,7 +718,7 @@ struct RootView: View {
     private func supportOverlay(_ screen: Destination?) -> some View {
         let onTop = screen == nil ? path.isEmpty : path.last == screen
         let home = tab == .more && (screen == nil || screen == .helpAbout)
-        if onTop, !support.presented, support.active || home {
+        if onTop, !support.presented, support.active || support.opened || home {
             SupportButton()
                 .padding(.trailing, LBSpacing.s4)
                 .padding(.bottom, LBSpacing.s4)

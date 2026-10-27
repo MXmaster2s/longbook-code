@@ -212,18 +212,18 @@ public enum DemoVault {
 
             let joined = "\(addDays(today, -115))T09:00:00Z"
             let members: [[String: Any]] = [
-                ["id": "m-dev", "name": "Dev", "name_key": "dev", "tag": "family", "created_at": joined],
-                ["id": "m-asha", "name": "Asha", "name_key": "asha", "tag": "family", "created_at": joined],
+                ["id": "m-dev", "name": "Dev", "name_key": "dev", "tag": "family", "starred": true, "created_at": joined],
+                ["id": "m-asha", "name": "Asha", "name_key": "asha", "tag": "family", "starred": true, "created_at": joined],
                 ["id": "m-kabir", "name": "Kabir", "name_key": "kabir", "tag": "family", "created_at": joined],
                 ["id": "m-sunita", "name": "Sunita", "name_key": "sunita", "tag": "household help", "created_at": joined],
                 ["id": "m-mehta", "name": "Mehta Properties", "name_key": "mehta properties", "tag": "landlord", "created_at": joined],
             ]
             let accounts: [[String: Any]] = [
                 ["id": "a-hdfc", "name": "HDFC savings", "name_key": "hdfc savings", "institution": "HDFC Bank", "last4": "5521",
-                 "tag": "bank account", "member_id": "m-dev", "balance": 284512, "balance_date": addDays(today, -4), "created_at": joined],
+                 "tag": "bank account", "member_id": "m-dev", "balance": 284512, "balance_date": addDays(today, -4), "starred": true, "created_at": joined],
                 ["id": "a-axis", "name": "Axis card", "name_key": "axis card", "institution": "Axis Bank", "last4": "4402",
                  "tag": "credit card", "member_id": "m-dev", "parent_account_id": "a-hdfc", "notes": "Card name: Ruby Rewards",
-                 "balance": -12450, "balance_date": recent(15), "created_at": joined],
+                 "balance": -12450, "balance_date": recent(15), "starred": true, "created_at": joined],
                 ["id": "a-icici", "name": "ICICI savings", "name_key": "icici savings", "institution": "ICICI Bank", "last4": "8130",
                  "tag": "bank account", "member_id": "m-asha", "balance": 112400, "balance_date": addDays(today, -10), "created_at": joined],
             ]

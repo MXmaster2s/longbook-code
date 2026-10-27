@@ -12,6 +12,12 @@ struct MCPServerView: View {
     @ObservedObject var auth: AuthViewModel
     /// Inside Automations: the panels alone, no title and no scroll of its own.
     var embedded = false
+    #if os(macOS)
+    /// The share of the screen a Settings window page shows; the whole screen elsewhere.
+    var part: MCPServerPart = .all
+    /// Opens a Settings window page, for the switches' rows that lead to one.
+    var openPage: ((SettingsPage) -> Void)? = nil
+    #endif
 
     @State private var enabled = false
     @State private var confirmingEnable = false
@@ -43,25 +49,15 @@ struct MCPServerView: View {
 
     var body: some View {
         Group {
-            if embedded {
-                panels
+            #if os(macOS)
+            if part != .all {
+                settingsPart
             } else {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: LBSpacing.s4) {
-                        LBPageTitle("MCP server")
-                        panels
-                    }
-                    .padding(LBSpacing.s4)
-                    #if os(macOS)
-                    .padding(.top, LBSpacing.s6)
-                    #endif
-                    .frame(maxWidth: 700)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(LBColor.canvas.color)
-                .lbScreenTitle("MCP server")
+                screen
             }
+            #else
+            screen
+            #endif
         }
         .onAppear {
             enabled = model.hostedPush
@@ -86,6 +82,109 @@ struct MCPServerView: View {
         }
         .cloudPaywall(isPresented: $paywall, auth: auth)
     }
+
+    /// The screen as the main window and the phone show it.
+    @ViewBuilder
+    private var screen: some View {
+        if embedded {
+            panels
+        } else {
+            ScrollView {
+                VStack(alignment: .leading, spacing: LBSpacing.s4) {
+                    LBPageTitle("MCP server")
+                    panels
+                }
+                .padding(LBSpacing.s4)
+                #if os(macOS)
+                .padding(.top, LBSpacing.s6)
+                #endif
+                .frame(maxWidth: 700)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(LBColor.canvas.color)
+            .lbScreenTitle("MCP server")
+        }
+    }
+
+    #if os(macOS)
+    /// A share of the screen as the Settings window lays it out: rows in cards, details behind ⓘ.
+    @ViewBuilder
+    private var settingsPart: some View {
+        switch part {
+        case .all, .switches:
+            settingsSwitches
+        case .claudeDesktop:
+            SettingsCanvas { connectMacPanel }
+        case .access:
+            SettingsCanvas {
+                if signedIn && enabled {
+                    readyPanel
+                    if !grants.isEmpty { connectedPanel }
+                    accessKeysPanel
+                } else {
+                    SettingsGroup {
+                        SettingsTextRow(text: "Turn on Let AI read my longbook first.")
+                    }
+                }
+                if let error { SettingsProblem(error) }
+            }
+        }
+    }
+
+    /// The AI pane's two switches and its connections. Turning access on asks first.
+    private var settingsSwitches: some View {
+        VStack(alignment: .leading, spacing: SettingsMetrics.section) {
+            SettingsGroup {
+                if signedIn {
+                    SettingsRow("Let AI read my longbook", symbol: "sparkles", tile: .purple) {
+                        Toggle("Let AI read my longbook", isOn: $enabled.measured("mcp_setting_switch"))
+                            .labelsHidden()
+                    }
+                    .disabled(busy)
+                    SettingsDivider()
+                    SettingsRow("Allow proposals", symbol: "tray.and.arrow.down.fill", tile: .purple) {
+                        SettingsInfoButton(
+                            "What your AI writes waits in Proposals for you to keep or undo. Off, your AI can only read.",
+                            control: "allow_proposals_info"
+                        )
+                        Toggle("Allow proposals", isOn: Binding(get: { webPropose }, set: { _ in toggleWrite() }).measured("mcp_setting_switch"))
+                            .labelsHidden()
+                    }
+                    .disabled(webProposeBusy || !enabled)
+                } else {
+                    SettingsRow("Sign in to let your AI read your longbook", symbol: "sparkles", tile: .purple)
+                }
+            }
+            .onChange(of: enabled) { _, wanted in
+                guard !staged, wanted != model.hostedPush, !busy else { return }
+                if wanted, !model.hasCloud { enabled = false; paywall = true; return }
+                if wanted { confirmingEnable = true } else { confirmingEnable = false; Task { await apply(false) } }
+            }
+            .measured("mcp_enable_confirm", .alert, when: confirmingEnable)
+            .alert("Let your AI read your longbook?", isPresented: $confirmingEnable) {
+                Button("Enable") { Measure.used("enable"); Task { await apply(true) } }
+                Button("Not Now", role: .cancel) { Measure.used("not_now"); enabled = false }
+            } message: {
+                Text("ChatGPT or Claude can read and write your longbook, and what they write waits in Proposals. A copy of your memory file is stored with your account, and deleted when you turn this off or after 90 days without the app.")
+            }
+            if let error { SettingsProblem(error) }
+            if model.hostedPush, !model.hasCloud, !staged { lapsedNote }
+            SettingsGroup(heading: "Connections") {
+                SettingsLinkRow(
+                    title: "Claude Desktop", symbol: "laptopcomputer", tile: .blue,
+                    value: claudeConfigured ? "Connected" : nil, control: "ai_claude_desktop"
+                ) {
+                    openPage?(.aiClaudeDesktop)
+                }
+                SettingsDivider()
+                SettingsLinkRow(title: "Access Keys", symbol: "key.fill", control: "ai_access_keys") {
+                    openPage?(.aiAccess)
+                }
+            }
+        }
+    }
+    #endif
 
     /// Every panel, in order — the same set whether the screen stands alone or sits
     /// inside Automations.
@@ -860,3 +959,10 @@ struct MCPServerView: View {
         }
     }
 }
+
+#if os(macOS)
+/// Which share of the MCP screen a Settings window page shows.
+enum MCPServerPart {
+    case all, switches, claudeDesktop, access
+}
+#endif

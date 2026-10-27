@@ -210,6 +210,8 @@ export interface AccountSet {
   notes?: string | null
   /** The person the account belongs to, by name or id. Null or "" clears. */
   member?: string | null
+  /** True stars the account: first in the list, and in the Mac sidebar. False takes the star off. */
+  starred?: boolean
   /** longbook's own on an account: a set sending a non-empty one is refused, an empty one ignored. */
   card_name?: unknown
   details?: unknown
@@ -221,6 +223,8 @@ export interface MemberSet {
   email?: string | null
   /** Their role in the owner's finances — a member tag, the library's first. Null or "" clears. */
   tag?: string | null
+  /** True stars the person: first in the list, and in the Mac sidebar. False takes the star off. */
+  starred?: boolean
   /** longbook's own on a person: a set sending a non-empty one is refused, an empty one ignored. */
   card_name?: unknown
   details?: unknown
@@ -401,6 +405,7 @@ const ACCOUNT_SET_SCHEMA = {
     parent_account: { type: ['string', 'null'], description: 'An older name for linked_to, still accepted.' },
     notes: { type: ['string', 'null'], description: ACCOUNT_NOTES_DESCRIPTION },
     member: { type: ['string', 'null'], description: 'The person the account belongs to, by name or id as the memory holds them. Null or "" clears.' },
+    starred: { type: 'boolean', description: 'True stars the account: listed first, and in the Mac sidebar. False takes the star off. Only when the owner asks.' },
   },
 }
 
@@ -411,6 +416,7 @@ const MEMBER_SET_SCHEMA = {
     name: { type: 'string', minLength: 1, description: 'A new name. Refused when another person already wears it.' },
     email: { type: ['string', 'null'], description: 'Where a shared report reaches them. Null or "" clears.' },
     tag: { type: ['string', 'null'], description: 'Their role in the owner\'s finances — a member tag from `tags`: family, household help, landlord. Null or "" clears.' },
+    starred: { type: 'boolean', description: 'True stars the person: listed first, and in the Mac sidebar. False takes the star off. Only when the owner asks.' },
   },
 }
 
@@ -1247,10 +1253,10 @@ export const isEmailShape = (address: string): boolean => {
 }
 
 /** The fields update_account's set takes, the linked account under its two older names too. */
-export const ACCOUNT_SET_FIELDS = ['name', 'tag', 'notes', 'member', 'balance', 'balance_date', 'linked_to', 'parent', 'parent_account'] as const
+export const ACCOUNT_SET_FIELDS = ['name', 'tag', 'notes', 'member', 'balance', 'balance_date', 'linked_to', 'parent', 'parent_account', 'starred'] as const
 
 /** The fields update_member's set takes. */
-export const MEMBER_SET_FIELDS = ['name', 'email', 'tag'] as const
+export const MEMBER_SET_FIELDS = ['name', 'email', 'tag', 'starred'] as const
 
 /** The linked account's three names, newest first: the first of them a set gives is written. */
 const LINK_KEYS: readonly string[] = ['linked_to', 'parent', 'parent_account']
@@ -1325,6 +1331,7 @@ export function checkAccountSet(set: unknown): asserts set is AccountSet {
   for (const field of ['notes', 'member']) {
     if (set[field] !== undefined && set[field] !== null && typeof set[field] !== 'string') problems.push(`${field} is text, or null to clear it`)
   }
+  if (set.starred !== undefined && typeof set.starred !== 'boolean') problems.push('starred is true or false')
   if (problems.length > 0) throw new VaultWriteError(`Nothing was changed. Fix these — ${problems.join('; ')}.`)
 }
 
@@ -1340,6 +1347,7 @@ export function checkMemberSet(set: unknown): asserts set is MemberSet {
     if (typeof set.email !== 'string') problems.push('email is text, or null to clear it')
     else if (set.email !== '' && !isEmailShape(set.email)) problems.push('an email needs an @ with something either side')
   }
+  if (set.starred !== undefined && typeof set.starred !== 'boolean') problems.push('starred is true or false')
   if (problems.length > 0) throw new VaultWriteError(`Nothing was changed. Fix these — ${problems.join('; ')}.`)
 }
 

@@ -23,6 +23,7 @@ export type {
   SubStatus,
   EntityKind,
   CurrencyCode,
+  Hint,
 } from './model'
 export { CURRENCIES, QUICK_CURRENCIES, CURRENCY_SYMBOL } from './model'
 export { LIBRARY_TAGS, libraryTag } from './library'

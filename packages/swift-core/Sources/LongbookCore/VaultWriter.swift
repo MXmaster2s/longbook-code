@@ -1082,12 +1082,17 @@ public enum VaultPatch {
         accountTag: String?? = nil, parentAccountId: String?? = nil, email: String?? = nil,
         balance: Double?? = nil, balanceDate: String?? = nil,
         memberTag: String?? = nil, ownerMemberId: String?? = nil,
-        accountNotes: String?? = nil, removingCardName: Bool = false, photo: String?? = nil
+        accountNotes: String?? = nil, removingCardName: Bool = false, photo: String?? = nil,
+        starred: Bool? = nil
     ) throws -> [String: Any] {
         var vault = raw
         var rows = vault[kind.rawValue] as? [[String: Any]] ?? []
         guard let index = rows.firstIndex(where: { $0["id"] as? String == id }) else {
             throw WriteError.notFound(id)
+        }
+        // A star is written only while set; taking it off leaves no key.
+        if let starred {
+            if starred { rows[index]["starred"] = true } else { rows[index].removeValue(forKey: "starred") }
         }
         if let photo {
             try checkPhotoName(photo)
@@ -1177,6 +1182,17 @@ public enum VaultPatch {
             vault.removeValue(forKey: "to_fill_in")
         } else {
             vault["to_fill_in"] = list.map { ["id": $0.id, "name": $0.name, "group": $0.group, "tag": $0.tag] }
+        }
+        return vault
+    }
+
+    /// The people and accounts setup kept as hints, written whole; an empty list leaves no key.
+    public static func setHints(_ list: [SetupHint], in raw: [String: Any]) -> [String: Any] {
+        var vault = raw
+        if list.isEmpty {
+            vault.removeValue(forKey: "hints")
+        } else {
+            vault["hints"] = list.map(\.raw)
         }
         return vault
     }

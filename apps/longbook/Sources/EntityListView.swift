@@ -3,8 +3,8 @@ import LongbookCore
 import SwiftUI
 
 /// Every account, or every person: a plain list on a phone, each row opening the whole
-/// card; a sortable table with the selected card beside it on the Mac. Accounts and people
-/// are the same screen over a different kind.
+/// card; a sortable table with the selected card beside it on the Mac. Starred rows lead;
+/// a search and a type filter narrow the list. One screen for both kinds.
 struct EntityListView: View {
     let model: DashboardModel
     let kind: VaultPatch.EntityKind
@@ -18,6 +18,9 @@ struct EntityListView: View {
     @State private var selection: String?
     @State private var sortOrder: [KeyPathComparator<EntityRow>] = []
     @State private var viewing: EntityEditView.CommitmentRef?
+    /// The search, and the one type or relationship shown; nil shows every one.
+    @State private var search = ""
+    @State private var tagFilter: String?
 
     private var isAccount: Bool { kind == .paymentMethod }
     private var word: String { EntityCopy.word(kind) }
@@ -34,6 +37,9 @@ struct EntityListView: View {
         let accounts: Int
         let commitments: Int
         let charges: Int
+        /// For sorting only: starred rows lead whatever the column order.
+        let starred: Bool
+        var starRank: Int { starred ? 0 : 1 }
         var id: String { card.id }
     }
 
@@ -95,6 +101,58 @@ struct EntityListView: View {
         #endif
     }
 
+    // MARK: - Search and filter
+
+    /// The filter's word for the column: an account's type, a person's relationship.
+    private var filterTitle: String { isAccount ? "Type" : "Relationship" }
+
+    /// The types or relationships the cards wear, each once, in the words a row shows.
+    private func tagChoices(_ cards: [DashboardModel.EntityCard]) -> [String] {
+        var seen = Set<String>()
+        return cards.compactMap { card -> String? in
+            guard card.isReal, let tag = card.tag?.trimmingCharacters(in: .whitespaces), !tag.isEmpty,
+                  seen.insert(tag.lowercased()).inserted else { return nil }
+            return tag
+        }
+        .sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+    }
+
+    /// The cards the search and the filter leave: a name, a type or an owner holding the
+    /// words, and the chosen type. The bucket naming nobody has no type to match.
+    private func narrowed(_ cards: [DashboardModel.EntityCard]) -> [DashboardModel.EntityCard] {
+        let needle = search.trimmingCharacters(in: .whitespaces).lowercased()
+        let wanted = tagFilter?.lowercased()
+        return cards.filter { card in
+            if let wanted, card.tag?.trimmingCharacters(in: .whitespaces).lowercased() != wanted { return false }
+            guard !needle.isEmpty else { return true }
+            let words = [EntityCopy.name(card), card.tag ?? "", card.owner?.name ?? ""].joined(separator: " ").lowercased()
+            return words.contains(needle)
+        }
+    }
+
+    private var narrowedWords: String {
+        "No \(isAccount ? "account" : "person") matches. Clear the search or the filter."
+    }
+
+    /// The star on a row: always there, faint until set. The toggle writes the vault.
+    private func starButton(_ card: DashboardModel.EntityCard) -> some View {
+        Button {
+            if card.starred { Measure.used("unstar_entity") } else { Measure.used("star_entity") }
+            model.setStarred(kind, id: card.id, !card.starred)
+        } label: {
+            Image(systemName: card.starred ? "star.fill" : "star")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(card.starred ? LBColor.brand.color : LBColor.textQuaternary.color)
+                .frame(width: 28, height: 28)
+                .contentShape(Rectangle())
+        }
+        .lbBorderlessButtonStyle(.rounded(LBRadius.xs))
+        .opacity(card.isReal ? 1 : 0)
+        .disabled(!card.isReal)
+        .accessibilityLabel(card.starred ? "Starred" : "Star")
+        .accessibilityHint(card.starred ? "Takes the star off \(EntityCopy.name(card))" : "Keeps \(EntityCopy.name(card)) first")
+    }
+
     private var screenTitle: String { isAccount ? "Accounts" : "People" }
 
     private func target(_ card: DashboardModel.EntityCard) -> EntityTarget {
@@ -146,8 +204,17 @@ struct EntityListView: View {
     // MARK: - iPhone
 
     #if os(iOS)
-    private func phoneBody(_ cards: [DashboardModel.EntityCard]) -> some View {
-        List {
+    private func phoneBody(_ all: [DashboardModel.EntityCard]) -> some View {
+        let cards = narrowed(all)
+        let choices = tagChoices(all)
+        return List {
+            if !choices.isEmpty {
+                Section {
+                    filterChips(choices)
+                }
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+            }
             if model.saveError != nil || naming || cards.isEmpty {
                 Section {
                     saveErrorLine
@@ -155,7 +222,7 @@ struct EntityListView: View {
                         EntityNameCard(kind: kind, add: addNamed) { naming = false }
                     }
                     if cards.isEmpty, !naming {
-                        Text(emptyWords)
+                        Text(all.isEmpty ? emptyWords : narrowedWords)
                             .lbText(.footnote)
                             .foregroundStyle(LBColor.textSecondary.color)
                             .fixedSize(horizontal: false, vertical: true)
@@ -178,6 +245,8 @@ struct EntityListView: View {
             }
         }
         .lbGroupedList()
+        .searchable(text: $search, placement: .navigationBarDrawer(displayMode: .always),
+                    prompt: isAccount ? "Search accounts" : "Search people")
         .lbScreenTitle(screenTitle) {
             Button(action: { Measure.used("add_new"); startNaming() }) {
                 Image(systemName: "plus")
@@ -187,13 +256,45 @@ struct EntityListView: View {
         }
     }
 
-    /// Avatar, name and type, the balance at the end; a tap opens the whole card.
+    /// All, then one chip per type or relationship the cards wear; one chosen at a time.
+    private func filterChips(_ choices: [String]) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: LBSpacing.s2) {
+                LBChip("All", style: .choice(selected: tagFilter == nil)) {
+                    Measure.used("entity_filter_all")
+                    tagFilter = nil
+                }
+                ForEach(choices, id: \.self) { tag in
+                    LBChip(EntityCopy.tagWord(tag), style: .choice(selected: tagFilter?.lowercased() == tag.lowercased())) {
+                        Measure.used("entity_filter_tag")
+                        tagFilter = tagFilter?.lowercased() == tag.lowercased() ? nil : tag
+                    }
+                }
+            }
+            .padding(.vertical, LBSpacing.s1)
+        }
+        .accessibilityLabel(filterTitle)
+    }
+
+    /// Avatar, name and type, the balance and the star at the end; a tap opens the whole card.
     private func phoneRow(_ card: DashboardModel.EntityCard) -> some View {
-        NavigationLink {
-            EntityDetailView(model: model, kind: kind, id: card.id)
-        } label: {
-            LBListRow(EntityCopy.name(card), secondary: secondary(card), amount: isAccount ? balanceText(card) : nil) {
-                EntityAvatar(name: EntityCopy.name(card), ink: card.ink, size: 32, photo: card.photo)
+        // The link sits under the row so the star stays its own button.
+        ZStack {
+            NavigationLink {
+                EntityDetailView(model: model, kind: kind, id: card.id)
+            } label: {
+                EmptyView()
+            }
+            .opacity(0)
+            HStack(spacing: LBSpacing.s2) {
+                LBListRow(EntityCopy.name(card), secondary: secondary(card), amount: isAccount ? balanceText(card) : nil) {
+                    EntityAvatar(name: EntityCopy.name(card), ink: card.ink, size: 32, photo: card.photo)
+                }
+                starButton(card)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(LBColor.textQuaternary.color)
+                    .accessibilityHidden(true)
             }
         }
         .lbListRowBackground()
@@ -218,23 +319,27 @@ struct EntityListView: View {
                 balance: card.balance ?? -.greatestFiniteMagnitude,
                 balanceText: balanceText(card) ?? "—",
                 owner: card.owner?.name ?? "—",
-                accounts: card.accountCount, commitments: card.commitments, charges: card.charges
+                accounts: card.accountCount, commitments: card.commitments, charges: card.charges,
+                starred: card.starred
             )
         }
-        return sortOrder.isEmpty ? rows : rows.sorted(using: sortOrder)
+        let sorted = sortOrder.isEmpty ? rows : rows.sorted(using: sortOrder)
+        // A column's order sorts within each side; the starred side stays on top.
+        return sorted.filter(\.starred) + sorted.filter { !$0.starred }
     }
 
-    private func macBody(_ cards: [DashboardModel.EntityCard]) -> some View {
+    private func macBody(_ all: [DashboardModel.EntityCard]) -> some View {
+        let cards = narrowed(all)
         let rows = rows(cards)
         let chosen = rows.first { $0.id == selection }?.card
         return VStack(spacing: 0) {
-            macHeader(chosen)
+            macHeader(chosen, choices: tagChoices(all))
             if model.saveError != nil || naming || cards.isEmpty {
                 VStack(alignment: .leading, spacing: LBSpacing.s3) {
                     saveErrorLine
                     if naming { EntityNameCard(kind: kind, add: addNamed) { naming = false } }
                     if cards.isEmpty, !naming {
-                        Text(emptyWords)
+                        Text(all.isEmpty ? emptyWords : narrowedWords)
                             .lbText(.body)
                             .foregroundStyle(LBColor.textSecondary.color)
                     }
@@ -261,10 +366,10 @@ struct EntityListView: View {
     }
 
     /// The title and the selection's actions on one line — the window's toolbar, drawn in
-    /// the page.
-    private func macHeader(_ chosen: DashboardModel.EntityCard?) -> some View {
+    /// the page — then the search and the one filter.
+    private func macHeader(_ chosen: DashboardModel.EntityCard?, choices: [String]) -> some View {
         let real = chosen?.isReal == true ? chosen : nil
-        return VStack(alignment: .leading, spacing: LBSpacing.s1) {
+        return VStack(alignment: .leading, spacing: LBSpacing.s2) {
             HStack(alignment: .firstTextBaseline, spacing: LBSpacing.s2) {
                 LBPageTitle(screenTitle)
                 Spacer()
@@ -278,6 +383,11 @@ struct EntityListView: View {
                 .tutorialTarget(.entityAdd)
             }
             .controlSize(.large)
+            HStack(spacing: LBSpacing.s2) {
+                searchField
+                filterMenu(choices)
+            }
+            .padding(.top, LBSpacing.s1)
             if !isAccount {
                 Text("The people your commitments are for.")
                     .lbText(.body)
@@ -289,6 +399,50 @@ struct EntityListView: View {
         .padding(.bottom, LBSpacing.s3)
     }
 
+    private var searchField: some View {
+        HStack(spacing: LBSpacing.s2) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(LBColor.textTertiary.color)
+            TextField("", text: $search, prompt: Text(isAccount ? "Search accounts" : "Search people").foregroundStyle(LBColor.textTertiary.color))
+                .textFieldStyle(.plain)
+                .lbText(.body)
+                .foregroundStyle(LBColor.textPrimary.color)
+                .accessibilityLabel(isAccount ? "Search accounts" : "Search people")
+        }
+        .padding(.horizontal, LBSpacing.s3)
+        .padding(.vertical, 6)
+        .background(LBColor.card.color, in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous)
+                .strokeBorder(LBColor.hairline.color, lineWidth: 1)
+        )
+    }
+
+    /// The type or relationship to show, as Commitments' filter ticks its choice.
+    private func filterMenu(_ choices: [String]) -> some View {
+        Menu {
+            Picker(selection: Binding(get: { tagFilter }, set: { picked in
+                Measure.used("entity_filter_tag", .menuItem)
+                tagFilter = picked
+            })) {
+                Text("Any").tag(String?.none)
+                ForEach(choices, id: \.self) { tag in
+                    Text(EntityCopy.tagWord(tag)).tag(String?.some(tag))
+                }
+            } label: {
+                Text(filterTitle)
+            }
+            .pickerStyle(.inline)
+        } label: {
+            Label(tagFilter.map { "\(filterTitle): \(EntityCopy.tagWord($0))" } ?? filterTitle,
+                  systemImage: tagFilter == nil ? "line.3.horizontal.decrease.circle" : "line.3.horizontal.decrease.circle.fill")
+        }
+        .fixedSize()
+        .disabled(choices.isEmpty && tagFilter == nil)
+        .accessibilityLabel(tagFilter == nil ? filterTitle : "\(filterTitle), one chosen")
+    }
+
     private func showAll(_ card: DashboardModel.EntityCard) -> Destination {
         isAccount ? .commitments(ListFilter(methodId: card.id)) : .commitments(ListFilter(memberId: card.id))
     }
@@ -297,6 +451,7 @@ struct EntityListView: View {
     private func table(_ rows: [EntityRow]) -> some View {
         if isAccount {
             tableChrome(rows, Table(rows, selection: $selection, sortOrder: $sortOrder) {
+                starColumn
                 nameColumn
                 TableColumn("Type", value: \.type) { row in dimmed(row.type) }
                     .width(min: 90, ideal: 120)
@@ -316,6 +471,7 @@ struct EntityListView: View {
             })
         } else {
             tableChrome(rows, Table(rows, selection: $selection, sortOrder: $sortOrder) {
+                starColumn
                 nameColumn
                 TableColumn("Relationship", value: \.type) { row in dimmed(row.type) }
                     .width(min: 90, ideal: 120)
@@ -327,6 +483,12 @@ struct EntityListView: View {
                     .width(min: 60, ideal: 80)
             })
         }
+    }
+
+    /// The star, unlabelled, ahead of the name; a click sets or clears it without choosing the row.
+    private var starColumn: some TableColumnContent<EntityRow, KeyPathComparator<EntityRow>> {
+        TableColumn("", value: \.starRank) { row in starButton(row.card) }
+            .width(28)
     }
 
     private var nameColumn: some TableColumnContent<EntityRow, KeyPathComparator<EntityRow>> {

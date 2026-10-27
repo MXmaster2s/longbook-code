@@ -535,6 +535,11 @@
       "sha256": "96c89833dad1d71aed80befa4c357158d0d67a267b41cc683270a707530c2186"
     },
     {
+      "path": "blog/media/open-any-folder/share.jpg",
+      "bytes": 90131,
+      "sha256": "62b23bc8d8244042387fe32b979ecee9ffe1a466136dd0c081f10c0b2b927ab0"
+    },
+    {
       "path": "blog/media/reviews-page/embed.jpg",
       "bytes": 113720,
       "sha256": "a5db47e3f842df0af32284ccb2b524b43ef35bdb0b61dd67044c838c3b6ad5a2"
@@ -626,8 +631,8 @@
     },
     {
       "path": "features/media/get-spending-insights.mp4",
-      "bytes": 5038702,
-      "sha256": "a9b2cdebb3d5dae03ea801f81fbacdd08c28bf26d6cf807373b768d9701d06d3"
+      "bytes": 5038894,
+      "sha256": "6eff288b2c01646c931552b2329b348baa21e80bdd5d176b1f8ebdb73901b473"
     },
     {
       "path": "features/media/longbook-npm-package.jpg",
@@ -636,8 +641,8 @@
     },
     {
       "path": "features/media/longbook-npm-package.mp4",
-      "bytes": 3532256,
-      "sha256": "96a5cc967fed5c29029b16c84614b9d652ad3af0d4018fb46fb0200bc73fbab5"
+      "bytes": 3532232,
+      "sha256": "28c4360d51dfbef17e84e38e15c18a25ef1484fe7209668b507abe23128908b0"
     },
     {
       "path": "ready-for-the-run/media/longbook-in-15-seconds.jpg",
@@ -646,8 +651,8 @@
     },
     {
       "path": "ready-for-the-run/media/longbook-in-15-seconds.mp4",
-      "bytes": 3872693,
-      "sha256": "0948515567a3cf72dfc1c7c995ef50dd6c7d5f765ad6f8c6462b789b8dc4f870"
+      "bytes": 3872633,
+      "sha256": "35b72de9e3d7c08b5f7358b1c30a671348b9fab350952dcb0dff82f71162e0b1"
     },
     {
       "path": "ready-for-the-run/media/share.jpg",
@@ -661,8 +666,8 @@
     },
     {
       "path": "ready-for-the-run/media/what-longbook-can-do.mp4",
-      "bytes": 11715414,
-      "sha256": "023257fe8d982decc6a701c3e3c8da2db9dc37e8193e609f98cadc9015545d60"
+      "bytes": 11715390,
+      "sha256": "3aeff897169216adb7566f6a44110716bf3b38728589d68ee47b8cc10f4fa144"
     },
     {
       "path": "reviews/share.jpg",

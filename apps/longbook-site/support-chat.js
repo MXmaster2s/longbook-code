@@ -316,11 +316,13 @@
   }
 
   function show() {
+    window.dispatchEvent(new Event('lbsupport:open'));
     if (!root) build();
     root.style.display = 'flex';
     requestAnimationFrame(function () { root.classList.add('on'); input.focus(); });
   }
   function hide() {
+    window.dispatchEvent(new Event('lbsupport:close'));
     root.classList.remove('on');
     setTimeout(function () { if (!root.classList.contains('on')) root.style.display = 'none'; }, 280);
   }
