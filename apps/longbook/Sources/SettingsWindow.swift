@@ -1,5 +1,6 @@
 #if os(macOS)
 import AppKit
+import Carbon.HIToolbox
 import DesignSystem
 import LongbookCore
 import ServiceManagement
@@ -74,7 +75,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         switch self {
         case .account: ["Account", "Email", "Plan", "Purchase", "longbook Cloud", "Subscription", "Sign Out", "Refund", "Delete Account"]
         case .general: ["About", "Software Update", "Check for updates", "What’s New", "Home currency", "Login Items", "Open at login",
-                        "Menu Bar", "Dock", "Help", "Support", "Feedback", "Tips", "Demo", "Suggest a feature", "Report a problem", "Contact",
+                        "Menu Bar", "Keyboard shortcut", "Dock", "Help", "Support", "Feedback", "Tips", "Demo", "Suggest a feature", "Report a problem", "Contact",
                         "Terms", "Privacy policy", "Source code", "Version"]
         case .appearance: ["Automatic", "Light", "Dark", "Theme"]
         case .ai: ["Claude", "ChatGPT", "MCP", "Access", "Keys", "Proposals", "Reorganise", "Prompts", "Shortcuts", "Siri", "Spotlight"]
@@ -983,6 +984,7 @@ struct LoginItemsPage: View {
     @AppStorage(DockIcon.hiddenKey) private var hidesDock = false
     @State private var launchesAtLogin = LaunchAtLogin.isOn
     @State private var loginNote: String?
+    @State private var shortcutNote: String?
 
     var body: some View {
         SettingsCanvas {
@@ -1005,10 +1007,21 @@ struct LoginItemsPage: View {
                         .labelsHidden()
                 }
                 SettingsDivider()
+                SettingsRow("Keyboard shortcut", symbol: "command", tile: .orange) {
+                    SettingsInfoButton(
+                        "Opens the menu bar item from any app. Record a combination with Command, Control or Option.",
+                        control: "menu_bar_shortcut_info"
+                    )
+                    ShortcutRecorder(problem: $shortcutNote)
+                }
+                SettingsDivider()
                 SettingsRow("Hide the Dock icon", symbol: "dock.rectangle") {
                     Toggle("Hide the Dock icon", isOn: dockBinding.measured("hide_the_dock_icon"))
                         .labelsHidden()
                 }
+            }
+            if let shortcutNote {
+                SettingsProblem(shortcutNote)
             }
         }
         .onAppear { launchesAtLogin = LaunchAtLogin.isOn }
@@ -1036,6 +1049,64 @@ struct LoginItemsPage: View {
                 DockIcon.apply(hidden: on)
             }
         )
+    }
+}
+
+/// The menu bar shortcut's field: it shows the combo, records the next one pressed after a
+/// click (Escape stops), and Clear removes it.
+private struct ShortcutRecorder: View {
+    @Binding var problem: String?
+    @AppStorage(MenuBarShortcut.key) private var stored = ""
+    @State private var monitor: Any?
+
+    var body: some View {
+        HStack(spacing: SettingsMetrics.heading) {
+            Button {
+                Measure.used("menu_bar_shortcut_record")
+                if monitor == nil { start() } else { stop() }
+            } label: {
+                Text(monitor != nil ? "Type the shortcut" : KeyCombo(stored: stored)?.label ?? "Record shortcut")
+                    .lbText(.body)
+                    .foregroundStyle(monitor != nil || stored.isEmpty ? LBColor.textSecondary.color : LBColor.textPrimary.color)
+                    .frame(minWidth: 120)
+            }
+            if !stored.isEmpty, monitor == nil {
+                Button("Clear") {
+                    Measure.used("menu_bar_shortcut_clear")
+                    problem = nil
+                    MenuBarShortcut.set(nil)
+                }
+            }
+        }
+        .onDisappear { stop() }
+    }
+
+    private func start() {
+        problem = nil
+        MenuBarShortcut.pause()
+        monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            if event.keyCode == UInt16(kVK_Escape) {
+                stop()
+            } else if let combo = KeyCombo(event: event) {
+                if !MenuBarShortcut.set(combo) { problem = "Another app already uses \(combo.label)." }
+                end()
+            } else {
+                problem = "A shortcut needs Command, Control or Option."
+            }
+            return nil
+        }
+    }
+
+    /// Stops recording and puts the saved shortcut back.
+    private func stop() {
+        guard monitor != nil else { return }
+        end()
+        MenuBarShortcut.applyStored()
+    }
+
+    private func end() {
+        if let monitor { NSEvent.removeMonitor(monitor) }
+        monitor = nil
     }
 }
 
