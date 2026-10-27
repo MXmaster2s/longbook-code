@@ -1,13 +1,5 @@
 [
   {
-    "version": "1.6.0",
-    "build": 53,
-    "date": "2026-10-26",
-    "changes": [
-      "On the Mac, buttons, sidebar rows and cards light up under the pointer and darken while pressed, Tab shows a focus ring, and unavailable controls are dimmed."
-    ]
-  },
-  {
     "version": "1.5.0",
     "build": 52,
     "date": "2026-10-23",
@@ -27,7 +19,8 @@
       "People and Accounts each have a search and a filter by relationship or type.",
       "Importing a statement adds its account and the people it names. You can turn this off in Settings.",
       "Importing a statement also adds the accounts and people your transfers and card payments go to.",
-      "Settings > Data & privacy can open a longbook from another folder, and leaves your current folder as it is."
+      "Settings > Data & privacy can open a longbook from another folder, and leaves your current folder as it is.",
+      "On the Mac, buttons, sidebar rows and cards light up under the pointer and darken while pressed, Tab shows a focus ring, and unavailable controls are dimmed."
     ]
   },
   {
