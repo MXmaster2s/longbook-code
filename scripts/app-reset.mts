@@ -8,7 +8,7 @@ import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { createInterface } from 'node:readline/promises'
 import {
-  alreadyGone, notPermitted, BUNDLE_ID, APP_GROUP, bootedSimulators, CONFIRM_WORD, confirmed, macPlan, renderPlan,
+  alreadyGone, notPermitted, BUNDLE_ID, APP_GROUP, bootedSimulators, CONFIRM_WORD, confirmed, macAppPids, macPlan, renderPlan,
   simulatorPlan, VAULT_FILE, type Plan,
 } from './app-reset-plan.mts'
 import { topLevelKeys } from './plist.mts'
@@ -40,7 +40,8 @@ if (wantMac && process.platform === 'darwin') {
   const exported = attempt('defaults', ['export', BUNDLE_ID, '-'])
   plans.push(macPlan({
     home,
-    running: attempt('pgrep', ['-x', 'longbook']) !== null,
+    // By bundle path: `pgrep -x longbook` also matches the app running in a simulator.
+    running: macAppPids(attempt('ps', ['-axo', 'pid=,comm=']) ?? '').length > 0,
     userDomainKeys: exported ? topLevelKeys(exported) : [],
     iCloudVault: existsSync(join(home, 'Library/Mobile Documents/iCloud~app~longbook/Documents', VAULT_FILE)),
   }))
