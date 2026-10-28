@@ -290,7 +290,6 @@ struct DataPrivacyView: View {
     @State private var deleteError: String?
     @AppStorage(Telemetry.shareUsageKey) private var shareUsage = true
     @Environment(\.lbPageTitleHidden) private var titleHidden
-    @Environment(\.lbPageHeader) private var pageHeader
     #endif
     @Environment(\.openURL) private var openURL
 
@@ -335,8 +334,8 @@ struct DataPrivacyView: View {
     private var list: some View {
         List {
             #if os(macOS)
-            // The Settings window draws its header card here, and names the pane itself.
-            if !titleHidden || pageHeader != nil {
+            // The Settings window names the pane in its title bar, so no title here.
+            if !titleHidden {
                 LBPageTitle("Data & privacy")
                     .listRowSeparator(.hidden)
                     .listRowBackground(Color.clear)
@@ -389,7 +388,7 @@ struct DataPrivacyView: View {
     /// longbook keeps, and deleting last. The long text lives on that page.
     private func settingsPane(_ openPage: @escaping (SettingsPage) -> Void) -> some View {
         SettingsCanvas {
-            LBPageTitle("Data & Privacy")
+            SettingsPaneHeader(pane: .privacy)
             SettingsGroup {
                 if let folder = model.vaultFolderURL {
                     SettingsRow(symbol: "folder.fill", tile: .blue) {
