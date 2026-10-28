@@ -178,6 +178,10 @@ struct AccountScreenView: View {
         }
         .lbButtonStyle()
         .disabled(store.busy)
+        Text(StoreClient.restoreWords)
+            .lbText(.footnote)
+            .foregroundStyle(LBColor.textTertiary.color)
+            .fixedSize(horizontal: false, vertical: true)
         Text("One purchase, not a subscription, for every platform. Receipts are in your App Store purchase history.")
             .lbText(.footnote)
             .foregroundStyle(LBColor.textTertiary.color)

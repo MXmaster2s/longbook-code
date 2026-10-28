@@ -1,6 +1,33 @@
 [
   {
     "version": "1.5.0",
+    "build": 53,
+    "date": "2026-10-27",
+    "changes": [
+      "Getting started takes three steps: welcome and sign in, activate your longbook, then import a statement. Once a statement is kept, your longbook opens.",
+      "The setup questions moved to Settings as Optimize your data, where your answers help longbook read your statements.",
+      "On the Mac, Settings in the sidebar opens a menu, and Settings… opens the Settings window, with panes for General, Appearance, Account, AI, Statements, Data & privacy, Tutorials and About.",
+      "On the Mac, longbook can open at login, check for updates on its own, and hide its Dock icon while the menu bar shows the next payment.",
+      "On the Mac, Move to iCloud and Back Up Now in Settings are buttons.",
+      "On the Mac, an AI connected to longbook on this computer now sees every choice its tools offer, such as listing cancelled commitments or reading one chapter of the guide.",
+      "An AI connected to longbook now reads longbook's guide for the task before it writes, and is told which part to read when it hasn't.",
+      "The Changes screen is now called Proposals, so it no longer reads like Charges at a glance.",
+      "Each screen shows a short tutorial the first time you open it. Replay any of them in Settings > Tutorials.",
+      "Support inside the app: ask a question and longbook's AI answers from the help articles, or email a person.",
+      "Optimize your data keeps the people and accounts you pick as hints for your AI, instead of adding them to People and Accounts.",
+      "Star a person or an account to keep it at the top of its list. On the Mac, the sidebar shows only the starred ones.",
+      "People and Accounts each have a search and a filter by relationship or type.",
+      "Importing a statement adds its account and the people it names. You can turn this off in Settings.",
+      "Importing a statement also adds the accounts and people your transfers and card payments go to.",
+      "Settings > Data & privacy can open a longbook from another folder, and leaves your current folder as it is.",
+      "On the Mac, buttons, sidebar rows and cards light up under the pointer and darken while pressed, Tab shows a focus ring, and unavailable controls are dimmed.",
+      "Naming a new account shows an example from your region, and the UPI account type is offered in India only. Accounts already of that type keep it.",
+      "The purchase screen shows Family Sharing on its own card: everyone in your Apple family gets longbook on their own account and devices.",
+      "After an update, What's New shows what changed, once. Open it again any time from Settings, or read every version on longbook.app."
+    ]
+  },
+  {
+    "version": "1.5.0",
     "build": 52,
     "date": "2026-10-23",
     "changes": [
@@ -24,7 +51,8 @@
       "Naming a new account shows an example from your region, and the UPI account type is offered in India only. Accounts already of that type keep it.",
       "The purchase screen shows Family Sharing on its own card: everyone in your Apple family gets longbook on their own account and devices.",
       "After an update, What's New shows what changed, once. Open it again any time from Settings, or read every version on longbook.app.",
-      "On the Mac, the Settings window names its pane in the title bar, with the Mac's own back and forward buttons and search field; its sidebar highlights in your accent colour, the window keeps one width, and Upcoming or Past on Commitments is the Mac's own segmented control."
+      "On the Mac, the Settings window names its pane in the title bar, with the Mac's own back and forward buttons and search field; its sidebar highlights in your accent colour, the window keeps one width, and Upcoming or Past on Commitments is the Mac's own segmented control.",
+      "Restore Purchase says that the sign-in Apple may ask for is your Apple Account, not your longbook sign-in, and reports whether a purchase was restored."
     ]
   },
   {

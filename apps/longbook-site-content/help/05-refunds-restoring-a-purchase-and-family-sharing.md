@@ -10,7 +10,11 @@ Refunds of Cloud's monthly fee are handled by Apple too. Cancelling Cloud stops 
 
 ## Restore your purchase
 
-On a new device, or after reinstalling, open the **Account** screen and tap **Restore Purchase**. Use the same Apple ID you bought with.
+On a new device, or after reinstalling, open the **Account** screen and tap **Restore Purchase**. Use the same Apple Account you bought with.
+
+Apple may ask you to sign in to your Apple Account, the one you use for the App Store. That sheet is Apple's, not longbook's: a longbook account signed in with Google or Apple has no password, and none is asked for here.
+
+When the purchase is found, the screen says **Purchase restored**. When none is on that Apple Account, it says so, and you can sign out of the App Store and in with the account you bought with.
 
 ## Family Sharing
 
