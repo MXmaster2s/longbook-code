@@ -216,7 +216,7 @@ async function connectedTo(dir: string, clientName: string) {
   return client
 }
 
-test('the write tools carry honest annotations: writers, only cancel destructive', async () => {
+test('the write tools carry honest annotations: adds additive, cancel destructive', async () => {
   const client = await connected()
   const tools = (await client.listTools()).tools
   const add = tools.find((t) => t.name === 'add_commitments')

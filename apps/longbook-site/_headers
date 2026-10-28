@@ -1255,6 +1255,11 @@
   Access-Control-Allow-Origin: *
   Cache-Control: public, max-age=3600
 
+# The domain challenge for the ChatGPT plugin directory, as plain text.
+/.well-known/openai-apps-challenge
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: no-cache
+
 # A shared report is private to the people holding its link and password.
 /r/*
   X-Robots-Tag: noindex, nofollow

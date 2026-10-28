@@ -420,7 +420,13 @@ const MEMBER_SET_SCHEMA = {
   },
 }
 
+// destructiveHint is judged by what a write does once kept, not by the later approval in
+// Proposals: OpenAI says undoable is not non-destructive. Adds are false; changing, moving,
+// removing or cancelling held rows is true, so hosts ask first. openWorldHint is false: one
+// owner's own memory.
 const WRITER = { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false }
+/** A write whose kept effect changes or removes something the memory already holds. */
+const CHANGER = { ...WRITER, destructiveHint: true }
 
 export interface WriteToolSpec {
   name: ProposalKind
@@ -462,7 +468,7 @@ export const UPDATE_COMMITMENT_SPEC = {
     `cancels: pausing or cancelling unwrites the unpaid planned charges after today and keeps ` +
     `what happened; back to active plans nothing. \`free_trial\` true marks it a free trial, ` +
     `shown as a pill; false takes the mark off; no charge row changes either way. ${REVIEW}`,
-  annotations: WRITER,
+  annotations: CHANGER,
 }
 
 export const MARK_PAID_SPEC = {
@@ -473,7 +479,7 @@ export const MARK_PAID_SPEC = {
     `is written at the commitment's price. \`amount\` records what left the account when it ` +
     `differed, and \`paid_on\` the day the money moved when it was not the due date; they ` +
     `change that one row and no other, and a null paid_on or note clears it. ${REVIEW}`,
-  annotations: { ...WRITER, idempotentHint: true },
+  annotations: { ...CHANGER, idempotentHint: true },
 }
 
 export const ADD_CHARGES_SPEC = {
@@ -485,7 +491,7 @@ export const ADD_CHARGES_SPEC = {
     `${BY_NAME}. A row already there for a day is updated in place, never doubled. An amount ` +
     `left out is the commitment's price. The answer carries balance_note when the account's ` +
     `balance is now older than the newest row written. ${REVIEW}`,
-  annotations: { ...WRITER, idempotentHint: true },
+  annotations: { ...CHANGER, idempotentHint: true },
 }
 
 export const REMOVE_CHARGES_SPEC = {
@@ -493,7 +499,7 @@ export const REMOVE_CHARGES_SPEC = {
   description:
     `Deletes named rows from one commitment, named ${BY_NAME}: a plan that was wrong. A paid ` +
     `row is a fact, so removing one is destructive. ${REVIEW}`,
-  annotations: { ...WRITER, destructiveHint: true },
+  annotations: CHANGER,
 }
 
 export const PROMOTE_SPEC = {
@@ -510,7 +516,7 @@ export const PROMOTE_SPEC = {
     `is promotable once the owner's app has applied it and commitments shows its id. Every id ` +
     `must be a one-time commitment the memory holds; a miss answers with the real names. ` +
     `${REVIEW}`,
-  annotations: WRITER,
+  annotations: CHANGER,
 }
 
 export const CANCEL_COMMITMENT_SPEC = {
@@ -519,7 +525,7 @@ export const CANCEL_COMMITMENT_SPEC = {
     `Cancels one commitment, ${BY_NAME}. What was only planned after ` +
     `today is unwritten; what happened stays, so its past charges keep counting. Already-` +
     `cancelled rows refuse. ${REVIEW}`,
-  annotations: { ...WRITER, destructiveHint: true },
+  annotations: CHANGER,
 }
 
 export const LEAVE_INSIGHT_SPEC = {
@@ -548,7 +554,7 @@ export const UPDATE_ACCOUNT_SPEC = {
     `to the bank account that pays it, never a chain. \`member\` and \`linked_to\` name rows ` +
     `the memory already holds. Renaming onto a name another account wears is refused rather ` +
     `than merged. ${REVIEW}`,
-  annotations: { ...WRITER, idempotentHint: true },
+  annotations: { ...CHANGER, idempotentHint: true },
 }
 
 export const UPDATE_MEMBER_SPEC = {
@@ -560,7 +566,7 @@ export const UPDATE_MEMBER_SPEC = {
     `name, a tag, an email and linked accounts; details and card_name are longbook's own, and ` +
     `a set sending a non-empty one is refused. Renaming onto a name another person wears is ` +
     `refused rather than merged. ${REVIEW}`,
-  annotations: { ...WRITER, idempotentHint: true },
+  annotations: { ...CHANGER, idempotentHint: true },
 }
 
 const PAID_ON_SCHEMA = { ...DAY_SCHEMA, type: ['string', 'null'], description: 'The day the money moved, when it was not the due date. Null clears.' }
@@ -612,7 +618,7 @@ export const UPDATE_CHARGE_SPEC = {
     `the unpaid planned rows after it too, and the commitment's price with them. A day that ` +
     `already holds a charge is refused, and so is a move past the cancelling date. Null ` +
     `clears paid_on or the note. mark_paid is the one-field way to mark. ${REVIEW}`,
-  annotations: WRITER,
+  annotations: CHANGER,
 }
 
 export const SET_PLANNED_COUNT_SPEC = {
@@ -622,7 +628,7 @@ export const SET_PLANNED_COUNT_SPEC = {
     `240 at most. More are written a cycle apart after the last row, at the commitment's ` +
     `price; unpaid planned rows past the count are unwritten; paid rows, hand-set rows and ` +
     `the past stay. A one-time commitment has its one charge and is refused. ${REVIEW}`,
-  annotations: { ...WRITER, idempotentHint: true },
+  annotations: { ...CHANGER, idempotentHint: true },
 }
 
 export const ADD_MEMBER_SPEC = {
@@ -654,7 +660,7 @@ export const RENAME_TAG_SPEC = {
     `Renames one tag in the vault's own vocabulary — \`kind\` says which list, commitment, ` +
     `member or account — and carries every row wearing it, the owner's tag groups too. A name ` +
     `another tag of that kind already wears is refused. ${REVIEW}`,
-  annotations: { ...WRITER, idempotentHint: true },
+  annotations: { ...CHANGER, idempotentHint: true },
 }
 
 export const DELETE_TAG_SPEC = {
@@ -663,7 +669,7 @@ export const DELETE_TAG_SPEC = {
     `Removes one tag from the vault's vocabulary — \`kind\` says which list — and the rows ` +
     `that wore it are left with no category; nothing else about them changes. A row left ` +
     `without a category shows under "No category" until one is set. ${REVIEW}`,
-  annotations: { ...WRITER, destructiveHint: true },
+  annotations: CHANGER,
 }
 
 export const DELETE_COMMITMENT_SPEC = {
@@ -671,7 +677,7 @@ export const DELETE_COMMITMENT_SPEC = {
   description:
     `Deletes one commitment and every charge it ever had, by id. This is destructive; ` +
     `cancel_commitment keeps what happened instead. ${REVIEW}`,
-  annotations: { ...WRITER, destructiveHint: true },
+  annotations: CHANGER,
 }
 
 /** What create_report's fields hold, worded once for both doors. */

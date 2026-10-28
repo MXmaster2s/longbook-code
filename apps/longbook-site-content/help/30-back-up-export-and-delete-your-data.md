@@ -27,4 +27,4 @@ If an account has no licence, everything stays visible and exportable. Nothing n
 
 ## Delete your account
 
-**Delete Account…** on the Account screen removes your email and everything hosted for you: the copy for your AI and your shared reports. It doesn't delete your folder. If you have longbook Cloud, cancel it in your Apple ID's subscription settings too.
+**Delete Account…** on the Account screen removes your email and everything hosted for you: the copy for your AI and your shared reports. It doesn't delete your folder. If you have longbook Cloud, cancel it in your Apple Account's subscription settings too.

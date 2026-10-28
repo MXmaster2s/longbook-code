@@ -46,3 +46,22 @@ test('the function answers a token only for the review grant, and the consent pa
   assert.ok(consent.includes("type: 'magiclink'"))
   assert.ok(read('apps/longbook-site/oauth/consent/consent.js').includes('review-sign-in'), 'the bundle is regenerated')
 })
+
+test('the consent page has no password sign-in', () => {
+  const consent = read('apps/longbook-site/oauth/consent/consent.src.mts')
+  assert.ok(!consent.includes('signInWithPassword('))
+  assert.ok(!read('apps/longbook-site/oauth/consent/index.html').includes('id="password"'))
+  assert.ok(!read('apps/longbook-site/oauth/consent/consent.js').includes('pw-signin'), 'the bundle is regenerated')
+  assert.ok(consent.includes(`const REVIEW_ADDRESS = '${EMAIL}'`))
+})
+
+test('review:mcp-data fills the directory review account through the same door', () => {
+  const script = read('scripts/review-mcp-data.mts')
+  assert.ok(script.includes(`const EMAIL = '${EMAIL}'`))
+  assert.ok(!script.includes('appreview@'), 'the App Review account is not touched')
+  assert.ok(script.includes("const KEYCHAIN_SERVICE = 'longbook directory review sign-in code'"))
+  assert.ok(script.includes('/functions/v1/review-sign-in'))
+  assert.ok(script.includes('REVIEW_GRANT_NOTE'), 'a grant keeps the note the function asks for')
+  assert.ok(!script.includes('grant_type=password'))
+  assert.ok(!/(^|[^a-z])review@longbook\.app/.test(read('scripts/review-account.mts')), 'review:account never touches it')
+})

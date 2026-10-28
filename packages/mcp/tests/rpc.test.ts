@@ -885,11 +885,14 @@ test('both doors make a placeholder for a member or account update_commitment na
   assert.equal(filed.length, before + 1)
 })
 
-test('the new kinds wear honest annotations and schemas: deletes destructive, every clearable field nullable', () => {
+test('the new kinds wear honest annotations and schemas: changes destructive, adds not, every clearable field nullable', () => {
   const tool = (name: string) => WRITE_TOOLS.find((t) => t.name === name)!
   assert.equal(tool('delete_commitment').annotations.destructiveHint, true)
   assert.equal(tool('delete_tag').annotations.destructiveHint, true)
-  for (const name of ['update_charge', 'set_planned_count', 'add_person', 'add_account', 'rename_tag']) {
+  for (const name of ['update_charge', 'set_planned_count', 'rename_tag']) {
+    assert.equal(tool(name).annotations.destructiveHint, true, name)
+  }
+  for (const name of ['add_person', 'add_account']) {
     assert.equal(tool(name).annotations.destructiveHint, false, name)
   }
   const props = (name: string, path: string[]) => path.reduce<any>((at, key) => at.properties[key], tool(name).inputSchema)

@@ -111,20 +111,39 @@ email prompts. Start with `/longbook:start`.
 - **longbook-from-email**: Finds subscriptions, expenses, invoices, insurances, purchases, bills, loans and EMIs, travel bookings or money in in the user's email, and adds them to their longbook.
 - **longbook-start**: checks the connection, starts setup, and shows every prompt.
 
-Each skill and command asks the longbook server for the prompt's procedure with read_guide, so
-the steps are always the server's current ones.
+## What it runs, sends and fetches
 
-## What it connects to
+The plugin is text only: skills and slash commands that tell Claude what to do. It installs no
+hooks, scripts or local servers, runs no code on your machine, and collects no analytics. What
+it reaches, it reaches through the two connectors it bundles:
 
-- **longbook** (https://longbook.app/mcp), signed in with your longbook account. Claude reads
-  your longbook through it; what Claude writes waits in the longbook app's Proposals screen,
-  where you keep it or undo it.
-- **Gmail** (https://gmailmcp.googleapis.com/mcp/v1), signed in with your Google account. Only
-  the email prompts read it, to find payments, bills and receipts.
+- **longbook** (https://longbook.app/mcp), longbook's own MCP server, signed in with your
+  longbook account. It reads the hosted copy of your longbook that the app uploads when you turn
+  on its MCP server: your commitments and their charges past and planned, your accounts and
+  balances, the people payments are for, your tags and categories, and your reports. Each skill
+  and command also fetches its procedure from it with read_guide, so the steps are always the
+  server's current ones. What Claude reads through it goes into your conversation with Claude.
+- **Writes wait as proposals.** When Claude adds a commitment or a charge, marks one paid,
+  cancels one or leaves an insight, the change is sent to longbook as a proposal, and only after
+  you turn on Allow proposals in the app. Nothing is in your longbook until you keep it in the
+  app's Proposals screen, where you can also undo it. A report request shows on the Reports
+  screen instead.
+- **Gmail** (https://gmailmcp.googleapis.com/mcp/v1), Google's Gmail MCP server, bundled for
+  the email prompts and signed in with your Google account. Only `/longbook:email-invoices`,
+  `/longbook:email-round`, `/longbook:find-subscriptions`, `/longbook:find-expenses`,
+  `/longbook:find-invoices`, `/longbook:find-insurances`, `/longbook:find-purchases`,
+  `/longbook:find-bills`, `/longbook:find-loans`, `/longbook:find-travel` and
+  `/longbook:find-money-in` read it: they search and read your mail for payments, bills, receipts
+  and money in. No prompt sends, deletes or labels mail. Without a Gmail sign-in every other
+  command works.
+- **Scheduled tasks.** `/longbook:email-round`, `/longbook:morning-brief` and `/longbook:start`
+  (for the weekly page) set up a scheduled task in your Claude app, only when you ask for one,
+  and it runs the same prompt through the same connectors.
 
-The plugin runs no code on your machine and sends nothing anywhere else. Privacy:
+Statements and files you attach go to Claude in the conversation; what Claude records from them
+is sent to longbook as proposals. The plugin sends nothing anywhere else. Privacy:
 https://longbook.app/privacy-policy/. Generated from the longbook prompt catalogue (contract
-revision 45).
+revision 45, version 1.45.0).
 
 ## More about longbook
 

@@ -42,6 +42,7 @@ jobs:
       - run: npm run site:viewer:check
       - run: npm run site:router:check
       - run: npm run plugin:claude:check
+      - run: npm run plugin:chatgpt:check
       - run: npm run release:check
       - run: npm run versions
       - run: npm run site:analytics:check

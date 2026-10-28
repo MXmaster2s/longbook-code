@@ -37,21 +37,30 @@ struct CalendarView: View {
                 if let month = shownMonth {
                     Button("Today") { Measure.used("today"); goToday() }
                         .disabled(atToday)
-                    Button { Measure.used("previous_month"); step(-1, in: month) } label: { Image(systemName: "chevron.left") }
+                        .help("Today")
+                    Button { Measure.used("previous_month"); step(-1, in: month) } label: { Label("Previous month", systemImage: "chevron.left") }
                         .disabled(month.atStart)
+                        .help("Previous month")
                         .accessibilityLabel("Previous month")
-                    Button { Measure.used("next_month"); step(1, in: month) } label: { Image(systemName: "chevron.right") }
+                    Button { Measure.used("next_month"); step(1, in: month) } label: { Label("Next month", systemImage: "chevron.right") }
                         .disabled(month.atEnd)
+                        .help("Next month")
                         .accessibilityLabel("Next month")
                 }
             }
+            #if os(macOS)
+            // The month beside the title, and the Go menu's doors to the same steps.
+            .navigationSubtitle(shownMonth?.title ?? "")
+            .onMacCommand(.today) { if !atToday { goToday() } }
+            .onMacCommand(.previousMonth) { if let month = shownMonth, !month.atStart { step(-1, in: month) } }
+            .onMacCommand(.nextMonth) { if let month = shownMonth, !month.atEnd { step(1, in: month) } }
+            #endif
     }
 
     @ViewBuilder
     private var content: some View {
         #if os(macOS)
         VStack(alignment: .leading, spacing: LBSpacing.s3) {
-            if let month = shownMonth { macHeader(month) }
             // The months scroll on the left; the picked day's details stand beside them.
             HStack(alignment: .top, spacing: LBSpacing.s4) {
                 VStack(alignment: .leading, spacing: LBSpacing.s2) {
@@ -151,37 +160,6 @@ struct CalendarView: View {
         LBHaptics.tap()
         show(0)
         selected = Self.todayId
-    }
-
-    /// The Mac's title row, where a window toolbar would sit: the screen's name and the
-    /// month, then Today and the two steps.
-    private func macHeader(_ month: DashboardModel.CalendarMonth) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: LBSpacing.s3) {
-            LBPageTitle("Calendar")
-            Text(month.title)
-                .lbText(.title)
-                .foregroundStyle(LBColor.textSecondary.color)
-            Spacer()
-            Button("Today") { Measure.used("today"); goToday() }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
-                .disabled(atToday)
-            stepButton("chevron.left", disabled: month.atStart) { step(-1, in: month) }
-            stepButton("chevron.right", disabled: month.atEnd) { step(1, in: month) }
-        }
-    }
-
-    private func stepButton(_ symbol: String, disabled: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: { Measure.used("step_month"); action() }) {
-            Image(systemName: symbol)
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(disabled ? LBColor.textQuaternary.color : LBColor.textSecondary.color)
-                .frame(width: 26, height: 26)
-                .contentShape(Rectangle())
-        }
-        .lbButtonStyle()
-        .disabled(disabled)
-        .accessibilityLabel(symbol == "chevron.left" ? "Previous month" : "Next month")
     }
 
     private var weekdayRow: some View {
