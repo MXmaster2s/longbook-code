@@ -2,6 +2,7 @@
 // the hosted memory. Someone already known here skips straight through — Supabase
 // answers a bare redirect for a repeat consent, and this page honours it.
 import { createClient } from '@supabase/supabase-js'
+import { mayUsePassword } from './review-gate.mts'
 
 // Public by design — an anon key is meant to ship in client code; auth is the boundary.
 const SUPABASE_URL = 'https://xbrnijgctmovoqbbmgmb.supabase.co'
@@ -40,6 +41,7 @@ const hourlyLimit = (error: { status?: number; code?: string }): boolean =>
 const friendly = (message: string): string => {
   if (/otp_expired|expired/i.test(message)) return 'That code has expired. Request a new one and enter it within a few minutes.'
   if (/rate limit|only request this after/i.test(message)) return 'Too many codes requested. Wait a moment, then try again.'
+  if (/invalid login credentials/i.test(message)) return 'That email address or password is not right.'
   if (/signup|not allowed/i.test(message)) return 'That email address does not have a longbook account yet. Create one in the app first.'
   return message
 }
@@ -144,6 +146,10 @@ const hostOf = (uri: string): string => {
 async function sendCode() {
   email = (el('email') as HTMLInputElement).value.trim()
   if (!email) return
+  if (mayUsePassword(email)) {
+    showPassword()
+    return
+  }
   if (isReview()) {
     say('code-sent-to', email)
     show('code')
@@ -180,6 +186,33 @@ async function verifyCode() {
   setBusy('verify', false)
   if (error) {
     say('code-error', friendly(error.message))
+    return
+  }
+  await loadDetails()
+}
+
+function showPassword() {
+  ;(el('pw-email') as HTMLInputElement).value = email || (el('email') as HTMLInputElement).value.trim()
+  say('pw-error', '')
+  show('password')
+  el((el('pw-email') as HTMLInputElement).value ? 'password' : 'pw-email').focus()
+}
+
+// The review account's password, and only its: any other address is refused here, before
+// anything is sent, and keeps signing in with an emailed code.
+async function passwordSignIn() {
+  email = (el('pw-email') as HTMLInputElement).value.trim()
+  const password = (el('password') as HTMLInputElement).value
+  if (!email || !password) return
+  if (!mayUsePassword(email)) {
+    say('pw-error', 'Password sign-in is only for the longbook review account. Use an emailed code instead.')
+    return
+  }
+  setBusy('pw-signin', true)
+  const { error } = await client.auth.signInWithPassword({ email, password: password.replace(/\s+/g, '') })
+  setBusy('pw-signin', false)
+  if (error) {
+    say('pw-error', friendly(error.message))
     return
   }
   await loadDetails()
@@ -231,6 +264,12 @@ function setBusy(id: string, busy: boolean) {
 el('copy-prompt').addEventListener('click', () => void copyPrompt())
 el('send').addEventListener('click', () => void sendCode())
 el('verify').addEventListener('click', () => void verifyCode())
+el('use-password').addEventListener('click', () => showPassword())
+el('pw-signin').addEventListener('click', () => void passwordSignIn())
+el('pw-back').addEventListener('click', () => show('signin'))
+el('password').addEventListener('keydown', (e) => {
+  if ((e as KeyboardEvent).key === 'Enter') void passwordSignIn()
+})
 el('allow').addEventListener('click', () => void decide(true))
 el('deny').addEventListener('click', () => void decide(false))
 el('switch').addEventListener('click', () => void switchAccount())
