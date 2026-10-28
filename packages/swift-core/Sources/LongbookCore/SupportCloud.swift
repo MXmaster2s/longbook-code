@@ -13,6 +13,16 @@ public enum SupportCloud {
         }
     }
 
+    /// A screenshot sent with the last message, read by Claude alongside it.
+    public struct Attachment: Sendable {
+        public let mediaType: String
+        public let data: Data
+        public init(mediaType: String, data: Data) {
+            self.mediaType = mediaType
+            self.data = data
+        }
+    }
+
     public struct Source: Codable, Sendable, Hashable {
         public let slug: String
         public let title: String
@@ -80,7 +90,7 @@ public enum SupportCloud {
         _ = try? await post(["action": "feedback", "answer_id": id, "key": key, "rating": up ? "up" : "down"], askerId: askerId, token: token)
     }
 
-    public static func ask(_ turns: [Turn], askerId: String, token: String?) -> AsyncThrowingStream<Event, Error> {
+    public static func ask(_ turns: [Turn], attachment: Attachment? = nil, askerId: String, token: String?) -> AsyncThrowingStream<Event, Error> {
         AsyncThrowingStream { continuation in
             let task = Task {
                 do {
@@ -90,10 +100,12 @@ public enum SupportCloud {
                     request.setValue("Bearer \(token ?? SUPABASE_ANON_KEY)", forHTTPHeaderField: "Authorization")
                     request.setValue(SUPABASE_ANON_KEY, forHTTPHeaderField: "apikey")
                     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-                    request.httpBody = try JSONSerialization.data(withJSONObject: [
+                    var fields: [String: Any] = [
                         "messages": turns.map { ["role": $0.role, "content": $0.content] },
                         "install_id": askerId,
-                    ])
+                    ]
+                    if let attachment { fields["image"] = ["media_type": attachment.mediaType, "data": attachment.data.base64EncodedString()] }
+                    request.httpBody = try JSONSerialization.data(withJSONObject: fields)
                     let (bytes, response) = try await URLSession.shared.bytes(for: request)
                     let status = (response as? HTTPURLResponse)?.statusCode ?? 0
                     guard status == 200 else {

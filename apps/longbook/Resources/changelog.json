@@ -26,7 +26,9 @@
       "After an update, What's New shows what changed, once. Open it again any time from Settings, or read every version on longbook.app.",
       "The statement review now shows Commitments, Past expenses, People and Accounts, in that order, with every commitment ticked to start. After Add, the sheet closes and Proposals shows what was recorded.",
       "A statement review offers every person and every account the statement prints, your own other accounts included, so you untick rather than miss one. The statement's own account is always named, even when the header prints no number.",
-      "Use My Own AI copies prompts that set longbook up for you: in Claude, the longbook plugin or connector; in ChatGPT, a plugin named longbook with its website and icon."
+      "Use My Own AI copies prompts that set longbook up for you: in Claude, the longbook plugin or connector; in ChatGPT, a plugin named longbook with its website and icon.",
+      "The Support button sits in the corner of every screen on iPhone and Mac from the start, and steps aside while Support is open.",
+      "In Support, the camera button attaches a screenshot of your screen to your message, and longbook's AI reads it to help. It may show amounts, so check it first; you can still email it to the team instead."
     ]
   },
   {
