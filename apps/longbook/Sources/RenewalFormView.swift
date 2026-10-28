@@ -55,14 +55,12 @@ struct RenewalFormView: View {
     /// What was set when the form opened: those chips lead their racks, and stay put while the
     /// reader is choosing, so a tap never moves the chip out from under it.
     @State private var openedWith: (tag: String?, method: String?, member: String?) = (nil, nil, nil)
-    @State private var pickingDate = false
     /// The Recurrence list, and the wheel its "Other…" opens once the list is down.
     @State private var pickingRecurrence = false
     @State private var pickingCount = false
     @State private var wheelNext = false
     /// The occurrence tapped while the form's charge holds unsaved edits, waiting on the answer.
     @State private var switchingTo: String?
-    @State private var pickingCancel = false
     @State private var pickingMoney = false
     @State private var pickingCurrency = false
     /// Whether a sheet opened from the category, account or member rack is up.
@@ -255,12 +253,6 @@ struct RenewalFormView: View {
         #if os(iOS)
         .interactiveDismissDisabled(hasUnsavedChanges)
         #endif
-        .measured("renewal_form_picking_cancel", .sheet, when: pickingCancel)
-        .sheet(isPresented: $pickingCancel) {
-            DayPickerView(title: "Ends", selected: cancellingOn ?? Date(),
-                          onPick: { cancellingOn = $0 }, onDone: { pickingCancel = false })
-                .lbDaySheet()
-        }
         .measured("renewal_form_picking_recurrence", .sheet, when: pickingRecurrence)
         .sheet(isPresented: $pickingRecurrence) { recurrencePicker.lbThreeQuarterSheet() }
         .measured("renewal_form_picking_count", .sheet, when: pickingCount)
@@ -317,7 +309,6 @@ struct RenewalFormView: View {
             loadIfNeeded()
             #if DEBUG
             // The racks open their own lists for LONGBOOK_SNAPSHOT_OPEN.
-            if ProcessInfo.processInfo.environment["LONGBOOK_SNAPSHOT_DATE"] != nil { pickingDate = true }
             switch ProcessInfo.processInfo.environment["LONGBOOK_SNAPSHOT_OPEN"] {
             case "money": pickingMoney = true
             case "trial": edit.freeTrial = true
@@ -532,23 +523,6 @@ struct RenewalFormView: View {
             .lbText(.footnote)
             .foregroundStyle(LBColor.textTertiary.color)
             .fixedSize(horizontal: false, vertical: true)
-    }
-
-    /// A date already set, shown as the control that changes it.
-    private func dateButton(_ label: String, action: @escaping () -> Void) -> some View {
-        Button(action: { Measure.used("pick_date"); action() }) {
-            HStack(spacing: LBSpacing.s2) {
-                Image(systemName: LBGlyph.date)
-                    .font(.system(size: 11, weight: .medium))
-                Text(label).lbText(.footnote)
-            }
-            .foregroundStyle(LBColor.textPrimary.color)
-            .padding(.horizontal, LBSpacing.s3)
-            .frame(minHeight: 34)
-            .background(LBColor.chrome.color, in: Capsule())
-            .contentShape(Capsule())
-        }
-        .lbButtonStyle()
     }
 
     // MARK: questions
@@ -920,8 +894,8 @@ struct RenewalFormView: View {
     /// the Recurrence chip on its row where a plan can be set.
     private var whenNext: some View {
         VStack(alignment: .leading, spacing: LBSpacing.s2) {
-            FormDateControl(title: !isEditing && edit.billingCycle != .once ? "Starts" : "Date",
-                            date: $day, picking: $pickingDate) { EmptyView() }
+            FormDayPicker(title: !isEditing && edit.billingCycle != .once ? "Starts" : "Date",
+                          date: $day)
             // The plan's reach reads under the date it starts from, in the fields' column.
             if showsPlannedTill && !onCharge {
                 FormRow { Color.clear.frame(height: 1) } content: {
@@ -1143,7 +1117,8 @@ struct RenewalFormView: View {
                     }
                     .lbButtonStyle()
                 } else {
-                    dateButton(LB.longDate(cancellingOn ?? Date())) { pickingCancel = true }
+                    FormDayField(title: "Ends", date: Binding(get: { cancellingOn ?? LB.todayMid() },
+                                                              set: { cancellingOn = $0 }))
                     keepingButton
                 }
             }
@@ -1323,7 +1298,6 @@ struct RenewalFormView: View {
         note = ""
         planCount = PlannedCount(ahead: DEFAULT_PLAN_MONTHS)
         blankings += 1
-        pickingDate = false
         notesOpenedLength = 0
         refusedOneTime = false
         typing.forgetAdded()

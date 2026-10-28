@@ -36,7 +36,7 @@ Servers cost money to run, and the folder in your iCloud does not need one. So t
 
 ### What does it cost, and how do I stop it?
 
-$4 a month, charged by Apple and renewed every month. Buying longbook includes its first 12 months, for everyone in your Apple family too, and Family Sharing covers the subscription after that. Cancel in your Apple ID settings at least 24 hours before the period ends; Apple handles refunds. The terms are at longbook.app/terms.
+$4 a month, charged by Apple and renewed every month. Buying longbook includes its first 12 months, for everyone in your Apple family too, and Family Sharing covers the subscription after that. Cancel in your Apple Account settings at least 24 hours before the period ends; Apple handles refunds. The terms are at longbook.app/terms.
 
 ### What can I do without Cloud?
 
