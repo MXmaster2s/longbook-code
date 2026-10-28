@@ -96,7 +96,9 @@ test('the reset is compiled only under DEVICE_BUILD, and its marker is the one s
   assert.match(root, /#if DEVICE_BUILD\n\s+if FirstUseReset\.handles\(url\) \{ FirstUseReset\.run\(\) \}\n\s+#endif/)
   const uses = readdirSync(join(ROOT, 'apps/longbook/Sources'), { recursive: true }).map(String)
     .filter((n) => n.endsWith('.swift') && read(`apps/longbook/Sources/${n}`).includes('FirstUseReset'))
-  assert.deepEqual(uses.sort(), ['FirstUseReset.swift', 'RootView.swift'])
+  const app = read('apps/longbook/Sources/LongbookApp.swift')
+  assert.equal(app.match(/#if DEVICE_BUILD\n\s+FirstUseReset\.runIfAsked\(\)\n\s+#endif/g)?.length, 2, 'asked at launch on both apps')
+  assert.deepEqual(uses.sort(), ['FirstUseReset.swift', 'LongbookApp.swift', 'RootView.swift'])
 })
 
 test('a built app is checked for the reset by its executable', () => {

@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto'
 import { cpSync, lstatSync, readdirSync, readFileSync, readlinkSync } from 'node:fs'
 import { join } from 'node:path'
 import { BUNDLE_ID, quote } from './app-reset-plan.mts'
-import { FIRST_USE_URL } from './device-build-flag.mts'
+import { FIRST_USE_ENV } from './device-build-flag.mts'
 
 /** Typed to go ahead with --apply. */
 export const CONFIRM_PHRASE = 'clean slate'
@@ -208,12 +208,13 @@ export type Stage = (typeof STAGES)[number]
 export const inStageOrder = <T extends { stage: Stage }>(sections: T[]): T[] =>
   STAGES.flatMap((stage) => sections.filter((s) => s.stage === stage))
 
-/** Opens the reset link in the Mac app and waits for it to quit, which it does once reset. */
-export const macResetCommand = (app: string): string[] => ['open', '-W', '-a', app, FIRST_USE_URL]
+/** Launches the quit Mac app with the reset asked for, and waits for it to quit, which it does once reset. */
+export const macResetCommand = (app: string): string[] => ['open', '-W', '--env', `${FIRST_USE_ENV}=1`, '-a', app]
 
-/** A fresh launch with the reset link, so a running copy cannot swallow it unseen. */
+/** A fresh launch with the reset asked for, so a running copy cannot swallow it unseen. */
 export const phoneResetCommand = (udid: string): string[] => [
-  'xcrun', 'devicectl', 'device', 'process', 'launch', '--device', udid, '--terminate-existing', '--payload-url', FIRST_USE_URL, BUNDLE_ID,
+  'xcrun', 'devicectl', 'device', 'process', 'launch', '--device', udid, '--terminate-existing',
+  '--environment-variables', JSON.stringify({ [FIRST_USE_ENV]: '1' }), BUNDLE_ID,
 ]
 
 /** The one line the app logs as it resets, read back from the Mac's log since a local time. */
