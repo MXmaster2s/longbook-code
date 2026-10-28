@@ -98,6 +98,8 @@ const PAGE = `<!doctype html>
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { background: var(--lb-canvas); }
+  .badges { line-height: 0; margin-top: 12px; }
+  .badges img { max-width: 100%; height: auto; }
   body {
     font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
     color: var(--lb-text-primary);
@@ -183,6 +185,13 @@ const PAGE = `<!doctype html>
     <span class="prompt">${escape(ROUTER.recipes.daily_email_round.the_owner_says)}</span>
     <p class="quiet" style="margin-top:12px">What follows is for the AI. It is the guide's own chapter, also at <code>read_guide "daily-email-round"</code>.</p>
     <div class="recipe">${chapter(ROUTER.recipes.daily_email_round.instructions)}</div>
+  </section>
+
+  <section>
+    <h2>Checked by others</h2>
+    <p>Independent directories test this server and publish what they find.</p>
+    <p class="badges"><a href="https://mcprush.com/longbook/longbook-mcp" rel="noopener"><img src="https://mcprush.com/badge/longbook-mcp/card.svg" alt="longbook MCP on mcprush: security A, no sign-in, works with 16 clients" width="380" height="200" loading="lazy"></a></p>
+    <p class="badges"><a href="https://wellknown.network/agents/longbook" rel="noopener"><img src="https://wellknown.network/agents/longbook/badge.svg" alt="Wellknown: longbook's live status" width="196" height="20" loading="lazy"></a></p>
   </section>
 
   <section>

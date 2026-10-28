@@ -2,6 +2,10 @@
 
 [![longbook MCP server](https://mcprush.com/badge/longbook-mcp/card.svg)](https://mcprush.com/to/longbook-mcp?ref=badge)
 
+[![Wellknown](https://wellknown.network/agents/longbook/badge.svg)](https://wellknown.network/agents/longbook)
+[![Featured on FollowX.today](https://followx.today/api/badge/longbook.app.svg?theme=light)](https://followx.today/b/longbook.app)
+[![longbook on Dodo Payments Index](https://index.dodopayments.com/longbook/badge.svg?theme=light&width=250&height=50)](https://index.dodopayments.com/longbook?utm_source=index&utm_medium=badge&utm_campaign=embed&utm_content=tool-longbook)
+
 **A financial memory for your AI.** longbook keeps your recurring money — subscriptions,
 insurance, EMIs, school fees, domains, renewals — as a meticulous, machine-readable memory that
 the AI you already use can read, fill, and build on. Your AI gathers from your statements and
