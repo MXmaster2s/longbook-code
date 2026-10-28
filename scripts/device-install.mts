@@ -10,6 +10,7 @@ import {
   APP_BUILD, APP_VERSION, CHANGELOG, PROJECT_YML, ROOT, appChangedSince, highestBuild, nextDeviceBuild, readLedger,
   withBuild, withChangelogEntry, writeLedger,
 } from './release.mts'
+import { DEVICE_BUILD_SETTING } from './device-build-flag.mts'
 
 const argv = process.argv.slice(2)
 const iosOnly = argv.includes('--ios-only')
@@ -102,12 +103,14 @@ const issuer = keychain('Apple App Store Connect Issuer ID')
 const keyPath = join(homedir(), '.appstoreconnect/private_keys', `AuthKey_${keyId}.p8`)
 const derived = mkdtempSync(join(tmpdir(), 'longbook-device-build-'))
 
+// Release, plus the one setting that compiles in the longbook://dev/first-use reset clean:slate
+// uses. No archive script passes it; device-build.test.mts checks.
 function build(destination: string): void {
   execFileSync('xcodebuild', [
     '-project', join(APP_DIR, 'longbook.xcodeproj'), '-scheme', 'longbook', '-configuration', 'Release',
     '-destination', destination, '-derivedDataPath', derived, '-allowProvisioningUpdates',
     '-authenticationKeyPath', keyPath, '-authenticationKeyID', keyId, '-authenticationKeyIssuerID', issuer,
-    `CURRENT_PROJECT_VERSION=${BUILD}`, `LONGBOOK_COMMIT=${commit}`, 'build',
+    `CURRENT_PROJECT_VERSION=${BUILD}`, `LONGBOOK_COMMIT=${commit}`, DEVICE_BUILD_SETTING, 'build',
   ], { cwd: APP_DIR, stdio: ['ignore', 'ignore', 'inherit'] })
 }
 

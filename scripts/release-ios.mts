@@ -4,6 +4,7 @@
 //
 // `--check` reports without building; `--no-upload` stops after the export.
 import { markOnTestFlight, untestedOnDevices } from './release.mts'
+import { carriesFirstUseReset } from './device-build-flag.mts'
 import { execFileSync, execSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, readdirSync } from 'node:fs'
 import { homedir } from 'node:os'
@@ -228,6 +229,11 @@ const main = () => {
   ], { stdio: 'inherit' })
 
   assertExportedVersion(join(archive, 'Products/Applications/longbook.app'), marketing, build)
+  // A device build's reset must never reach TestFlight or the App Store.
+  if (carriesFirstUseReset(join(archive, 'Products/Applications/longbook.app'))) {
+    console.error('The archived app carries the device-build reset, which only device:install builds may. Archive again from a clean derived data folder.')
+    process.exit(1)
+  }
 
   const exported = join(BUILD, 'export')
   execSync(`rm -rf "${exported}"`)

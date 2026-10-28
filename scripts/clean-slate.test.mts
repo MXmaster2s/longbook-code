@@ -8,8 +8,9 @@ import { join } from 'node:path'
 import { test } from 'node:test'
 import { macAppPids } from './app-reset-plan.mts'
 import {
-  backupDir, backupStamp, cascadeCountQuery, chooseAccount, compareManifests, confirmedPhrase, copyVerified, isProtectedAccount,
-  longbookMcpServers, longbookPlugins, manifest, maskEmail, normaliseEmail, parseArgs, restoreCommand, sqlText,
+  appRunning, backupDir, backupStamp, cascadeCountQuery, chooseAccount, compareManifests, confirmedPhrase, copyVerified, inStageOrder,
+  isProtectedAccount, longbookMcpServers, longbookPlugins, macResetCommand, manifest, maskEmail, normaliseEmail, parseArgs,
+  phoneResetCommand, resetLogCommand, restoreCommand, sqlText, type Stage,
 } from './clean-slate-plan.mts'
 
 test('the backup folder is iCloud Drive › longbook backups › date and minute', () => {
@@ -110,4 +111,30 @@ test('a vault copy is proved byte for byte, and a changed byte is caught', () =>
     'differs in the copy: .longbook/history/1.json', 'extra in the copy: extra.txt',
   ])
   rmSync(root, { recursive: true, force: true })
+})
+
+test('apps reset themselves first, then the vault moves, then the account and Claude Code go', () => {
+  const at = (stage: Stage, target: string) => ({ stage, target })
+  const order = inStageOrder([at('vault', 'vault'), at('account', 'account'), at('claude', 'claude'), at('app', 'Mac'), at('app', 'iPhone')])
+  assert.deepEqual(order.map((s) => s.target), ['Mac', 'iPhone', 'vault', 'account', 'claude'])
+})
+
+test('the reset link goes to the installed Mac app and to a fresh iPhone launch', () => {
+  assert.deepEqual(macResetCommand('/Applications/longbook.app'), ['open', '-W', '-a', '/Applications/longbook.app', 'longbook://dev/first-use'])
+  assert.deepEqual(phoneResetCommand('U1'), [
+    'xcrun', 'devicectl', 'device', 'process', 'launch', '--device', 'U1', '--terminate-existing',
+    '--payload-url', 'longbook://dev/first-use', 'app.longbook.longbook',
+  ])
+  const log = resetLogCommand(new Date(2026, 9, 8, 7, 5, 9))
+  assert.deepEqual(log.slice(0, 3), ['/usr/bin/log', 'show', '--start'])
+  assert.equal(log[3], '2026-10-08 07:05:09')
+  assert.match(log.at(-1)!, /category == "first-use"/)
+})
+
+test('the iPhone app counts as running, its widget does not', () => {
+  const app = 'file:///private/var/containers/Bundle/Application/A1/longbook.app/longbook'
+  const widget = 'file:///private/var/containers/Bundle/Application/A1/longbook.app/PlugIns/LongbookWidget.appex/LongbookWidget'
+  assert.ok(appRunning({ result: { runningProcesses: [{ executable: '/usr/libexec/x' }, { executable: app }] } }))
+  assert.ok(!appRunning({ result: { runningProcesses: [{ executable: widget }, {}] } }))
+  assert.ok(!appRunning(null))
 })

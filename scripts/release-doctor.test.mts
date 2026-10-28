@@ -106,6 +106,9 @@ Build settings for action build and target LongbookWidget:
   const wrong = buildSettingChecks({ ...settings, CURRENT_PROJECT_VERSION: '51' }, projectYml())[0]
   assert.equal(wrong.status, 'fail')
   assert.match(wrong.detail, /CURRENT_PROJECT_VERSION is "51", expected "52"/)
+  const device = buildSettingChecks({ ...settings, SWIFT_ACTIVE_COMPILATION_CONDITIONS: ' DEVICE_BUILD' }, projectYml())[0]
+  assert.equal(device.status, 'fail')
+  assert.match(device.detail, /carries DEVICE_BUILD/)
 })
 
 test('the report counts failures and skips', () => {

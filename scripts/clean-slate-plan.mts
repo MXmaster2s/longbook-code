@@ -3,7 +3,8 @@
 import { createHash } from 'node:crypto'
 import { cpSync, lstatSync, readdirSync, readFileSync, readlinkSync } from 'node:fs'
 import { join } from 'node:path'
-import { quote } from './app-reset-plan.mts'
+import { BUNDLE_ID, quote } from './app-reset-plan.mts'
+import { FIRST_USE_URL } from './device-build-flag.mts'
 
 /** Typed to go ahead with --apply. */
 export const CONFIRM_PHRASE = 'clean slate'
@@ -198,3 +199,31 @@ export function folderSummary(dir: string): { files: number; bytes: number } {
 
 export const size = (bytes: number): string =>
   bytes < 1024 ? `${bytes} B` : bytes < 1024 ** 2 ? `${(bytes / 1024).toFixed(1)} KB` : `${(bytes / 1024 ** 2).toFixed(1)} MB`
+
+/** The order the tool works in: each app resets itself, then the vault moves, then the account and Claude Code go. */
+export const STAGES = ['app', 'vault', 'account', 'claude'] as const
+export type Stage = (typeof STAGES)[number]
+
+/** Sections sorted into the working order, keeping their order within a stage. */
+export const inStageOrder = <T extends { stage: Stage }>(sections: T[]): T[] =>
+  STAGES.flatMap((stage) => sections.filter((s) => s.stage === stage))
+
+/** Opens the reset link in the Mac app and waits for it to quit, which it does once reset. */
+export const macResetCommand = (app: string): string[] => ['open', '-W', '-a', app, FIRST_USE_URL]
+
+/** A fresh launch with the reset link, so a running copy cannot swallow it unseen. */
+export const phoneResetCommand = (udid: string): string[] => [
+  'xcrun', 'devicectl', 'device', 'process', 'launch', '--device', udid, '--terminate-existing', '--payload-url', FIRST_USE_URL, BUNDLE_ID,
+]
+
+/** The one line the app logs as it resets, read back from the Mac's log since a local time. */
+export const resetLogCommand = (since: Date): string[] => [
+  '/usr/bin/log', 'show', '--start', `${backupStamp(since).slice(0, 10)} ${pad(since.getHours())}:${pad(since.getMinutes())}:${pad(since.getSeconds())}`,
+  '--style', 'compact', '--predicate', 'subsystem == "app.longbook.longbook" AND category == "first-use"',
+]
+
+/** Whether `devicectl device info processes` lists the app itself; its widget does not count. */
+export function appRunning(processes: unknown): boolean {
+  const list = ((processes as { result?: { runningProcesses?: { executable?: unknown }[] } })?.result?.runningProcesses ?? [])
+  return list.some((p) => /\/longbook\.app\/longbook$/.test(String(p?.executable ?? '')))
+}

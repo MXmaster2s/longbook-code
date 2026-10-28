@@ -190,6 +190,10 @@ export function buildSettingChecks(settings: Record<string, string>, projectYml:
     ['ENABLE_HARDENED_RUNTIME', 'YES'],
   ]
   const wrong = want.filter(([k, v]) => settings[k] !== v).map(([k, v]) => `${k} is "${settings[k] ?? ''}", expected "${v}"`)
+  // The device-build reset is device:install's alone; a release built with it would ship it.
+  if (/\bDEVICE_BUILD\b/.test(settings.SWIFT_ACTIVE_COMPILATION_CONDITIONS ?? '')) {
+    wrong.push(`SWIFT_ACTIVE_COMPILATION_CONDITIONS carries DEVICE_BUILD; only device:install sets it`)
+  }
   const name = 'The Mac build settings'
   return [wrong.length ? fail(name, wrong.join('; ')) : pass(name, `${settings.PRODUCT_BUNDLE_IDENTIFIER} ${settings.MARKETING_VERSION} (${settings.CURRENT_PROJECT_VERSION})`)]
 }
