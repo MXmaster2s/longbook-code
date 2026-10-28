@@ -120,13 +120,13 @@ const ABOUT = `longbook is a private memory for recurring payments: subscription
 const REVIEW = {
   contactFirstName: 'Rohit', contactLastName: 'Kundliwal', contactEmail: 'contact@longbook.app',
   demoAccountRequired: true,
-  notes: `The attached PDF pictures every screen of this walk; with the demo account the purchase screen (its last pages) comes straight after sign-in.
+  notes: `The attached PDF pictures every screen.
 
 ${ABOUT}
 
 A. WITH THE DEMO ACCOUNT (it holds no purchase, so both In-App Purchases come up in order)
 1. On the welcome screen, tap "Continue with Email".
-2. Enter appreview@longbook.app, tap "Send me a code", type the eight-digit code given as the password above and tap "Verify and continue". The screen says a code was sent; for this account none is, there is no second factor, and the code does not expire.
+2. Enter appreview@longbook.app, tap "Send me a code", type the eight-digit code given as the password above and tap "Verify and continue". The screen says a code was sent, but none is; no second factor, and the code does not expire.
 3. The first screen is "Activate your longbook". The In-App Purchase "longbook" is the button "Buy longbook" with its price ($38.00 in the US store) at the foot; buy it in the sandbox. ("See Demo" shows a made-up household without buying.)
 4. longbook creates its folder in iCloud Drive. If iCloud Drive is off, tap "Keep It on this iPhone".
 5. "Import a statement" follows, the last of three steps. "Securely Upload Statement" reads a bank statement and "Use My Own AI" connects the user's AI; the demo account can tap "Skip" to open the dashboard without one. The setup questions are in Settings > Optimize your data.
@@ -134,15 +134,19 @@ A. WITH THE DEMO ACCOUNT (it holds no purchase, so both In-App Purchases come up
 7. Settings > Account and plan: "Subscribe to longbook Cloud" is the second In-App Purchase, also bought in the sandbox. The same screen has "Request a Refund", Sign out and "Delete Account...".
 
 IN-APP PURCHASES (both in this submission)
-1. "longbook": one-time, non-consumable, Family Sharing on. Unlocks the app on iPhone and Mac and includes 12 months of longbook Cloud. Purchases have a 7-day refund policy; there is no free trial. After a purchase, Settings > Account and plan shows "Request a Refund" for 7 days, which passes the request to Apple.
-2. "longbook Cloud": auto-renewable, one month, app.longbook.cloud.monthly, Family Sharing on. It covers the features that use our server: the hosted copy for the user's own AI, shared reports and extra statement reading. The licence brings 12 months of Cloud, except to this demo account, so after the purchase "Subscribe to longbook Cloud" (Settings > Account and plan) and "Let AI Read My longbook" (Settings > AI Connections) open the Cloud sheet: price, term, renewal terms, Subscribe, Restore Purchases, Terms and Privacy. It can be bought in the sandbox.
+1. "longbook": one-time, non-consumable, Family Sharing on. Unlocks the app on iPhone and Mac and includes 12 months of longbook Cloud. No free trial. For 7 days after a purchase, "Request a Refund" (step 7) passes a refund request to Apple.
+2. "longbook Cloud": auto-renewable, one month, app.longbook.cloud.monthly, Family Sharing on. It covers the features that use our server: the hosted copy for the user's own AI, shared reports and extra statement reading. The licence brings 12 months of Cloud, except to this demo account, so after the purchase "Subscribe to longbook Cloud" (Settings > Account and plan) and "Let AI Read My longbook" (Settings > AI Connections) open the Cloud sheet: price, term, renewal terms, Subscribe, Restore Purchases, Terms and Privacy.
 Everything else works without Cloud. All payments go through in-app purchase.
 
 STATEMENTS AND AI
-- "Securely Upload Statement" (the Import a statement step, or Settings > Import a statement): the first time, a sheet names Anthropic's AI and asks the user to accept the privacy policy. Before a file is chosen, the screen says it is read once by an AI model and not kept. The file is sent to our server for analysis, the suggested charges come back, and the server does not store the file. Only the charges the user keeps are saved, in their own folder.
+- "Securely Upload Statement" (the Import a statement step, or Settings > Import a statement): the first time, a sheet names Anthropic's AI and asks the user to accept the privacy policy. Before a file is chosen, the screen says it is read once by an AI model and not kept. Our server reads the file, returns suggested charges and does not store it; only the charges the user keeps are saved, in their own folder.
 - "Reorganise my longbook" (Settings > AI Connections) asks first, then sends the folder to our server for one pass; the result arrives as a change to keep or undo.
-- "Let AI Read My longbook" is off until the user turns it on.
 - Settings > Help & about lists what leaves the device and has the "Share usage and crash data" switch. Privacy policy: https://longbook.app/privacy-policy/
+
+OTHER FEATURES
+- "next payment" widget. Siri and Shortcuts: Next commitment, Add a commitment, Add an expense, Record a charge from a message.
+- Demo longbook: More > "Try the demo"; made-up data, nothing kept.
+- MCP server: "Let AI Read My longbook" (Settings > AI Connections), off by default, lets the user's own AI read it at longbook.app/mcp; its changes wait in Proposals.
 
 ACCOUNT
 "Delete Account..." (type DELETE) removes the account, and for an account opened with Apple ends its Sign in with Apple link. Sign in with Apple is offered alongside Google on iPhone.
@@ -159,24 +163,28 @@ ${ABOUT}
 
 A. WITH THE DEMO ACCOUNT (it holds no purchase, so both In-App Purchases come up in order)
 1. On the welcome screen, click "Continue with Email".
-2. Enter appreview@longbook.app, click "Send me a code", type the eight-digit code given as the password above and click "Verify and continue". The screen says a code was sent; for this account none is, there is no second factor, and the code does not expire.
-3. The first screen is "Activate your longbook". The In-App Purchase "longbook" is the button "Buy longbook" with its price ($38.00 in the US store) at the foot; buy it in the sandbox. ("See Demo" shows a made-up household without buying.)
+2. Enter appreview@longbook.app, click "Send me a code", type the eight-digit code given as the password above and click "Verify and continue". The screen says a code was sent, but none is; no second factor, and the code does not expire.
+3. The first screen is "Activate your longbook". The In-App Purchase "longbook" is the button "Buy longbook" with its price ($38.00 in the US store) at the foot; buy it in the sandbox.
 4. longbook creates its folder in iCloud Drive. If iCloud Drive is off, click "Keep It on this Mac".
-5. "Import a statement" follows, the last of three steps. "Securely Upload Statement" reads a bank statement and "Use My Own AI" connects the user's AI; the demo account can click "Skip" to open the dashboard without one. The setup questions are in Settings > Data > Optimize your data.
-6. The dashboard has a sidebar. "Add commitment" (File > New Commitment, Command-N) adds one; Settings is at the foot of the sidebar and under longbook > Settings (Command-comma).
+5. "Import a statement" follows, the last of three steps. "Securely Upload Statement" reads a bank statement and "Use My Own AI" connects the user's AI; the demo account can click "Skip". The setup questions are in Settings > Data > Optimize your data.
+6. On the dashboard, "Add commitment" (Command-N) adds one; Settings is at the foot of the sidebar (Command-comma).
 7. Settings > Account: "Subscribe to longbook Cloud" is the second In-App Purchase, also bought in the sandbox. The same screen has "Request a Refund", Sign Out and "Delete Account...".
-8. The menu bar shows the next payment beside the clock; its menu has "Open longbook".
 
 IN-APP PURCHASES
-1. "longbook": one-time, non-consumable, Family Sharing on. One purchase unlocks the app on Mac and iPhone and includes 12 months of longbook Cloud. Purchases have a 7-day refund policy; there is no free trial. After a purchase, Settings > Account shows "Request a Refund" for 7 days, which passes the request to Apple.
-2. "longbook Cloud": auto-renewable, one month, app.longbook.cloud.monthly, Family Sharing on. It covers the features that use our server: the hosted copy for the user's own AI, shared reports and extra statement reading. The licence brings 12 months of Cloud, except to this demo account, so after the purchase "Subscribe to longbook Cloud" (Settings > Account) and "Let AI Read My longbook" (Settings > AI) open the Cloud sheet: price, term, renewal terms, Subscribe, Restore Purchases, Terms and Privacy. It can be bought in the sandbox.
+1. "longbook": one-time, non-consumable, Family Sharing on. One purchase unlocks the app on Mac and iPhone and includes 12 months of longbook Cloud. No free trial. For 7 days after a purchase, "Request a Refund" (step 7) passes a refund request to Apple.
+2. "longbook Cloud": auto-renewable, one month, app.longbook.cloud.monthly, Family Sharing on. It covers the features that use our server: the hosted copy for the user's own AI, shared reports and extra statement reading. The licence brings 12 months of Cloud, except to this demo account, so after the purchase "Subscribe to longbook Cloud" (Settings > Account) and "Let AI Read My longbook" (Settings > AI) open the Cloud sheet: price, term, renewal terms, Subscribe, Restore Purchases, Terms and Privacy.
 Everything else works without Cloud. All payments go through in-app purchase.
 
 STATEMENTS AND AI
-- "Securely Upload Statement" (the Import a statement step, or File > Import Statement, Command-I): a first-time sheet names Anthropic's AI and asks to accept the privacy policy. Before a file is chosen, the window says it is read once by an AI model and not kept. The file is sent to our server for analysis, the suggested charges come back, and the server does not store the file. Only the charges the user keeps are saved, in their own folder.
+- "Securely Upload Statement" (the Import a statement step, or Command-I): a first-time sheet names Anthropic's AI and asks to accept the privacy policy. Before a file is chosen, the window says it is read once by an AI model and not kept. Our server reads the file, returns suggested charges and does not store it; only the charges the user keeps are saved, in their own folder.
 - "Reorganise my longbook" (Settings > AI) asks first, then sends the folder to our server for one pass; the result arrives as a change to keep or undo.
-- "Let AI Read My longbook" is off until the user turns it on.
-- Help > longbook Help lists what leaves the device; the Help menu has the "Share Usage and Crash Data" switch. Privacy policy: https://longbook.app/privacy-policy/
+- The Help menu lists what leaves the device and has the "Share Usage and Crash Data" switch. Privacy policy: https://longbook.app/privacy-policy/
+
+OTHER FEATURES
+- Menu bar item: the next payment and "Open longbook"; Settings > Menu Bar sets an optional keyboard shortcut for it.
+- "next payment" widget. Shortcuts: Next commitment, Add a commitment, Add an expense, Record a charge from a message.
+- Demo longbook: "See Demo" (step 3) or Settings > "Try the Demo…"; made-up data, nothing kept.
+- MCP server: "Let AI Read My longbook" (Settings > AI), off by default, lets the user's AI read it at longbook.app/mcp; its changes wait in Proposals.
 
 ACCOUNT
 "Delete Account..." (type DELETE) removes the account, and for an account opened with Apple ends its Sign in with Apple link. Sign in with Apple is offered alongside Google.
