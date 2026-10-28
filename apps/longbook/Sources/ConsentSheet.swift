@@ -1,9 +1,8 @@
 import DesignSystem
 import SwiftUI
 
-/// A feature that hands the reader's data to a third-party AI, asked once per account on
-/// this device before it first does (App Review 5.1.2(i)). Withdrawn in Help & about, and
-/// forgotten when the account signs out, so the next account is asked afresh.
+/// A feature that hands the reader's data to a third-party AI, asked once on this device
+/// before it first does (App Review 5.1.2(i)). Withdrawn in Help & about.
 enum AIConsent: String {
     /// Statements and Reorganise, both read by Anthropic's Claude.
     case statements
@@ -14,11 +13,6 @@ enum AIConsent: String {
     var key: String { "longbook.aiConsent." + rawValue }
 
     var given: Bool { UserDefaults.standard.bool(forKey: key) }
-
-    /// Every consent withdrawn: the session ended, by a sign-out or a deleted account.
-    static func forgetAll() {
-        for consent in [AIConsent.statements, .support] { UserDefaults.standard.removeObject(forKey: consent.key) }
-    }
 
     /// The one sentence the sheet says: who receives what, and that nothing is kept.
     var sentence: String {
