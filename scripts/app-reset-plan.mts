@@ -116,7 +116,7 @@ export function simulatorPlan(sim: SimulatorState): Plan {
   return { target, steps: steps.length > 1 ? steps : [], kept: steps.length > 1 ? kept : ['No settings stored yet; already at first run.', ...kept] }
 }
 
-const quote = (arg: string): string => (/^[\w@%+=:,./-]+$/.test(arg) ? arg : `'${arg.replace(/'/g, `'\\''`)}'`)
+export const quote = (arg: string): string => (/^[\w@%+=:,./-]+$/.test(arg) ? arg : `'${arg.replace(/'/g, `'\\''`)}'`)
 
 export function renderPlan(plans: Plan[]): string {
   const lines: string[] = []
@@ -128,6 +128,14 @@ export function renderPlan(plans: Plan[]): string {
     lines.push('  Stays as it is:', ...plan.kept.map((k) => `  · ${k}`), '')
   }
   return lines.join('\n')
+}
+
+/** The Mac's longbook app, by bundle path; a simulator's copy runs under CoreSimulator. */
+export function macAppPids(ps: string): number[] {
+  return ps.split('\n').flatMap((line) => {
+    const m = /^\s*(\d+)\s+(.+)$/.exec(line)
+    return m && /\/longbook\.app\/Contents\/MacOS\/longbook$/.test(m[2]) && !m[2].includes('/CoreSimulator/') ? [Number(m[1])] : []
+  })
 }
 
 /** The word typed to go ahead; anything else stops the reset. */
