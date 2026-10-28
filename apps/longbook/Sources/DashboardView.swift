@@ -1556,6 +1556,7 @@ private struct DashboardStart: View {
     /// Full width and tall on the phone; a small pill on the Mac.
     private func button(_ title: String, fill: Color, ink: Color, macHeight: CGFloat, run: @escaping () -> Void) -> some View {
         Button {
+            Measure.used("dashboard_start")
             LBHaptics.tap()
             run()
         } label: {
