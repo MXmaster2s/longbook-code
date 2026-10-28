@@ -1,9 +1,10 @@
 #!/usr/bin/env -S npx tsx
 // Generates longbook's Claude plugin in apps/claude-plugin from the prompt catalogue: a skill
 // per prompt group, the hosted connector, a README and a marketplace file. Skills send Claude
-// to read_guide for procedures. --check verifies. Regenerate: npm run plugin:claude.
+// to read_guide for procedures. --check verifies; --out <dir> writes the plugin there instead.
+// Regenerate: npm run plugin:claude.
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
-import { dirname, join, relative } from 'node:path'
+import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { PROMPTS, PROMPT_GROUPS } from '../packages/core/src/prompts'
 import type { LongbookPrompt, PromptGroupId } from '../packages/core/src/prompts'
@@ -12,9 +13,10 @@ import { RELEASE_VERSION } from './release.mts'
 import { MCP_URL, SKILLS, quote, skill, wrap } from './plugin-skills.mts'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const OUT = join(ROOT, 'apps/claude-plugin')
-const PLUGIN = join(OUT, 'plugins/longbook')
+const OUT_AT = process.argv.indexOf('--out')
+const OUT = OUT_AT > 0 && process.argv[OUT_AT + 1] ? resolve(process.argv[OUT_AT + 1]!) : join(ROOT, 'apps/claude-plugin')
 const CHECK = process.argv.includes('--check')
+const SHOWN = relative(ROOT, OUT).startsWith('..') ? OUT : relative(ROOT, OUT)
 const GMAIL_URL = 'https://gmailmcp.googleapis.com/mcp/v1'
 // The public repository the marketplace is published to; longbook-code itself is private.
 const REPO = 'MXmaster2s/longbook-claude-plugin'
@@ -181,6 +183,14 @@ const marketplace = {
   ],
 }
 
+const listOf = (items: string[]): string =>
+  items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`
+const MAIL_COMMANDS = listOf(PROMPTS.filter((p) => p.needs?.includes('mail')).map((p) => `\`${slash(p)}\``))
+const SCHEDULED_COMMANDS = listOf([
+  ...PROMPTS.filter((p) => p.needs?.includes('scheduler')).map((p) => `\`${slash(p)}\``),
+  '`/longbook:start` (for the weekly page)',
+])
+
 const readme = `# longbook for Claude
 
 ${wrap("longbook remembers every commitment you pay: subscriptions, bills, rent, salaries, insurance and loans, with their charges past and planned. This plugin brings longbook's prompts to Claude as skills and slash commands, and connects Claude to your longbook. Ask in your own words, or type a command.")}
@@ -206,14 +216,16 @@ ${commandList()}
 ${PROMPT_GROUPS.map((g) => `- **${SKILLS[g.id].name}**: ${SKILLS[g.id].does}`).join('\n')}
 - **longbook-start**: checks the connection, starts setup, and shows every prompt.
 
-${wrap("Each skill and command asks the longbook server for the prompt's procedure with read_guide, so the steps are always the server's current ones.")}
+## What it runs, sends and fetches
 
-## What it connects to
+${wrap('The plugin is text only: skills and slash commands that tell Claude what to do. It installs no hooks, scripts or local servers, runs no code on your machine, and collects no analytics. What it reaches, it reaches through the two connectors it bundles:')}
 
-${wrap(`- **longbook** (${MCP_URL}), signed in with your longbook account. Claude reads your longbook through it; what Claude writes waits in the longbook app's Proposals screen, where you keep it or undo it.`).replace(/\n/g, '\n  ')}
-${wrap(`- **Gmail** (${GMAIL_URL}), signed in with your Google account. Only the email prompts read it, to find payments, bills and receipts.`).replace(/\n/g, '\n  ')}
+${wrap(`- **longbook** (${MCP_URL}), longbook's own MCP server, signed in with your longbook account. It reads the hosted copy of your longbook that the app uploads when you turn on its MCP server: your commitments and their charges past and planned, your accounts and balances, the people payments are for, your tags and categories, and your reports. Each skill and command also fetches its procedure from it with read_guide, so the steps are always the server's current ones. What Claude reads through it goes into your conversation with Claude.`).replace(/\n/g, '\n  ')}
+${wrap('- **Writes wait as proposals.** When Claude adds a commitment or a charge, marks one paid, cancels one or leaves an insight, the change is sent to longbook as a proposal, and only after you turn on Allow proposals in the app. Nothing is in your longbook until you keep it in the app\'s Proposals screen, where you can also undo it. A report request shows on the Reports screen instead.').replace(/\n/g, '\n  ')}
+${wrap(`- **Gmail** (${GMAIL_URL}), Google's Gmail MCP server, bundled for the email prompts and signed in with your Google account. Only ${MAIL_COMMANDS} read it: they search and read your mail for payments, bills, receipts and money in. No prompt sends, deletes or labels mail. Without a Gmail sign-in every other command works.`).replace(/\n/g, '\n  ')}
+${wrap(`- **Scheduled tasks.** ${SCHEDULED_COMMANDS} set up a scheduled task in your Claude app, only when you ask for one, and it runs the same prompt through the same connectors.`).replace(/\n/g, '\n  ')}
 
-${wrap('The plugin runs no code on your machine and sends nothing anywhere else. Privacy: ' + PRIVACY_URL + '. Generated from the longbook prompt catalogue (contract revision ' + CONTRACT_REVISION + ').')}
+${wrap('Statements and files you attach go to Claude in the conversation; what Claude records from them is sent to longbook as proposals. The plugin sends nothing anywhere else. Privacy: ' + PRIVACY_URL + '. Generated from the longbook prompt catalogue (contract revision ' + CONTRACT_REVISION + ', version ' + VERSION + ').')}
 
 ## More about longbook
 
@@ -228,6 +240,13 @@ ${wrap('The plugin runs no code on your machine and sends nothing anywhere else.
 
 GPL-3.0, the same licence as longbook. See LICENSE.
 `
+
+// The directory lists only a plugin whose folder holds a README of 40 words or more, outside code
+// blocks, and a licence; it re-scans on every push, so the version is release.json's.
+const proseWords = readme.replace(/```[\s\S]*?```/g, '').split(/\s+/).filter((w) => /[a-z0-9]/i.test(w)).length
+if (proseWords < 40) throw new Error(`plugin README has ${proseWords} words; the directory needs 40`)
+if (!/GNU GENERAL PUBLIC LICENSE/.test(LICENSE)) throw new Error('LICENSE is not the GPL text')
+if (!/^\d+\.\d+\.\d+$/.test(VERSION)) throw new Error(`version ${VERSION} is not x.y.z`)
 
 const files = new Map<string, string | Buffer>([
   ['.claude-plugin/marketplace.json', JSON.stringify(marketplace, null, 2) + '\n'],
@@ -261,7 +280,7 @@ for (const [path, content] of files) {
   const at = join(OUT, path)
   if (existsSync(at) && readFileSync(at).equals(Buffer.from(content))) continue
   drift += 1
-  if (CHECK) console.error(`drift: apps/claude-plugin/${path}`)
+  if (CHECK) console.error(`drift: ${SHOWN}/${path}`)
   else {
     mkdirSync(dirname(at), { recursive: true })
     writeFileSync(at, content)
@@ -270,7 +289,7 @@ for (const [path, content] of files) {
 for (const path of listed(OUT)) {
   if (files.has(path)) continue
   drift += 1
-  if (CHECK) console.error(`stray: apps/claude-plugin/${path}`)
+  if (CHECK) console.error(`stray: ${SHOWN}/${path}`)
   else rmSync(join(OUT, path))
 }
 if (CHECK && drift) {
@@ -280,5 +299,5 @@ if (CHECK && drift) {
 console.log(
   CHECK
     ? `claude plugin — in sync (${PROMPT_GROUPS.length} skills, ${PROMPTS.length} prompts, version ${VERSION}).`
-    : `wrote apps/claude-plugin (${PROMPT_GROUPS.length} skills, ${PROMPTS.length} prompts, version ${VERSION}, ${drift} file(s) changed).`,
+    : `wrote ${SHOWN} (${PROMPT_GROUPS.length} skills, ${PROMPTS.length} prompts, version ${VERSION}, ${drift} file(s) changed).`,
 )

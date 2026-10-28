@@ -28,8 +28,6 @@ struct TripFlowView: View {
     @State private var accounts: [String] = []
     @State private var first = LB.addDays(LB.todayMid(), -7)
     @State private var last = LB.addDays(LB.todayMid(), -1)
-    @State private var pickingFirst = false
-    @State private var pickingLast = false
     @State private var name = ""
     @State private var adding = false
     @State private var typed = ""
@@ -249,8 +247,8 @@ struct TripFlowView: View {
     private var dates: some View {
         let today = LB.todayMid()
         return VStack(alignment: .leading, spacing: LBSpacing.s4) {
-            FormDateControl(title: "First day", date: $first, picking: $pickingFirst, latest: min(last, today))
-            FormDateControl(title: "Last day", date: $last, picking: $pickingLast, earliest: first, latest: today)
+            FormDayPicker(title: "First day", date: $first, latest: min(last, today))
+            FormDayPicker(title: "Last day", date: $last, earliest: first, latest: today)
         }
     }
 

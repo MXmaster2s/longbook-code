@@ -33,6 +33,11 @@ struct BuyButton: View {
                     .lbText(.footnote)
                     .foregroundStyle(LBColor.urgent.color)
                     .fixedSize(horizontal: false, vertical: true)
+            } else if let notice = store.notice {
+                Text(notice)
+                    .lbText(.footnote)
+                    .foregroundStyle(LBColor.textSecondary.color)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .task { await store.load() }

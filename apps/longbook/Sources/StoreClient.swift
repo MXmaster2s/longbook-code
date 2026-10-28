@@ -18,6 +18,8 @@ final class StoreClient: ObservableObject {
     @Published private(set) var cloudProduct: Product?
     @Published private(set) var busy = false
     @Published var failure: String?
+    /// A restore that found and recorded a purchase says so; a buy or a new restore clears it.
+    @Published var notice: String?
 
     /// The price the store shows, in the reader's own currency, or nil until it loads.
     var displayPrice: String? { product?.displayPrice }
@@ -60,6 +62,7 @@ final class StoreClient: ObservableObject {
         guard !busy else { return }
         busy = true
         failure = nil
+        notice = nil
         defer { busy = false }
         await load()
         guard let product else {
@@ -98,6 +101,7 @@ final class StoreClient: ObservableObject {
         guard !busy else { return false }
         busy = true
         failure = nil
+        notice = nil
         defer { busy = false }
         await load()
         guard let cloudProduct else {
@@ -134,28 +138,53 @@ final class StoreClient: ObservableObject {
         return false
     }
 
-    /// Every licence and subscription this Apple ID holds, told to the server again — the
-    /// way back after a reinstall, on a second device, or for a purchase the server never
-    /// heard about.
+    /// The line under every Restore Purchase button. AppStore.sync shows Apple's own sign-in
+    /// sheet, which asks for the Apple Account's password; a longbook account has none.
+    static let restoreWords = "Apple may ask for your Apple Account, the one you use for the App Store. It isn't your longbook sign-in."
+
+    /// Every licence and subscription this Apple Account holds, told to the server again —
+    /// the way back after a reinstall, on a second device, or for a purchase the server never
+    /// heard about. AppStore.sync is Apple's sheet, never longbook's sign-in.
     func restore(auth: AuthViewModel, entitlement: EntitlementStore) async {
         guard !busy else { return }
         busy = true
         failure = nil
+        notice = nil
         defer { busy = false }
-        try? await AppStore.sync()
+        do {
+            try await AppStore.sync()
+        } catch StoreKitError.userCancelled {
+            // Apple's sheet was dismissed: nothing was checked, so nothing is reported.
+            return
+        } catch {
+            // The device's own record of its purchases is still read below.
+        }
         var found = false
+        var recorded = false
         for await result in Transaction.currentEntitlements {
             guard case .verified(let transaction) = result, Self.sells(transaction.productID) else { continue }
             found = true
             do {
                 try await record(jws: result.jwsRepresentation, auth: auth)
+                recorded = true
             } catch {
                 Telemetry.shared.failed(.purchase, error)
-                failure = error.localizedDescription
+                failure = Self.restoreFailureWords(error)
             }
         }
-        if !found { failure = "No longbook purchase is on this Apple ID." }
+        if !found {
+            failure = "No longbook purchase is on this Apple Account. Restore with the Apple Account you bought with."
+        } else if recorded, failure == nil {
+            notice = "Purchase restored."
+        }
         await entitlement.refresh()
+    }
+
+    /// A restore failure names the purchase as found, so it never reads as a longbook sign-in
+    /// refused. A lapsed longbook session is the one case that asks for longbook's sign-in.
+    private static func restoreFailureWords(_ error: Error) -> String {
+        if case StoreError.signedOut = error { return "Your purchase was found. Sign in to longbook again, then restore." }
+        return "Your purchase was found, but could not be recorded: \(error.localizedDescription). Try again in a moment."
     }
 
     /// Days after buying in which longbook backs a refund request, as the terms say.

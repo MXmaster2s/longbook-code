@@ -11,21 +11,21 @@ import AppKit
 /// axes is the only way to draw correctly at every size.
 public enum LBTextStyle: CaseIterable, Sendable {
     case displayXL, displayLG, title
-    case largeTitle, screenTitle, headline, eyebrow, heroSans, statNumber, tabLabel
+    case largeTitle, screenTitle, windowTitle, cardTitle, headline, eyebrow, heroSans, statNumber, tabLabel
     case body, bodySM, footnote, label
     case numberDisplay, numberMD, numberSM
 
     var face: LBTypeface {
         switch self {
         case .displayXL, .displayLG, .title, .numberDisplay: .fraunces
-        case .largeTitle, .screenTitle, .headline, .eyebrow, .heroSans, .statNumber, .tabLabel: .publicSans
+        case .largeTitle, .screenTitle, .windowTitle, .cardTitle, .headline, .eyebrow, .heroSans, .statNumber, .tabLabel: .publicSans
         case .body, .bodySM, .footnote, .label, .numberMD, .numberSM: .publicSans
         }
     }
 
     /// Sizes follow each platform's own text styles: the phone's Body 17, Subheadline 15,
     /// Footnote 13 and Large Title 34; the Mac's Body 13 with 11–12 secondary text. The
-    /// eyebrow is a sentence-case section header, 13 semibold on the phone, 11 on the Mac.
+    /// eyebrow is a sentence-case section header; the window title is the Mac toolbar's.
     var size: CGFloat {
         #if os(iOS)
         switch self {
@@ -34,6 +34,8 @@ public enum LBTextStyle: CaseIterable, Sendable {
         case .title: return 20
         case .largeTitle: return 34
         case .screenTitle: return 22
+        case .windowTitle: return 17
+        case .cardTitle: return 17
         case .headline: return 17
         case .eyebrow: return 13
         case .heroSans: return 30
@@ -54,6 +56,9 @@ public enum LBTextStyle: CaseIterable, Sendable {
         case .title: return 22
         case .largeTitle: return 26
         case .screenTitle: return 20
+        case .windowTitle: return 17
+        // The Settings header card's name, bold.
+        case .cardTitle: return 15
         case .headline: return 13
         case .eyebrow: return 11
         case .heroSans: return 34
@@ -75,8 +80,8 @@ public enum LBTextStyle: CaseIterable, Sendable {
         case .displayXL: 480
         case .displayLG: 460
         case .title: 440
-        case .largeTitle, .screenTitle, .heroSans, .statNumber: 700
-        case .headline, .eyebrow: 600
+        case .largeTitle, .screenTitle, .cardTitle, .heroSans, .statNumber: 700
+        case .headline, .eyebrow, .windowTitle: 600
         case .tabLabel: 500
         case .body, .bodySM, .footnote: 400
         case .label, .numberDisplay, .numberMD, .numberSM: 500
@@ -112,7 +117,8 @@ public enum LBTextStyle: CaseIterable, Sendable {
         case .displayXL, .numberDisplay, .heroSans, .largeTitle: .largeTitle
         case .displayLG, .statNumber: .title
         case .title, .numberMD, .screenTitle: .title2
-        case .headline: .headline
+        case .windowTitle: .title3
+        case .headline, .cardTitle: .headline
         case .eyebrow: .footnote
         case .tabLabel: .caption2
         case .body, .numberSM: .body

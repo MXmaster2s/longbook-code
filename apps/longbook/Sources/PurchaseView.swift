@@ -53,6 +53,11 @@ struct PurchaseView: View {
                 .disabled(store.busy)
                 OnboardingSecondaryButton(title: "See Demo") { demo = true }
             }
+            Text(StoreClient.restoreWords)
+                .lbText(.footnote)
+                .foregroundStyle(LBColor.textTertiary.color)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
             HStack(spacing: LBSpacing.s1) {
                 Link("Terms of Use", destination: Self.termsURL).lbLinkPointer()
                 Text("·")

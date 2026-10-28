@@ -67,6 +67,15 @@ public enum VaultHistory {
         return HistoryEntry(hash: hash, source: source, at: at, byteCount: bytes.count)
     }
 
+    /// A version kept on this device alone and never logged: a review's base moved by the
+    /// owner's own write, which is no version the file ever held. Nil when the copy could
+    /// not be kept; `snapshot(hash:in:)` reads it like any other.
+    public static func keepUnlogged(_ bytes: Data, in folder: URL) -> String? {
+        let hash = Self.hash(bytes)
+        mirror(bytes, hash: hash, for: folder)
+        return mirrored(hash, for: folder) ? hash : nil
+    }
+
     /// The log, newest first. A line that doesn't parse is skipped rather than fatal —
     /// history is a convenience, and it must never make a vault unreadable. A log iCloud
     /// still holds elsewhere reads as empty; `awaitingLog(in:)` says so.

@@ -16,7 +16,7 @@ Viewing a report someone shared with you needs no subscription.
 
 - Your longbook purchase includes 12 months of Cloud, free, for you and your Apple family.
 - After that, Cloud is $4 a month through the App Store, or your country's price.
-- Cloud is bought and cancelled inside your Apple ID's subscription settings. Deleting the app doesn't cancel it.
+- Cloud is bought and cancelled inside your Apple Account's subscription settings. Deleting the app doesn't cancel it.
 
 ## What it keeps
 

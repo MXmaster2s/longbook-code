@@ -30,7 +30,7 @@ Open the **Account** screen and tap **Delete Account…**, then confirm.
 
 Deleting your account removes your email and everything hosted for you: the copy for your AI and your shared reports. It doesn't touch the longbook folder in your iCloud. Your records stay yours.
 
-If you bought Cloud, cancel it in your Apple ID's subscription settings too. Deleting the account doesn't cancel it.
+If you bought Cloud, cancel it in your Apple Account's subscription settings too. Deleting the account doesn't cancel it.
 
 Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.
 
