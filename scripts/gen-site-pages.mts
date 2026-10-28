@@ -6,7 +6,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync, mkdirSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { loadAbout, loadAutomations, loadFeatures, loadScreens, validate, LIMITS, ORIGIN, PROMPTS_SECTION, type Feature } from './site-pages/content.mts'
+import { loadAbout, loadAutomations, loadFeatures, loadScreens, validate, DOWNLOAD, GROUPS, LIMITS, ORIGIN, PROMPTS_SECTION, type Feature } from './site-pages/content.mts'
 import { type Ctx, type Picture, type PromptCatalogue, featurePage, indexPage, featureMarkdown, indexMarkdown, automationsPage, automationsMarkdown, checkHref, linksIn, misquotedPrompts, misquotedOnPage, promptsOmitted, AUTOMATIONS_URL, GENERATED, attr } from './site-pages/render.mts'
 import { featureJsonld, indexJsonld, automationsJsonld, homeJsonld, faqJsonld, jsonldScript, sitemap, headersFile, redirectBlock, withRedirects, shareTargets, shareAlt, unversioned, type MdPage, type SitemapEntry } from './site-pages/seo.mts'
 import { stampChrome, stampHead, wrapped, emailsReadable, HEADER_BEGIN, HEADER_END, FOOTER_BEGIN, FOOTER_END } from './site-pages/chrome.mts'
@@ -14,7 +14,8 @@ import { htmlToMarkdown } from './site-pages/html-md.mts'
 import { jpegSize, readMetadata } from './site-pages/jpeg.mts'
 import { readBuilt, sha256, BUILT_LIST } from './site-pages/built.mts'
 import { loadHelp, validateHelp, helpPage, helpIndexPage, helpMarkdown, helpIndexMarkdown, helpJsonld, helpIndexJsonld, helpUrl, HELP_URL } from './site-pages/help.mts'
-import { loadPosts, validatePosts, postPage, postMarkdown, postJsonld, postPictures, postUrl, blogIndexPage, blogIndexMarkdown, blogJsonld, BLOG_URL, type BlogFilms, type Still } from './site-pages/blog.mts'
+import { loadPosts, validatePosts, postPage, postMarkdown, postJsonld, postPictures, postUrl, blogIndexPage, blogIndexMarkdown, blogJsonld, longDate, BLOG_URL, type BlogFilms, type Still } from './site-pages/blog.mts'
+import { loadFacts, buildFacts, validateFacts, factsPage, factsMarkdown, factsJsonld, FACTS_URL, type Fact } from './site-pages/facts.mts'
 import { loadReviews, validateReviews, reviewsPage, reviewsMarkdown, reviewsJsonld, REVIEWS_URL, REVIEWS_SHARE } from './site-pages/reviews.mts'
 import { PROMPTS, PROMPT_GROUPS } from '../packages/core/src/prompts'
 
@@ -129,6 +130,79 @@ problems.push(...validatePosts(posts, stills, slugs, blogFilms))
 problems.push(...validateHelp(help))
 if (reviews.length && !stills.has(REVIEWS_SHARE)) problems.push(`reviews: media.json builds no ${REVIEWS_SHARE}`)
 
+// The facts page: its source is facts.md, and every value that changes comes from where it lives.
+const FACTS_SOURCES = ['apps/longbook/Resources/changelog.json', 'apps/longbook/project.yml', 'packages/mcp/server.json',
+  'apps/longbook-site/index.html', 'apps/longbook-site/media-kit/kit.json', 'apps/longbook-site/media-kit/files.json',
+  'apps/longbook-site/privacy-policy.md', 'apps/longbook-site/terms.md'].map((p) => join(ROOT, p))
+const facts = loadFacts(join(CONTENT, 'facts.md'))
+const factsBuilt = (() => {
+  const need = (what: string, m: RegExpExecArray | null | undefined): string => {
+    if (!m?.[1]) problems.push(`facts: could not read ${what}`)
+    return m?.[1] ?? ''
+  }
+  const [changelog, projectYml, serverJson, home, kitJson, filesJson, policy, terms] = FACTS_SOURCES.map(read)
+  const latest = (JSON.parse(changelog!) as { version: string; build: number; date: string }[])[0]!
+  const server = JSON.parse(serverJson!) as { name: string; version: string; remotes: { type: string; url: string }[]; packages: { identifier: string }[] }
+  const kit = JSON.parse(kitJson!)
+  const files = new Map((JSON.parse(filesJson!).files as { path: string; url: string }[]).map((f) => [f.path, f.url]))
+  const price = need('the pricing section', /<div class="price" id="price">([\s\S]*?)<div class="devs">/.exec(home!))
+  const tiers = [...price.matchAll(/<p>\$(\d+) · (first \d+|next \d+|after that)<\/p>/g)].map((m) => ({ usd: `$${m[1]}`, who: m[2]! }))
+  if (tiers.length < 1) problems.push('facts: found no price tiers in the pricing section')
+  const tierText = tiers.map((t, i) => (t.who === 'after that' ? `then ${t.usd}` : `${t.usd} for the ${t.who}${i === 0 ? ' buyers' : ''}`)).join(', ')
+  const os = (k: string): string => need(`the ${k} minimum`, new RegExp(`${k}:\\s*"(\\d+)(?:\\.0)?"`).exec(projectYml!))
+  const fileUrl = (path: string): string => {
+    const u = files.get(path)
+    if (!u) problems.push(`facts: media-kit/files.json has no ${path}`)
+    return u ?? ''
+  }
+  const fileLinks = (list: { label: string; file: string }[]): string => list.map((f) => `[${f.label}](${fileUrl(f.file)})`).join(', ')
+  const region = /hosted with Supabase in the (.+?) region, `([a-z0-9-]+)`/.exec(policy!)
+  const values: Record<string, string> = {
+    version: latest.version, build: String(latest.build), release_date: longDate(latest.date),
+    ios_min: os('iOS'), macos_min: os('macOS'), download: DOWNLOAD,
+    price_tiers: tierText, price_first: tiers[0]?.usd ?? '',
+    refund_days: need('the refund days', /within (\d+) days/.exec(price)),
+    cloud_price: `$${need('the Cloud price', /padd-amt n">\$(\d+) <span class="amtsub">per month/.exec(price))} a month`,
+    coming_soon: need('what is coming soon', /Coming soon: ([^<]+)<\/li>/.exec(price)),
+    mcp_url: server.remotes[0]?.url ?? '', mcp_transport: server.remotes[0]?.type === 'streamable-http' ? 'Streamable HTTP' : (server.remotes[0]?.type ?? ''),
+    npm_package: server.packages[0]?.identifier ?? '', npm_command: `npx -y ${server.packages[0]?.identifier}@latest`,
+    registry_name: server.name, mcp_version: server.version,
+    mcp_tools: `${registered.size}: ${[...registered].sort().map((t) => `\`${t}\``).join(', ')}`,
+    prompts_count: String(PROMPTS.length),
+    spelling: kit.spelling.text, keywords: (kit.keywords as string[]).join(', '), founder: kit.founder.name,
+    country: need('the country', /established in ([A-Z][a-z]+)/.exec(terms!)),
+    privacy_date: need('the policy date', /This policy took effect on (\d+ [A-Z][a-z]+ \d{4})/.exec(policy!)),
+    server_region: region ? `${region[1]} region, ${region[2]}` : need('the server region', null),
+  }
+  const groupOrder = (f: Feature): number => GROUPS.findIndex((g) => g.id === f.group)
+  const featureFacts: Fact[] = [...features].sort((a, b) => groupOrder(a) - groupOrder(b) || a.order - b.order)
+    .map((f) => ({ label: f.title, href: `/features/${f.slug}/`, paras: [f.card] }))
+  const shotList = (p: 'iphone' | 'mac'): string => `${kit.screens[p].length} screens: ${(kit.screens[p] as { title: string }[]).map((s) => s.title).join(', ')}. [See them](/media-kit/#screenshots)`
+  const filmFact = (m: { out: string; poster: string }): Fact => {
+    const slug = /^features\/media\/([a-z0-9-]+)\.mp4$/.exec(m.out)?.[1]
+    const f = slug ? features.find((x) => x.slug === slug) : undefined
+    const name = m.out.split('/').pop()!.replace(/\.mp4$/, '').replace(/-/g, ' ')
+    const title = f ? f.title : /^longbook/.test(name) ? name : name.charAt(0).toUpperCase() + name.slice(1)
+    const page = f ? `/features/${f.slug}/` : `/${m.out.split('/')[0]}/`
+    return { label: `Film: ${title}`, paras: [`${f?.film ? `${f.film}. ` : ''}[MP4](${ORIGIN}/${m.out}), [poster](${ORIGIN}/${m.poster}), shown on [this page](${page})`] }
+  }
+  const assets: Fact[] = [
+    ...(kit.logos as { title: string; files: { label: string; file: string }[] }[]).map((l) => ({ label: l.title, paras: [fileLinks(l.files)] })),
+    { label: 'Hero image', paras: [`${kit.hero.text} [Light](${fileUrl('images/longbook-hero-light.jpg')}), [dark](${fileUrl('images/longbook-hero-dark.jpg')})`] },
+    { label: 'iPhone screenshots', paras: [shotList('iphone')] },
+    { label: 'Mac screenshots', paras: [shotList('mac')] },
+    { label: 'Founder photo', paras: [`[Square](${fileUrl('founder/longbook-founder-rohit-kundliwal-square.jpg')}), [wide](${fileUrl('founder/longbook-founder-rohit-kundliwal.jpg')})`] },
+    ...mediaList.films.map(filmFact),
+  ]
+  return buildFacts(facts, { values, lists: { features: featureFacts, assets } }, problems)
+})()
+const factsKnown = new Set(['/', '/faq/', '/download/', '/ios/', '/automations/', '/source/', '/contact/', '/why-we-built-longbook/',
+  '/privacy-policy/', '/terms/', '/mcp', '/features/', '/features/upcoming-features/', '/blog/', '/reviews/', '/help/', '/support/',
+  '/media-kit/', '/facts/', '/facts.md', ...features.map((f) => `/features/${f.slug}/`), ...help.map((a) => `/help/${a.slug}/`),
+  ...posts.map((p) => `/blog/${p.slug}/`), ...LISTED.map(([loc]) => loc)])
+problems.push(...validateFacts(facts, factsBuilt, factsKnown))
+for (const g of factsBuilt.groups) for (const x of g.facts) for (const p of x.paras) for (const m of misquotedPrompts(p)) problems.push(`facts: ${m}`)
+
 if (LINT) {
   for (const p of problems) console.error(`  ${p}`)
   console.log(problems.length ? `site pages lint — ${problems.length} problem(s).` : `site pages lint — ${features.length} features read clean.`)
@@ -178,6 +252,8 @@ out.set('automations.md', automationsMarkdown(automations, ctx, catalogue))
 for (const m of promptsOmitted(out.get('automations/index.html')!, out.get('automations.md')!, catalogue)) problems.push(`automations: ${m}`)
 out.set('blog/index.html', blogIndexPage(posts, ctx, blogJsonld(posts)))
 out.set('blog.md', blogIndexMarkdown(posts, ctx))
+out.set('facts/index.html', factsPage(factsBuilt, ctx, factsJsonld(factsBuilt)))
+out.set('facts.md', factsMarkdown(factsBuilt))
 out.set('help/index.html', helpIndexPage(help, ctx, helpIndexJsonld(help)))
 out.set('help.md', helpIndexMarkdown(help, ctx))
 for (const a of help) {
@@ -203,7 +279,7 @@ const mdPages: MdPage[] = [...LISTED.map(([loc]) => ({
   canonical: `${ORIGIN}${loc}`,
   ...(OWN_MD[loc] ? { variants: [`${loc.slice(0, -1)}.md`, `${loc}index.html.md`] } : {}),
 })), { md: '/automations.md', canonical: AUTOMATIONS_URL }, { md: '/blog.md', canonical: BLOG_URL },
-  { md: '/help.md', canonical: HELP_URL }, ...help.map((a) => ({ md: `/help/${a.slug}.md`, canonical: helpUrl(a.slug) })),
+  { md: '/help.md', canonical: HELP_URL }, { md: '/facts.md', canonical: FACTS_URL }, ...help.map((a) => ({ md: `/help/${a.slug}.md`, canonical: helpUrl(a.slug) })),
   ...(reviews.length ? [{ md: '/reviews.md', canonical: REVIEWS_URL }] : []),
   ...posts.map((p) => ({ md: `/blog/${p.slug}.md`, canonical: postUrl(p.slug) }))]
 function pageMarkdown(html: string, loc: string): string {
@@ -342,6 +418,7 @@ const entries: SitemapEntry[] = [
   ...(reviews.length ? [{ loc: REVIEWS_URL, lastmod: lastmod('reviews/index.html', [join(CONTENT, 'reviews.json'), join(CONTENT, 'about.md')]),
     images: [`${ORIGIN}${REVIEWS_SHARE}`] }] : []),
   { loc: HELP_URL, lastmod: lastmod('help/index.html', [join(CONTENT, 'help')]), images: [] },
+  { loc: FACTS_URL, lastmod: lastmod('facts/index.html', [join(CONTENT, 'facts.md'), join(CONTENT, 'features'), join(CONTENT, 'media.json'), ...FACTS_SOURCES]), images: [] },
   ...help.map((a) => ({ loc: helpUrl(a.slug), lastmod: lastmod(`help/${a.slug}/index.html`, [join(CONTENT, 'help')]), images: [] })),
   ...(posts.length ? [{ loc: BLOG_URL, lastmod: lastmod('blog/index.html', [join(CONTENT, 'blog')]), images: [] }] : []),
   ...posts.map((p) => ({

@@ -360,6 +360,44 @@ test('when the clipboard refuses, the copy script falls back to the copy command
   assert.equal(blocked.said.textContent, 'Copying was blocked. The prompt is selected for you to copy.')
 })
 
+test('the facts page fills its values from sources and keeps the copy rules', async () => {
+  const { parseFacts, buildFacts, validateFacts, factsMarkdown } = await import('./facts.mts')
+  const src = `---
+title: longbook facts
+seo_title: longbook facts
+description: Facts.
+lead: Facts to copy.
+---
+
+## Releases
+
+- Current version: {{version}}
+- Long description:
+  One.
+
+  Two.
+{{features}}
+
+More: [Help](/help/)
+`
+  const problems: string[] = []
+  const facts = parseFacts(src)
+  const built = buildFacts(facts, { values: { version: '9.9.9' }, lists: { features: [{ label: 'Calendar', href: '/features/calendar/', paras: ['Every payment.'] }] } }, problems)
+  assert.deepEqual(problems, [])
+  assert.deepEqual(validateFacts(facts, built, new Set(['/help/', '/features/calendar/'])), [])
+  const md = factsMarkdown(built)
+  assert.match(md, /- \*\*Current version:\*\* 9\.9\.9/)
+  assert.match(md, /  One\.\n\n  Two\./)
+  assert.match(md, /\[Calendar\]\(https:\/\/longbook\.app\/features\/calendar\.md\)/)
+  buildFacts(parseFacts(src.replace('{{version}}', '{{nothing}}')), { values: {}, lists: {} }, problems)
+  assert.ok(problems.some((p) => p.includes('{{nothing}}')))
+  const typed = parseFacts(src.replace('{{version}}', '1.5.0 for $38').replace('- Long', '- Is it good?: Yes\n- Long').replace('One.', 'A subscription tracker.'))
+  const found = validateFacts(typed, buildFacts(typed, { values: {}, lists: { features: built.groups[0]!.facts } }, []), new Set())
+  for (const want of ['"1.5.0" is typed in', '"$38" is typed in', 'asks a question', 'subscription tracker', 'unknown link "/help/"']) {
+    assert.ok(found.some((p) => p.includes(want)), want)
+  }
+})
+
 test('the ChatGPT domain challenge is served as plain text, the token alone, past every edge function', () => {
   const block = headersFile([]).split('\n\n').find((b) => b.includes('/.well-known/openai-apps-challenge\n'))
   assert.ok(block?.includes('Content-Type: text/plain; charset=utf-8'), 'the generated _headers names its type')

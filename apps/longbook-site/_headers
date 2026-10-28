@@ -619,6 +619,21 @@
   Link: <https://longbook.app/help/>; rel="canonical"
   X-Robots-Tag: noindex, follow
 
+/facts.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/facts/>; rel="canonical"
+  X-Robots-Tag: noindex, follow
+
+/facts/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/facts/>; rel="canonical"
+  X-Robots-Tag: noindex, follow
+
+/facts/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/facts/>; rel="canonical"
+  X-Robots-Tag: noindex, follow
+
 /help/what-longbook-is-and-what-it-costs.md
   Content-Type: text/markdown; charset=utf-8
   Link: <https://longbook.app/help/what-longbook-is-and-what-it-costs/>; rel="canonical"
