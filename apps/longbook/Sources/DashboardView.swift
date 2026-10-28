@@ -154,7 +154,7 @@ struct DashboardView: View {
         .sheet(item: $importingMonth) { asked in
             StatementImportView(model: model, auth: auth, prompt: asked.prompt,
                                 context: asked.namesMonth ? .month(PromptCatalog.monthName(of: asked.firstDay)) : nil,
-                                picksOnOpen: asked.picks) {
+                                picksOnOpen: asked.picks, dropped: asked.dropped) {
                 importingMonth = nil
             }
         }
@@ -170,8 +170,9 @@ struct DashboardView: View {
         var prompt: String? = nil
         /// Opened for that one month, so the own-AI prompt asks for its report by name.
         var namesMonth = false
-        /// Opened by a statement dropped on the dashboard: the picker opens at once.
         var picks = false
+        /// The statements dropped on the dashboard, read without the picker.
+        var dropped: [URL] = []
         var id: Int { offset }
         var firstDay: Date { LB.addMonths(LB.firstOfMonth(LB.todayMid()), offset) }
     }
@@ -184,7 +185,7 @@ struct DashboardView: View {
                 DashboardStart(
                     waiting: model.placeholders.map(\.name),
                     onImport: { importingMonth = MonthAsk(offset: 0, prompt: "No past charges yet. Import a bank statement to add them.") },
-                    onDrop: { importingMonth = MonthAsk(offset: 0, picks: true) },
+                    onDrop: { importingMonth = MonthAsk(offset: 0, dropped: $0) },
                     onAdd: { addingForMonth = MonthAsk(offset: 0) },
                     onOwnAI: openOwnAI
                 )
@@ -1470,7 +1471,7 @@ private struct DashboardStart: View {
     /// Names setup picked that still wait for their details.
     let waiting: [String]
     let onImport: () -> Void
-    let onDrop: () -> Void
+    let onDrop: ([URL]) -> Void
     let onAdd: () -> Void
     let onOwnAI: () -> Void
     #if os(macOS)
@@ -1596,7 +1597,7 @@ private struct DashboardStart: View {
         .dropDestination(for: URL.self) { urls, _ in
             guard urls.contains(where: Self.readable) else { return false }
             Measure.used("dashboard_statement_drop")
-            onDrop()
+            onDrop(urls.filter(Self.readable))
             return true
         } isTargeted: { dropping = $0 }
     }
