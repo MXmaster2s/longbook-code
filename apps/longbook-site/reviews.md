@@ -5,6 +5,18 @@
 - Page: https://longbook.app/reviews/
 - Also at: https://longbookreviews.com/
 
+## Zenbirb (@zenbirb), 21 Oct 2026
+
+> Nice app bro
+
+Original on X: https://x.com/zenbirb/status/2112833350302110193
+
+## corhoon (@corhoonx), 21 Oct 2026
+
+> Family sharing for bills and commitments sounds handy. Good luck with the Longbook TestFlight!
+
+Original on X: https://x.com/corhoonx/status/2112789144401531276
+
 ## Christian Tichy (@Christian_Tichy), 14 Oct 2026
 
 > Super cool app!

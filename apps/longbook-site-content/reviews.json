@@ -2,6 +2,34 @@
   "about": "Every review of longbook on longbook.app/reviews/ and longbookreviews.com, quoted as posted. date is the post time in UTC; avatar is a file in apps/longbook-site/reviews/avatars.",
   "reviews": [
     {
+      "id": "x-zenbirb-2112833350302110193",
+      "source": "x",
+      "url": "https://x.com/zenbirb/status/2112833350302110193",
+      "date": "2026-10-21T09:08:19Z",
+      "author": {
+        "name": "Zenbirb",
+        "handle": "zenbirb",
+        "verified": true,
+        "avatar": "x-zenbirb.jpg"
+      },
+      "context": "Replying to @Rohthebuilder",
+      "text": "Nice app bro"
+    },
+    {
+      "id": "x-corhoonx-2112789144401531276",
+      "source": "x",
+      "url": "https://x.com/corhoonx/status/2112789144401531276",
+      "date": "2026-10-21T06:12:40Z",
+      "author": {
+        "name": "corhoon",
+        "handle": "corhoonx",
+        "verified": true,
+        "avatar": "x-corhoonx.jpg"
+      },
+      "context": "Replying to @Rohthebuilder",
+      "text": "Family sharing for bills and commitments sounds handy. Good luck with the Longbook TestFlight!"
+    },
+    {
       "id": "x-christian-tichy-2110442308965429538",
       "source": "x",
       "url": "https://x.com/Christian_Tichy/status/2110442308965429538",
