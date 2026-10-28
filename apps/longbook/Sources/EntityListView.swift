@@ -333,16 +333,7 @@ struct EntityListView: View {
         let rows = rows(cards)
         let chosen = rows.first { $0.id == selection }?.card
         return VStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: LBSpacing.s3) {
-                MacSearchField(text: $search, prompt: isAccount ? "Search accounts" : "Search people")
-                if !isAccount {
-                    Text("The people your commitments are for.")
-                        .lbText(.body)
-                        .foregroundStyle(LBColor.textSecondary.color)
-                }
-            }
-            .padding(.horizontal, LBSpacing.s4)
-            .padding(.vertical, LBSpacing.s3)
+            macHeader(chosen, choices: tagChoices(all))
             if model.saveError != nil || naming || cards.isEmpty {
                 VStack(alignment: .leading, spacing: LBSpacing.s3) {
                     saveErrorLine
@@ -368,39 +359,64 @@ struct EntityListView: View {
             inspector(chosen)
                 .background(LBColor.canvas.color)
         }
-        .lbScreenTitle(screenTitle, count: cards.count)
-        .toolbar { macToolbar(chosen, choices: tagChoices(all)) }
-        .onMacCommand(.newEntity) { startNaming() }
-    }
-
-    /// The window's toolbar for this screen, in bordered groups: the one filter; Add
-    /// commitment for the chosen row and the screen's own +.
-    @ToolbarContentBuilder
-    private func macToolbar(_ chosen: DashboardModel.EntityCard?, choices: [String]) -> some ToolbarContent {
-        let real = chosen?.isReal == true ? chosen : nil
-        ToolbarItem(placement: .primaryAction) {
-            ControlGroup { filterMenu(choices) }
-        }
-        ToolbarItem(placement: .primaryAction) {
-          ControlGroup {
-            Button {
-                Measure.used("add_commitment")
-                if let real { addingFor = target(real) }
-            } label: {
-                Label("Add commitment", systemImage: LBGlyph.commitment)
-            }
-            .help(real.map { "Add a commitment for \(EntityCopy.name($0))" } ?? "Add a commitment for the chosen \(word)")
-            .disabled(real == nil)
-            Button(action: { Measure.used("add"); startNaming() }) {
-                Label("Add \(word)", systemImage: "plus")
-            }
-            .help("Add \(word)")
-          }
-        }
     }
 
     private var previewShown: Binding<Bool> {
         Binding(get: { selection != nil }, set: { if !$0 { selection = nil } })
+    }
+
+    /// The title and the selection's actions on one line — the window's toolbar, drawn in
+    /// the page — then the search and the one filter.
+    private func macHeader(_ chosen: DashboardModel.EntityCard?, choices: [String]) -> some View {
+        let real = chosen?.isReal == true ? chosen : nil
+        return VStack(alignment: .leading, spacing: LBSpacing.s2) {
+            HStack(alignment: .firstTextBaseline, spacing: LBSpacing.s2) {
+                LBPageTitle(screenTitle)
+                Spacer()
+                Button("Add Commitment") { Measure.used("add_commitment"); if let real { addingFor = target(real) } }
+                    .disabled(real == nil)
+                Button(action: { Measure.used("add"); startNaming() }) {
+                    Label("Add \(word.capitalized)", systemImage: "plus")
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(LBColor.brand.color)
+                .tutorialTarget(.entityAdd)
+            }
+            .controlSize(.large)
+            HStack(spacing: LBSpacing.s2) {
+                searchField
+                filterMenu(choices)
+            }
+            .padding(.top, LBSpacing.s1)
+            if !isAccount {
+                Text("The people your commitments are for.")
+                    .lbText(.body)
+                    .foregroundStyle(LBColor.textSecondary.color)
+            }
+        }
+        .padding(.horizontal, LBSpacing.s4)
+        .padding(.top, LBSpacing.s6)
+        .padding(.bottom, LBSpacing.s3)
+    }
+
+    private var searchField: some View {
+        HStack(spacing: LBSpacing.s2) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(LBColor.textTertiary.color)
+            TextField("", text: $search, prompt: Text(isAccount ? "Search accounts" : "Search people").foregroundStyle(LBColor.textTertiary.color))
+                .textFieldStyle(.plain)
+                .lbText(.body)
+                .foregroundStyle(LBColor.textPrimary.color)
+                .accessibilityLabel(isAccount ? "Search accounts" : "Search people")
+        }
+        .padding(.horizontal, LBSpacing.s3)
+        .padding(.vertical, 6)
+        .background(LBColor.card.color, in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous)
+                .strokeBorder(LBColor.hairline.color, lineWidth: 1)
+        )
     }
 
     /// The type or relationship to show, as Commitments' filter ticks its choice.

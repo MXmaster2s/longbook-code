@@ -337,11 +337,6 @@ struct ChangesView: View {
                         .tutorialTarget(.changesDetail)
                 }
         }
-        .lbScreenTitle("Proposals", count: review == nil ? nil : groups.reduce(0) { $0 + $1.lines.count })
-        .toolbar { macToolbar(review) }
-        .onMacCommand(.refresh) { Task { await refreshAll() } }
-        .onMacCommand(.history) { showingHistory = true }
-        .onMacCommand(.howItWorks) { showingHow.toggle() }
         // The first proposed line is selected as the review arrives, so the right side is never blank.
         .task(id: firstLine) {
             if let firstLine, current(groups) == nil { selection = .line(firstLine) }
@@ -351,46 +346,29 @@ struct ChangesView: View {
         }
     }
 
-    /// The screen's own bar: what is waiting on the left, the answers on the right. The
-    /// tools sit in the window's toolbar.
+    /// The window's bar for this screen: the title and what is waiting on the left, the
+    /// answers and the screen's tools on the right, one icon style for the tools.
     private func macBar(_ review: Review?, proxy: ScrollViewProxy) -> some View {
         HStack(alignment: .center, spacing: LBSpacing.s3) {
             VStack(alignment: .leading, spacing: 2) {
+                LBPageTitle("Proposals")
                 Text(subtitle(review))
-                    .lbText(.body)
-                    .foregroundStyle(LBColor.textPrimary.color)
+                    .lbText(.bodySM)
+                    .foregroundStyle(LBColor.textSecondary.color)
                 if let review { answerFooter(review) }
             }
             Spacer(minLength: LBSpacing.s3)
             if review != nil { reviewActions(wide: false) }
-        }
-        .padding(.horizontal, LBSpacing.s4)
-        .padding(.vertical, LBSpacing.s3)
-    }
-
-    /// The window's toolbar for this screen: Refresh, History and How It Works, each with
-    /// a View menu command.
-    @ToolbarContentBuilder
-    private func macToolbar(_ review: Review?) -> some ToolbarContent {
-        ToolbarItem(placement: .primaryAction) {
-          ControlGroup {
-            Button {
-                Measure.used("refresh")
+            ChangeHeaderButton(title: "Refresh", symbol: "arrow.clockwise") {
                 Task { await refreshAll() }
-            } label: {
-                Label("Refresh", systemImage: "arrow.clockwise")
             }
-            .help("Refresh: re-reads the file and fetches what your AI proposed")
             .accessibilityHint("Re-reads the file and fetches what your AI proposed.")
-            Button { Measure.used("history"); showingHistory = true } label: {
-                Label("History", systemImage: "clock.arrow.circlepath")
+            ChangeHeaderButton(title: "History", symbol: "clock.arrow.circlepath") { showingHistory = true }
+                .help("History: every version kept, and Clear History")
+                .accessibilityHint("Shows every kept version.")
+            ChangeHeaderButton(title: "How It Works", symbol: "questionmark", active: showingHow) {
+                showingHow.toggle()
             }
-            .help("History: every version kept, and Clear History")
-            .accessibilityHint("Shows every kept version.")
-            Button { Measure.used("how_it_works"); showingHow.toggle() } label: {
-                Label("How It Works", systemImage: showingHow ? "info.circle.fill" : "info.circle")
-            }
-            .help("How It Works")
             .measured("changes_showing_how", .popover, when: showingHow)
             .popover(isPresented: $showingHow, arrowEdge: .bottom) {
                 VStack(alignment: .leading, spacing: LBSpacing.s2) {
@@ -404,8 +382,10 @@ struct ChangesView: View {
                 .padding(LBSpacing.s4)
                 .frame(width: 320)
             }
-          }
         }
+        .padding(.horizontal, LBSpacing.s4)
+        .padding(.top, LBSpacing.s6)
+        .padding(.bottom, LBSpacing.s3)
     }
 
     private var detailShown: Binding<Bool> {

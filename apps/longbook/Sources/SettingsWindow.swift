@@ -32,6 +32,9 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         }
     }
 
+    /// The name a subpage's back button carries.
+    var backTitle: String { self == .account ? "Account" : title }
+
     var line: String {
         switch self {
         case .account: "longbook Account"
@@ -129,17 +132,14 @@ enum SettingsMetrics {
     static let radius: CGFloat = 10
     /// Where a divider starts in a row with a tile: the label's leading edge.
     static let labelEdge: CGFloat = rowPadding + tile + gap
-    static let sidebarRow: CGFloat = 28
-    static let sidebarTile: CGFloat = 20
+    static let sidebarPadding: CGFloat = 12
+    static let sidebarRow: CGFloat = 32
     static let sidebarWidth: CGFloat = 220
-    static let windowWidth: CGFloat = 820
-    /// How far past a small control the pointer still reaches it.
-    static let reach: CGFloat = 12
 }
 
 /// The Settings window (⌘,), laid out as the Mac's System Settings: a searchable sidebar under the
-/// account row, the pane's name in the title bar, and its header card over grouped cards. The
-/// app menu and the main window's sidebar both open it.
+/// account row, and each pane a header card over grouped cards. The app menu and the main
+/// window's sidebar both open it.
 struct SettingsWindowView: View {
     @ObservedObject private var auth = AppSession.shared.auth
     @ObservedObject private var entitlement = AppSession.shared.entitlement
@@ -151,10 +151,8 @@ struct SettingsWindowView: View {
 
     var body: some View {
         SettingsWindowContent(model: model, auth: auth, entitlement: entitlement, picked: $picked, toMainWindow: toMainWindow)
-            // One width, as a Settings window keeps; the height follows the pane.
-            .frame(minWidth: SettingsMetrics.windowWidth, maxWidth: SettingsMetrics.windowWidth, minHeight: 540, idealHeight: 640)
+            .frame(minWidth: 760, idealWidth: 820, minHeight: 540, idealHeight: 640)
             .background(CentersSheets())
-            .background(SettingsWindowChrome())
             .preferredColorScheme((LBAppearance(rawValue: appearance) ?? .dark).colorScheme)
             .onAppear { model.loadIfNeeded() }
     }
@@ -185,6 +183,7 @@ struct SettingsWindowContent: View {
                 .id(picked)
                 .environment(\.lbPageTitleHidden, true)
         }
+        .settingsTitleRemoved()
         .environmentObject(entitlement)
     }
 
@@ -202,34 +201,24 @@ struct SettingsWindowContent: View {
         case .statements:
             stack(pane) { _ in StatementsSettingsPane(toMainWindow: toMainWindow) }
         case .privacy:
-            stack(pane) { nav in DataPrivacyView(model: model, openPage: nav.open) }
+            stack(pane, header: header(.privacy)) { nav in DataPrivacyView(model: model, openPage: nav.open) }
         case .tutorials:
             stack(pane) { _ in TutorialsSettingsPane() }
         }
     }
 
     private func stack<Root: View>(
-        _ pane: SettingsPane, @ViewBuilder root: @escaping (SettingsNavigator) -> Root
+        _ pane: SettingsPane, header: AnyView? = nil, @ViewBuilder root: @escaping (SettingsNavigator) -> Root
     ) -> some View {
         SettingsStack(
             model: model, auth: auth, entitlement: entitlement, toMainWindow: toMainWindow,
-            title: pane.title, root: root
+            back: pane.backTitle, header: header, root: root
         )
     }
-}
 
-/// Dims Minimize and Zoom, as a Settings window's are: it is one width, and never minimised.
-private struct SettingsWindowChrome: NSViewRepresentable {
-    func makeNSView(context: Context) -> NSView { Probe() }
-    func updateNSView(_ view: NSView, context: Context) {}
-
-    private final class Probe: NSView {
-        override func viewDidMoveToWindow() {
-            super.viewDidMoveToWindow()
-            guard let window else { return }
-            window.styleMask.remove(.miniaturizable)
-            window.standardWindowButton(.zoomButton)?.isEnabled = false
-        }
+    /// The header card a shared screen draws in place of its title.
+    private func header(_ pane: SettingsPane) -> AnyView {
+        AnyView(SettingsPaneHeader(pane: pane))
     }
 }
 
@@ -239,15 +228,17 @@ struct SettingsNavigator {
     let screens: Binding<[Destination]>
 }
 
-/// One pane's own stack, titled as System Settings is: the title bar names the pane, then each
-/// pushed page, beside the system's back button and a forward button. ⌘[ and ⌘] do the same.
+/// One pane's own stack, titled as System Settings is: the pane's root leaves the title bar empty
+/// and is named by its header card; a pushed page puts "‹ Pane" and its name in the title bar.
+/// ⌘[ and ⌘] go back and forward.
 struct SettingsStack<Root: View>: View {
     let model: DashboardModel
     @ObservedObject var auth: AuthViewModel
     @ObservedObject var entitlement: EntitlementStore
     let toMainWindow: (Notification.Name) -> Void
-    /// The pane's name: the window's title at the root, and where a page has none.
-    let title: String
+    /// The pane's name, on every subpage's back button.
+    let back: String
+    let header: AnyView?
     let root: (SettingsNavigator) -> Root
     @State private var path: [SettingsPage] = []
     /// The pages Back left, newest last, for Forward to reopen.
@@ -256,57 +247,38 @@ struct SettingsStack<Root: View>: View {
     var body: some View {
         NavigationStack(path: $path) {
             root(SettingsNavigator(open: open, screens: screens))
-                .navigationTitle(title)
+                .environment(\.lbPageHeader, header)
+                .navigationTitle("")
                 .navigationDestination(for: SettingsPage.self) { page in
                     self.page(page)
-                        .navigationTitle(page.title.isEmpty ? title : page.title)
+                        .navigationTitle("")
+                        .navigationBarBackButtonHidden(true)
+                        .environment(\.lbPageHeader, nil)
                         // Where the title bar names the page, the page draws no second title.
                         .environment(\.lbPageTitleHidden, !page.title.isEmpty)
+                        .toolbar { SettingsBackItem(back: back, title: page.title, action: goBack) }
                 }
         }
-        .toolbar {
-            ToolbarItem(placement: .navigation) {
-                Button {
-                    Measure.used("settings_forward")
-                    goForward()
-                } label: {
-                    Image(systemName: "chevron.right")
-                }
-                .disabled(ahead.isEmpty)
-                .help("Forward")
-                .accessibilityLabel("Forward")
-            }
-        }
-        // The system back button pops the path; what it left is kept here for Forward.
-        .onChange(of: path) { was, now in
-            if now.count < was.count { ahead.append(contentsOf: was[now.count...].reversed()) }
-        }
-        // The shortcuts, out of sight: ⌘[ for the system's back button, ⌘] for Forward.
+        // Forward has no button, as in System Settings; its shortcut lives here, out of sight.
         .background {
             Button {
-                Measure.used("settings_back")
-                _ = path.popLast()
-            } label: {
-                EmptyView()
-            }
-            .keyboardShortcut("[", modifiers: .command)
-            .disabled(path.isEmpty)
-            .hiddenShortcut()
-            Button {
                 Measure.used("settings_forward")
-                goForward()
+                guard let next = ahead.popLast() else { return }
+                path.append(next)
             } label: {
                 EmptyView()
             }
             .keyboardShortcut("]", modifiers: .command)
             .disabled(ahead.isEmpty)
-            .hiddenShortcut()
+            .opacity(0)
+            .frame(width: 0, height: 0)
+            .accessibilityHidden(true)
         }
     }
 
-    private func goForward() {
-        guard let next = ahead.popLast() else { return }
-        path.append(next)
+    private func goBack() {
+        guard let last = path.popLast() else { return }
+        ahead.append(last)
     }
 
     private func open(_ page: SettingsPage) {
@@ -359,51 +331,95 @@ struct SettingsStack<Root: View>: View {
     }
 }
 
-extension View {
-    /// A button that exists for its shortcut alone: nothing drawn, nothing read out.
-    fileprivate func hiddenShortcut() -> some View {
-        opacity(0)
-            .frame(width: 0, height: 0)
-            .accessibilityHidden(true)
+/// A subpage's title bar: "‹ Pane" in the brand's ink, then the page's own name.
+private struct SettingsBackItem: ToolbarContent {
+    let back: String
+    let title: String
+    let action: () -> Void
+
+    var body: some ToolbarContent {
+        if #available(macOS 26, *) {
+            ToolbarItem(placement: .navigation) { label }
+                .sharedBackgroundVisibility(.hidden)
+        } else {
+            ToolbarItem(placement: .navigation) { label }
+        }
     }
 
-    /// The pointer reaches a small control 12 pt past its edges; the control's size stays.
-    func settingsReach() -> some View {
-        padding(SettingsMetrics.reach)
-            .contentShape(Rectangle())
-            .padding(-SettingsMetrics.reach)
+    private var label: some View {
+        HStack(spacing: 16) {
+            Button {
+                Measure.used("settings_back")
+                action()
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 11, weight: .semibold))
+                    Text(back)
+                        .lbText(.body)
+                }
+                .foregroundStyle(LBColor.brandText.color)
+                .contentShape(Rectangle())
+            }
+            .lbButtonStyle()
+            .help("Back to \(back)")
+            .accessibilityLabel("Back to \(back)")
+            .keyboardShortcut("[", modifiers: .command)
+            if !title.isEmpty {
+                Text(title)
+                    .lbText(.headline)
+                    .foregroundStyle(LBColor.textPrimary.color)
+                    .lineLimit(1)
+                    .accessibilityAddTraits(.isHeader)
+            }
+        }
+        .padding(.leading, SettingsMetrics.inset - 8)
+    }
+}
+
+private extension View {
+    /// The title bar holds no window title: a pane's root leaves it empty, a subpage names itself.
+    @ViewBuilder
+    func settingsTitleRemoved() -> some View {
+        if #available(macOS 15, *) {
+            toolbar(removing: .title)
+        } else {
+            self
+        }
     }
 }
 
 // MARK: sidebar
 
-/// The sidebar: the system search field, the account row, then the panes in their groups.
-/// A system list, so the picked row takes the Mac's accent colour and the keyboard moves it.
+/// The sidebar: the search field, the account row, then the panes in their groups.
 private struct SettingsSidebar: View {
     @ObservedObject var auth: AuthViewModel
     @Binding var picked: SettingsPane
     @Binding var query: String
 
     var body: some View {
-        List(selection: $picked) {
-            if SettingsPane.account.matches(query) || (auth.email ?? "").localizedCaseInsensitiveContains(query) {
-                Section {
-                    SettingsAccountRow(auth: auth)
-                        .tag(SettingsPane.account)
+        ScrollView {
+            VStack(alignment: .leading, spacing: SettingsMetrics.sidebarPadding) {
+                SettingsSearchField(query: $query)
+                if SettingsPane.account.matches(query) || (auth.email ?? "").localizedCaseInsensitiveContains(query) {
+                    SettingsSidebarButton(pane: .account, picked: $picked) { on in
+                        SettingsAccountRow(auth: auth, picked: on)
+                    }
                 }
-            }
-            ForEach(Array(shownGroups.enumerated()), id: \.offset) { _, group in
-                Section {
-                    ForEach(group) { pane in
-                        SettingsSidebarRow(pane: pane)
-                            .tag(pane)
+                ForEach(Array(shownGroups.enumerated()), id: \.offset) { _, group in
+                    VStack(spacing: 0) {
+                        ForEach(group) { pane in
+                            SettingsSidebarButton(pane: pane, picked: $picked) { on in
+                                SettingsSidebarRow(pane: pane, picked: on)
+                            }
+                        }
                     }
                 }
             }
+            .padding(.horizontal, SettingsMetrics.sidebarPadding)
+            .padding(.bottom, SettingsMetrics.sidebarPadding)
         }
-        .listStyle(.sidebar)
-        .searchable(text: $query, placement: .sidebar, prompt: "Search")
-        .onChange(of: picked) { Measure.used("settings_pane") }
+        .scrollIndicators(.never)
     }
 
     /// The groups with only the panes the search finds; a group left empty is dropped.
@@ -412,9 +428,58 @@ private struct SettingsSidebar: View {
     }
 }
 
+/// The sidebar's search field, 28 pt tall.
+private struct SettingsSearchField: View {
+    @Binding var query: String
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(LBColor.textTertiary.color)
+                .accessibilityHidden(true)
+            TextField("Search", text: $query)
+                .textFieldStyle(.plain)
+                .lbText(.body)
+        }
+        .padding(.horizontal, 8)
+        .frame(height: 28)
+        .background(Color.primary.opacity(0.06), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+    }
+}
+
+/// A sidebar row as a button that picks its pane, drawn filled in the brand's colour when picked.
+private struct SettingsSidebarButton<Label: View>: View {
+    let pane: SettingsPane
+    @Binding var picked: SettingsPane
+    @ViewBuilder let label: (Bool) -> Label
+
+    var body: some View {
+        let on = picked == pane
+        Button {
+            guard pane != picked else { return }
+            Measure.used("settings_pane")
+            picked = pane
+        } label: {
+            label(on)
+                .padding(.horizontal, 8)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background {
+                    if on {
+                        RoundedRectangle(cornerRadius: 6, style: .continuous).fill(LBColor.brand.color)
+                    }
+                }
+                .contentShape(Rectangle())
+        }
+        .lbButtonStyle(.rounded(6), presses: false)
+        .accessibilityAddTraits(on ? .isSelected : [])
+    }
+}
+
 /// The account row at the sidebar's top: the sign-in photo, the address, and what it is. 44 pt tall.
 private struct SettingsAccountRow: View {
     @ObservedObject var auth: AuthViewModel
+    let picked: Bool
 
     var body: some View {
         HStack(spacing: SettingsMetrics.gap) {
@@ -422,11 +487,12 @@ private struct SettingsAccountRow: View {
             VStack(alignment: .leading, spacing: 1) {
                 Text(auth.email ?? "Account")
                     .lbText(.body)
+                    .foregroundStyle(picked ? Color.white : LBColor.textPrimary.color)
                     .lineLimit(1)
                     .truncationMode(.middle)
                 Text("longbook Account")
                     .lbText(.footnote)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(picked ? Color.white.opacity(0.8) : LBColor.textSecondary.color)
             }
         }
         .frame(height: 44)
@@ -434,16 +500,17 @@ private struct SettingsAccountRow: View {
     }
 }
 
-/// One sidebar row, 28 pt: the pane's symbol on its 20 pt tile, then its name. The list
-/// colours the text, white on the picked row.
+/// One sidebar row, 32 pt: the pane's symbol on its coloured tile, then its name.
 private struct SettingsSidebarRow: View {
     let pane: SettingsPane
+    let picked: Bool
 
     var body: some View {
         HStack(spacing: SettingsMetrics.gap) {
-            SettingsTile(pane: pane, size: SettingsMetrics.sidebarTile)
+            SettingsTile(pane: pane, size: SettingsMetrics.tile)
             Text(pane.title)
                 .lbText(.body)
+                .foregroundStyle(picked ? Color.white : LBColor.textPrimary.color)
                 .lineLimit(1)
         }
         .frame(height: SettingsMetrics.sidebarRow)
@@ -481,8 +548,7 @@ struct SettingsTile: View {
     }
 }
 
-/// A pane's first card, as System Settings opens a pane: a 44 pt mark, its name in the window's
-/// one face, one short line, and an optional control at the end.
+/// A pane's first card: a 44 pt mark, its name, one short line, and an optional control at the end.
 struct SettingsHeaderCard<Icon: View, Accessory: View>: View {
     let title: String
     let line: String
@@ -495,7 +561,7 @@ struct SettingsHeaderCard<Icon: View, Accessory: View>: View {
                 .frame(width: 44, height: 44)
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .lbText(.cardTitle)
+                    .lbText(.title)
                     .foregroundStyle(LBColor.textPrimary.color)
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
@@ -606,7 +672,7 @@ struct SettingsInfoButton: View {
                 .font(.system(size: 12, weight: .regular))
                 .foregroundStyle(LBColor.textTertiary.color)
                 .frame(width: 20, height: 20)
-                .settingsReach()
+                .contentShape(Rectangle())
         }
         .lbButtonStyle(.rounded(LBRadius.xs))
         .help(text)
@@ -1073,11 +1139,6 @@ struct AppearanceSettingsPane: View {
         let picked = appearance == choice.rawValue
         let light = Color(white: 0.95)
         let dark = Color(white: 0.16)
-        let tip = switch choice {
-        case .system: "Light or dark, as the Mac is set"
-        case .light: "Always light"
-        case .dark: "Always dark"
-        }
         return Button {
             Measure.used("appearance")
             appearance = choice.rawValue
@@ -1104,7 +1165,6 @@ struct AppearanceSettingsPane: View {
             .contentShape(Rectangle())
         }
         .lbButtonStyle(hovers: false)
-        .help(tip)
         .accessibilityAddTraits(picked ? .isSelected : [])
     }
 }
@@ -1429,7 +1489,7 @@ struct TutorialsSettingsPane: View {
                 Text("Replay")
                     .lbText(.body)
                     .foregroundStyle(LBColor.brandText.color)
-                    .settingsReach()
+                    .contentShape(Rectangle())
             }
             .lbButtonStyle()
             .frame(width: 52, alignment: .trailing)

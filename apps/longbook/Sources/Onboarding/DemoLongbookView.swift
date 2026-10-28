@@ -22,11 +22,8 @@ struct DemoLongbookView: View {
             banner
             if let model {
                 #if os(macOS)
-                // Its own split over the book, so the window's toolbar (hidden meanwhile)
-                // never acts on the demo; Add commitment sits in the banner instead.
                 HStack(spacing: 0) {
-                    SidebarView(model: model, path: $path)
-                        .frame(width: 220)
+                    SidebarView(model: model, path: $path) { adding = true }
                     stack(model)
                 }
                 .measured("demo_longbook_adding", .sheet, when: adding)
@@ -91,11 +88,6 @@ struct DemoLongbookView: View {
             Button("Exit Demo", action: { Measure.used("exit_demo"); onLeave() })
                 .buttonStyle(.bordered)
                 .keyboardShortcut(.cancelAction)
-            #if os(macOS)
-            Button("Add Commitment", action: { Measure.used("demo_add_commitment"); adding = true })
-                .buttonStyle(.bordered)
-                .disabled(model == nil)
-            #endif
             Spacer(minLength: LBSpacing.s2)
         }
         .padding(.horizontal, LBSpacing.s4)

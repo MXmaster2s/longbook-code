@@ -3,8 +3,9 @@ import SwiftUI
 
 #if os(macOS)
 /// The Mac's preview pane, in the manner of Apple's inspector: it slides in from the right
-/// when something is chosen and leaves when the choice is cleared. Drawn by hand because
-/// the window's one system inspector column is the Support panel's.
+/// when something is chosen, keeps one width whatever it holds, and leaves when the choice
+/// is cleared. Drawn by hand because the system inspector stays folded inside this app's
+/// own sidebar split.
 struct LBInspectorPane<Pane: View>: ViewModifier {
     @Binding var isPresented: Bool
     let width: CGFloat
