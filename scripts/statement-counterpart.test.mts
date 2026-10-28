@@ -9,8 +9,11 @@ import { scanText } from '../packages/core/src/domain/dataPolicy'
 test('the counterpart is required and may be null, with its kind', () => {
   assert.deepEqual([...COUNTERPART_REQUIRED], ['counterpart', 'counterpart_kind'])
   assert.deepEqual(COUNTERPART_PROPERTIES.counterpart.type, ['string', 'null'])
-  assert.deepEqual(COUNTERPART_PROPERTIES.counterpart_kind.type, ['string', 'null'])
-  assert.deepEqual(COUNTERPART_PROPERTIES.counterpart_kind.enum, ['account', 'person', null])
+  assert.deepEqual(COUNTERPART_PROPERTIES.counterpart_kind.anyOf, [{ type: 'string', enum: ['account', 'person'] }, { type: 'null' }])
+  // Anthropic refuses a schema whose enum holds a value its declared type does not.
+  for (const field of Object.values(COUNTERPART_PROPERTIES) as { type?: unknown; enum?: unknown[] }[]) {
+    assert.ok(!field.enum?.includes(null), 'no null inside an enum')
+  }
 })
 
 test('the function asks for both fields on every charge and tidies the answer', () => {

@@ -8,8 +8,9 @@ export const COUNTERPART_PROPERTIES = {
     type: ['string', 'null'],
     description: 'The other account or person this line moves money to or from, only when the line prints it; account numbers to the last four digits at most; else null',
   },
+  // anyOf, not a nullable enum: Anthropic refuses an enum whose null doesn't match its type.
   counterpart_kind: {
-    type: ['string', 'null'], enum: ['account', 'person', null],
+    anyOf: [{ type: 'string', enum: ['account', 'person'] }, { type: 'null' }],
     description: 'account for a bank account, card or wallet; person for a person; null when counterpart is null',
   },
 } as const
