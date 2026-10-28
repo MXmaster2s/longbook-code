@@ -25,8 +25,8 @@ struct OnboardingFinishView: View {
     /// Charges in the book when the importer opened: more after it closes means one was kept.
     @State private var chargesBefore = 0
 
-    static let claudePrompt = "Guide me to setup my longbook MCP connector in Claude. Name: longbook  MCP server URL: https://longbook.app/mcp"
-    static let chatGPTPrompt = "@Plugin Creator Help me create a plugin for https://longbook.app/mcp"
+    static let claudePrompt = "Connect longbook to this Claude. In Claude Code or Cowork, add the plugin marketplace MXmaster2s/longbook-claude-plugin and install the plugin longbook@longbook. Where plugins cannot be installed, add a custom connector named longbook with the URL https://longbook.app/mcp. Then connect it with my longbook account."
+    static let chatGPTPrompt = "Plugin Creator: create a plugin named longbook, all lowercase, from my MCP server https://longbook.app/mcp. Display name: longbook. Version: the one the server reports. Website: https://longbook.app. Icon and logo: https://longbook.app/apple-touch-icon.png. Description: Your longbook of bills, subscriptions and expenses, for your AI to read and to suggest changes to. Use the server's tools and its guide, and sign in with my longbook account."
     /// The catalogue's set-up phrase, the words the Automations screen and the servers use.
     static var setupPrompt: String { PromptCatalog.phrase(id: "set-up-my-longbook") }
 
