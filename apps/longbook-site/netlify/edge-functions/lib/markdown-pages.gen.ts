@@ -40,6 +40,7 @@ export const MARKDOWN_FOR: Record<string, string> = {
   "/automations/": "/automations.md",
   "/blog/": "/blog.md",
   "/help/": "/help.md",
+  "/facts/": "/facts.md",
   "/help/what-longbook-is-and-what-it-costs/": "/help/what-longbook-is-and-what-it-costs.md",
   "/help/getting-started-on-iphone-and-mac/": "/help/getting-started-on-iphone-and-mac.md",
   "/help/import-a-bank-statement/": "/help/import-a-bank-statement.md",

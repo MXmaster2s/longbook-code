@@ -356,6 +356,9 @@ const MEDIA_KIT_POINTER = `
 If you are writing about longbook rather than working in a vault, the media kit has what
 you need: facts, descriptions, logos, screenshots and founder details, in Markdown at
 https://longbook.app/media-kit/index.md
+
+For a directory or listing form, every fact about longbook, one per line, is at
+https://longbook.app/facts/ and in Markdown at https://longbook.app/facts.md
 `
 
 // The Prompts chapter, from the one list in packages/core/src/prompts.ts. Lines wrap at 95

@@ -103,6 +103,8 @@ https://longbook-app.netlify.app/*  https://longbook.app/:splat  301!
 /blog/index.html.md                                                               /blog.md                                                               200
 /help/index.md                                                                    /help.md                                                               200
 /help/index.html.md                                                               /help.md                                                               200
+/facts/index.md                                                                   /facts.md                                                              200
+/facts/index.html.md                                                              /facts.md                                                              200
 /help/what-longbook-is-and-what-it-costs/index.md                                 /help/what-longbook-is-and-what-it-costs.md                            200
 /help/what-longbook-is-and-what-it-costs/index.html.md                            /help/what-longbook-is-and-what-it-costs.md                            200
 /help/getting-started-on-iphone-and-mac/index.md                                  /help/getting-started-on-iphone-and-mac.md                             200

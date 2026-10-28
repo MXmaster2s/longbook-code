@@ -7,6 +7,9 @@ If you are writing about longbook rather than working in a vault, the media kit 
 you need: facts, descriptions, logos, screenshots and founder details, in Markdown at
 https://longbook.app/media-kit/index.md
 
+For a directory or listing form, every fact about longbook, one per line, is at
+https://longbook.app/facts/ and in Markdown at https://longbook.app/facts.md
+
 ## What longbook is
 
 longbook is a financial memory for your AI. It remembers every commitment —

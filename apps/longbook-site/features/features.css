@@ -429,3 +429,21 @@ code { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.92
 .hstill { margin-top:var(--lb-space-s12); background:var(--lb-card); border:1px solid var(--lb-hairline); border-radius:var(--lb-radius-md); padding:var(--lb-space-s6); }
 .hstill h2 { margin:0 0 var(--lb-space-s2); font-size:var(--lb-type-title-size); }
 .hstill p { margin:0; color:var(--lb-text-secondary); }
+
+/* The facts page: the FAQ's reading column and its label-and-value rows, one fact a row. */
+.fxp .fxmeta { margin:var(--lb-space-s4) 0 0; font-size:var(--lb-type-body-sm-size); }
+.fxcol { max-width:760px; min-width:0; }
+.fxg { margin:0 0 var(--lb-space-s12); scroll-margin-top:90px; }
+.fxg h2 { font-family:var(--lb-font-serif); font-weight:560; font-optical-sizing:auto;
+          font-size:var(--lb-type-title-lg-size, 22px); margin:0 0 var(--lb-space-s3); }
+.fxdl { margin:0; }
+.fxrow { display:grid; grid-template-columns:200px minmax(0, 1fr); gap:var(--lb-space-s4);
+         padding:12px 0; border-top:1px solid var(--lb-hairline); }
+.fxrow:first-child { border-top:0; }
+.fxrow dt { color:var(--lb-text-tertiary); font-size:var(--lb-type-body-sm-size); }
+.fxrow dt a { color:inherit; }
+.fxrow dd { margin:0; color:var(--lb-text-primary); overflow-wrap:anywhere; }
+.fxrow dd p { margin:0 0 var(--lb-space-s3); }
+.fxrow dd p:last-child { margin-bottom:0; }
+.fxmore { margin:var(--lb-space-s3) 0 0; color:var(--lb-text-tertiary); font-size:var(--lb-type-body-sm-size); }
+@media (max-width:600px) { .fxrow { grid-template-columns:1fr; gap:4px; } }
