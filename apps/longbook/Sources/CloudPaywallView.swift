@@ -112,6 +112,11 @@ struct CloudPaywallView: View {
                     .lbText(.footnote)
                     .foregroundStyle(LBColor.urgent.color)
                     .fixedSize(horizontal: false, vertical: true)
+            } else if let notice = store.notice {
+                Text(notice)
+                    .lbText(.footnote)
+                    .foregroundStyle(LBColor.textSecondary.color)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             HStack(spacing: LBSpacing.s3) {
                 quietButton(store.busy ? "Checking…" : "Restore Purchases") {
@@ -120,6 +125,10 @@ struct CloudPaywallView: View {
                 }
                 quietButton("Not Now") { dismiss() }
             }
+            Text(StoreClient.restoreWords)
+                .lbText(.footnote)
+                .foregroundStyle(LBColor.textTertiary.color)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
