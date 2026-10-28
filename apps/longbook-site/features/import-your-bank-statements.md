@@ -22,7 +22,7 @@
 
 ### Every line, reviewed
 
-Each line comes back with a name, date, amount and category, and money in is marked as money in. Transfers between your own accounts and card bill payments start unticked, and a line an earlier statement already recorded is left out. A name, a category or a person can be corrected and any line unticked, or **Select All** and **Deselect All** answer every line at once.
+Each line comes back with a name, date, amount and category, and money in is marked as money in. Transfers between your own accounts and card bill payments start unticked, and a line an earlier statement already recorded is left out. A name, a category or a person can be corrected and any line unticked, or **Untick all** answers a whole group at once.
 
 ### Commitments and members
 
