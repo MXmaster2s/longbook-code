@@ -26,8 +26,7 @@
 
   longbook is a one-time purchase that covers every longbook app on every device you own, with Family Sharing, so everyone in your Apple family gets longbook on their own account. It comes with a 7-day refund and 12 months of longbook Cloud. Cloud is an optional monthly subscription for the few features that need longbook's server: the hosted copy your AI reads from any device, shared reports and more statement reading. Without it, your records, the widget and menu bar, imports within the included share, and an AI on your Mac reading your folder directly all keep working.
 
-- **Primary category:** Personal finance
-- **Secondary category:** Productivity
+- **Categories:** Finance, Personal finance, Productivity
 - **App Store category:** Finance
 - **Keywords:** longbook, financial commitments, subscriptions, bills, reminders, Mac, iPhone, MCP, Claude, ChatGPT
 - **Not a bank-linking app:** longbook never connects to your bank and never asks for a bank login. Payments are typed in, read from a statement you pick, or added by your AI or Siri.
@@ -143,6 +142,7 @@ More: [Download longbook](https://longbook.app/download/), [Blog](https://longbo
 
 - **Maker:** Rohit Kundliwal, founder of longbook
 - **Business:** Sole proprietor
+- **Founded:** June 2026
 - **Country:** India
 - **Website:** [longbook.app](https://longbook.app/)
 - **Email:** [contact@longbook.app](mailto:contact@longbook.app)
@@ -178,6 +178,7 @@ More: [Media kit](https://longbook.app/media-kit/), [The media kit in Markdown](
 - **Dodo Payments Index:** [index.dodopayments.com/longbook](https://index.dodopayments.com/longbook)
 - **mcprush:** [mcprush.com/longbook/longbook-mcp](https://mcprush.com/longbook/longbook-mcp)
 - **Wellknown:** [wellknown.network/agents/longbook](https://wellknown.network/agents/longbook)
+- **Indie Hackers:** [indiehackers.com/product/longbook](https://www.indiehackers.com/product/longbook)
 - **Official MCP registry:** `app.longbook/mcp`
 - **npm:** [npmjs.com/package/@longbook/mcp](https://www.npmjs.com/package/@longbook/mcp)
 
