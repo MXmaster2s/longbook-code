@@ -37,7 +37,7 @@ struct DeleteAccountSheet: View {
                 ].compactMap { $0 })
                 facts("Kept", [
                     "Your longbook folder in iCloud or on this device",
-                    "A longbook Cloud subscription: cancel it in your Apple ID settings",
+                    "A longbook Cloud subscription: cancel it in your Apple Account settings",
                 ])
                 if let memoryFile {
                     VStack(alignment: .leading, spacing: LBSpacing.s2) {

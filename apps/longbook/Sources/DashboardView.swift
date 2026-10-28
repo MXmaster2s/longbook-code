@@ -21,6 +21,8 @@ struct DashboardView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// The month card turned to its list of expenses.
     @State private var monthFlipped = false
+    /// Words in the Mac toolbar's search field, handed to Commitments on Return.
+    @State private var search = ""
     /// Each flip card's front height: the back takes it, so turning a card never resizes it.
     @State private var monthFrontHeight: CGFloat = 0
     @State private var accountsFrontHeight: CGFloat = 0
@@ -113,6 +115,15 @@ struct DashboardView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(LBColor.canvas.color)
         .lbScreenTitle("Dashboard")
+        #if os(macOS)
+        // The toolbar's search field: Return opens Commitments narrowed to the words.
+        .searchable(text: $search, placement: .toolbar, prompt: "Search")
+        .onSubmit(of: .search) {
+            guard !search.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+            path.append(.commitments(ListFilter(search: search)))
+            search = ""
+        }
+        #endif
         .onAppear {
             #if DEBUG
             if ProcessInfo.processInfo.environment["LONGBOOK_SNAPSHOT_SCREEN"] == "monthpicker" { pickingMonth = true }
@@ -192,8 +203,8 @@ struct DashboardView: View {
                 } else {
                     // Side by side, the two read as one row: the taller sets both heights.
                     HStack(alignment: .top, spacing: LBSpacing.s3) {
-                        monthPanel(data)
-                        donutPanel(data)
+                        monthPanel(data).rowCell()
+                        donutPanel(data).rowCell()
                     }
                     .fixedSize(horizontal: false, vertical: true)
                 }
@@ -300,12 +311,16 @@ struct DashboardView: View {
     // MARK: hero row
 
     /// Side by side, or one above the other at the accessibility sizes, where half the
-    /// width broke "Commitments" in two.
+    /// width broke "Commitments" in two. Side by side, the two share one width and the
+    /// taller one's height.
     private func heroRow(_ data: DashboardData) -> some View {
         LBReflowStack(alignment: .top, spacing: LBSpacing.s3) {
-            heroCard(data).tutorialTarget(.dashboardNextPayment)
-            statCard(data)
+            heroCard(data).tutorialTarget(.dashboardNextPayment).rowCell()
+            statCard(data).rowCell()
         }
+        #if os(macOS)
+        .fixedSize(horizontal: false, vertical: true)
+        #endif
         .frame(maxWidth: .infinity)
     }
 
@@ -369,7 +384,7 @@ struct DashboardView: View {
             }
         }
         .padding(LBSpacing.s4)
-        .frame(maxWidth: .infinity, minHeight: 128, alignment: .topLeading)
+        .frame(maxWidth: .infinity, minHeight: 128, maxHeight: .infinity, alignment: .topLeading)
         .background(
             LinearGradient(
                 colors: [LBColor.heroTop.color, LBColor.heroBottom.color],
@@ -463,7 +478,7 @@ struct DashboardView: View {
                         .foregroundStyle(LBColor.textTertiary.color)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                .frame(minHeight: 96, alignment: .topLeading)
+                .frame(minHeight: 96, maxHeight: .infinity, alignment: .topLeading)
             }
             #if os(macOS)
             .overlay(alignment: .topTrailing) {
@@ -1887,4 +1902,17 @@ private struct DashboardRail: View {
         .accessibilityElement(children: .combine)
     }
 
+}
+
+private extension View {
+    /// One cell of a Mac dashboard row: equal width with its neighbours, and the row's
+    /// full height, which the tallest cell sets. The phone keeps each card its own size.
+    @ViewBuilder
+    func rowCell() -> some View {
+        #if os(macOS)
+        frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        #else
+        self
+        #endif
+    }
 }

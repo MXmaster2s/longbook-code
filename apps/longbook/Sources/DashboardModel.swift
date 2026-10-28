@@ -393,7 +393,7 @@ final class DashboardModel {
             bookmarks = Set(workspace.bookmarks)
             hostedPush = workspace.hostedPush && !isDemo
             adopt(workspace)
-            noticeChange(loaded.bytes, raw: loaded.raw, in: folder, ours: wasOurs || upgraded)
+            noticeChange(loaded.bytes, raw: loaded.raw, in: folder, ours: wasOurs || upgraded, previous: previous?.raw)
             if let previous, previous.bytes != loaded.bytes {
                 countChanges(from: previous.raw, to: loaded.raw, ours: wasOurs || upgraded)
             }
@@ -627,8 +627,9 @@ final class DashboardModel {
 
     /// Files every change into history and decides whose it was. Our own writes, the app's
     /// writes from the owner's other device and the very first read pass silently; anything
-    /// else stands for review.
-    private func noticeChange(_ bytes: Data, raw: [String: Any], in folder: URL, ours wasOurs: Bool) {
+    /// else stands for review. `previous` is the version on screen before this one.
+    private func noticeChange(_ bytes: Data, raw: [String: Any], in folder: URL, ours wasOurs: Bool,
+                              previous: [String: Any]? = nil) {
         // The invariant: this device adopts a version, moving `lastSeenHash` to it, when every
         // row touched since its base carries a fresh app signature or review mark, or no row
         // was touched. A review opens, or re-opens, only on a version touching a row with
@@ -688,13 +689,40 @@ final class DashboardModel {
             // or dropped there does not keep the rest of it across a relaunch. The other
             // device's Keep or Undo closes the review here as it did there.
             _ = try? VaultHistory.record(bytes, source: ours ? .ours : .outside, in: folder)
-            if outsideChangeFrom == nil { outsideChangeFrom = seen }
+            if outsideChangeFrom == nil {
+                outsideChangeFrom = seen
+            } else if let previous, ours || OwnEdit.isOwn(from: previous, to: raw) {
+                // The owner's own write, here or on the other device, made while the review
+                // was open: it applies directly, so it moves the base instead of joining it.
+                carryOwnChange(from: previous, to: raw, bytes: bytes, in: folder)
+            }
         }
         awaitedOwnVersion = nil
         verdictPending = false
         // Never while a review is open: pruning could delete the very snapshot the owner
         // is about to compare against or restore.
         if outsideChangeFrom == nil { VaultHistory.prune(in: folder) }
+    }
+
+    /// Moves the open review's base by what the owner's own write changed, kept on this
+    /// device only. A review the write leaves with nothing in it closes. Left as it was
+    /// when the base cannot be read or kept.
+    private func carryOwnChange(from previous: [String: Any], to raw: [String: Any], bytes: Data, in folder: URL) {
+        guard let from = outsideChangeFrom,
+              let baseBytes = VaultHistory.snapshot(hash: from, in: folder),
+              let base = try? JSONSerialization.jsonObject(with: baseBytes) as? [String: Any]
+        else { return }
+        let moved = ReviewBase.carry(from: previous, to: raw, onto: base)
+        if vaultDiff(from: moved, to: raw).isEmpty {
+            outsideChangeFrom = nil
+            setLastSeenHash(VaultHistory.hash(bytes), folder)
+            return
+        }
+        guard let data = try? JSONSerialization.data(withJSONObject: moved, options: [.sortedKeys]),
+              let hash = VaultHistory.keepUnlogged(data, in: folder)
+        else { return }
+        outsideChangeFrom = hash
+        setLastSeenHash(hash, folder)
     }
 
     /// The base hash one reload has already waited for, so a version iCloud never delivers

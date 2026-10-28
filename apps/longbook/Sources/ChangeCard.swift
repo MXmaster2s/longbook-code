@@ -61,36 +61,6 @@ struct ChangeKindTab: View {
     }
 }
 
-/// One of the Mac Changes bar's tools: an icon in a square, one style for all of them. Its
-/// name is spoken, and shown as a tooltip.
-struct ChangeHeaderButton: View {
-    let title: String
-    let symbol: String
-    var active = false
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: { Measure.used("change_icon_action"); action() }) {
-            Image(systemName: symbol)
-                .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(active ? LBColor.onBrandTint.color : LBColor.brandText.color)
-                .frame(width: 32, height: 32)
-                .background(
-                    active ? LBColor.brand.color.opacity(0.16) : LBColor.chrome.color,
-                    in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous)
-                        .strokeBorder(LBColor.hairline.color, lineWidth: 1)
-                )
-                .contentShape(Rectangle())
-        }
-        .lbButtonStyle()
-        .help(title)
-        .accessibilityLabel(title)
-    }
-}
-
 /// The answer buttons a review stands behind: Undo All and Keep All on Changes, Discard
 /// and Add on a statement import. Wide on the phone, a capsule in the Mac's bar.
 struct ChangeActionLabel: View {

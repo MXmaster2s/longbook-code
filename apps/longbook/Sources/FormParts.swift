@@ -578,6 +578,84 @@ extension FormDateControl where Trailing == EmptyView {
     }
 }
 
+/// A day in a form row, picked in place with the system's own date picker, with what the
+/// day means beside it ("in 8 days").
+struct FormDayPicker: View {
+    let title: String
+    @Binding var date: Date
+    var earliest: Date?
+    var latest: Date?
+
+    var body: some View {
+        FormRow {
+            FormQuestion(title)
+        } content: {
+            HStack(spacing: LBSpacing.s2) {
+                FormDayField(title: title, date: $date, earliest: earliest, latest: latest)
+                if let word = Self.relative(date) {
+                    Text(word)
+                        .lbText(.footnote)
+                        .foregroundStyle(LBColor.textTertiary.color)
+                        .lineLimit(1)
+                }
+                Spacer(minLength: 0)
+            }
+            .frame(minHeight: 34)
+        }
+    }
+
+    /// "in 8 days", "42 days ago"; nothing for today. A date in a form is a fact, never overdue.
+    static func relative(_ date: Date) -> String? {
+        let days = LB.daysBetween(LB.todayMid(), date)
+        guard days != 0 else { return nil }
+        let word = days < 0 ? LB.agoWord(days) : LB.dayWord(days)
+        return word.prefix(1).lowercased() + word.dropFirst()
+    }
+}
+
+/// The system date picker as Apple sets it in a form: compact on iPhone (a tap opens the
+/// system calendar), the date field with its calendar on the Mac. A pick lands at midnight
+/// of the day; the bounds say which days can be taken.
+struct FormDayField: View {
+    let title: String
+    @Binding var date: Date
+    var earliest: Date?
+    var latest: Date?
+
+    var body: some View {
+        picker
+            .datePickerStyle(.compact)
+            .labelsHidden()
+            .tint(LBColor.brand.color)
+            .fixedSize()
+            .accessibilityLabel(title)
+    }
+
+    private var day: Binding<Date> {
+        Binding(get: { date }, set: { picked in
+            let picked = LB.dayOf(picked)
+            guard picked != LB.dayOf(date) else { return }
+            Measure.used("pick_date")
+            LBHaptics.tap()
+            date = picked
+        })
+    }
+
+    @ViewBuilder
+    private var picker: some View {
+        switch (earliest.map(LB.dayOf), latest.map(LB.dayOf)) {
+        case let (first?, last?) where first <= last:
+            DatePicker(title, selection: day, in: first...last, displayedComponents: .date)
+        case let (first?, _):
+            DatePicker(title, selection: day, in: first..., displayedComponents: .date)
+        case let (nil, last?):
+            DatePicker(title, selection: day, in: ...last, displayedComponents: .date)
+        default:
+            DatePicker(title, selection: day, displayedComponents: .date)
+        }
+    }
+}
+
 // MARK: - racks
 
 /// One rack of choices: a single row scrolled sideways, with the way to make a new one
