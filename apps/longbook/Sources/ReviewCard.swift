@@ -10,6 +10,9 @@ struct ReviewCard: View {
     @Binding var path: [Destination]
     /// Why the last Keep was refused, said under the buttons until one goes through.
     @State private var refusal: String?
+    /// On the Mac with the sidebar away, the hidden title bar's traffic lights sit on the
+    /// strip's first row; this pads the strip down past them.
+    var clearsTitleBar = false
 
     var body: some View {
         if model.outsideChangeFrom != nil, path.last != .changes {
@@ -64,6 +67,7 @@ struct ReviewCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, LBSpacing.s4)
             .padding(.vertical, LBSpacing.s3)
+            .padding(.top, clearsTitleBar ? 28 : 0)
             .background(LBColor.sunken.color)
             .overlay(alignment: .bottom) { Rectangle().fill(LBColor.hairline.color).frame(height: 1) }
         }

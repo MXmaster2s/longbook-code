@@ -167,7 +167,7 @@ A. WITH THE DEMO ACCOUNT (it holds no purchase, so both In-App Purchases come up
 3. The first screen is "Activate your longbook". The In-App Purchase "longbook" is the button "Buy longbook" with its price ($38.00 in the US store) at the foot; buy it in the sandbox.
 4. longbook creates its folder in iCloud Drive. If iCloud Drive is off, click "Keep It on this Mac".
 5. "Import a statement" is the third step. "Securely Upload Statement" reads a bank statement and "Use My Own AI" connects the user's AI; the demo account can click "Skip". Setup questions: Settings > Statements > Optimize Your Data.
-6. The toolbar + (Command-N) adds a commitment; Settings is longbook > Settings (Command-comma).
+6. File > New Commitment (Command-N) adds a commitment; Settings is longbook > Settings (Command-comma).
 7. Settings > longbook Account > longbook Cloud: "Subscribe to longbook Cloud" is the second In-App Purchase, also bought in the sandbox. That pane has "Request a Refund", Sign Out and "Delete Account...".
 
 IN-APP PURCHASES

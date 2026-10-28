@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// Two or three choices in one control. On the Mac it is the system's segmented control, with
-/// hover, pressed, focus and the arrow keys, its chosen segment drawn plain, never in the accent
-/// colour. The phone draws its own: a chrome track, the chosen one raised on a card.
+/// Two or three choices in one control, drawn by the design system: a chrome track, the
+/// chosen one raised on a card with the primary text. Ours rather than the system's, so
+/// the Mac's accent colour never paints it.
 public struct LBSegmented<Value: Hashable>: View {
     @Binding private var selection: Value
     private let choices: [(value: Value, label: String)]
@@ -13,15 +13,6 @@ public struct LBSegmented<Value: Hashable>: View {
     }
 
     public var body: some View {
-        #if os(macOS)
-        Picker("", selection: $selection) {
-            ForEach(choices, id: \.value) { choice in
-                Text(choice.label).tag(choice.value)
-            }
-        }
-        .pickerStyle(.segmented)
-        .labelsHidden()
-        #else
         HStack(spacing: 2) {
             ForEach(choices, id: \.value) { choice in
                 let chosen = choice.value == selection
@@ -51,6 +42,5 @@ public struct LBSegmented<Value: Hashable>: View {
         .padding(2)
         .background(LBColor.chrome.color, in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
         .accessibilityElement(children: .contain)
-        #endif
     }
 }

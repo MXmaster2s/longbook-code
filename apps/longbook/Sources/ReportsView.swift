@@ -41,9 +41,8 @@ struct ReportsView: View {
             }
             // Reading a file in is an import; it sits in the bar, a tap away, without
             // leading a page that is for browsing.
-            .lbScreenTitle("Reports", count: model.reports().reports.count) {
+            .lbScreenTitle("Reports") {
                 Button("Import Statement") { Measure.used("import_statement"); importing = true }
-                    .help("Import a statement")
                     .accessibilityLabel("Import a statement")
             }
     }
@@ -58,9 +57,11 @@ struct ReportsView: View {
             HStack(spacing: 0) {
                 ScrollView {
                     VStack(alignment: .leading, spacing: LBSpacing.s4) {
+                        macTitleRow
                         written()
                     }
                     .padding(LBSpacing.s4)
+                    .padding(.top, LBSpacing.s6)
                 }
                 .frame(width: 340)
                 Rectangle().fill(LBColor.hairline.color).frame(width: 1)
@@ -71,6 +72,7 @@ struct ReportsView: View {
         } else {
             ScrollView {
                 VStack(alignment: .leading, spacing: LBSpacing.s4) {
+                    macTitleRow
                     written()
                 }
                 .lbPageColumn(.wide)
@@ -92,6 +94,20 @@ struct ReportsView: View {
     month, and for each trip and each report your AI asks for. A charge is confirmed by a \
     statement, an email, marking it paid, or setting its amount — planned charges are not counted.
     """
+
+    #if os(macOS)
+    /// The Mac's title row, where a window toolbar would sit: the name, then Import.
+    private var macTitleRow: some View {
+        HStack(alignment: .firstTextBaseline) {
+            LBPageTitle("Reports")
+            Spacer()
+            Button("Import Statement…") { Measure.used("import_statement"); importing = true }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .accessibilityLabel("Import a statement")
+        }
+    }
+    #endif
 
     /// What the page says with nothing to show — and the way to fix that, since the
     /// analysis longbook can't compute is exactly what an AI can write.

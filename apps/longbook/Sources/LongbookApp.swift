@@ -58,6 +58,7 @@ struct LongbookApp: App {
                 .background(CentersSheets())
         }
         .defaultSize(width: 1280, height: 900)
+        .windowStyle(.hiddenTitleBar)
         .commands { LongbookCommands() }
 
         // The app menu's Settings… (⌘,) opens this window, as on every Mac app.
