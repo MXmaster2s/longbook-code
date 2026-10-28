@@ -1,0 +1,54 @@
+{
+  "_about": "The ChatGPT listing's own words, read by scripts/gen-chatgpt-plugin.mts. Every value marked [LISTING] is a placeholder the listing text replaces; npm run plugin:chatgpt:release refuses to build while one is left.",
+  "shortDescription": "[LISTING] short description",
+  "longDescription": "[LISTING] long description: the tasks, who it is for, and its limits. At most 4000 characters.",
+  "test_cases": {
+    "positive": [
+      {
+        "description": "[LISTING] positive case 1",
+        "prompt": "[LISTING]",
+        "tools_triggered": "[LISTING]",
+        "expected_behavior": "[LISTING]"
+      },
+      {
+        "description": "[LISTING] positive case 2",
+        "prompt": "[LISTING]",
+        "tools_triggered": "[LISTING]",
+        "expected_behavior": "[LISTING]"
+      },
+      {
+        "description": "[LISTING] positive case 3",
+        "prompt": "[LISTING]",
+        "tools_triggered": "[LISTING]",
+        "expected_behavior": "[LISTING]"
+      },
+      {
+        "description": "[LISTING] positive case 4",
+        "prompt": "[LISTING]",
+        "tools_triggered": "[LISTING]",
+        "expected_behavior": "[LISTING]"
+      },
+      {
+        "description": "[LISTING] positive case 5",
+        "prompt": "[LISTING]",
+        "tools_triggered": "[LISTING]",
+        "expected_behavior": "[LISTING]"
+      }
+    ],
+    "negative": [
+      {
+        "description": "[LISTING] negative case 1",
+        "prompt": "[LISTING]"
+      },
+      {
+        "description": "[LISTING] negative case 2",
+        "prompt": "[LISTING]"
+      },
+      {
+        "description": "[LISTING] negative case 3",
+        "prompt": "[LISTING]"
+      }
+    ]
+  },
+  "release_notes": "[LISTING] release notes for this version."
+}

@@ -343,6 +343,9 @@ export function headersFile(features: Feature[], pages: MdPage[] = []): string {
   out.push('# Where agents find the MCP server: the catalog names its Server Card (MCP SEP-2127).',
     '/.well-known/ai-catalog.json', '  Content-Type: application/ai-catalog+json', '  Access-Control-Allow-Origin: *',
     '  Cache-Control: public, max-age=3600', '')
+  // OpenAI reads the token alone as plain text: the file holds it with no newline after it.
+  out.push('# The domain challenge for the ChatGPT plugin directory, as plain text.',
+    '/.well-known/openai-apps-challenge', '  Content-Type: text/plain; charset=utf-8', '  Cache-Control: no-cache', '')
   out.push('# A shared report is private to the people holding its link and password.', '/r/*',
     '  X-Robots-Tag: noindex, nofollow', '')
   return out.join('\n')
