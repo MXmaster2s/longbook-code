@@ -7,6 +7,8 @@ import { join } from 'node:path'
 /** Passed to xcodebuild by device-install.mts only. project.yml leaves it empty. */
 export const DEVICE_BUILD_SETTING = 'LONGBOOK_DEVICE_BUILD=DEVICE_BUILD'
 export const FIRST_USE_URL = 'longbook://dev/first-use'
+/** Set at launch, the reset runs before any window: a link reaches only an open window. */
+export const FIRST_USE_ENV = 'LONGBOOK_FIRST_USE_RESET'
 /** FirstUseReset.marker: long enough that Swift keeps it as text in the binary. */
 export const RESET_MARKER = 'longbook device build: first-use reset'
 

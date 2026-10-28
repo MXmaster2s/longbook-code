@@ -120,6 +120,9 @@ if (wantMac && process.platform === 'darwin') {
       shown: `$ ${macResetCommand(MAC_APP).map(quote).join(' ')}`,
       run: () => {
         const [cmd, ...rest] = macResetCommand(MAC_APP)
+        // A running copy would only be brought forward, without the reset asked for.
+        attempt('osascript', ['-e', 'quit app "longbook"'])
+        for (let i = 0; i < 20 && attempt('pgrep', ['-f', `${MAC_APP}/Contents/MacOS/longbook`]); i++) execFileSync('sleep', ['0.5'])
         const since = new Date(Date.now() - 1000)
         try {
           run(cmd, rest, undefined, 60_000)

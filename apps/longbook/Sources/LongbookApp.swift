@@ -19,6 +19,9 @@ struct LongbookApp: App {
 
     #if os(macOS)
     init() {
+        #if DEVICE_BUILD
+        FirstUseReset.runIfAsked()
+        #endif
         #if DEBUG
         Snapshot.runIfAsked()
         #endif
@@ -32,6 +35,9 @@ struct LongbookApp: App {
     }
     #elseif os(iOS)
     init() {
+        #if DEVICE_BUILD
+        FirstUseReset.runIfAsked()
+        #endif
         // The navigation bar's titles in the design's face: a Large Title over each
         // screen that folds into a Headline as the page scrolls.
         let bar = UINavigationBar.appearance()

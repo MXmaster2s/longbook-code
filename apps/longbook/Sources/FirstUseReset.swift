@@ -15,6 +15,12 @@ enum FirstUseReset {
     /// Searched for in the binary: the release scripts refuse an archive that carries it.
     static let marker = "longbook device build: first-use reset"
 
+    /// Asked for at launch by clean:slate, before any window exists to receive a link.
+    @MainActor
+    static func runIfAsked() {
+        if ProcessInfo.processInfo.environment["LONGBOOK_FIRST_USE_RESET"] == "1" { run() }
+    }
+
     static func handles(_ url: URL) -> Bool {
         url.scheme == "longbook" && url.host == "dev" && url.path == "/first-use"
     }

@@ -119,11 +119,11 @@ test('apps reset themselves first, then the vault moves, then the account and Cl
   assert.deepEqual(order.map((s) => s.target), ['Mac', 'iPhone', 'vault', 'account', 'claude'])
 })
 
-test('the reset link goes to the installed Mac app and to a fresh iPhone launch', () => {
-  assert.deepEqual(macResetCommand('/Applications/longbook.app'), ['open', '-W', '-a', '/Applications/longbook.app', 'longbook://dev/first-use'])
+test('the reset is asked for at launch, on the Mac app and on a fresh iPhone launch', () => {
+  assert.deepEqual(macResetCommand('/Applications/longbook.app'), ['open', '-W', '--env', 'LONGBOOK_FIRST_USE_RESET=1', '-a', '/Applications/longbook.app'])
   assert.deepEqual(phoneResetCommand('U1'), [
     'xcrun', 'devicectl', 'device', 'process', 'launch', '--device', 'U1', '--terminate-existing',
-    '--payload-url', 'longbook://dev/first-use', 'app.longbook.longbook',
+    '--environment-variables', '{"LONGBOOK_FIRST_USE_RESET":"1"}', 'app.longbook.longbook',
   ])
   const log = resetLogCommand(new Date(2026, 9, 8, 7, 5, 9))
   assert.deepEqual(log.slice(0, 3), ['/usr/bin/log', 'show', '--start'])
