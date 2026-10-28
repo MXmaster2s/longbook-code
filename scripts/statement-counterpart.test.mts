@@ -17,10 +17,11 @@ test('the counterpart is required and may be null, with its kind', () => {
 })
 
 test('the function asks for both fields on every charge and tidies the answer', () => {
+  const prompts = readFileSync(new URL('../supabase/functions/_shared/statement-prompts.ts', import.meta.url), 'utf8')
+  assert.match(prompts, /required: \[[^\]]*\.\.\.COUNTERPART_REQUIRED\]/)
+  assert.match(prompts, /\.\.\.COUNTERPART_PROPERTIES/)
+  assert.match(prompts, /COUNTERPART_INSTRUCTIONS,/)
   const source = readFileSync(new URL('../supabase/functions/statement-extract/index.ts', import.meta.url), 'utf8')
-  assert.match(source, /required: \[[^\]]*\.\.\.COUNTERPART_REQUIRED\]/)
-  assert.match(source, /\.\.\.COUNTERPART_PROPERTIES/)
-  assert.match(source, /COUNTERPART_INSTRUCTIONS,/)
   assert.match(source, /tidyCounterparts\(asked\.result\)/, 'the tidy runs after ask(), so both readers pass it')
 })
 

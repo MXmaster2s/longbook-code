@@ -289,6 +289,8 @@ struct RootView: View {
                     Task { await model.applyPendingWrites() }
                 } else {
                     entitlement.clear()
+                    // The privacy policy was accepted by the account that left, not the next one.
+                    AIConsent.forgetAll()
                     // The next sign-in starts at the dashboard, not on whatever screen signed out.
                     path = []
                     tab = .dashboard
