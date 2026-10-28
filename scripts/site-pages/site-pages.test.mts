@@ -359,3 +359,15 @@ test('when the clipboard refuses, the copy script falls back to the copy command
   assert.equal(blocked.selected(), blocked.buttons[1]!.parentNode!.code, 'the prompt\'s words are selected')
   assert.equal(blocked.said.textContent, 'Copying was blocked. The prompt is selected for you to copy.')
 })
+
+test('the ChatGPT domain challenge is served as plain text, the token alone, past every edge function', () => {
+  const block = headersFile([]).split('\n\n').find((b) => b.includes('/.well-known/openai-apps-challenge\n'))
+  assert.ok(block?.includes('Content-Type: text/plain; charset=utf-8'), 'the generated _headers names its type')
+  const token = readFileSync(join(ROOT, 'apps/longbook-site/.well-known/openai-apps-challenge'), 'utf8')
+  assert.match(token, /^\S+$/, 'one token, no newline, no wrapping')
+  const edge = (name: string) => readFileSync(join(ROOT, `apps/longbook-site/netlify/edge-functions/${name}.ts`), 'utf8')
+  assert.ok(edge('markdown-for-agents').includes("'/.well-known/*'"), 'the Markdown function leaves /.well-known alone')
+  assert.ok(edge('mcp-explainer').includes("export const config = { path: '/mcp' }"), 'the mcp page answers /mcp only')
+  const redirects = readFileSync(join(ROOT, 'apps/longbook-site/_redirects'), 'utf8')
+  assert.ok(!/^\/\.well-known\/openai-apps-challenge|^\/\*\s/m.test(redirects), 'no redirect takes the path')
+})
