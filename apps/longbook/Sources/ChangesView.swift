@@ -90,7 +90,13 @@ struct ChangesView: View {
         .alert(deleting?.question ?? "Delete this row?",
                isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }),
                presenting: deleting) { target in
-            Button("Delete", role: .destructive) { Measure.used("delete"); drop(target) }
+            // A planned charge of a recurring commitment can take the plan after it too.
+            if let later = target.later {
+                Button("Only This Charge", role: .destructive) { Measure.used("only_this_charge"); drop(target.row) }
+                Button("This and Every One After", role: .destructive) { Measure.used("this_and_every_one_after"); drop(later) }
+            } else {
+                Button("Delete", role: .destructive) { Measure.used("delete"); drop(target.row) }
+            }
             Button("Cancel", role: .cancel) { Measure.used("cancel") }
         } message: { target in
             Text(target.detail)
@@ -292,9 +298,10 @@ struct ChangesView: View {
     private func rowActions(_ line: Line) -> [LBRowAction] {
         var actions: [LBRowAction] = []
         if let target = line.delete {
-            actions.append(.destructive(
-                "Delete", confirm: .init(target.question, message: target.detail, button: "Delete")
-            ) { drop(target) })
+            // A charge with a reach to choose asks through the screen's alert, which offers it.
+            actions.append(target.later == nil
+                ? .destructive("Delete", confirm: .init(target.question, message: target.detail, button: "Delete")) { drop(target.row) }
+                : .destructive("Delete") { deleting = target })
         }
         if let edit = line.edit {
             actions.append(LBRowAction("Edit", systemImage: "pencil", tint: LBColor.brand, run: edit))
@@ -634,6 +641,7 @@ struct ChangesView: View {
         enum Row {
             case commitment(String)
             case charge(commitment: String, date: String)
+            case chargeAndLater(commitment: String, date: String)
             case plan(commitment: String, dates: [String])
             case account(String)
             case member(String)
@@ -641,7 +649,9 @@ struct ChangesView: View {
 
         let row: Row
         let question: String
-        let detail: String
+        var detail: String
+        /// The same drop reaching every one after, where the charge is planned ahead.
+        var later: Row?
     }
 
     /// What Delete would drop, or nil where the model offers no single write for it: a
@@ -667,8 +677,13 @@ struct ChangesView: View {
                                     question: "Delete these \(group.count) charges?",
                                     detail: "\(group.name): all \(group.count) proposed charges are removed. \(rest)")
             }
-            return DeleteTarget(row: .charge(commitment: String(parts[0]), date: String(parts[1])),
-                                question: "Delete this charge?", detail: detail)
+            let id = String(parts[0]), date = String(parts[1])
+            var one = DeleteTarget(row: .charge(commitment: id, date: date), question: "Delete this charge?", detail: detail)
+            if model.offersLaterRemoval(subscriptionId: id, dateISO: date) {
+                one.detail = "\(group.name)\(money.map { ", \($0)" } ?? ""). \(model.laterRemovalWords(subscriptionId: id, dateISO: date)) \(rest)"
+                one.later = .chargeAndLater(commitment: id, date: date)
+            }
+            return one
         case "accounts":
             return DeleteTarget(row: .account(group.id), question: "Delete \(group.name)?",
                                 detail: Self.unhookWords(model.referenceCount(.paymentMethod, id: group.id), "account", "an account"))
@@ -695,11 +710,12 @@ struct ChangesView: View {
     }
 
     /// Each drop is one ordinary write. The review stays open on what is left.
-    private func drop(_ target: DeleteTarget) {
+    private func drop(_ row: DeleteTarget.Row) {
         let done: Bool
-        switch target.row {
+        switch row {
         case .commitment(let id): done = model.deleteCommitment(id: id)
         case .charge(let id, let date): done = model.removeCharge(subscriptionId: id, dateISO: date)
+        case .chargeAndLater(let id, let date): done = model.removeChargeAndLater(subscriptionId: id, dateISO: date)
         case .plan(let id, let dates): done = model.removeCharges(subscriptionId: id, datesISO: dates)
         case .account(let id): done = model.deleteEntity(.paymentMethod, id: id)
         case .member(let id): done = model.deleteEntity(.familyMember, id: id)
