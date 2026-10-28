@@ -75,10 +75,10 @@ Your phone plan, hostel fees and the subscriptions you split, with who each one 
 
    `https://longbook.app/mcp`
 
-   Or let your AI walk you through it:
+   Or let your AI set it up:
 
-   - In Claude: Guide me to setup my longbook MCP connector in Claude. Name: longbook MCP server URL: https://longbook.app/mcp
-   - In ChatGPT: @Plugin Creator Help me create a plugin for https://longbook.app/mcp
+   - In Claude: Connect longbook to this Claude. In Claude Code or Cowork, add the plugin marketplace MXmaster2s/longbook-claude-plugin and install the plugin longbook@longbook. Where plugins cannot be installed, add a custom connector named longbook with the URL https://longbook.app/mcp. Then connect it with my longbook account.
+   - In ChatGPT: Plugin Creator: create a plugin named longbook, all lowercase, from my MCP server https://longbook.app/mcp. Display name: longbook. Version: the one the server reports. Website: https://longbook.app. Icon and logo: https://longbook.app/apple-touch-icon.png. Description: Your longbook of bills, subscriptions and expenses, for your AI to read and to suggest changes to. Use the server's tools and its guide, and sign in with my longbook account.
 3. ### Let your AI fill it
 
    Attach a year of bank and card statements and give it this prompt. What it writes waits in the app for you to keep.

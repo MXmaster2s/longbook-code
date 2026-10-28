@@ -20,6 +20,7 @@ import { CARD_RESOURCES, RESOURCE_LIBRARY, TOOLS, instructionsFor, titled } from
 import { MCP_PROMPTS, MONTH_ARGUMENT_DESCRIPTION, mcpPromptMessage } from './prompts.js'
 import { readGuide, whoami } from './rpc.js'
 import { GUIDE_KEY_SCHEMA, guideWarning } from './guideCheck.js'
+import { IDENTITY } from './identity.js'
 import { PROPOSAL_KINDS, isRecord } from './proposal.js'
 import { LIBRARY_FILE, LLMS_FILE, SCHEMA_FILE, VaultReader, resolveVaultDir } from './vault.js'
 import {
@@ -133,7 +134,7 @@ export function buildServer(reader: VaultReader): McpServer {
   // Named apart from the hosted twin on purpose: an owner who followed both connect
   // prompts has two longbooks in one client, and must be able to tell which is which.
   const server = new McpServer(
-    { name: 'longbook (this Mac)', version: RELEASE_VERSION },
+    { name: 'longbook (this Mac)', ...IDENTITY, version: RELEASE_VERSION },
     { instructions: instructionsFor(safeLoad()) },
   )
   const registerTool = ((name: string, config: Parameters<McpServer['registerTool']>[1], cb: never) =>

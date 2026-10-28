@@ -125,6 +125,11 @@ test("an older vault's llms.txt is outranked by the bundled curriculum; a newer 
 test('whoami on this machine names the vault and says writes go straight to the folder', async () => {
   const client = await connected()
   assert.equal(client.getServerVersion()?.name, 'longbook (this Mac)')
+  const info = client.getServerVersion()
+  assert.equal(info?.title, 'longbook')
+  assert.equal(info?.websiteUrl, 'https://longbook.app')
+  assert.equal(info?.icons?.[0]?.src, 'https://longbook.app/apple-touch-icon.png')
+  assert.match(info?.description ?? '', /bills, subscriptions and expenses/)
   const answer = JSON.parse(textOf(await client.callTool({ name: 'whoami' })))
   assert.equal(answer.server, 'longbook (this Mac)')
   assert.equal(answer.can_write, true)
