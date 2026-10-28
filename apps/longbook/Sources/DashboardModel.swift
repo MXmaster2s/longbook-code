@@ -2537,6 +2537,29 @@ final class DashboardModel {
         commit { VaultPatch.removeCharges(of: subscriptionId, dates: [dateISO], in: $0, now: Date()) }
     }
 
+    /// This charge and every unpaid one after it, with the plan ended the day before.
+    func removeChargeAndLater(subscriptionId: String, dateISO: String) -> Bool {
+        commit { try VaultPatch.removeChargeAndLater(of: subscriptionId, from: dateISO, in: $0, now: Date(), schema: schema) }
+    }
+
+    /// Whether deleting this charge can take the plan after it: a recurring commitment's
+    /// unpaid charge dated today or later. A paid one, the past, and a one-time commitment
+    /// go one row at a time.
+    func offersLaterRemoval(subscriptionId: String, dateISO: String) -> Bool {
+        guard let sub = subscription(id: subscriptionId), sub.billingCycle != .once,
+              let charge = charges(of: subscriptionId).first(where: { $0.row.date == dateISO }) else { return false }
+        return !charge.paid
+    }
+
+    /// The words the delete alert adds for "every one after": how many planned charges go
+    /// with it and the day the plan then ends.
+    func laterRemovalWords(subscriptionId: String, dateISO: String) -> String {
+        let rows = charges(of: subscriptionId).filter { $0.row.date > dateISO && !$0.row.paid }
+        let end = LB.parseDate(dateISO).map { LB.longDate(LB.addDays($0, -1)) } ?? "the day before"
+        let count = rows.count == 0 ? "no later charge" : rows.count == 1 ? "the one planned after it" : "the \(rows.count) planned after it"
+        return "Every one after also removes \(count), and the plan ends on \(end). Paid charges stay."
+    }
+
     /// Several charges of one commitment taken out in one write: a plan dropped from a review.
     func removeCharges(subscriptionId: String, datesISO: [String]) -> Bool {
         commit { VaultPatch.removeCharges(of: subscriptionId, dates: datesISO, in: $0, now: Date()) }

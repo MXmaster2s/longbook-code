@@ -411,6 +411,42 @@ public enum VaultPatch {
         return vault
     }
 
+    /// The named charge and the plan after it taken off: that row and every unpaid row after
+    /// it go, and `ends_on` lands the day before it, so nothing is planned past that day.
+    /// Paid rows and every row before stay. Each day removed is signed as the app's charge.
+    public static func removeChargeAndLater(of commitmentId: String, from date: String, in raw: [String: Any],
+                                            now: Date, schema: [String: Any]? = nil) throws -> [String: Any] {
+        guard let fromDay = LB.parseDate(date) else { throw WriteError.badDate }
+        var subs = raw["commitments"] as? [[String: Any]] ?? []
+        guard let index = subs.firstIndex(where: { $0["id"] as? String == commitmentId }) else {
+            throw WriteError.notFound(commitmentId)
+        }
+        let all = chargeRows(raw)
+        guard all.contains(where: { sameCharge($0, commitmentId, date) }) else {
+            throw WriteError.notFound("\(commitmentId)@\(date)")
+        }
+        let gone = all.filter { row in
+            guard row["commitment_id"] as? String == commitmentId, let day = LB.parseDate(row["date"] as? String) else { return false }
+            return day == fromDay || (day > fromDay && row["paid"] as? Bool != true)
+        }.compactMap { $0["date"] as? String }
+        let stamp = iso8601(now)
+        var row = subs[index]
+        // An end already earlier stays; a later or missing one moves to the day before.
+        let end = LB.toISO(LB.addDays(fromDay, -1))
+        if LB.parseDate(row["ends_on"] as? String).map({ $0 > LB.addDays(fromDay, -1) }) ?? true {
+            row["ends_on"] = end
+        }
+        row["updated_at"] = stamp
+        try SubValidator.validate(row, schema: schema, priceChanged: false, daysChanged: false)
+        subs[index] = row
+        var vault = raw
+        vault["commitments"] = subs
+        vault["_provenance"] = stamped(vault["_provenance"], id: commitmentId, at: stamp)
+        vault = setChargeRows(all.filter { !($0["commitment_id"] as? String == commitmentId && gone.contains($0["date"] as? String ?? "")) }, in: vault)
+        signCharges(&vault, of: commitmentId, dates: gone, at: stamp)
+        return vault
+    }
+
     /// Sets what is known about one charge and signs that charge as the app's own; the
     /// commitment's entry is left as it is. A row not yet there is written; fields not given
     /// are left as they were. With `creating` false a missing row is refused, not written.

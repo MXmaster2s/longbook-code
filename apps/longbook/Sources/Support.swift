@@ -12,8 +12,8 @@ typealias SupportImage = NSImage
 #endif
 
 /// Support: longbook's AI answering from the help articles, asked about once (the consent
-/// sheet), opened from Settings and Help & about, and from every screen while a conversation
-/// is recent. A person is reached by the user's own email. The conversation lives on this device.
+/// sheet), opened from its corner button on every screen, Settings and Help & about. A person
+/// is reached by the user's own email. The conversation lives on this device.
 @MainActor
 final class SupportCenter: ObservableObject {
     static let shared = SupportCenter()
@@ -50,11 +50,12 @@ final class SupportCenter: ObservableObject {
     @Published var follow: Follow?
     @Published var mailDraft: MailDraft?
     @Published var mailNote: String?
-    /// The screen behind Support, taken the moment it opened, and whether it goes in the email.
+    /// The screen behind Support, taken the moment it opened, and whether it goes with the
+    /// next message (or, from the attachment, in an email).
     @Published private(set) var behind: SupportImage?
     @Published var screenshotAttached = false
-    /// Support was opened since launch, so the button stays to bring it back after a hide.
-    @Published private(set) var opened = false
+    /// The screenshots sent this session, by the message they went with, for the thumbnails.
+    @Published private(set) var sent: [UUID: SupportImage] = [:]
     private var asking: Task<Void, Never>?
 
     var active: Bool {
@@ -73,7 +74,6 @@ final class SupportCenter: ObservableObject {
 
     func open() {
         guard !presented else { return }
-        opened = true
         behind = SupportScreenshot.capture()
         screenshotAttached = false
         if AIConsent.support.given { presented = true } else { askingConsent = true }
@@ -108,19 +108,30 @@ final class SupportCenter: ObservableObject {
         }
     }
 
+    /// The question, and the screenshot when attached, go up together; the screenshot goes
+    /// once, with this message, and the composer lets go of it.
     func send(_ text: String, token: String?) {
         let question = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !question.isEmpty, !answering else { return }
         offering = false
         follow = nil
-        messages.append(SupportMessage(role: .user, text: question))
+        var attachment: SupportCloud.Attachment?
+        var asked = SupportMessage(role: .user, text: question)
+        if screenshotAttached, let image = behind, let jpeg = SupportScreenshot.jpeg(image) {
+            attachment = SupportCloud.Attachment(mediaType: "image/jpeg", data: jpeg)
+            asked.screenshot = true
+            sent[asked.id] = image
+            screenshotAttached = false
+            Measure.used("support_screenshot_sent")
+        }
+        messages.append(asked)
         let turns = turns
         let answer = SupportMessage(role: .assistant, text: "")
         messages.append(answer)
         answering = true
         asking = Task {
             do {
-                for try await event in SupportCloud.ask(turns, askerId: askerId, token: token) {
+                for try await event in SupportCloud.ask(turns, attachment: attachment, askerId: askerId, token: token) {
                     switch event {
                     case .text(let words): update(answer.id) { $0.text += words }
                     case .done(let id, let key, let sources, let email):
@@ -153,6 +164,7 @@ final class SupportCenter: ObservableObject {
     func clearHistory() {
         asking?.cancel()
         messages = []
+        sent = [:]
         answering = false
         offering = false
         follow = nil
@@ -289,6 +301,8 @@ struct SupportMessage: Codable, Identifiable, Equatable {
     var serverKey: String?
     var rating: Bool?
     var failed = false
+    /// True when a screenshot went with this message; nil on messages from before there was one.
+    var screenshot: Bool?
 }
 
 // MARK: the articles
@@ -412,6 +426,37 @@ enum SupportScreenshot {
         #endif
     }
 
+    /// The screenshot for Support's server: a JPEG no longer than 1568 pixels on a side, which
+    /// Claude reads whole; a Retina PNG would be many times the size for no better reading.
+    static func jpeg(_ image: SupportImage, maxSide: CGFloat = 1568) -> Data? {
+        #if os(iOS)
+        let pixels = CGSize(width: image.size.width * image.scale, height: image.size.height * image.scale)
+        let scale = min(1, maxSide / max(pixels.width, pixels.height))
+        let size = CGSize(width: (pixels.width * scale).rounded(), height: (pixels.height * scale).rounded())
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        return UIGraphicsImageRenderer(size: size, format: format)
+            .image { _ in image.draw(in: CGRect(origin: .zero, size: size)) }
+            .jpegData(compressionQuality: 0.8)
+        #else
+        guard let rep = image.representations.compactMap({ $0 as? NSBitmapImageRep }).max(by: { $0.pixelsWide < $1.pixelsWide })
+            ?? image.tiffRepresentation.flatMap(NSBitmapImageRep.init(data:)) else { return nil }
+        let quality: [NSBitmapImageRep.PropertyKey: Any] = [.compressionFactor: 0.8]
+        let scale = min(1, maxSide / CGFloat(max(rep.pixelsWide, rep.pixelsHigh)))
+        if scale == 1 { return rep.representation(using: .jpeg, properties: quality) }
+        let width = Int((CGFloat(rep.pixelsWide) * scale).rounded()), height = Int((CGFloat(rep.pixelsHigh) * scale).rounded())
+        guard let small = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: width, pixelsHigh: height, bitsPerSample: 8, samplesPerPixel: 4,
+                                           hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0),
+              let context = NSGraphicsContext(bitmapImageRep: small) else { return nil }
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = context
+        context.imageInterpolation = .high
+        rep.draw(in: NSRect(x: 0, y: 0, width: width, height: height))
+        NSGraphicsContext.restoreGraphicsState()
+        return small.representation(using: .jpeg, properties: quality)
+        #endif
+    }
+
     static func png(_ image: SupportImage) -> Data? {
         #if os(iOS)
         image.pngData()
@@ -487,7 +532,7 @@ struct SupportScreen: View {
         "How do I get a refund?",
         "Where is my data kept?",
     ]
-    private static let greeting = "Hi, I'm longbook's AI. Ask me anything about longbook. Please don't share amounts, or account or card numbers. If I can't help, I'll open an email to the team for you."
+    private static let greeting = "Hi, I'm longbook's AI. Ask me anything about longbook, or attach a screenshot of what you see. Please don't share amounts, or account or card numbers. If I can't help, I'll open an email to the team for you."
 
     var body: some View {
         VStack(spacing: 0) {
@@ -649,13 +694,16 @@ struct SupportScreen: View {
         if message.role == .user {
             HStack(alignment: .bottom, spacing: LBSpacing.s2) {
                 Spacer(minLength: LBSpacing.s8)
-                Text(message.text)
-                    .lbText(.bodySM)
-                    .foregroundStyle(LBColor.textPrimary.color)
-                    .padding(.horizontal, LBSpacing.s3)
-                    .padding(.vertical, LBSpacing.s2 + 2)
-                    .background(LBColor.chrome.color, in: RoundedRectangle(cornerRadius: LBRadius.lg, style: .continuous))
-                    .textSelection(.enabled)
+                VStack(alignment: .trailing, spacing: LBSpacing.s1) {
+                    if message.screenshot == true { sentShot(message) }
+                    Text(message.text)
+                        .lbText(.bodySM)
+                        .foregroundStyle(LBColor.textPrimary.color)
+                        .padding(.horizontal, LBSpacing.s3)
+                        .padding(.vertical, LBSpacing.s2 + 2)
+                        .background(LBColor.chrome.color, in: RoundedRectangle(cornerRadius: LBRadius.lg, style: .continuous))
+                        .textSelection(.enabled)
+                }
                 SupportAvatar(kind: .person(email: auth.email, photo: auth.avatarURL), size: 28)
             }
         } else {
@@ -676,6 +724,25 @@ struct SupportScreen: View {
                     }
                 }
             }
+        }
+    }
+
+    /// The screenshot that went with a message: the picture this session, a plain mark after
+    /// a relaunch, since the picture is not kept.
+    @ViewBuilder
+    private func sentShot(_ message: SupportMessage) -> some View {
+        if let image = center.sent[message.id] {
+            shot(image)
+                .resizable()
+                .scaledToFit()
+                .frame(maxWidth: 180, maxHeight: 140)
+                .clipShape(RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous).strokeBorder(LBColor.hairline.color))
+                .accessibilityLabel("Screenshot sent with this message")
+        } else {
+            Label("Screenshot", systemImage: "camera")
+                .lbText(.footnote)
+                .foregroundStyle(LBColor.textTertiary.color)
         }
     }
 
@@ -826,10 +893,10 @@ struct SupportScreen: View {
                 }
                 .lbButtonStyle()
                 .disabled(center.behind == nil)
-                .help("Attach a screenshot for the team")
-                .accessibilityLabel(center.screenshotAttached ? "Remove the screenshot" : "Attach a screenshot for the team")
+                .help("Attach a screenshot of your screen")
+                .accessibilityLabel(center.screenshotAttached ? "Remove the screenshot" : "Attach a screenshot of your screen")
 
-                TextField("Ask a question", text: $draft, axis: .vertical)
+                TextField(center.screenshotAttached ? "Ask about the screenshot" : "Ask a question", text: $draft, axis: .vertical)
                     .lbText(.bodySM)
                     .lineLimit(1...5)
                     .textFieldStyle(.plain)
@@ -861,9 +928,11 @@ struct SupportScreen: View {
         .overlay(alignment: .top) { Rectangle().fill(LBColor.hairline.color).frame(height: 1) }
     }
 
+    /// The screenshot waiting in the composer: it goes with the next message, or, from its
+    /// second action, in an email to the team instead.
     private func attachedShot(_ image: SupportImage) -> some View {
         HStack(spacing: LBSpacing.s3) {
-            // The whole screen, scaled to fit: what the team gets, nothing cut away.
+            // The whole screen, scaled to fit: what is sent, nothing cut away.
             shot(image)
                 .resizable()
                 .scaledToFit()
@@ -871,7 +940,7 @@ struct SupportScreen: View {
                 .overlay(RoundedRectangle(cornerRadius: LBRadius.xs, style: .continuous).strokeBorder(LBColor.hairline.color))
                 .frame(width: 88, height: 64)
             VStack(alignment: .leading, spacing: LBSpacing.s1) {
-                Text("Goes in your email to the team, never to the AI. Check it first, it may show amounts.")
+                Text("Sent with your message. It may show amounts.")
                     .lbText(.footnote)
                     .foregroundStyle(LBColor.textSecondary.color)
                     .fixedSize(horizontal: false, vertical: true)
@@ -879,7 +948,7 @@ struct SupportScreen: View {
                     Measure.used("support_screenshot_email")
                     withAnimation(spring) { center.emailTeam(review: false, openURL: openURL) }
                 } label: {
-                    Text("Email it to the team")
+                    Text("Email it to the team instead")
                         .lbText(.footnote)
                         .foregroundStyle(LBColor.brandText.color)
                 }
@@ -1071,7 +1140,7 @@ struct SupportPrivacyRows: View {
                 Text("Support")
                     .lbText(.body)
                     .foregroundStyle(LBColor.textPrimary.color)
-                Text("Your questions go through our server, which keeps none of them, to Anthropic's Claude, which answers from our help articles. A screenshot goes only in an email you send the team from your own mail.")
+                Text("Your questions, and a screenshot when you attach one, go through our server, which keeps none of them, to Anthropic's Claude, which answers from our help articles.")
                     .lbText(.bodySM)
                     .foregroundStyle(LBColor.textSecondary.color)
                     .fixedSize(horizontal: false, vertical: true)

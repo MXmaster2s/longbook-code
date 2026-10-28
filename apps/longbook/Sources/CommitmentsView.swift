@@ -222,14 +222,30 @@ struct CommitmentsView: View {
             .alert("Delete this charge?",
                    isPresented: Binding(get: { deletingCharge != nil }, set: { if !$0 { deletingCharge = nil } }),
                    presenting: deletingCharge) { charge in
-                Button("Delete", role: .destructive) {
-                    Measure.used("delete")
-                    _ = model.removeCharge(subscriptionId: charge.subId, dateISO: charge.dateISO)
-                    selection = []
+                // A planned charge of a recurring commitment can take the plan after it too.
+                if model.offersLaterRemoval(subscriptionId: charge.subId, dateISO: charge.dateISO) {
+                    Button("Only This Charge", role: .destructive) {
+                        Measure.used("only_this_charge")
+                        _ = model.removeCharge(subscriptionId: charge.subId, dateISO: charge.dateISO)
+                        selection = []
+                    }
+                    Button("This and Every One After", role: .destructive) {
+                        Measure.used("this_and_every_one_after")
+                        _ = model.removeChargeAndLater(subscriptionId: charge.subId, dateISO: charge.dateISO)
+                        selection = []
+                    }
+                } else {
+                    Button("Delete", role: .destructive) {
+                        Measure.used("delete")
+                        _ = model.removeCharge(subscriptionId: charge.subId, dateISO: charge.dateISO)
+                        selection = []
+                    }
                 }
                 Button("Cancel", role: .cancel) { Measure.used("cancel") }
             } message: { charge in
-                Text("\(charge.name), \(charge.amountText). Only this charge is removed.")
+                Text(model.offersLaterRemoval(subscriptionId: charge.subId, dateISO: charge.dateISO)
+                     ? "\(charge.name), \(charge.amountText). \(model.laterRemovalWords(subscriptionId: charge.subId, dateISO: charge.dateISO))"
+                     : "\(charge.name), \(charge.amountText). Only this charge is removed.")
             }
             .measured("commitments_removing_placeholder", .alert, when: removingPlaceholder != nil)
             .alert("Remove \(removingPlaceholder?.name ?? "this commitment")?",

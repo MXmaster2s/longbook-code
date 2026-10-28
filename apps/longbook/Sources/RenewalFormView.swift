@@ -278,16 +278,25 @@ struct RenewalFormView: View {
         }
         .measured("renewal_form_confirming_remove", .alert, when: confirmingRemove)
         .alert("Remove this charge?", isPresented: $confirmingRemove) {
-            Button("Remove", role: .destructive) {
-                Measure.used("remove")
-                if let row = anchor, model.removeCharge(subscriptionId: row.sub.id, dateISO: row.row.date) { onDone() }
+            // A planned charge of a recurring commitment can take the plan after it too.
+            if offersLater {
+                Button("Only This Charge", role: .destructive) {
+                    Measure.used("only_this_charge")
+                    if let row = anchor, model.removeCharge(subscriptionId: row.sub.id, dateISO: row.row.date) { onDone() }
+                }
+                Button("This and Every One After", role: .destructive) {
+                    Measure.used("this_and_every_one_after")
+                    if let row = anchor, model.removeChargeAndLater(subscriptionId: row.sub.id, dateISO: row.row.date) { onDone() }
+                }
+            } else {
+                Button("Remove", role: .destructive) {
+                    Measure.used("remove")
+                    if let row = anchor, model.removeCharge(subscriptionId: row.sub.id, dateISO: row.row.date) { onDone() }
+                }
             }
             Button("Keep It", role: .cancel) { Measure.used("keep_it") }
         } message: {
-            Text(anchor?.row.paid == true
-                 ? "This charge is marked paid. Removing it takes that fact out of your file."
-                 : heldOnce ? "Only this one is removed; the other charges stay."
-                 : "Only this one is removed; the rest of the plan stays.")
+            Text(removeWords)
         }
         .measured("renewal_form_asking_reach", .dialog, when: askingReach)
         .confirmationDialog("Apply the change to", isPresented: $askingReach, titleVisibility: .visible) {
@@ -1252,6 +1261,20 @@ struct RenewalFormView: View {
     /// The file holds the commitment as one-time.
     private var heldOnce: Bool {
         editingId.flatMap(model.subscription(id:))?.billingCycle == .once
+    }
+
+    /// The form's charge is planned ahead on a recurring commitment, so the plan after it
+    /// can go with it.
+    private var offersLater: Bool {
+        guard let row = anchor else { return false }
+        return model.offersLaterRemoval(subscriptionId: row.sub.id, dateISO: row.row.date)
+    }
+
+    private var removeWords: String {
+        if anchor?.row.paid == true { return "This charge is marked paid. Removing it takes that fact out of your file." }
+        if heldOnce { return "Only this one is removed; the other charges stay." }
+        if offersLater, let row = anchor { return model.laterRemovalWords(subscriptionId: row.sub.id, dateISO: row.row.date) }
+        return "Only this one is removed; the rest of the plan stays."
     }
 
     private var addAnother: some View {

@@ -71,7 +71,7 @@ More: [Pricing](https://longbook.app/#price), [What is longbook Cloud](https://l
 - **Where the data lives:** In a longbook folder in the user's own iCloud Drive, as plain JSON files. The main file is `financial_memory.json`.
 - **Bank login:** None. longbook never connects to a bank.
 - **Card numbers:** The format has no field for a full card number, a CVV, an expiry, a PIN or a password, and a save carrying one is refused.
-- **What leaves the device:** Only what the user asks for: a statement being imported, the hosted copy for online AI connectors while AI access is on, shared reports, the account's email and licence status, usage and crash counts, and questions asked in Support
+- **What leaves the device:** Only what the user asks for: a statement being imported, the hosted copy for online AI connectors while AI access is on, shared reports, the account's email and licence status, usage and crash counts, and questions asked in Support with a screenshot when one is attached
 - **Statements:** Read through longbook's server and not kept, neither the file nor the charges
 - **Hosted copy:** Kept only while AI access is on. Turning it off deletes it.
 - **Selling data:** Never. longbook does not see inside a user's longbook.
@@ -79,7 +79,7 @@ More: [Pricing](https://longbook.app/#price), [What is longbook Cloud](https://l
 - **Website analytics:** PostHog in its cookieless mode. No cookie is set, no identifier is kept in the browser, and the IP address is discarded once used. Browsers that send Global Privacy Control or Do Not Track are not measured.
 - **App analytics:** PostHog usage and crash counts, never a name, amount or note. Users can switch it off in Help & about.
 - **Server hosting:** Supabase, Asia Pacific (Mumbai) region, ap-south-1
-- **Privacy policy:** [longbook.app/privacy-policy](https://longbook.app/privacy-policy/), in effect since 26 October 2026
+- **Privacy policy:** [longbook.app/privacy-policy](https://longbook.app/privacy-policy/), in effect since 28 October 2026
 - **Terms of service:** [longbook.app/terms](https://longbook.app/terms/)
 
 More: [Where your data lives and what leaves your device](https://longbook.app/help/where-your-data-lives-and-what-leaves-your-device/), [Keep your longbook in your own iCloud](https://longbook.app/features/keep-your-longbook-in-your-own-icloud.md), [Cookieless analytics for a personal finance app](https://longbook.app/blog/using-cookieless-analytics-for-personal-finance-applications.md), [Privacy policy](https://longbook.app/privacy-policy/)
