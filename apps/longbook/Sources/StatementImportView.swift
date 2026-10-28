@@ -88,15 +88,9 @@ struct StatementImportView: View {
     /// The server has read its share of statements for this account for now; the pick
     /// stage says so, with the way to write to us. How many is never said.
     @State private var shareSpent = false
-    /// The lines show from the start; the summary row above them folds them away.
-    @State private var showingCharges = true
-    /// The review, one group at a time: commitments first, then the past expenses, the people, the accounts.
-    @State private var reviewTab = 2
-    #if os(iOS)
+    /// The files whose own account is ticked to be added even with none of its lines kept.
+    @State private var ownAccountsTicked: Set<String> = []
     @State private var openLine: OpenLine?
-    #else
-    @State private var lineOrder: [KeyPathComparator<LineRow>] = [KeyPathComparator(\.date)]
-    #endif
     /// The privacy line under the file types, opened from its info button.
     /// A member's name being corrected, and the correction as typed.
     @State private var renaming: String?
@@ -104,6 +98,9 @@ struct StatementImportView: View {
     /// A repeat's name being corrected, and the correction as typed.
     @State private var renamingRepeat: String?
     @State private var renamedRepeat = ""
+    /// A file's account name being corrected, by the file's id, and the correction as typed.
+    @State private var renamingAccount: String?
+    @State private var renamedAccount = ""
     /// A name being added by hand under members or under commitments.
     @State private var addingMember = false
     @State private var typedMember = ""
@@ -137,13 +134,9 @@ struct StatementImportView: View {
         #endif
     }
 
-    /// The column the sheet keeps to; the Mac's review table takes a wider one.
+    /// The column the sheet keeps to; the review lays out its own, edge to edge.
     private var columnWidth: CGFloat {
-        #if os(macOS)
-        stage == .review ? 960 : 640
-        #else
-        640
-        #endif
+        stage == .review ? .infinity : 640
     }
     /// The units of the reading — every piece of every file, and each file's look-over —
     /// and how many are done.
@@ -152,7 +145,7 @@ struct StatementImportView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: LBSpacing.s3) {
-            header
+            if stage != .review { header }
             switch stage {
             case .pick: pickStage
             case .working(let word): workingStage(word)
@@ -161,16 +154,16 @@ struct StatementImportView: View {
             case .review: reviewStage
             }
         }
-        .padding(LBSpacing.s4)
+        .padding(stage == .review ? 0 : LBSpacing.s4)
         .frame(maxWidth: columnWidth)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         #if os(macOS)
-        // The review's table wants every column in view: the sheet grows for it.
-        .frame(minWidth: stage == .review ? 800 : 520, minHeight: 560)
+        // Two people or accounts side by side want the review wider than the pick.
+        .frame(minWidth: stage == .review ? 760 : 520, minHeight: stage == .review ? 680 : 560)
         #endif
         .background(LBColor.canvas.color)
-        .lbClosesOnOutsideClick(onDone)
-        // A pull-down with a statement read would lose it; the close button asks instead.
+        // Once a statement is read the sheet is modal: only Discard or Add closes it.
+        .lbClosesOnOutsideClick { if stage == .pick { onDone() } }
         .interactiveDismissDisabled(stage != .pick)
         .measured("statement_import_confirming_close", .dialog, when: confirmingClose)
         .confirmationDialog("Leave the import?", isPresented: $confirmingClose, titleVisibility: .visible) {
@@ -200,10 +193,8 @@ struct StatementImportView: View {
                 files = [one]
                 show()
                 if ProcessInfo.processInfo.environment["LONGBOOK_SNAPSHOT_READY"] == nil { stage = .review }
-                #if os(iOS)
                 if let line = ProcessInfo.processInfo.environment["LONGBOOK_SNAPSHOT_LINE"].flatMap(Int.init),
                    candidates.indices.contains(line) { openLine = OpenLine(id: line) }
-                #endif
             }
             if ProcessInfo.processInfo.environment["LONGBOOK_SNAPSHOT_OWN_AI"] != nil { ownAI = true }
             if ProcessInfo.processInfo.environment["LONGBOOK_SNAPSHOT_CONSENT"] != nil { askingConsent = true }
@@ -237,10 +228,8 @@ struct StatementImportView: View {
                 afterConsent = nil
             })
         }
-        #if os(iOS)
         .measured("statement_import_open_line", .sheet, when: openLine != nil)
         .sheet(item: $openLine) { line in lineDetail(line.id) }
-        #endif
         .measured("statement_import_filling", .sheet, when: filling != nil)
         .sheet(item: $filling) { item in
             RenewalFormView(
@@ -534,38 +523,52 @@ struct StatementImportView: View {
         }
     }
 
+    /// One scrolling list in the order the owner decides in: commitments, past expenses,
+    /// people, accounts, each drawn with the card the app uses for it, the notes last.
+    /// Only Discard or Add closes it.
     private var reviewStage: some View {
-        VStack(alignment: .leading, spacing: LBSpacing.s3) {
+        VStack(spacing: 0) {
+            #if os(iOS)
+            HStack {
+                Button { Measure.used("discard"); confirmingClose = true } label: {
+                    Text("Discard")
+                        .lbText(.body)
+                        .foregroundStyle(LBColor.textSecondary.color)
+                        .frame(minHeight: 44)
+                        .contentShape(Rectangle())
+                }
+                .lbButtonStyle()
+                Spacer()
+            }
+            .padding(.horizontal, LBSpacing.s4)
+            .padding(.top, LBSpacing.s2)
+            reviewRule
+            #else
+            reviewHeading
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, LBSpacing.s6)
+                .padding(.vertical, LBSpacing.s4)
+            reviewRule
+            #endif
             ScrollViewReader { proxy in
                 ScrollView {
-                    VStack(alignment: .leading, spacing: LBSpacing.s4) {
-                        // Laid out as Changes is: what this is, the two answers, what they
-                        // cover, then one kind at a time, since a year's statement is
-                        // hundreds of lines and its people and repeats need room of their own.
-                        reviewAnswer
-                        reviewTabs
-                        switch reviewTab {
-                        case 1: membersSection
-                        case 2: repeatsSection
-                        case 3: accountsSection
-                        default: chargesSection
-                        }
-                        if !notes.isEmpty {
-                            VStack(alignment: .leading, spacing: LBSpacing.s1) {
-                                Text("Notes from the statement")
-                                    .lbText(.footnote)
-                                    .foregroundStyle(LBColor.textTertiary.color)
-                                Text(notes)
-                                    .lbText(.footnote)
-                                    .foregroundStyle(LBColor.textSecondary.color)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                            .padding(.horizontal, LBSpacing.s1)
-                        }
+                    LazyVStack(alignment: .leading, spacing: LBSpacing.s8) {
+                        #if os(iOS)
+                        reviewHeading
+                        #endif
+                        repeatsGroup
+                        if !candidates.isEmpty { linesGroup }
+                        membersGroup
+                        if accountCount > 0 { accountsGroup }
+                        notesCard
                     }
+                    .padding(.horizontal, reviewGutter)
+                    .padding(.vertical, LBSpacing.s4)
+                    .frame(maxWidth: reviewColumn)
+                    .frame(maxWidth: .infinity)
                 }
-                // A line revealed at the end of a wrapping row can sit below the fold, and
-                // below the keyboard. The sleep lets it exist before it is scrolled to.
+                // A line revealed at the end of a group can sit below the fold, and below
+                // the keyboard. The sleep lets it exist before it is scrolled to.
                 .onChange(of: addingMember) { _, adding in
                     if adding { reveal(Self.memberFieldID, with: proxy) }
                 }
@@ -573,36 +576,86 @@ struct StatementImportView: View {
                     if adding { reveal(Self.repeatFieldID, with: proxy) }
                 }
             }
+            reviewRule
+            reviewFooter
+                .frame(maxWidth: reviewColumn)
+                .frame(maxWidth: .infinity)
+        }
+        .measured("statement_import_renaming", .alert, when: renaming != nil)
+        .alert("Their name", isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } }), presenting: renaming) { old in
+            TextField("Name", text: $renamed)
+            Button("Save") { Measure.used("save"); rename(old, to: renamed) }
+            Button("Cancel", role: .cancel) { Measure.used("cancel") }
+        } message: { _ in
+            Text("As you would write it on a commitment.")
+        }
+        .measured("statement_import_renaming_repeat", .alert, when: renamingRepeat != nil)
+        .alert("Its name", isPresented: Binding(get: { renamingRepeat != nil }, set: { if !$0 { renamingRepeat = nil } }), presenting: renamingRepeat) { old in
+            TextField("Name", text: $renamedRepeat)
+            Button("Save") { Measure.used("save"); renameRepeat(old, to: renamedRepeat) }
+            Button("Cancel", role: .cancel) { Measure.used("cancel") }
+        } message: { _ in
+            Text("As you would say it. The statement’s lines take the name too.")
+        }
+        .measured("statement_import_renaming_account", .alert, when: renamingAccount != nil)
+        .alert("Account name", isPresented: Binding(get: { renamingAccount != nil }, set: { if !$0 { renamingAccount = nil } }), presenting: renamingAccount) { id in
+            TextField("Name", text: $renamedAccount)
+            Button("Save") {
+                Measure.used("save")
+                let clean = renamedAccount.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !clean.isEmpty, let index = files.firstIndex(where: { $0.id == id }) { files[index].account = clean }
+            }
+            Button("Cancel", role: .cancel) { Measure.used("cancel") }
+        } message: { _ in
+            Text("The account this statement belongs to.")
         }
     }
 
-    /// The import's own Undo All and Keep All: Discard asks first, Add writes what is ticked.
-    private var reviewAnswer: some View {
-        VStack(alignment: .leading, spacing: LBSpacing.s2) {
-            Text("Read from \(files.count == 1 ? files[0].name : "\(files.count) files"). Untick what you don’t want, then add the rest.")
+    private var reviewGutter: CGFloat {
+        #if os(macOS)
+        LBSpacing.s6
+        #else
+        LBSpacing.s4
+        #endif
+    }
+
+    private var reviewColumn: CGFloat {
+        #if os(macOS)
+        .infinity
+        #else
+        640
+        #endif
+    }
+
+    private var reviewRule: some View {
+        Rectangle()
+            .fill(LBColor.hairline.color)
+            .frame(height: 1)
+            .accessibilityHidden(true)
+    }
+
+    /// What was found, in words, and that nothing added now is final.
+    private var reviewHeading: some View {
+        VStack(alignment: .leading, spacing: LBSpacing.s1) {
+            Text(foundWord)
+                #if os(iOS)
+                .lbText(.screenTitle)
+                #else
+                .lbText(.headline)
+                #endif
+                .foregroundStyle(LBColor.textPrimary.color)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+            Text("Add all items now. You can edit everything later.")
+                #if os(iOS)
                 .lbText(.bodySM)
+                #else
+                .lbText(.footnote)
+                #endif
                 .foregroundStyle(LBColor.textSecondary.color)
                 .fixedSize(horizontal: false, vertical: true)
-            LBReflowStack(spacing: LBSpacing.s2) {
-                Button { Measure.used("discard"); confirmingClose = true } label: {
-                    ChangeActionLabel(title: "Discard", symbol: "xmark", filled: false, wide: true)
-                }
-                .lbButtonStyle()
-                Button { Measure.used("checkmark_circle_fill"); add() } label: {
-                    ChangeActionLabel(title: addTitle, symbol: "checkmark.circle.fill", filled: true, wide: true)
-                }
-                .lbButtonStyle()
-                .disabled(keptCount == 0 || !accountsNamed)
-                .lbPhoneDimmed(keptCount == 0 || !accountsNamed)
-            }
-            if let tally = reviewTally {
-                Text(tally)
-                    .lbText(.footnote)
-                    .foregroundStyle(LBColor.textTertiary.color)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
             if !accountsNamed {
-                Text("Name the account this statement is, under Accounts, before adding.")
+                Text("Name the account this statement belongs to, under Accounts, before adding.")
                     .lbText(.footnote)
                     .foregroundStyle(LBColor.urgent.color)
                     .fixedSize(horizontal: false, vertical: true)
@@ -616,52 +669,320 @@ struct StatementImportView: View {
         }
     }
 
-    /// What the review holds, group by group in the order the tabs stand: commitments,
-    /// past expenses, people, accounts.
-    private var reviewTally: String? {
+    /// "Found 3 commitments, 2 people and 1 account"; past expenses only when nothing else was found.
+    private var foundWord: String {
         var parts: [String] = []
-        if !repeats.isEmpty { parts.append("\(repeats.count) commitment\(repeats.count == 1 ? "" : "s")") }
-        if !candidates.isEmpty { parts.append("\(candidates.count) past expense\(candidates.count == 1 ? "" : "s")") }
-        if !members.isEmpty { parts.append("\(members.count) \(members.count == 1 ? "person" : "people")") }
-        if accountCount > 0 { parts.append("\(accountCount) account\(accountCount == 1 ? "" : "s")") }
-        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+        if !repeats.isEmpty { parts.append(EntityCopy.counted(repeats.count, "commitment")) }
+        if !members.isEmpty { parts.append(members.count == 1 ? "1 person" : "\(members.count) people") }
+        if accountCount > 0 { parts.append(EntityCopy.counted(accountCount, "account")) }
+        if parts.isEmpty, !candidates.isEmpty { parts.append(EntityCopy.counted(candidates.count, "past expense")) }
+        guard let last = parts.popLast() else { return "Nothing found on the statement" }
+        return "Found " + (parts.isEmpty ? last : parts.joined(separator: ", ") + " and " + last)
     }
 
     /// Every account the statement prints: each file's own, named or still to name, and
     /// the ones its transfers go to.
-    private var accountCount: Int { files.filter { $0.prepared != nil }.count + foundAccounts.count }
+    private var accountCount: Int { ownAccounts.count + foundAccounts.count }
 
-    private var reviewTabs: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: LBSpacing.s2) {
-                ChangeKindTab(title: "Commitments", count: repeats.count, selected: reviewTab == 2) { pickTab(2) }
-                ChangeKindTab(title: "Past expenses", count: candidates.count, selected: reviewTab == 0) { pickTab(0) }
-                ChangeKindTab(title: "People", count: members.count, selected: reviewTab == 1) { pickTab(1) }
-                ChangeKindTab(title: "Accounts", count: accountCount, selected: reviewTab == 3) { pickTab(3) }
+    /// The files that were read, each one an account of its own.
+    private var ownAccounts: [FileRead] { files.filter { $0.prepared != nil } }
+
+    /// A file's account is added with its lines; with none kept, only when ticked.
+    private func ownAccountTicked(_ read: FileRead) -> Bool {
+        carriesLines(read) || ownAccountsTicked.contains(read.id)
+    }
+
+    private func carriesLines(_ read: FileRead) -> Bool {
+        candidates.contains { $0.keep && $0.file == read.id }
+    }
+
+    /// Every item ticked across the four groups, and every item that could be.
+    private var tickedCount: Int {
+        keptCount
+            + repeats.filter { chosenRepeats.contains($0.name) }.count
+            + members.filter { chosenMembers.contains($0.name) }.count
+            + foundAccounts.filter { chosenAccounts.contains($0) }.count
+            + ownAccounts.filter(ownAccountTicked).count
+    }
+
+    private var tickableCount: Int {
+        candidates.filter { !isLocked($0) }.count + repeats.count + members.count + accountCount
+    }
+
+    /// What the button adds: every ticked item, whatever it is.
+    private var addTitle: String {
+        tickedCount > 0 ? "Add \(tickedCount) \(tickedCount == 1 ? "item" : "items")" : "Nothing to add"
+    }
+
+    private var money: String { currency.trimmingCharacters(in: .whitespaces).uppercased() }
+
+    // MARK: review groups
+
+    /// A group's head: its name and count, what ticking does, and one quiet word that
+    /// unticks the whole group, or ticks it again once nothing in it is.
+    private func groupHead(_ title: String, count: Int, line: String, anyTicked: Bool, setAll: @escaping (Bool) -> Void) -> some View {
+        VStack(alignment: .leading, spacing: LBSpacing.s1) {
+            HStack(alignment: .firstTextBaseline, spacing: LBSpacing.s2) {
+                Text(title)
+                    .lbText(.headline)
+                    .foregroundStyle(LBColor.textPrimary.color)
+                    .accessibilityAddTraits(.isHeader)
+                Text("\(count)")
+                    .lbText(.footnote)
+                    .monospacedDigit()
+                    .foregroundStyle(LBColor.textTertiary.color)
+                Spacer(minLength: LBSpacing.s2)
+                if count > 0 {
+                    Button {
+                        if anyTicked { Measure.used("untick_all") } else { Measure.used("tick_all") }
+                        LBHaptics.tap()
+                        setAll(!anyTicked)
+                    } label: {
+                        Text(anyTicked ? (count == 1 ? "Untick" : "Untick all") : (count == 1 ? "Tick" : "Tick all"))
+                            .lbText(.label)
+                            .foregroundStyle(LBColor.textSecondary.color)
+                            .frame(minHeight: 32)
+                            .contentShape(Rectangle())
+                    }
+                    .lbButtonStyle()
+                    .accessibilityLabel("\(anyTicked ? "Untick" : "Tick") every \(title.lowercased()) item")
+                }
+            }
+            Text(line)
+                .lbText(.footnote)
+                .foregroundStyle(LBColor.textTertiary.color)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    /// The tick a card wears: brand when ticked, an empty ring or box when not.
+    private func tickMark(_ on: Bool) -> some View {
+        #if os(iOS)
+        let symbol = on ? "checkmark.circle.fill" : "circle"
+        #else
+        let symbol = on ? "checkmark.square.fill" : "square"
+        #endif
+        return Image(systemName: symbol)
+            .font(.system(size: 20, weight: .regular))
+            .foregroundStyle(on ? LBColor.brand.color : LBColor.textTertiary.color)
+            .accessibilityHidden(true)
+    }
+
+    /// The tick beside a card, pressed on the box itself, never a hover.
+    private func tickButton(_ on: Bool, locked: Bool = false, toggle: @escaping () -> Void) -> some View {
+        Button {
+            Measure.used("checkmark_square_fill")
+            LBHaptics.tap()
+            if !locked { toggle() }
+        } label: {
+            tickMark(on)
+                .opacity(locked ? 0.4 : 1)
+                .frame(width: 28, height: 44)
+                .contentShape(Rectangle())
+        }
+        .lbButtonStyle(hovers: false)
+        .disabled(locked)
+        .accessibilityLabel(on ? "Ticked. Tap to leave out." : "Not ticked. Tap to add.")
+    }
+
+    /// A quiet way to add one the statement missed, the field in its place once pressed.
+    @ViewBuilder
+    private func addByHand(_ title: String, adding: Bool, field: some View, start: @escaping () -> Void) -> some View {
+        if adding {
+            field
+        } else {
+            Button { Measure.used("add"); start() } label: {
+                Label(title, systemImage: "plus")
+                    .lbText(.label)
+                    .foregroundStyle(LBColor.textSecondary.color)
+                    .frame(minHeight: 32)
+                    .contentShape(Rectangle())
+            }
+            .lbButtonStyle()
+        }
+    }
+
+    /// What comes round, each as the commitment card, ticked to be planned ahead. A long
+    /// press fills one in by hand or renames it.
+    private var repeatsGroup: some View {
+        VStack(alignment: .leading, spacing: LBSpacing.s3) {
+            groupHead("Commitments", count: repeats.count,
+                      line: "Found repeating on the statement. Ticked ones are planned ahead.",
+                      anyTicked: repeats.contains { chosenRepeats.contains($0.name) }) { on in
+                chosenRepeats = on ? Set(repeats.map(\.name)) : []
+            }
+            ForEach(repeats, id: \.name) { repeated in
+                repeatRow(repeated)
+            }
+            addByHand("Add a commitment", adding: addingRepeat,
+                      field: LBChipField("What it is", text: $typedRepeat, width: 200, focus: $repeatFocused, onSubmit: addRepeat)
+                        .id(Self.repeatFieldID)) {
+                typedRepeat = ""
+                addingRepeat = true
             }
         }
     }
 
-    private func pickTab(_ tab: Int) {
-        LBHaptics.tap()
-        withAnimation(.snappy(duration: 0.25)) { reviewTab = tab }
+    private func repeatRow(_ repeated: StatementCloud.Repeat) -> some View {
+        let ticked = chosenRepeats.contains(repeated.name)
+        let toggle = {
+            if chosenRepeats.contains(repeated.name) { chosenRepeats.remove(repeated.name) } else { chosenRepeats.insert(repeated.name) }
+        }
+        return HStack(alignment: .center, spacing: LBSpacing.s2) {
+            tickButton(ticked, toggle: toggle)
+            Button { Measure.used("tick_card"); toggle() } label: {
+                LBCommitmentRow(name: repeated.name, facts: repeatFacts(repeated),
+                                amount: repeated.amount > 0 ? fmtMoney(repeated.amount, money) : "",
+                                ink: ticked ? LBColor.brand : LBColor.textQuaternary)
+                    .opacity(ticked ? 1 : 0.6)
+            }
+            .lbButtonStyle()
+            .accessibilityValue(ticked ? "Ticked" : "Not ticked")
+            .contextMenu {
+                Button { Measure.used("fill_in_the_details", .contextMenu); filling = Filling(repeated: repeated, before: Set(model.commitmentIdNames.map(\.id))) } label: {
+                    Label("Fill in the details", systemImage: "pencil")
+                }
+                Button {
+                    Measure.used("rename", .contextMenu)
+                    renamedRepeat = repeated.name
+                    renamingRepeat = repeated.name
+                } label: {
+                    Label("Rename", systemImage: "character.cursor.ibeam")
+                }
+            }
+        }
     }
 
-    /// What the button adds: every kept line, whatever it is — a charge, money in, a transfer.
-    private var addTitle: String {
-        keptCount > 0 ? "Add \(keptCount) \(keptCount == 1 ? "Item" : "Items")" : "Nothing to Add"
+    /// The statement's lines a repeat is made of.
+    private func lines(of repeated: StatementCloud.Repeat) -> [StatementCandidate] {
+        candidates.filter { $0.name.caseInsensitiveCompare(repeated.name) == .orderedSame }
     }
 
-    /// Who the statement says deserves a member entry, as names to tick, and a plus for
-    /// one it missed. A long press renames one; the lines that carry the name follow it.
-    private var membersSection: some View {
-        VStack(alignment: .leading, spacing: LBSpacing.s2) {
-            LBSectionHeader("People")
-                .foregroundStyle(LBColor.textTertiary.color)
-                .padding(.horizontal, LBSpacing.s1)
-            LBFlow {
+    /// As a commitment card reads: its rhythm and next day, then its category, person and
+    /// account, a prompt where one is missing.
+    private func repeatFacts(_ repeated: StatementCloud.Repeat) -> [LBMetaFact] {
+        let mine = lines(of: repeated)
+        let cycle = cycleWord(repeated)
+        let when = [cycle.prefix(1).uppercased() + cycle.dropFirst(), nextRepeat(repeated).map { "next \(LB.shortDate($0))" }]
+            .compactMap { $0 }
+            .joined(separator: " · ")
+        let account = mine.first.flatMap { line in files.first { $0.id == line.file }?.account }
+            .flatMap { $0.trimmingCharacters(in: .whitespaces).isEmpty ? nil : $0 }
+        let spend = !(mine.first?.isIncome ?? false) && !(mine.first?.isTransfer ?? false)
+        return [LBMetaFact(symbol: LBGlyph.date, text: when)]
+            + DashboardModel.linkFacts(category: repeated.category ?? mine.compactMap(\.tag).first,
+                                       member: mine.compactMap(\.member).first, method: account, spend: spend)
+    }
+
+    /// The day it comes round next: whole cycles after its last line, the first on or after today.
+    private func nextRepeat(_ repeated: StatementCloud.Repeat) -> Date? {
+        guard let last = repeated.dates.compactMap({ LB.parseDate($0) }).max() else { return nil }
+        let today = LB.todayMid()
+        for step in 1...1200 {
+            let next: Date
+            switch repeated.cycle {
+            case "monthly": next = LB.addMonths(last, step)
+            case "yearly": next = LB.addMonths(last, step * 12)
+            default: next = LB.addDays(last, step * max(1, repeated.customDays ?? 30))
+            }
+            if next >= today { return next }
+        }
+        return nil
+    }
+
+    /// The soonest of these ticked repeats, as an account or person card names its next commitment.
+    private func nextMoment(_ among: [StatementCloud.Repeat]) -> DashboardModel.EntityMoment? {
+        let dated = among.filter { chosenRepeats.contains($0.name) }
+            .compactMap { repeated in nextRepeat(repeated).map { (repeated, $0) } }
+            .min { $0.1 < $1.1 }
+        guard let (repeated, day) = dated else { return nil }
+        return DashboardModel.EntityMoment(
+            id: "statement.next.\(repeated.name)", commitmentId: "", name: repeated.name, date: day,
+            amountText: fmtMoney(repeated.amount, money), tag: repeated.category,
+            symbol: repeated.category.map(CategoryGlyph.symbol) ?? LBGlyph.commitment, ink: nil
+        )
+    }
+
+    /// The statement's lines, each as the charge card with its tick; a tap opens one to edit,
+    /// with the bank's own words.
+    private var linesGroup: some View {
+        let open = candidates.indices.filter { !isLocked(candidates[$0]) }
+        return VStack(alignment: .leading, spacing: LBSpacing.s3) {
+            groupHead("Past expenses", count: candidates.count,
+                      line: "Recorded as paid, on the day they happened.",
+                      anyTicked: candidates.contains(where: \.keep)) { on in
+                // Ticking all never sweeps in a line already in the book; unticking lets every one go.
+                for index in (on ? open : Array(candidates.indices)) { candidates[index].keep = on }
+            }
+            ForEach(candidates.indices, id: \.self) { index in
+                lineRow(index)
+            }
+        }
+    }
+
+    private func lineRow(_ index: Int) -> some View {
+        let candidate = candidates[index]
+        let locked = isLocked(candidate)
+        return HStack(alignment: .center, spacing: LBSpacing.s2) {
+            tickButton(candidate.keep, locked: locked) { candidates[index].keep.toggle() }
+            Button {
+                Measure.used("open_line")
+                openLine = OpenLine(id: index)
+            } label: {
+                LBCommitmentRow(
+                    name: candidate.name.isEmpty ? candidate.line.payee : candidate.name,
+                    facts: candidateFacts(candidate), amount: amountText(candidate),
+                    ink: candidate.isIncome ? LBColor.mintTint : LBColor.textQuaternary,
+                    badge: locked ? ("Skipped", .muted) : nil
+                )
+                .opacity(candidate.keep ? 1 : 0.6)
+            }
+            .lbButtonStyle()
+            .accessibilityValue(candidate.keep ? "Ticked" : "Not ticked")
+            .accessibilityHint("Opens the line to edit it.")
+        }
+    }
+
+    /// The line's facts as a charge card wears them: its day, money in, a transfer or its
+    /// category, why it is skipped, then the person and account, a prompt where one is missing.
+    private func candidateFacts(_ candidate: StatementCandidate) -> [LBMetaFact] {
+        let day = LBMetaFact(symbol: LBGlyph.date, text: LB.parseDate(candidate.line.date).map(monthDayWord) ?? candidate.line.date)
+        let kind: LBMetaFact = candidate.isIncome ? LBMetaFact(symbol: LBGlyph.income, text: "Money in")
+            : candidate.isTransfer ? DashboardModel.transferFact
+            : candidate.tag.map { LBMetaFact(symbol: LBGlyph.category, text: categoryWord($0)) } ?? DashboardModel.addCategoryFact
+        let paid = candidate.isIncome || candidate.isTransfer ? [] : [LBMetaFact(symbol: LBGlyph.paid, text: "Paid")]
+        let why = candidate.skipReason.map { [LBMetaFact(symbol: "", text: $0)] } ?? []
+        let person = candidate.member.map { LBMetaFact(symbol: LBGlyph.member, text: $0) } ?? DashboardModel.addMemberFact
+        let named = files.first { $0.id == candidate.file }?.account.trimmingCharacters(in: .whitespaces) ?? ""
+        let account = named.isEmpty ? DashboardModel.addAccountFact : LBMetaFact(symbol: LBGlyph.account, text: named)
+        return [day, kind] + paid + why + [person, account]
+    }
+
+    private func amountText(_ candidate: StatementCandidate) -> String {
+        (candidate.isIncome ? "+" : "") + fmtMoney(candidate.line.amount, money)
+    }
+
+    /// The Mac lays two cards side by side; the phone keeps one column.
+    private var entityColumns: [GridItem] {
+        #if os(macOS)
+        [GridItem(.flexible(), spacing: LBSpacing.s4, alignment: .top), GridItem(.flexible(), spacing: LBSpacing.s4, alignment: .top)]
+        #else
+        [GridItem(.flexible(), alignment: .top)]
+        #endif
+    }
+
+    /// Who the statement names, each as the People card; ticked ones are added to People.
+    /// A long press renames one, and the lines that carry the name follow it.
+    private var membersGroup: some View {
+        VStack(alignment: .leading, spacing: LBSpacing.s3) {
+            groupHead("People", count: members.count,
+                      line: "Names the statement shows. Ticked ones are added to People.",
+                      anyTicked: members.contains { chosenMembers.contains($0.name) }) { on in
+                chosenMembers = on ? Set(members.map(\.name)) : []
+            }
+            LazyVGrid(columns: entityColumns, alignment: .leading, spacing: LBSpacing.s4) {
                 ForEach(members, id: \.name) { member in
-                    LBChip(member.name, style: .choice(selected: chosenMembers.contains(member.name))) {
+                    entityTile(personCard(member), ticked: chosenMembers.contains(member.name)) {
                         if chosenMembers.contains(member.name) { chosenMembers.remove(member.name) } else { chosenMembers.insert(member.name) }
                     }
                     .contextMenu {
@@ -672,136 +993,225 @@ struct StatementImportView: View {
                         }
                     }
                 }
-                if addingMember {
-                    LBChipField("Their name", text: $typedMember, width: 160,
-                                focus: $memberFocused, onSubmit: addMember)
-                        .id(Self.memberFieldID)
-                } else {
-                    LBChip("Add", symbol: "plus", style: .accent) {
-                        typedMember = ""
-                        addingMember = true
-                    }
-                    .accessibilityLabel("Add a person")
-                }
             }
-            Text("Every name the statement prints. Ticked ones are added to People.")
-                .lbText(.footnote)
-                .foregroundStyle(LBColor.textTertiary.color)
-                .padding(.horizontal, LBSpacing.s1)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .measured("statement_import_renaming", .alert, when: renaming != nil)
-        .alert("Their name", isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } }), presenting: renaming) { old in
-            TextField("Name", text: $renamed)
-            Button("Save") { Measure.used("save"); rename(old, to: renamed) }
-            Button("Cancel", role: .cancel) { Measure.used("cancel") }
-        } message: { _ in
-            Text("As you would write it on a commitment.")
+            addByHand("Add a person", adding: addingMember,
+                      field: LBChipField("Their name", text: $typedMember, width: 200, focus: $memberFocused, onSubmit: addMember)
+                        .id(Self.memberFieldID)) {
+                typedMember = ""
+                addingMember = true
+            }
         }
     }
 
-    /// Every account the statement prints: each file's own account first, named by the
-    /// server and open to correction — empty, it waits to be typed — then the accounts its
-    /// transfers and card payments go to, as names to tick. Ticked ones are added to Accounts.
-    private var accountsSection: some View {
-        VStack(alignment: .leading, spacing: LBSpacing.s2) {
-            LBSectionHeader("Accounts")
-                .foregroundStyle(LBColor.textTertiary.color)
-                .padding(.horizontal, LBSpacing.s1)
-            ForEach(files.indices, id: \.self) { index in
-                if files[index].prepared != nil {
-                    if files.count > 1 {
-                        Text(files[index].name)
-                            .lbText(.footnote)
-                            .foregroundStyle(LBColor.textTertiary.color)
-                            .lineLimit(1)
-                            .padding(.horizontal, LBSpacing.s1)
-                    }
-                    card {
-                        labelledRow("This statement") {
-                            TextField("", text: $files[index].account, prompt: Text("The account this statement is").foregroundStyle(LBColor.textTertiary.color))
-                                .textFieldStyle(.plain)
-                                .lbText(.body)
-                                .foregroundStyle(LBColor.textPrimary.color)
-                                .multilineTextAlignment(.trailing)
-                        }
-                    }
-                    if let balance = files[index].balance {
-                        Text("Balance \(fmtMoney(balance, currency.trimmingCharacters(in: .whitespaces).uppercased()))\(files[index].balanceDate.flatMap(LB.parseDate).map { " · \(monthDayWord($0))" } ?? "")")
-                            .lbText(.footnote)
-                            .foregroundStyle(LBColor.textTertiary.color)
-                            .padding(.horizontal, LBSpacing.s1)
-                    }
-                }
+    /// The statement's own account first, then the accounts its transfers and card payments
+    /// go to, each as the Accounts card. One still unnamed waits as a field to type it in.
+    private var accountsGroup: some View {
+        VStack(alignment: .leading, spacing: LBSpacing.s3) {
+            groupHead("Accounts", count: accountCount,
+                      line: foundAccounts.isEmpty
+                        ? "The account this statement belongs to."
+                        : "The account this statement belongs to, and the ones its transfers go to.",
+                      anyTicked: ownAccounts.contains(where: ownAccountTicked) || foundAccounts.contains { chosenAccounts.contains($0) }) { on in
+                ownAccountsTicked = on ? Set(ownAccounts.map(\.id)) : []
+                chosenAccounts = on ? Set(foundAccounts) : []
             }
-            LBFlow {
+            LazyVGrid(columns: entityColumns, alignment: .leading, spacing: LBSpacing.s4) {
+                ForEach(ownAccounts) { read in
+                    ownAccountTile(read)
+                }
                 ForEach(foundAccounts, id: \.self) { account in
-                    LBChip(account, style: .choice(selected: chosenAccounts.contains(account))) {
+                    entityTile(foundAccountCard(account), ticked: chosenAccounts.contains(account)) {
                         if chosenAccounts.contains(account) { chosenAccounts.remove(account) } else { chosenAccounts.insert(account) }
                     }
                 }
             }
-            Text(foundAccounts.isEmpty
-                 ? "No other accounts on the statement."
-                 : "Accounts your transfers and card payments go to, your own among them. Ticked ones are added to Accounts.")
-                .lbText(.footnote)
-                .foregroundStyle(LBColor.textTertiary.color)
-                .padding(.horizontal, LBSpacing.s1)
-                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
-    /// What comes round, as names to tick, and a plus for one the statement did not show.
-    /// Ticked, each becomes a commitment over its lines; a long press fills one in by hand.
-    private var repeatsSection: some View {
-        VStack(alignment: .leading, spacing: LBSpacing.s2) {
-            LBSectionHeader("Commitments")
-                .foregroundStyle(LBColor.textTertiary.color)
-                .padding(.horizontal, LBSpacing.s1)
-            LBFlow {
-                ForEach(repeats, id: \.name) { repeated in
-                    LBChip(repeatWord(repeated), style: .choice(selected: chosenRepeats.contains(repeated.name))) {
-                        if chosenRepeats.contains(repeated.name) { chosenRepeats.remove(repeated.name) } else { chosenRepeats.insert(repeated.name) }
-                    }
-                    .contextMenu {
-                        Button { Measure.used("fill_in_the_details", .contextMenu); filling = Filling(repeated: repeated, before: Set(model.commitmentIdNames.map(\.id))) } label: {
-                            Label("Fill in the details", systemImage: "pencil")
-                        }
-                        Button {
-                            Measure.used("rename", .contextMenu)
-                            renamedRepeat = repeated.name
-                            renamingRepeat = repeated.name
-                        } label: {
-                            Label("Rename", systemImage: "character.cursor.ibeam")
-                        }
-                    }
+    @ViewBuilder
+    private func ownAccountTile(_ read: FileRead) -> some View {
+        if let index = files.firstIndex(where: { $0.id == read.id }) {
+            if read.account.trimmingCharacters(in: .whitespaces).isEmpty {
+                VStack(alignment: .leading, spacing: LBSpacing.s1) {
+                    Text(read.name)
+                        .lbText(.footnote)
+                        .foregroundStyle(LBColor.textTertiary.color)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                    TextField("", text: $files[index].account, prompt: Text("Add account name").foregroundStyle(LBColor.brandText.color))
+                        .textFieldStyle(.plain)
+                        .lbText(.body)
+                        .foregroundStyle(LBColor.textPrimary.color)
+                        .padding(LBSpacing.s4)
+                        .background(LBColor.card.color, in: RoundedRectangle(cornerRadius: LBRadius.md, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: LBRadius.md, style: .continuous)
+                                .strokeBorder(LBColor.hairline.color, lineWidth: 1)
+                        )
                 }
-                if addingRepeat {
-                    LBChipField("What it is", text: $typedRepeat, width: 160,
-                                focus: $repeatFocused, onSubmit: addRepeat)
-                        .id(Self.repeatFieldID)
-                } else {
-                    LBChip("Add", symbol: "plus", style: .accent) {
-                        typedRepeat = ""
-                        addingRepeat = true
+            } else {
+                // Carrying kept lines, it is added with them: its tick stays on until they go.
+                entityTile(ownAccountCard(read), ticked: ownAccountTicked(read), locked: carriesLines(read)) {
+                    if ownAccountsTicked.contains(read.id) { ownAccountsTicked.remove(read.id) } else { ownAccountsTicked.insert(read.id) }
+                }
+                .contextMenu {
+                    Button("Rename") {
+                        Measure.used("rename", .contextMenu)
+                        renamedAccount = read.account
+                        renamingAccount = read.id
                     }
-                    .accessibilityLabel("Add a commitment")
                 }
             }
-            Text("Ticked ones become commitments, planned ahead.")
-                .lbText(.footnote)
+        }
+    }
+
+    /// An account or person card with its tick in the corner; a tap anywhere ticks it.
+    private func entityTile(_ card: DashboardModel.EntityCard, ticked: Bool, locked: Bool = false, toggle: @escaping () -> Void) -> some View {
+        Button {
+            Measure.used("tick_card")
+            LBHaptics.tap()
+            if !locked { toggle() }
+        } label: {
+            EntityCardView(card: card, style: .review)
+                .overlay(alignment: .topTrailing) {
+                    tickMark(ticked).padding(LBSpacing.s3)
+                }
+                .opacity(ticked ? 1 : 0.6)
+        }
+        .lbButtonStyle()
+        .accessibilityValue(ticked ? "Ticked" : "Not ticked")
+        .accessibilityHint(locked ? "Added with the lines ticked on it." : ticked ? "Leaves it out." : "Adds it.")
+    }
+
+    /// A person as the People card would draw them once added: the lines and repeats that name them.
+    private func personCard(_ member: StatementCloud.Member) -> DashboardModel.EntityCard {
+        let theirs = candidates.filter { $0.member.map { nameKey($0) == nameKey(member.name) } ?? false }
+        let repeating = repeats.filter { repeated in theirs.contains { $0.name.caseInsensitiveCompare(repeated.name) == .orderedSame } }
+        return DashboardModel.EntityCard(
+            id: "statement.person.\(member.name)", kind: .familyMember, name: member.name,
+            tag: member.role.isEmpty ? nil : member.role, ink: nil, isReal: true, isIncomplete: false,
+            commitments: repeating.filter { chosenRepeats.contains($0.name) }.count, charges: theirs.filter(\.keep).count,
+            addedOn: nil, balance: nil, balanceDate: nil, balanceCurrency: money, accountCount: 0,
+            next: nextMoment(repeating), window: []
+        )
+    }
+
+    /// The statement's own account as the Accounts card: its kept lines, its repeats, and the
+    /// balance the statement closes on.
+    private func ownAccountCard(_ read: FileRead) -> DashboardModel.EntityCard {
+        let mine = candidates.filter { $0.file == read.id }
+        let repeating = repeats.filter { repeated in mine.contains { $0.name.caseInsensitiveCompare(repeated.name) == .orderedSame } }
+        return DashboardModel.EntityCard(
+            id: "statement.account.\(read.id)", kind: .paymentMethod, name: read.account, tag: nil, ink: nil,
+            isReal: true, isIncomplete: false,
+            commitments: repeating.filter { chosenRepeats.contains($0.name) }.count, charges: mine.filter(\.keep).count,
+            addedOn: nil, balance: read.balance, balanceDate: read.balanceDate.flatMap { LB.parseDate($0) },
+            balanceCurrency: money, accountCount: 0, next: nextMoment(repeating), window: []
+        )
+    }
+
+    /// An account a transfer goes to: only its name is known.
+    private func foundAccountCard(_ name: String) -> DashboardModel.EntityCard {
+        DashboardModel.EntityCard(
+            id: "statement.found.\(name)", kind: .paymentMethod, name: name, tag: nil, ink: nil,
+            isReal: true, isIncomplete: false, commitments: 0, charges: 0, addedOn: nil,
+            balance: nil, balanceDate: nil, balanceCurrency: money, accountCount: 0, next: nil, window: []
+        )
+    }
+
+    /// What the reading noticed, at the end of the list, and the currency every amount is in.
+    private var notesCard: some View {
+        HStack(alignment: .top, spacing: LBSpacing.s2) {
+            Image(systemName: "info.circle")
+                .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(LBColor.textTertiary.color)
-                .padding(.horizontal, LBSpacing.s1)
-                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, 2)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: LBSpacing.s1) {
+                if !notes.isEmpty {
+                    Text("Notes from the statement")
+                        .lbText(.label)
+                        .foregroundStyle(LBColor.textPrimary.color)
+                    Text(notes)
+                        .lbText(.footnote)
+                        .foregroundStyle(LBColor.textSecondary.color)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                HStack(spacing: LBSpacing.s2) {
+                    Text("Amounts in")
+                        .lbText(.footnote)
+                        .foregroundStyle(LBColor.textSecondary.color)
+                    TextField("", text: Binding(get: { currency }, set: { currency = $0; currencyTyped = true }),
+                              prompt: Text("INR").foregroundStyle(LBColor.textTertiary.color))
+                        .textFieldStyle(.plain)
+                        .lbText(.footnote)
+                        .foregroundStyle(LBColor.textPrimary.color)
+                        .frame(width: 56)
+                        .accessibilityLabel("Currency")
+                        #if os(iOS)
+                        .textInputAutocapitalization(.characters)
+                        #endif
+                }
+            }
+            Spacer(minLength: 0)
         }
-        .measured("statement_import_renaming_repeat", .alert, when: renamingRepeat != nil)
-        .alert("Its name", isPresented: Binding(get: { renamingRepeat != nil }, set: { if !$0 { renamingRepeat = nil } }), presenting: renamingRepeat) { old in
-            TextField("Name", text: $renamedRepeat)
-            Button("Save") { Measure.used("save"); renameRepeat(old, to: renamedRepeat) }
-            Button("Cancel", role: .cancel) { Measure.used("cancel") }
-        } message: { _ in
-            Text("As you would say it. The statement’s lines take the name too.")
+        .padding(LBSpacing.s3)
+        .background(LBColor.card.color, in: RoundedRectangle(cornerRadius: LBRadius.sm, style: .continuous))
+    }
+
+    /// The phone: how many are ticked over the one primary button. The Mac: Discard and the
+    /// count on the left, the primary button on the right.
+    private var reviewFooter: some View {
+        let ready = tickedCount > 0 && accountsNamed
+        let add = Button { Measure.used("checkmark_circle_fill"); add() } label: {
+            Text(addTitle)
+                #if os(iOS)
+                .lbText(.headline)
+                .frame(maxWidth: .infinity, minHeight: 50)
+                #else
+                .lbText(.label)
+                .padding(.horizontal, LBSpacing.s4)
+                .frame(minHeight: 32)
+                #endif
+                .foregroundStyle(LBColor.onBrand.color)
+                .background(LBColor.brand.color, in: Capsule())
+                .contentShape(Capsule())
         }
+        .lbButtonStyle()
+        .disabled(!ready)
+        .lbPhoneDimmed(!ready)
+        let count = Text("\(tickedCount) of \(tickableCount) ticked")
+            .lbText(.footnote)
+            .monospacedDigit()
+            .foregroundStyle(LBColor.textTertiary.color)
+        #if os(iOS)
+        return VStack(spacing: LBSpacing.s2) {
+            count
+            add
+        }
+        .padding(.horizontal, LBSpacing.s4)
+        .padding(.top, LBSpacing.s3)
+        .padding(.bottom, LBSpacing.s2)
+        #else
+        return HStack(spacing: LBSpacing.s3) {
+            Button { Measure.used("discard"); confirmingClose = true } label: {
+                Text("Discard")
+                    .lbText(.label)
+                    .foregroundStyle(LBColor.textPrimary.color)
+                    .padding(.horizontal, LBSpacing.s4)
+                    .frame(minHeight: 32)
+                    .background(LBColor.chrome.color, in: Capsule())
+                    .contentShape(Capsule())
+            }
+            .lbButtonStyle()
+            .keyboardShortcut(.cancelAction)
+            count
+            Spacer(minLength: LBSpacing.s2)
+            add.keyboardShortcut(.defaultAction)
+        }
+        .padding(.horizontal, LBSpacing.s6)
+        .padding(.vertical, LBSpacing.s3)
+        #endif
     }
 
     private func renameRepeat(_ old: String, to new: String) {
@@ -814,10 +1224,6 @@ struct StatementImportView: View {
         for index in candidates.indices where candidates[index].name.caseInsensitiveCompare(old) == .orderedSame {
             candidates[index].name = clean
         }
-    }
-
-    private func repeatWord(_ repeated: StatementCloud.Repeat) -> String {
-        repeated.dates.isEmpty ? repeated.name : "\(repeated.name) · \(cycleWord(repeated))"
     }
 
     private func cycleWord(_ repeated: StatementCloud.Repeat) -> String {
@@ -865,121 +1271,9 @@ struct StatementImportView: View {
         chosenRepeats.insert(clean)
     }
 
-    /// The statement's lines under the account's name — as a count first, because a year
-    /// is hundreds of lines nobody checks one by one here; the list opens on a tap, and
-    /// every line stays editable in the book afterwards.
-    private var chargesSection: some View {
-        VStack(alignment: .leading, spacing: LBSpacing.s2) {
-            Text(files.count == 1 ? files[0].name : "\(files.filter { $0.prepared != nil }.count) statements")
-                .lbText(.footnote)
-                .foregroundStyle(LBColor.textTertiary.color)
-                .lineLimit(1)
-                .truncationMode(.middle)
-                .padding(.horizontal, LBSpacing.s1)
-            card {
-                labelledRow("Currency") {
-                    TextField("", text: Binding(get: { currency }, set: { currency = $0; currencyTyped = true }),
-                              prompt: Text("INR").foregroundStyle(LBColor.textTertiary.color))
-                        .textFieldStyle(.plain)
-                        .lbText(.body)
-                        .foregroundStyle(LBColor.textPrimary.color)
-                        .multilineTextAlignment(.trailing)
-                        #if os(iOS)
-                        .textInputAutocapitalization(.characters)
-                        #endif
-                }
-            }
-            card {
-                Button { Measure.used("show_charges"); showingCharges.toggle() } label: {
-                    HStack(spacing: LBSpacing.s3) {
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text(chargesWord)
-                                .lbText(.body)
-                                .foregroundStyle(LBColor.textPrimary.color)
-                            if let tally = chargesTally {
-                                Text(tally)
-                                    .lbText(.footnote)
-                                    .foregroundStyle(LBColor.textTertiary.color)
-                            }
-                        }
-                        Spacer(minLength: LBSpacing.s2)
-                        Image(systemName: showingCharges ? "chevron.up" : "chevron.down")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(LBColor.textQuaternary.color)
-                    }
-                    .padding(LBSpacing.s3)
-                    .contentShape(Rectangle())
-                }
-                .lbButtonStyle()
-                .accessibilityHint(showingCharges ? "Hides every line" : "Shows every line")
-                if showingCharges {
-                    keepAllRow
-                    #if os(macOS)
-                    chargesTable
-                    #endif
-                }
-            }
-            #if os(iOS)
-            // Each line its own card, the card every list wears, so the review reads as
-            // Changes does.
-            if showingCharges {
-                ForEach(candidates.indices, id: \.self) { index in
-                    row(index)
-                }
-            }
-            #endif
-        }
-    }
-
-    /// A label on the left, its value on the right.
-    private func labelledRow<Content: View>(_ label: String, @ViewBuilder _ value: () -> Content) -> some View {
-        HStack(spacing: LBSpacing.s3) {
-            Text(label)
-                .lbText(.body)
-                .foregroundStyle(LBColor.textSecondary.color)
-                .fixedSize()
-            value()
-        }
-        .padding(.horizontal, LBSpacing.s3)
-        .frame(minHeight: 44)
-    }
-
-    /// The span the kept lines cover: a month by its name, a longer stretch as its two ends.
-    private var chargesWord: String {
-        let dates = candidates.filter(\.keep).map(\.line.date).sorted()
-        guard let first = dates.first, let last = dates.last else { return "No charges to add" }
-        return first.prefix(7) == last.prefix(7) ? fullMonthWord(first) : "\(monthWord(first)) to \(monthWord(last))"
-    }
-
-    /// What the span holds, kept apart by a dot: charges, money in, transfers, lines left out.
-    private var chargesTally: String? {
-        let spend = keptCount - keptIncome - keptTransfers
-        let skipped = candidates.count - keptCount
-        var parts: [String] = []
-        if spend > 0 { parts.append("\(spend) charge\(spend == 1 ? "" : "s")") }
-        if keptIncome > 0 { parts.append("\(keptIncome) payment\(keptIncome == 1 ? "" : "s") in") }
-        if keptTransfers > 0 { parts.append("\(keptTransfers) transfer\(keptTransfers == 1 ? "" : "s")") }
-        if skipped > 0 { parts.append("\(skipped) skipped") }
-        return parts.isEmpty ? nil : parts.joined(separator: " · ")
-    }
-
     private func monthDayWord(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.setLocalizedDateFormatFromTemplate("d MMM y")
-        return formatter.string(from: date)
-    }
-
-    private func fullMonthWord(_ iso: String) -> String {
-        guard let date = LB.parseDate(iso) else { return iso }
-        let formatter = DateFormatter()
-        formatter.setLocalizedDateFormatFromTemplate("LLLL y")
-        return formatter.string(from: date)
-    }
-
-    private func monthWord(_ iso: String) -> String {
-        guard let date = LB.parseDate(iso) else { return iso }
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMM yyyy"
         return formatter.string(from: date)
     }
 
@@ -1052,54 +1346,6 @@ struct StatementImportView: View {
         .frame(minWidth: 520, minHeight: 560)
         #endif
         .background(LBColor.canvas.color)
-    }
-
-    private func card<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
-        VStack(spacing: 0) { content() }
-            .background(LBColor.card.color, in: RoundedRectangle(cornerRadius: LBRadius.md, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: LBRadius.md, style: .continuous)
-                    .strokeBorder(LBColor.hairline.color, lineWidth: 1)
-            )
-    }
-
-    /// What to do with the lines, said once, above them; and every line ticked or none, in one tap.
-    private var keepAllRow: some View {
-        let open = candidates.filter { $0.skipReason == nil }
-        let allKept = open.allSatisfy(\.keep)
-        return HStack(spacing: LBSpacing.s3) {
-            Text("Untick anything you don’t want to add.")
-                .lbText(.footnote)
-                .foregroundStyle(LBColor.textTertiary.color)
-                .fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: LBSpacing.s2)
-            // Both words, always: "Select All" never sweeps a transfer in; "Deselect All"
-            // lets one the owner ticked go too.
-            let noneKept = !candidates.contains(where: \.keep)
-            keepAllButton("Select All", enabled: !allKept) {
-                for index in candidates.indices where candidates[index].skipReason == nil { candidates[index].keep = true }
-            }
-            keepAllButton("Deselect All", enabled: !noneKept) {
-                for index in candidates.indices { candidates[index].keep = false }
-            }
-        }
-        .padding(.horizontal, LBSpacing.s3)
-    }
-
-    private func keepAllButton(_ title: String, enabled: Bool, run: @escaping () -> Void) -> some View {
-        Button {
-            Measure.used("keep_all")
-            LBHaptics.tap()
-            run()
-        } label: {
-            Text(title)
-                .lbText(.label)
-                .foregroundStyle(enabled ? LBColor.brandText.color : LBColor.textQuaternary.color)
-                .frame(minHeight: 32)
-                .contentShape(Rectangle())
-        }
-        .lbButtonStyle()
-        .disabled(!enabled)
     }
 
     /// A line the owner cannot tick: already in the book, dated after today, or refused for
@@ -1216,64 +1462,9 @@ struct StatementImportView: View {
         }
     }
 
-    #if os(iOS)
     /// A line opened for editing, as a sheet's item.
     private struct OpenLine: Identifiable {
         let id: Int
-    }
-
-    /// One line as the card every list wears, the tick beside it: the name, its day and
-    /// what it is filed under, who it is for, the money. A tap opens the line to edit; the
-    /// bank's own words wait there.
-    private func row(_ index: Int) -> some View {
-        let candidate = candidates[index]
-        let locked = isLocked(candidate)
-        return HStack(alignment: .top, spacing: LBSpacing.s2) {
-            Button {
-                Measure.used("checkmark_square_fill")
-                if !locked { candidates[index].keep.toggle() }
-            } label: {
-                Image(systemName: candidate.keep ? "checkmark.square.fill" : "square")
-                    .font(.system(size: 18, weight: .regular))
-                    .foregroundStyle(candidate.keep ? LBColor.brand.color : LBColor.textTertiary.color)
-                    .frame(width: 28, height: 44)
-                    .contentShape(Rectangle())
-            }
-            // A checkbox: pressed on the box, never a hover.
-            .lbButtonStyle(hovers: false)
-            .disabled(locked)
-            .accessibilityLabel(candidate.keep ? "Kept. Tap to leave out." : "Left out. Tap to keep.")
-            Button {
-                Measure.used("open_line")
-                openLine = OpenLine(id: index)
-            } label: {
-                LBCommitmentRow(
-                    name: candidate.name.isEmpty ? candidate.line.payee : candidate.name,
-                    facts: candidateFacts(candidate), amount: amountText(candidate),
-                    ink: candidate.keep ? LBColor.brand : LBColor.textQuaternary,
-                    badge: locked ? ("Skipped", .muted) : nil
-                )
-                .opacity(candidate.keep ? 1 : 0.7)
-            }
-            .lbButtonStyle()
-            .accessibilityHint("Opens the line to edit it.")
-        }
-    }
-
-    /// The line's facts as a card wears them: its day, then money in, a transfer or its
-    /// category, then the person — a prompt where one is missing.
-    private func candidateFacts(_ candidate: StatementCandidate) -> [LBMetaFact] {
-        let day = LBMetaFact(symbol: LBGlyph.date, text: LB.parseDate(candidate.line.date).map(monthDayWord) ?? candidate.line.date)
-        let kind: LBMetaFact = candidate.isIncome ? LBMetaFact(symbol: LBGlyph.income, text: "Money in")
-            : candidate.isTransfer ? DashboardModel.transferFact
-            : candidate.tag.map { LBMetaFact(symbol: LBGlyph.category, text: categoryWord($0)) } ?? DashboardModel.addCategoryFact
-        let person = candidate.member.map { LBMetaFact(symbol: LBGlyph.member, text: $0) } ?? DashboardModel.addMemberFact
-        let why = candidate.skipReason.map { [LBMetaFact(symbol: "", text: $0)] } ?? []
-        return [day, kind] + why + [person]
-    }
-
-    private func amountText(_ candidate: StatementCandidate) -> String {
-        (candidate.isIncome ? "+" : "") + candidate.line.amount.formatted(.number.precision(.fractionLength(0...2)))
     }
 
     /// One line, open: whether it is added, its name, category and person, its money, and
@@ -1281,6 +1472,7 @@ struct StatementImportView: View {
     private func lineDetail(_ index: Int) -> some View {
         let candidate = candidates[index]
         let locked = isLocked(candidate)
+        let day = LB.parseDate(candidate.line.date).map(monthDayWord) ?? candidate.line.date
         return NavigationStack {
             Form {
                 Section {
@@ -1290,6 +1482,9 @@ struct StatementImportView: View {
                     if let reason = candidate.skipReason { Text("Skipped: \(reason)") }
                 }
                 Section {
+                    #if os(macOS)
+                    LabeledContent("Date", value: day)
+                    #endif
                     LabeledContent("Name") {
                         TextField("Name", text: nameBinding(index), prompt: Text("Name it as you would say it"))
                             .multilineTextAlignment(.trailing)
@@ -1298,9 +1493,19 @@ struct StatementImportView: View {
                     if candidate.isIncome {
                         LabeledContent("Type", value: "Money in")
                     } else {
+                        #if os(iOS)
                         categoryPicker(index).disabled(locked)
+                        #else
+                        LabeledContent("Category") { categoryField(index).multilineTextAlignment(.trailing) }
+                            .disabled(locked)
+                        #endif
                     }
+                    #if os(iOS)
                     personPicker(index).disabled(locked)
+                    #else
+                    LabeledContent("Person") { personField(index).multilineTextAlignment(.trailing) }
+                        .disabled(locked)
+                    #endif
                     LabeledContent("Amount") { amountWord(candidate) }
                 }
                 Section("Statement line") {
@@ -1309,96 +1514,29 @@ struct StatementImportView: View {
                     Button("Copy Statement Line") { Measure.used("copy_statement_line"); copy(candidate.line.payee) }
                 }
             }
-            .lbScreenTitle(LB.parseDate(candidate.line.date).map(monthDayWord) ?? candidate.line.date, large: false)
+            #if os(macOS)
+            .formStyle(.grouped)
+            #endif
+            .lbScreenTitle(day, large: false)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { Measure.used("done"); openLine = nil }
+                    Button("Done") {
+                        Measure.used("done")
+                        #if os(macOS)
+                        // A name typed without Return is still a person on the statement.
+                        notePerson(candidates[index].member)
+                        #endif
+                        openLine = nil
+                    }
                 }
             }
         }
+        #if os(iOS)
         .presentationDetents([.medium, .large])
+        #else
+        .frame(minWidth: 480, minHeight: 440)
+        #endif
     }
-    #endif
-
-    #if os(macOS)
-    /// One line as the Mac's table holds it, with the values its columns sort by.
-    private struct LineRow: Identifiable {
-        let id: Int
-        let date: String
-        let name: String
-        let category: String
-        let person: String
-        let amount: Double
-        let kept: Int
-    }
-
-    private var lineRows: [LineRow] {
-        candidates.indices.map { index in
-            let candidate = candidates[index]
-            return LineRow(id: index, date: candidate.line.date, name: candidate.name,
-                           category: candidate.isIncome ? "" : candidate.tag.map(categoryWord) ?? "",
-                           person: candidate.member ?? "", amount: candidate.line.amount, kept: candidate.keep ? 1 : 0)
-        }
-        .sorted(using: lineOrder)
-    }
-
-    /// Every line in a sortable table, each cell edited in place; the bank's own words are
-    /// the name's tooltip, so the column stays readable.
-    private var chargesTable: some View {
-        Table(lineRows, sortOrder: $lineOrder) {
-            TableColumn("Add", value: \.kept) { row in
-                Toggle("", isOn: keepBinding(row.id).measured("keep_binding"))
-                    .labelsHidden()
-                    .disabled(isLocked(candidates[row.id]))
-                    .accessibilityLabel(candidates[row.id].keep ? "Kept" : "Left out")
-            }
-            .width(36)
-            TableColumn("Date", value: \.date) { row in
-                Text(LB.parseDate(row.date).map(monthDayWord) ?? row.date)
-                    .monospacedDigit()
-                    .foregroundStyle(LBColor.textSecondary.color)
-            }
-            .width(min: 84, ideal: 92)
-            TableColumn("Name", value: \.name) { row in
-                let candidate = candidates[row.id]
-                HStack(spacing: LBSpacing.s1) {
-                    if candidate.isTransfer {
-                        Image(systemName: LBGlyph.transfer)
-                            .foregroundStyle(LBColor.textSecondary.color)
-                            .accessibilityHidden(true)
-                    }
-                    if isLocked(candidate) {
-                        Text(candidate.name).foregroundStyle(LBColor.textTertiary.color)
-                    } else {
-                        TextField("Name", text: nameBinding(row.id))
-                            .textFieldStyle(.plain)
-                    }
-                }
-                .help(candidate.skipReason.map { "\(candidate.line.payee) — skipped: \($0)" } ?? candidate.line.payee)
-            }
-            .width(min: 140, ideal: 200)
-            TableColumn("Category", value: \.category) { row in
-                if candidates[row.id].isIncome {
-                    Text("Money in").foregroundStyle(LBColor.brandText.color)
-                } else {
-                    categoryField(row.id)
-                        .disabled(isLocked(candidates[row.id]))
-                }
-            }
-            .width(min: 110, ideal: 130)
-            TableColumn("Person", value: \.person) { row in
-                personField(row.id)
-                    .disabled(isLocked(candidates[row.id]))
-            }
-            .width(min: 90, ideal: 110)
-            TableColumn("Amount", value: \.amount) { row in
-                amountWord(candidates[row.id])
-            }
-            .width(min: 70, ideal: 90)
-        }
-        .frame(minHeight: 360, idealHeight: 440)
-    }
-    #endif
 
     /// The line's money, in figures of one width so a column of them lines up.
     private func amountWord(_ candidate: StatementCandidate) -> some View {
@@ -1412,18 +1550,6 @@ struct StatementImportView: View {
             .foregroundStyle(candidate.keep ? LBColor.textPrimary.color : LBColor.textTertiary.color)
             .fixedSize()
             .frame(minWidth: 72, alignment: .trailing)
-    }
-
-    private func lineWord(_ candidate: StatementCandidate) -> String {
-        let day = LB.parseDate(candidate.line.date).map(monthDayWord) ?? candidate.line.date
-        // Marked as a transfer, with why it is unticked; kept, it is left out of spending.
-        if candidate.isOpenTransfer {
-            return "\(day) · Transfer · " + (candidate.keep ? "left out of spending" : candidate.skipReason ?? "not kept")
-        }
-        // A refused transfer still says what it is, then why it stays out.
-        if candidate.isTransfer, let reason = candidate.skipReason { return "\(day) · Transfer · skipped: \(reason)" }
-        if let reason = candidate.skipReason { return "\(day) · skipped: \(reason)" }
-        return "\(day) · " + (candidate.isIncome ? "Money in" : candidate.tag.map(categoryWord) ?? "No category")
     }
 
     private func copy(_ value: String) {
@@ -1736,6 +1862,7 @@ struct StatementImportView: View {
         // With the switch off, a person or an account is added only when ticked here.
         chosenMembers = StatementFinds.on ? Set(members.map(\.name)) : []
         chosenAccounts = StatementFinds.on ? Set(foundAccounts) : []
+        ownAccountsTicked = StatementFinds.on ? Set(files.filter { $0.prepared != nil }.map(\.id)) : []
         notes = said.joined(separator: " ")
         // The reading is done; the review opens when the reader is ready for it, not
         // from under a game half played.
@@ -1789,8 +1916,8 @@ struct StatementImportView: View {
             for read in files where read.prepared != nil {
                 let mine = rows.filter { $0.file == read.id }
                 let named = read.account.trimmingCharacters(in: .whitespaces)
-                // With the switch on, the statement's own account is added even when no line is kept.
-                if StatementFinds.on, !named.isEmpty, model.addEntity(.paymentMethod, named: named) == nil {
+                // Ticked, the statement's own account is added even when no line is kept.
+                if ownAccountsTicked.contains(read.id), !named.isEmpty, model.addEntity(.paymentMethod, named: named) == nil {
                     throw WriteError.invalid(model.saveError ?? "That didn’t save.")
                 }
                 guard mine.contains(where: \.keep) else { continue }

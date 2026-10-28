@@ -271,6 +271,60 @@ final class LedgerTests: XCTestCase {
         XCTAssertEqual(NSDictionary(dictionary: out), NSDictionary(dictionary: vault), "no row went, so nothing is re-signed")
     }
 
+    // MARK: - removing this charge and every one after
+
+    func testRemovingThisAndLaterTakesThePlanFromThatDayAndEndsTheCommitmentBeforeIt() throws {
+        var vault = try VaultPatch.apply(edit(months: 12), to: Fx.raw([]), now: now)
+        let id = onlyId(vault)
+        vault = try VaultPatch.setCharge(commitmentId: id, date: "2026-03-01", paid: true, basis: "statement", in: vault, now: now)
+        vault = try VaultPatch.setCharge(commitmentId: id, date: "2026-11-01", amount: 1, in: vault, now: now)
+        vault = try VaultPatch.setCharge(commitmentId: id, date: "2026-12-01", paid: true, in: vault, now: now)
+        let before = (vault["_provenance"] as? [String: Any])?[id] as? [String: Any] ?? [:]
+        let later = LB.day(2026, 9, 6)
+        vault = try VaultPatch.removeChargeAndLater(of: id, from: "2026-10-01", in: vault, now: later)
+        let dates = Fx.rows(vault, of: id).map { $0["date"] as? String }
+        XCTAssertEqual(dates, ["2026-01-01", "2026-02-01", "2026-03-01", "2026-04-01", "2026-05-01",
+                               "2026-06-01", "2026-07-01", "2026-08-01", "2026-09-01", "2026-12-01"],
+                       "the named day and every unpaid day after it go; paid rows and the rows before stay")
+        let sub = (vault["commitments"] as? [[String: Any]])?.first
+        XCTAssertEqual(sub?["ends_on"] as? String, "2026-09-30", "the plan ends the day before the removed charge")
+        XCTAssertEqual(sub?["status"] as? String, "active")
+        let prov = vault["_provenance"] as? [String: Any] ?? [:]
+        XCTAssertNotEqual(NSDictionary(dictionary: prov[id] as? [String: Any] ?? [:]), NSDictionary(dictionary: before),
+                          "the commitment changed, so its entry is stamped")
+        for day in ["2026-10-01", "2026-11-01"] {
+            XCTAssertEqual((prov["\(id)@\(day)"] as? [String: Any])?["edited_at"] as? String, VaultPatch.iso8601(later))
+        }
+        XCTAssertNotEqual((prov["\(id)@2026-12-01"] as? [String: Any])?["edited_at"] as? String, VaultPatch.iso8601(later),
+                          "a paid row kept is not re-signed")
+    }
+
+    func testAPlanEndedByRemovingThisAndLaterIsNotWrittenAgain() throws {
+        var vault = try VaultPatch.apply(edit(months: 12), to: Fx.raw([]), now: now)
+        let id = onlyId(vault)
+        vault = try VaultPatch.removeChargeAndLater(of: id, from: "2026-11-01", in: vault, now: now)
+        let more = try VaultPatch.setPlannedCount(commitmentId: id, count: 12, in: vault, now: now)
+        XCTAssertEqual(Fx.rows(more, of: id).last?["date"] as? String, "2026-10-01", "a longer count stops at the end")
+        let planned = try VaultPatch.plan(commitmentId: id, months: 12, in: vault, now: now)
+        XCTAssertEqual(Fx.rows(planned, of: id).count, Fx.rows(vault, of: id).count, "more months write nothing past it")
+    }
+
+    func testRemovingThisAndLaterKeepsAnEarlierEndAndRefusesADayNotOnFile() throws {
+        var vault = try VaultPatch.apply(edit(months: 12), to: Fx.raw([]), now: now)
+        let id = onlyId(vault)
+        // A hand-priced row outlives the end's trim, so a charge can sit past the end.
+        vault = try VaultPatch.setCharge(commitmentId: id, date: "2026-10-01", amount: 1, in: vault, now: now)
+        var ends = edit(id)
+        ends.scheduledCancelDate = "2026-09-20"
+        vault = try VaultPatch.apply(ends, to: vault, now: now)
+        vault = try VaultPatch.removeChargeAndLater(of: id, from: "2026-10-01", in: vault, now: now)
+        XCTAssertEqual((vault["commitments"] as? [[String: Any]])?.first?["ends_on"] as? String, "2026-09-20",
+                       "an end already earlier stays")
+        XCTAssertEqual(Fx.rows(vault, of: id).last?["date"] as? String, "2026-09-01")
+        XCTAssertThrowsError(try VaultPatch.removeChargeAndLater(of: id, from: "2099-01-01", in: vault, now: now))
+        XCTAssertThrowsError(try VaultPatch.removeChargeAndLater(of: "nobody", from: "2026-09-01", in: vault, now: now))
+    }
+
     // MARK: - stopping unwrites the plan, never the past
 
     func testPausingRemovesUnpaidPlannedChargesAfterTodayAndKeepsTheRest() throws {

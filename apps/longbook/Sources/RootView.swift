@@ -638,10 +638,9 @@ struct RootView: View {
         // than refusing to tile — so a floor above that overlapped the app beside it. With
         // the sidebar put away the panes still have their measure.
         .frame(minWidth: 720, minHeight: 620)
-        // Once Support was opened, or while a conversation is recent, the button brings the
-        // put-away panel back.
+        // Support is a corner away on every screen; the button steps aside while the panel is open.
         .overlay(alignment: .bottomTrailing) {
-            if (support.active || support.opened) && !support.presented {
+            if !support.presented {
                 SupportButton().padding(LBSpacing.s6)
             }
         }
@@ -725,13 +724,12 @@ struct RootView: View {
     }
 
     #if os(iOS)
-    /// The Support button: on Settings and Help & about, and on every screen while a
-    /// conversation is open. `screen` is the pushed screen it sits on, nil on a tab's root.
+    /// The Support button on every screen, only on the one on top, and never while the
+    /// chat is open. `screen` is the pushed screen it sits on, nil on a tab's root.
     @ViewBuilder
     private func supportOverlay(_ screen: Destination?) -> some View {
         let onTop = screen == nil ? path.isEmpty : path.last == screen
-        let home = tab == .more && (screen == nil || screen == .helpAbout)
-        if onTop, !support.presented, support.active || support.opened || home {
+        if onTop, !support.presented {
             SupportButton()
                 .padding(.trailing, LBSpacing.s4)
                 .padding(.bottom, LBSpacing.s4)

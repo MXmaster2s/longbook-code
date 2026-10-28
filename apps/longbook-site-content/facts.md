@@ -70,7 +70,7 @@ More: [Pricing](/#price), [What is longbook Cloud](/features/what-is-longbook-cl
 - Where the data lives: In a longbook folder in the user's own iCloud Drive, as plain JSON files. The main file is `financial_memory.json`.
 - Bank login: None. longbook never connects to a bank.
 - Card numbers: The format has no field for a full card number, a CVV, an expiry, a PIN or a password, and a save carrying one is refused.
-- What leaves the device: Only what the user asks for: a statement being imported, the hosted copy for online AI connectors while AI access is on, shared reports, the account's email and licence status, usage and crash counts, and questions asked in Support
+- What leaves the device: Only what the user asks for: a statement being imported, the hosted copy for online AI connectors while AI access is on, shared reports, the account's email and licence status, usage and crash counts, and questions asked in Support with a screenshot when one is attached
 - Statements: Read through longbook's server and not kept, neither the file nor the charges
 - Hosted copy: Kept only while AI access is on. Turning it off deletes it.
 - Selling data: Never. longbook does not see inside a user's longbook.

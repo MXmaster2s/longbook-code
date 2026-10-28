@@ -251,6 +251,8 @@ struct EntityCardView: View {
         case list
         /// The editor's preview: every fact, nothing to press.
         case preview
+        /// The statement review's card: every fact, nothing to press, on the card colour.
+        case review
     }
 
     struct Actions {

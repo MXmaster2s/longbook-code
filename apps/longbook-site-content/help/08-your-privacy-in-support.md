@@ -12,7 +12,7 @@ Please don't paste or attach:
 - amounts, balances or statements
 - passwords or sign-in codes
 
-To show a problem, describe it, or send a screenshot with the figures cropped or covered.
+To show a problem, describe it, or attach a screenshot with the camera button. The screenshot goes with your message to the AI, which reads it to see your screen and never repeats what it shows. It may show amounts, so check it first.
 
 ## Who answers
 
@@ -25,7 +25,7 @@ longbook Support is an AI. It answers from these help articles, using Anthropic'
 - **In our inbox:** only an email you choose to send us.
 - **At Anthropic:** your messages are used only to answer you, kept briefly under its commercial terms, and never used to train its models.
 
-A screenshot never goes to the AI. It goes only in an email you send the team yourself.
+A screenshot you attach goes with that one message, to our server and to Anthropic, the same way as your words. Our server doesn't keep it. From the attachment you can send it to the team by email instead.
 
 ## Forget your conversation
 
