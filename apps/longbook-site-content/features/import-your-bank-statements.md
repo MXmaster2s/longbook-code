@@ -11,7 +11,7 @@ iphone: iphone-import-review
 mac: mac-import-review
 aliases: import-your-reports-from-your-bank-statements, import-bank-statements, bank-statement-import
 related: create-monthly-expense-reports, manage-your-expenses, automate-longbook-with-claude
-labels: Import a statement, Securely Upload Statement, Select All, Deselect All, Use My Own AI
+labels: Import a statement, Securely Upload Statement, Untick all, Use My Own AI
 ---
 
 Bank and card statements read into charges, up to five at once. Repeating payments and people in them are offered as commitments and members, and nothing is recorded before the review.
@@ -28,7 +28,7 @@ Bank and card statements read into charges, up to five at once. Repeating paymen
 
 ### Every line, reviewed
 
-Each line comes back with a name, date, amount and category, and money in is marked as money in. Transfers between your own accounts and card bill payments start unticked, and a line an earlier statement already recorded is left out. A name, a category or a person can be corrected and any line unticked, or **Select All** and **Deselect All** answer every line at once.
+Each line comes back with a name, date, amount and category, and money in is marked as money in. Transfers between your own accounts and card bill payments start unticked, and a line an earlier statement already recorded is left out. A name, a category or a person can be corrected and any line unticked, or **Untick all** answers a whole group at once.
 
 ### Commitments and members
 
