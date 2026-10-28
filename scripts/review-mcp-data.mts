@@ -1,16 +1,18 @@
 #!/usr/bin/env -S npx tsx
-// Fills appreview@longbook.app's hosted copy with the made-up demo household, for directory
-// reviewers connecting https://longbook.app/mcp. Signs in with the code review:account keeps in
+// Fills review@longbook.app's hosted copy with the made-up demo household, for directory
+// reviewers connecting https://longbook.app/mcp. Signs in through review-sign-in with the code in
 // the keychain, switches suggestions on, and reads the copy back. Never prints the code.
 
-// The copy needs longbook Cloud, which review:account takes off. --grant-cloud gives 120 days;
-// run this after review:account, since the copy is deleted 30 days after Cloud ends.
+// This account is the directory reviewers' alone: review:account never touches it or its Cloud.
+// review-sign-in opens only while its grant stands, so --grant-cloud keeps that grant.
 // Run: npm run review:mcp-data [-- --household us|in] [--grant-cloud] [--dry-run]
 import { execFileSync } from 'node:child_process'
+import { randomInt } from 'node:crypto'
 import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { homedir, tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { REVIEW_GRANT_NOTE } from '../supabase/functions/review-sign-in/check.ts'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const PROJECT_REF = 'xbrnijgctmovoqbbmgmb'
@@ -20,11 +22,10 @@ const SUPABASE = `https://${PROJECT_REF}.supabase.co`
 const ANON_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhicm5pamdjdG1vdm9xYmJtZ21iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3NzQ0NDQsImV4cCI6MjEwMTM1MDQ0NH0.ZamrPyf3UmAmbqzzAcce_Ocb1bKNq19wVxTtaC32a-g'
 const MCP_URL = 'https://longbook.app/mcp'
-/** Must match REVIEW_EMAIL in packages/swift-core AuthClient.swift and EMAIL in review-account.mts. */
-const EMAIL = 'appreview@longbook.app'
-/** Where review:account keeps the code, which is this account's password. */
-const KEYCHAIN_SERVICE = 'longbook App Review sign-in code'
-const GRANT_NOTE = 'MCP directory review account'
+/** Must match the REVIEW_EMAIL secret review-sign-in reads, and REVIEW_ADDRESS on the consent page. */
+const EMAIL = 'review@longbook.app'
+/** The fixed sign-in code; the REVIEW_CODE secret holds the same value. */
+const KEYCHAIN_SERVICE = 'longbook directory review sign-in code'
 const GRANT_DAYS = 120
 
 const argv = process.argv.slice(2)
@@ -61,35 +62,29 @@ if (DRY) {
   process.exit(0)
 }
 
-// ---- sign in as the review account ------------------------------------------------------------
+// ---- the code, and Cloud, which both the sign-in and the hosted copy need -------------------
 
-let password = ''
-try {
-  password = execFileSync('security', ['find-generic-password', '-s', KEYCHAIN_SERVICE, '-a', EMAIL, '-w'], {
-    encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'ignore'],
-  }).trim()
-} catch {
-  fail(`No code in the keychain under "${KEYCHAIN_SERVICE}". Run npm run review:account first.`)
+const keychain = (): string | null => {
+  try {
+    return execFileSync('security', ['find-generic-password', '-s', KEYCHAIN_SERVICE, '-a', EMAIL, '-w'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim()
+  } catch {
+    return null
+  }
+}
+let code = keychain()
+if (!code) {
+  execFileSync('security', ['add-generic-password', '-s', KEYCHAIN_SERVICE, '-a', EMAIL, '-w', String(randomInt(0, 100_000_000)).padStart(8, '0')])
+  fail(
+    `A new code is in the keychain as "${KEYCHAIN_SERVICE}". Give it to review-sign-in, then run this again:\n` +
+      `  npx supabase secrets set --project-ref ${PROJECT_REF} REVIEW_CODE="$(security find-generic-password -s '${KEYCHAIN_SERVICE}' -w)"`,
+  )
 }
 
-const signIn = await fetch(`${SUPABASE}/auth/v1/token?grant_type=password`, {
-  method: 'POST',
-  headers: { apikey: ANON_KEY, 'Content-Type': 'application/json' },
-  body: JSON.stringify({ email: EMAIL, password }),
-  signal: AbortSignal.timeout(20_000),
-})
-password = ''
-if (!signIn.ok) fail(`Signing in as ${EMAIL} failed: ${signIn.status}. Run npm run review:account, then this again.`)
-const session = (await signIn.json()) as { access_token: string; user: { id: string } }
-const userId = session.user.id
-const asUser = { apikey: ANON_KEY, Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' }
-console.log(`✓ signed in as ${EMAIL}`)
-
-// ---- Cloud, which the hosted memory needs ---------------------------------------------------
-
-const rpc = async (fn: string, args: Record<string, unknown>): Promise<unknown> => {
-  const res = await fetch(`${SUPABASE}/rest/v1/rpc/${fn}`, { method: 'POST', headers: asUser, body: JSON.stringify(args), signal: AbortSignal.timeout(20_000) })
+const rpc = async (fn: string, args: Record<string, unknown>, headers: Record<string, string>): Promise<unknown> => {
+  const res = await fetch(`${SUPABASE}/rest/v1/rpc/${fn}`, { method: 'POST', headers, body: JSON.stringify(args), signal: AbortSignal.timeout(20_000) })
   return res.ok ? res.json() : null
 }
 
@@ -97,21 +92,58 @@ if (GRANT) {
   const env = process.env.SUPABASE_ACCESS_TOKEN?.trim()
   const cli = join(homedir(), '.supabase/access-token')
   const token = env || (existsSync(cli) ? readFileSync(cli, 'utf8').trim() : fail('No Supabase access token. Set SUPABASE_ACCESS_TOKEN, or run: npx supabase login'))
+  // A longer grant already in place is kept; the note is the one review-sign-in asks for.
   const res = await fetch(`https://api.supabase.com/v1/projects/${PROJECT_REF}/database/query`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      query: `insert into public.cloud_grants (user_id, until, note) values ('${userId}', now() + interval '${GRANT_DAYS} days', '${GRANT_NOTE}')
-        on conflict (user_id) do update set until = excluded.until, note = excluded.note, granted_at = now()`,
+      query: `insert into public.cloud_grants (user_id, until, note)
+          select id, now() + interval '${GRANT_DAYS} days', '${REVIEW_GRANT_NOTE}' from auth.users where email = '${EMAIL}'
+        on conflict (user_id) do update set until = greatest(public.cloud_grants.until, excluded.until), note = excluded.note
+        returning until`,
     }),
     signal: AbortSignal.timeout(20_000),
   })
   if (!res.ok) fail(`Granting Cloud failed: ${res.status} ${(await res.text()).slice(0, 300)}`)
-  console.log(`✓ Cloud granted for ${GRANT_DAYS} days ("${GRANT_NOTE}"); review:account takes it off again`)
+  const rows = (await res.json()) as { until: string }[]
+  if (!rows.length) fail(`✗ ${EMAIL} has no account yet. Nothing was written.`)
+  console.log(`✓ Cloud granted until ${rows[0].until.slice(0, 10)} ("${REVIEW_GRANT_NOTE}")`)
 }
+
+// ---- sign in as the review account, as a reviewer does on the consent page -----------------
+
+const door = await fetch(`${SUPABASE}/functions/v1/review-sign-in`, {
+  method: 'POST',
+  headers: { apikey: ANON_KEY, 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email: EMAIL, code }),
+  signal: AbortSignal.timeout(20_000),
+})
+code = ''
+const answer = (await door.json().catch(() => ({}))) as { token_hash?: string; error?: string }
+if (!door.ok || !answer.token_hash) {
+  fail(
+    door.status === 404
+      ? `✗ review-sign-in is shut for ${EMAIL}: REVIEW_EMAIL or REVIEW_CODE is unset, or the account has no grant. Run again with --grant-cloud.`
+      : door.status === 401
+        ? `✗ review-sign-in refused the code: REVIEW_CODE differs from "${KEYCHAIN_SERVICE}".`
+        : `✗ review-sign-in answered ${door.status}: ${answer.error ?? ''}`,
+  )
+}
+const verify = await fetch(`${SUPABASE}/auth/v1/verify`, {
+  method: 'POST',
+  headers: { apikey: ANON_KEY, 'Content-Type': 'application/json' },
+  body: JSON.stringify({ type: 'magiclink', token_hash: answer.token_hash }),
+  signal: AbortSignal.timeout(20_000),
+})
+if (!verify.ok) fail(`Signing in as ${EMAIL} failed: ${verify.status}.`)
+const session = (await verify.json()) as { access_token: string; user: { id: string } }
+const userId = session.user.id
+const asUser = { apikey: ANON_KEY, Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' }
+console.log(`✓ signed in as ${EMAIL}`)
+
 // The database refuses a hosted copy for an account without Cloud, and the nightly expiry
 // deletes one 30 days after Cloud ends, so nothing is written without it.
-if ((await rpc('has_cloud', { uid: userId })) !== true) {
+if ((await rpc('has_cloud', { uid: userId }, asUser)) !== true) {
   await fetch(`${SUPABASE}/auth/v1/logout?scope=local`, { method: 'POST', headers: asUser, signal: AbortSignal.timeout(20_000) }).catch(() => null)
   fail(
     `✗ ${EMAIL} has no longbook Cloud: the hosted copy cannot be written, and ${MCP_URL} would refuse its ` +

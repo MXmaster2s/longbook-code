@@ -47,29 +47,21 @@ test('the function answers a token only for the review grant, and the consent pa
   assert.ok(read('apps/longbook-site/oauth/consent/consent.js').includes('review-sign-in'), 'the bundle is regenerated')
 })
 
-test('the consent page offers a password to the App Review address alone', async () => {
-  const { APP_REVIEW_ADDRESS, mayUsePassword } = await import('../apps/longbook-site/oauth/consent/review-gate.mts')
-  assert.equal(APP_REVIEW_ADDRESS, 'appreview@longbook.app')
-  assert.ok(mayUsePassword('appreview@longbook.app'))
-  assert.ok(mayUsePassword('  AppReview@Longbook.app '))
-  for (const other of ['', 'owner@example.com', 'review@longbook.app', 'appreview@longbook.app.example.com', 'xappreview@longbook.app', 'appreview@longbook.ap']) {
-    assert.equal(mayUsePassword(other), false, other)
-  }
-  // The same address the app and review:account use, so the password is the code they set.
-  assert.ok(read('packages/swift-core/Sources/LongbookCore/AuthClient.swift').includes(`let REVIEW_EMAIL = "${APP_REVIEW_ADDRESS}"`))
-  assert.ok(read('scripts/review-account.mts').includes(`const EMAIL = '${APP_REVIEW_ADDRESS}'`))
+test('the consent page has no password sign-in', () => {
+  const consent = read('apps/longbook-site/oauth/consent/consent.src.mts')
+  assert.ok(!consent.includes('signInWithPassword('))
+  assert.ok(!read('apps/longbook-site/oauth/consent/index.html').includes('id="password"'))
+  assert.ok(!read('apps/longbook-site/oauth/consent/consent.js').includes('pw-signin'), 'the bundle is regenerated')
+  assert.ok(consent.includes(`const REVIEW_ADDRESS = '${EMAIL}'`))
 })
 
-test('the password sign-in is reached only past the address check, and every other address still gets a code', () => {
-  const consent = read('apps/longbook-site/oauth/consent/consent.src.mts')
-  assert.equal(consent.split('signInWithPassword(').length - 1, 1, 'one password sign-in')
-  const body = consent.slice(consent.indexOf('async function passwordSignIn'), consent.indexOf('async function decide'))
-  assert.ok(body.indexOf('if (!mayUsePassword(email))') >= 0, 'the password form checks the address')
-  assert.ok(body.indexOf('if (!mayUsePassword(email))') < body.indexOf('signInWithPassword('), 'before it signs in')
-  const send = consent.slice(consent.indexOf('async function sendCode'), consent.indexOf('async function verifyCode'))
-  assert.ok(send.indexOf('mayUsePassword(email)') < send.indexOf('signInWithOtp('), 'the review address never asks for an email code')
-  assert.ok(send.includes("client.auth.signInWithOtp({ email, options: { shouldCreateUser: false } })"), 'everyone else is sent a code as before')
-  const html = read('apps/longbook-site/oauth/consent/index.html')
-  for (const id of ['use-password', 'pw-email', 'password', 'pw-signin', 'pw-error', 'pw-back']) assert.ok(html.includes(`id="${id}"`), id)
-  assert.ok(read('apps/longbook-site/oauth/consent/consent.js').includes('signInWithPassword'), 'the bundle is regenerated')
+test('review:mcp-data fills the directory review account through the same door', () => {
+  const script = read('scripts/review-mcp-data.mts')
+  assert.ok(script.includes(`const EMAIL = '${EMAIL}'`))
+  assert.ok(!script.includes('appreview@'), 'the App Review account is not touched')
+  assert.ok(script.includes("const KEYCHAIN_SERVICE = 'longbook directory review sign-in code'"))
+  assert.ok(script.includes('/functions/v1/review-sign-in'))
+  assert.ok(script.includes('REVIEW_GRANT_NOTE'), 'a grant keeps the note the function asks for')
+  assert.ok(!script.includes('grant_type=password'))
+  assert.ok(!/(^|[^a-z])review@longbook\.app/.test(read('scripts/review-account.mts')), 'review:account never touches it')
 })
