@@ -182,7 +182,7 @@ final class VaultStore: ObservableObject {
         state = .loading("Setting up your longbook in iCloud…")
         Task {
             let availability = await Task.detached(priority: .userInitiated) {
-                VaultContainer.probe()
+                VaultContainer.probeBeforeCreating()
             }.value
 
             switch availability {

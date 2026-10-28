@@ -130,4 +130,34 @@ final class ScaffoldTests: XCTestCase {
         // And re-picking the same parent now finds it instead of making a second one.
         XCTAssertEqual(VaultPlacement.resolve(picked: root), .adopt(target))
     }
+    /// A second scaffold over a folder that already has one writes nothing: the memory stays
+    /// as found, and no file gets a twin.
+    func testNeverWritesOverAnExistingVault() throws {
+        let vault = root.appendingPathComponent("longbook", isDirectory: true)
+        try VaultScaffold.create(at: vault, contractFiles: contract)
+        let memory = Data(#"{"app":"longbook","version":3,"commitments":[{"id":"kept"}]}"#.utf8)
+        try memory.write(to: vault.appendingPathComponent(VaultReader.dataFile))
+
+        let again = try VaultScaffold.create(at: vault, contractFiles: contract)
+
+        XCTAssertEqual(again, [])
+        XCTAssertEqual(try Data(contentsOf: vault.appendingPathComponent(VaultReader.dataFile)), memory)
+        let names = try FileManager.default.contentsOfDirectory(atPath: vault.path)
+        XCTAssertFalse(names.contains { $0.contains(" 2") }, "\(names)")
+    }
+
+    /// A file iCloud has not sent yet lists as a dot-name. Writing the real name beside it is
+    /// how iCloud ends up keeping both, so the scaffold leaves that name to the download.
+    func testLeavesNamesStillComingFromICloud() throws {
+        let vault = root.appendingPathComponent("longbook", isDirectory: true)
+        try FileManager.default.createDirectory(at: vault, withIntermediateDirectories: true)
+        try Data().write(to: vault.appendingPathComponent(".\(VaultReader.dataFile).icloud"))
+        try Data().write(to: vault.appendingPathComponent(".\(VaultReader.llmsFile).icloud"))
+
+        let written = try VaultScaffold.create(at: vault, contractFiles: contract)
+
+        XCTAssertEqual(written, [VaultReader.schemaFile])
+        XCTAssertFalse(FileManager.default.fileExists(atPath: vault.appendingPathComponent(VaultReader.dataFile).path))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: vault.appendingPathComponent(VaultReader.llmsFile).path))
+    }
 }

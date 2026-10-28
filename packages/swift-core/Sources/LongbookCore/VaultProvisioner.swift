@@ -20,9 +20,9 @@ public enum VaultProvisioner {
         "Keep your longbook on this device."
 
     /// Ask the real container, then act. Blocking — call it off the main actor, the same
-    /// rule `VaultContainer.probe()` documents for itself.
+    /// rule `VaultContainer.probeBeforeCreating()` documents for itself.
     public static func ensureICloudVault() -> Result {
-        decide(VaultContainer.probe())
+        decide(VaultContainer.probeBeforeCreating())
     }
 
     static func decide(
