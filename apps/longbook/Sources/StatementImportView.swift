@@ -22,7 +22,7 @@ struct StatementImportView: View {
     var picksOnOpen = false
     let onDone: () -> Void
 
-    private enum Stage: Equatable { case pick, working(String), locked, ready, review, added(Int, Int, Int) }
+    private enum Stage: Equatable { case pick, working(String), locked, ready, review }
 
     /// How many files one pick may hold.
     static let filesAtOnce = 5
@@ -62,8 +62,8 @@ struct StatementImportView: View {
 
     @State private var stage: Stage = .pick
     @State private var picking = false
-    /// Accepted once on this device before any statement leaves it; until then a pick or a
-    /// drop waits behind the consent sheet.
+    /// Accepted once by this account on this device before any statement leaves it; until
+    /// then a pick or a drop waits behind the consent sheet.
     @AppStorage(AIConsent.statements.key) private var consented = false
     @State private var askingConsent = false
     @State private var afterConsent: (() -> Void)?
@@ -90,8 +90,8 @@ struct StatementImportView: View {
     @State private var shareSpent = false
     /// The lines show from the start; the summary row above them folds them away.
     @State private var showingCharges = true
-    /// The review, one kind at a time: the lines, the people, the repeats.
-    @State private var reviewTab = 0
+    /// The review, one group at a time: commitments first, then the past expenses, the people, the accounts.
+    @State private var reviewTab = 2
     #if os(iOS)
     @State private var openLine: OpenLine?
     #else
@@ -159,7 +159,6 @@ struct StatementImportView: View {
             case .locked: lockedStage
             case .ready: readyStage
             case .review: reviewStage
-            case .added(let charges, let made, let waiting): addedStage(charges, made, waiting)
             }
         }
         .padding(LBSpacing.s4)
@@ -602,6 +601,12 @@ struct StatementImportView: View {
                     .foregroundStyle(LBColor.textTertiary.color)
                     .fixedSize(horizontal: false, vertical: true)
             }
+            if !accountsNamed {
+                Text("Name the account this statement is, under Accounts, before adding.")
+                    .lbText(.footnote)
+                    .foregroundStyle(LBColor.urgent.color)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             if let problem {
                 Text(problem)
                     .lbText(.footnote)
@@ -611,23 +616,28 @@ struct StatementImportView: View {
         }
     }
 
-    /// What Add covers, as Changes counts its rows: the lines, then the people and repeats.
+    /// What the review holds, group by group in the order the tabs stand: commitments,
+    /// past expenses, people, accounts.
     private var reviewTally: String? {
-        var parts = chargesTally.map { [$0] } ?? []
-        let people = members.count
-        if people > 0 { parts.append("\(people) \(people == 1 ? "person" : "people")") }
-        if !foundAccounts.isEmpty { parts.append("\(foundAccounts.count) account\(foundAccounts.count == 1 ? "" : "s")") }
-        if !repeats.isEmpty { parts.append("\(repeats.count) repeat\(repeats.count == 1 ? "" : "s")") }
+        var parts: [String] = []
+        if !repeats.isEmpty { parts.append("\(repeats.count) commitment\(repeats.count == 1 ? "" : "s")") }
+        if !candidates.isEmpty { parts.append("\(candidates.count) past expense\(candidates.count == 1 ? "" : "s")") }
+        if !members.isEmpty { parts.append("\(members.count) \(members.count == 1 ? "person" : "people")") }
+        if accountCount > 0 { parts.append("\(accountCount) account\(accountCount == 1 ? "" : "s")") }
         return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
+
+    /// Every account the statement prints: each file's own, named or still to name, and
+    /// the ones its transfers go to.
+    private var accountCount: Int { files.filter { $0.prepared != nil }.count + foundAccounts.count }
 
     private var reviewTabs: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: LBSpacing.s2) {
-                ChangeKindTab(title: "Charges", count: candidates.count, selected: reviewTab == 0) { pickTab(0) }
+                ChangeKindTab(title: "Commitments", count: repeats.count, selected: reviewTab == 2) { pickTab(2) }
+                ChangeKindTab(title: "Past expenses", count: candidates.count, selected: reviewTab == 0) { pickTab(0) }
                 ChangeKindTab(title: "People", count: members.count, selected: reviewTab == 1) { pickTab(1) }
-                ChangeKindTab(title: "Accounts", count: foundAccounts.count, selected: reviewTab == 3) { pickTab(3) }
-                ChangeKindTab(title: "Repeats", count: repeats.count, selected: reviewTab == 2) { pickTab(2) }
+                ChangeKindTab(title: "Accounts", count: accountCount, selected: reviewTab == 3) { pickTab(3) }
             }
         }
     }
@@ -674,7 +684,7 @@ struct StatementImportView: View {
                     .accessibilityLabel("Add a person")
                 }
             }
-            Text("Names on the statement. Ticked ones are added to People.")
+            Text("Every name the statement prints. Ticked ones are added to People.")
                 .lbText(.footnote)
                 .foregroundStyle(LBColor.textTertiary.color)
                 .padding(.horizontal, LBSpacing.s1)
@@ -690,13 +700,40 @@ struct StatementImportView: View {
         }
     }
 
-    /// The accounts the statement's transfers and card payments go to or come from, as
-    /// names to tick. Ticked ones are added to Accounts.
+    /// Every account the statement prints: each file's own account first, named by the
+    /// server and open to correction — empty, it waits to be typed — then the accounts its
+    /// transfers and card payments go to, as names to tick. Ticked ones are added to Accounts.
     private var accountsSection: some View {
         VStack(alignment: .leading, spacing: LBSpacing.s2) {
             LBSectionHeader("Accounts")
                 .foregroundStyle(LBColor.textTertiary.color)
                 .padding(.horizontal, LBSpacing.s1)
+            ForEach(files.indices, id: \.self) { index in
+                if files[index].prepared != nil {
+                    if files.count > 1 {
+                        Text(files[index].name)
+                            .lbText(.footnote)
+                            .foregroundStyle(LBColor.textTertiary.color)
+                            .lineLimit(1)
+                            .padding(.horizontal, LBSpacing.s1)
+                    }
+                    card {
+                        labelledRow("This statement") {
+                            TextField("", text: $files[index].account, prompt: Text("The account this statement is").foregroundStyle(LBColor.textTertiary.color))
+                                .textFieldStyle(.plain)
+                                .lbText(.body)
+                                .foregroundStyle(LBColor.textPrimary.color)
+                                .multilineTextAlignment(.trailing)
+                        }
+                    }
+                    if let balance = files[index].balance {
+                        Text("Balance \(fmtMoney(balance, currency.trimmingCharacters(in: .whitespaces).uppercased()))\(files[index].balanceDate.flatMap(LB.parseDate).map { " · \(monthDayWord($0))" } ?? "")")
+                            .lbText(.footnote)
+                            .foregroundStyle(LBColor.textTertiary.color)
+                            .padding(.horizontal, LBSpacing.s1)
+                    }
+                }
+            }
             LBFlow {
                 ForEach(foundAccounts, id: \.self) { account in
                     LBChip(account, style: .choice(selected: chosenAccounts.contains(account))) {
@@ -706,7 +743,7 @@ struct StatementImportView: View {
             }
             Text(foundAccounts.isEmpty
                  ? "No other accounts on the statement."
-                 : "Accounts your transfers and card payments go to. Ticked ones are added to Accounts.")
+                 : "Accounts your transfers and card payments go to, your own among them. Ticked ones are added to Accounts.")
                 .lbText(.footnote)
                 .foregroundStyle(LBColor.textTertiary.color)
                 .padding(.horizontal, LBSpacing.s1)
@@ -714,11 +751,11 @@ struct StatementImportView: View {
         }
     }
 
-    /// What repeats, as names to tick, and a plus for one the statement did not show.
+    /// What comes round, as names to tick, and a plus for one the statement did not show.
     /// Ticked, each becomes a commitment over its lines; a long press fills one in by hand.
     private var repeatsSection: some View {
         VStack(alignment: .leading, spacing: LBSpacing.s2) {
-            LBSectionHeader("Repeating payments")
+            LBSectionHeader("Commitments")
                 .foregroundStyle(LBColor.textTertiary.color)
                 .padding(.horizontal, LBSpacing.s1)
             LBFlow {
@@ -852,33 +889,6 @@ struct StatementImportView: View {
                         #endif
                 }
             }
-            // Each file is an account, named by the server and open to correction.
-            ForEach(files.indices, id: \.self) { index in
-                if files[index].prepared != nil {
-                    if files.count > 1 {
-                        Text(files[index].name)
-                            .lbText(.footnote)
-                            .foregroundStyle(LBColor.textTertiary.color)
-                            .lineLimit(1)
-                            .padding(.horizontal, LBSpacing.s1)
-                    }
-                    card {
-                        labelledRow("Account") {
-                            TextField("", text: $files[index].account, prompt: Text("The account this statement is").foregroundStyle(LBColor.textTertiary.color))
-                                .textFieldStyle(.plain)
-                                .lbText(.body)
-                                .foregroundStyle(LBColor.textPrimary.color)
-                                .multilineTextAlignment(.trailing)
-                        }
-                    }
-                    if let balance = files[index].balance {
-                        Text("Balance \(fmtMoney(balance, currency.trimmingCharacters(in: .whitespaces).uppercased()))\(files[index].balanceDate.flatMap(LB.parseDate).map { " · \(monthDayWord($0))" } ?? "")")
-                            .lbText(.footnote)
-                            .foregroundStyle(LBColor.textTertiary.color)
-                            .padding(.horizontal, LBSpacing.s1)
-                    }
-                }
-            }
             card {
                 Button { Measure.used("show_charges"); showingCharges.toggle() } label: {
                     HStack(spacing: LBSpacing.s3) {
@@ -971,29 +981,6 @@ struct StatementImportView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM yyyy"
         return formatter.string(from: date)
-    }
-
-    private func addedStage(_ charges: Int, _ made: Int, _ waiting: Int) -> some View {
-        VStack(alignment: .leading, spacing: LBSpacing.s3) {
-            Text("\(charges) charge\(charges == 1 ? "" : "s") recorded.")
-                .lbText(.body)
-                .foregroundStyle(LBColor.textPrimary.color)
-            if made > 0 {
-                Text("\(made) commitment\(made == 1 ? "" : "s") made and planned ahead.")
-                    .lbText(.bodySM)
-                    .foregroundStyle(LBColor.textSecondary.color)
-            }
-            if waiting > 0 {
-                Text("\(waiting) commitment\(waiting == 1 ? "" : "s") to fill in, on the timeline.")
-                    .lbText(.bodySM)
-                    .foregroundStyle(LBColor.textSecondary.color)
-            }
-            Text("Keep or undo it in Proposals.")
-                .lbText(.footnote)
-                .foregroundStyle(LBColor.textTertiary.color)
-            Spacer(minLength: 0)
-            primary("Done", action: onDone)
-        }
     }
 
     // MARK: pieces
@@ -1717,6 +1704,10 @@ struct StatementImportView: View {
             if !prepared.notes.isEmpty { said.append(files.count > 1 ? "\(files[index].name): \(prepared.notes)" : prepared.notes) }
         }
         said += files.compactMap(\.problem)
+        // A person a line names is a person on the statement, whether the look-over listed them.
+        for name in found.compactMap(\.member) where !seenMembers.contains(where: { $0.name.caseInsensitiveCompare(name) == .orderedSame }) {
+            seenMembers.append(StatementCloud.Member(name: name, role: "", reason: "Named on a line"))
+        }
         StatementImport.markAlreadyPresent(&found, in: model.importedChargeKeys())
         candidates = found
         // What the model saw, plus the rhythms the rules see in the same charges.
@@ -1727,15 +1718,8 @@ struct StatementImportView: View {
                                               amount: ruled.amount, dates: ruled.dates, category: nil, endsOn: nil))
         }
         repeats = seen
-        // Ticked by default only when the evidence is strong — three charges seen, or two
-        // and a name that says it recurs. A person paid once is a suggestion, not a plan.
-        chosenRepeats = Set(repeats.filter { repeated in
-            guard repeated.endsOn == nil else { return false }
-            let words = repeated.name.lowercased()
-            let recurringWord = ["rent", "emi", "premium", "subscription", "mandate", "autopay", "insurance", "broadband", "maintenance", "salary"]
-                .contains { words.contains($0) }
-            return repeated.dates.count >= 3 || (repeated.dates.count >= 2 && recurringWord)
-        }.map(\.name))
+        // Every commitment found is ticked; the owner unticks what is not one.
+        chosenRepeats = Set(repeats.map(\.name))
         // The other side of each transfer and card payment: an account or a person the book
         // does not hold yet, matched loosely, the people among the names to tick.
         var others = StatementCounterparts.Found()
@@ -1849,8 +1833,9 @@ struct StatementImportView: View {
             if !fresh.isEmpty { model.setPlaceholders(waiting + fresh) }
             // Every month the new rows confirm gets its report, drawn from what was written.
             model.drawMonthlyReports()
-            stage = .added(written, promoted.count, fresh.count)
             countImport(ok: true, charges: written)
+            // The Proposals strip on the Dashboard says where to keep or undo it.
+            onDone()
         } catch {
             Telemetry.shared.failed(.statementImport, error)
             problem = error.friendlyDescription

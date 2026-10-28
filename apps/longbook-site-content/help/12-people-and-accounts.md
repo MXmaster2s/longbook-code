@@ -27,4 +27,4 @@ Their commitments stay, without that person or account. longbook tells you how m
 No. Balances change only when you, a statement or your AI record one.
 
 ### Can a statement add people and accounts?
-Yes. The import offers the people it names and files each line under the account the statement is from. A closing balance on the statement updates that account.
+Yes. The import offers every person and every account the statement prints, and files each line under the account the statement is from. A closing balance on the statement updates that account.

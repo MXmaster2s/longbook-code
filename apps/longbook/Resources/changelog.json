@@ -51,6 +51,8 @@
       "Naming a new account shows an example from your region, and the UPI account type is offered in India only. Accounts already of that type keep it.",
       "The purchase screen shows Family Sharing on its own card: everyone in your Apple family gets longbook on their own account and devices.",
       "After an update, What's New shows what changed, once. Open it again any time from Settings, or read every version on longbook.app.",
+      "The statement review now shows Commitments, Past expenses, People and Accounts, in that order, with every commitment ticked to start. After Add, the sheet closes and Proposals shows what was recorded.",
+      "A statement review offers every person and every account the statement prints, your own other accounts included, so you untick rather than miss one. The statement's own account is always named, even when the header prints no number.",
       "Use My Own AI copies prompts that set longbook up for you: in Claude, the longbook plugin or connector; in ChatGPT, a plugin named longbook with its website and icon."
     ]
   },
