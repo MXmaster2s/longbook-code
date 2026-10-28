@@ -1,6 +1,7 @@
 #!/usr/bin/env -S npx tsx
-// Puts longbook back to a brand-new user: app state, the vault moved to iCloud Drive › longbook
-// backups, the account deleted, Claude Code's longbook plugin removed. Dry run unless --apply.
+// Puts longbook back to a brand-new user: each device build resets itself through
+// longbook://dev/first-use, then the vault moves to iCloud Drive › longbook backups, the account
+// is deleted and Claude Code's longbook plugin removed. Dry run unless --apply.
 // Run: npm run clean:slate [-- --mac] [--device <udid> [--reinstall <app>]] [--account [<email>]] [--apply [--yes]]
 import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
@@ -8,12 +9,14 @@ import { homedir, tmpdir } from 'node:os'
 import { basename, join } from 'node:path'
 import { createInterface } from 'node:readline/promises'
 import {
-  alreadyGone, APP_GROUP, bootedSimulators, BUNDLE_ID, macAppPids, macPlan, notPermitted, quote, simulatorPlan, VAULT_FILE,
+  alreadyGone, APP_GROUP, bootedSimulators, BUNDLE_ID, macAppPids, notPermitted, quote, simulatorPlan, VAULT_FILE,
 } from './app-reset-plan.mts'
 import {
-  backupDir, cascadeCountQuery, chooseAccount, confirmedPhrase, CONFIRM_PHRASE, copyVerified, folderSummary, ICLOUD_VAULT,
-  longbookMcpServers, longbookPlugins, maskEmail, normaliseEmail, parseArgs, restoreCommand, size, sqlText, WORKSPACE_FILE,
+  appRunning, backupDir, cascadeCountQuery, chooseAccount, confirmedPhrase, CONFIRM_PHRASE, copyVerified, folderSummary, ICLOUD_VAULT,
+  inStageOrder, longbookMcpServers, longbookPlugins, macResetCommand, maskEmail, normaliseEmail, parseArgs, phoneResetCommand,
+  resetLogCommand, restoreCommand, size, sqlText, type Stage, WORKSPACE_FILE,
 } from './clean-slate-plan.mts'
+import { carriesFirstUseReset, RESET_MARKER } from './device-build-flag.mts'
 import { topLevelKeys } from './plist.mts'
 
 const PROJECT_REF = 'xbrnijgctmovoqbbmgmb'
@@ -33,13 +36,13 @@ const BACKUP = backupDir(home, now)
 /** Copies that are not the iCloud vault sit beside it, so a restore of the vault stays one line. */
 const MORE = `${BACKUP} app copies`
 const ICLOUD = join(home, ICLOUD_VAULT)
-const MAC_DATA = join(home, 'Library/Containers', BUNDLE_ID, 'Data')
-const MAC_GROUP = join(home, 'Library/Group Containers', APP_GROUP)
+/** Where device:install puts the Mac app. */
+const MAC_APP = '/Applications/longbook.app'
 const wantMac = args.mac || !args.device
 const wantAutoPhone = !args.mac && !args.device
 
 interface Action { what: string; shown: string; run: () => void | Promise<void>; optional?: boolean }
-interface Section { target: string; actions: Action[]; kept: string[]; blocked?: string }
+interface Section { stage: Stage; target: string; actions: Action[]; kept: string[]; blocked?: string }
 const sections: Section[] = []
 
 const run = (cmd: string, argv: string[], cwd?: string, timeout = 120_000): string =>
@@ -91,22 +94,6 @@ function moveAction(what: string, source: string, destination: string, guard?: (
   }
 }
 
-/** The folder a stored bookmark points at, read from the bookmark's own bytes. Nothing is opened. */
-function bookmarkPath(base64: string): string | null {
-  const script = "function run(a){ObjC.import('Foundation');var d=$.NSData.alloc.initWithBase64EncodedStringOptions(a[0],1);" +
-    "var v=$.NSURL.resourceValuesForKeysFromBookmarkData($([$.NSURLPathKey]),d);if(!v||v.isNil())return '';" +
-    "var p=v.objectForKey($.NSURLPathKey);return (p&&!p.isNil())?p.js:''}"
-  return attempt('osascript', ['-l', 'JavaScript', '-e', script, base64])?.trim() || null
-}
-const bookmarksIn = (domain: string, keys: string[]): string[] => {
-  const xml = attempt('defaults', ['export', domain, '-']) ?? ''
-  return keys.flatMap((key) => {
-    const data = new RegExp(`<key>${key.replace(/\./g, '\\.')}</key>\\s*<data>([\\s\\S]*?)</data>`).exec(xml)?.[1]
-    const path = data ? bookmarkPath(data.replace(/\s+/g, '')) : null
-    return path ? [path] : []
-  })
-}
-
 // The address that last opened the vault, which the app writes from its signed-in session.
 const accountIn = (folder: string): string | null => {
   try {
@@ -120,45 +107,39 @@ let signedIn = accountIn(ICLOUD)
 
 // ── This Mac: the app ────────────────────────────────────────────────────────────────────────
 if (wantMac && process.platform === 'darwin') {
-  const containerOpen = readable(MAC_DATA)
   const exported = attempt('defaults', ['export', BUNDLE_ID, '-'])
-  const reset = macPlan({ home, running: false, userDomainKeys: exported ? topLevelKeys(exported) : [], iCloudVault: isVault(ICLOUD) })
-  const actions: Action[] = [{
-    what: 'Quit longbook, and wait until it has gone: it writes its settings back as it closes.',
-    shown: `$ osascript -e 'quit app "longbook"'`,
-    run: () => {
-      if (!macPids().length) return
-      run('osascript', ['-e', 'quit app "longbook"'])
-      for (let i = 0; i < 40 && macPids().length; i++) pause(500)
-      if (macPids().length) throw new Error('longbook is still running. Quit it, then run this again.')
-    },
-  }]
-  // Everything app:reset does, with the app group's whole domain in place of its one key.
-  for (const step of reset.steps.filter((s) => s.command.at(-1) !== 'vaultBookmark')) {
-    actions.push(command(step.what.replace(/ macOS keeps.*$/, ''), step.command))
+  const userKeys = exported ? topLevelKeys(exported) : []
+  const installed = existsSync(MAC_APP)
+  const resets = installed && carriesFirstUseReset(MAC_APP)
+  const actions: Action[] = []
+  if (resets) {
+    actions.push({
+      what: 'Reset longbook from inside, opening it if needed, and wait until it quits. It signs out, deletes its keychain items ' +
+        '(session, trial start, access key), its settings and the app group\'s (folder bookmarks), caches, Application Support, ' +
+        'web storage, saved windows, tmp (Support attachments, demo longbook) and the widget\'s copy of the vault.',
+      shown: `$ ${macResetCommand(MAC_APP).map(quote).join(' ')}`,
+      run: () => {
+        const [cmd, ...rest] = macResetCommand(MAC_APP)
+        const since = new Date(Date.now() - 1000)
+        try {
+          run(cmd, rest, undefined, 60_000)
+        } catch (error) {
+          if ((error as { code?: string }).code === 'ETIMEDOUT') throw new Error('longbook did not quit within a minute, so it did not reset.')
+          throw error
+        }
+        const [log, ...query] = resetLogCommand(since)
+        const line = (attempt(log, query) ?? '').split('\n').filter((l) => l.includes(RESET_MARKER)).pop()
+        if (!line) throw new Error('longbook quit without logging its reset, so it is not known to have reset.')
+        console.log(`  ${line.slice(line.indexOf(RESET_MARKER))}`)
+      },
+    })
   }
-  actions.push(command('Delete the app group\'s settings domain: the folder bookmark and what the widget and menu bar keep.',
-    ['defaults', 'delete', join(MAC_GROUP, 'Library/Preferences', APP_GROUP)]))
-  if (containerOpen) {
-    const history = join(MAC_DATA, 'Library/Application Support/longbook')
-    if (readable(history)) {
-      actions.push(moveAction(`Move the app's own copy of the vault's history (${counted(folderSummary(history))}) to the backup.`,
-        history, join(MORE, 'Mac app history')))
-    }
-    for (const [what, rel] of [
-      ['the app\'s caches', 'Library/Caches/app.longbook.longbook'], ['its web storage', 'Library/HTTPStorages/app.longbook.longbook'],
-      ['its saved window state', 'Library/Saved Application State/app.longbook.longbook.savedState'],
-      ['Support attachments waiting to send', 'tmp/longbook-support'], ['the demo longbook', 'tmp/demo-longbook'],
-    ] as const) {
-      if (existsSync(join(MAC_DATA, rel))) actions.push(removeAction(`Delete ${what}.`, join(MAC_DATA, rel)))
-    }
-  }
-  if (readable(MAC_GROUP) && existsSync(join(MAC_GROUP, 'widget-copy.json'))) {
-    actions.push(removeAction('Delete the widget\'s copy of the vault, a derived file.', join(MAC_GROUP, 'widget-copy.json')))
+  if (userKeys.length) {
+    actions.push(command(`Delete the unsandboxed domain a Debug build writes: ${userKeys.join(', ')}.`, ['defaults', 'delete', BUNDLE_ID]))
   }
   if (attempt('security', ['find-generic-password', '-s', ACCESS_KEY_SERVICE]) !== null) {
     actions.push({
-      what: 'Delete the saved longbook access key from the login keychain.',
+      what: 'Delete any longbook access key still in the login keychain, such as one an older build saved.',
       shown: `$ security delete-generic-password -s ${quote(ACCESS_KEY_SERVICE)}`,
       run: () => {
         while (attempt('security', ['delete-generic-password', '-s', ACCESS_KEY_SERVICE]) !== null) { /* one item per account */ }
@@ -166,15 +147,17 @@ if (wantMac && process.platform === 'darwin') {
     })
   }
   sections.push({
-    target: `This Mac${macPids().length ? ' (longbook is open; the first step quits it)' : ''}`,
+    stage: 'app',
+    target: `This Mac${macPids().length ? ' (longbook is open; the link reaches it there)' : ''}`,
     actions,
-    blocked: containerOpen ? undefined
-      : 'macOS guards the app\'s container from this terminal, so its own folder and any picked vault cannot be checked. ' +
-        'Give this terminal Full Disk Access in Privacy & Security, then run this again.',
+    blocked: installed && !resets
+      ? `${MAC_APP} is a TestFlight or App Store build, or one older than the reset, so it ignores the link. ` +
+        'Install a device build (npm run device:install -- --mac-only), then run this again.'
+      : undefined,
     kept: [
-      'The signed-in session and the trial stamp (app.longbook.session, app.longbook.trial). They live in the data-protection ' +
-        'keychain, which only the app can reach. Deleting the account ends the session on the server; the app signs out ' +
-        'the next time it refreshes its token (the project\'s tokens live an hour). The trial stamp keeps this Mac\'s earliest trial start.',
+      ...(installed ? [] : [`longbook is not in Applications. Any container left by an earlier install stays; install a device build and run this again to clear it.`]),
+      'A vault kept in the app\'s own Documents (iCloud off): the app moves it into Documents › longbook backups in its container, never deleting it.',
+      'A folder picked in the app keeps its vault; the app only forgets the folder.',
       'Purchases, which StoreKit keeps. Clear test purchases in Xcode\'s StoreKit transaction manager.',
     ],
   })
@@ -197,29 +180,10 @@ if (wantMac && process.platform === 'darwin') {
       blocked = `${dataless + placeholders} file(s) in the vault are still in iCloud only. Download them first: brctl download ${quote(ICLOUD)}`
     }
     vault.push(moveAction(`Move everything in the iCloud longbook folder (${counted(folderSummary(ICLOUD))}) to iCloud Drive › longbook backups › ${basename(BACKUP)}. ` +
-      'The folder itself stays, empty, and the iPhone sees it empty once iCloud syncs.', ICLOUD, BACKUP, notRunning))
+      'The folder itself stays, empty, and the iPhone sees it empty once iCloud syncs. Refused while longbook runs.', ICLOUD, BACKUP, notRunning))
     kept.push(`Restore with: ${restoreCommand(BACKUP, ICLOUD)}`)
   } else kept.push('The iCloud longbook folder is already empty.')
-  if (readable(MAC_DATA)) {
-    const docs = join(MAC_DATA, 'Documents')
-    if (isVault(docs) || isVault(join(docs, 'longbook'))) {
-      signedIn ??= accountIn(docs) ?? accountIn(join(docs, 'longbook'))
-      vault.push(moveAction(`Move the vault kept in the app's own Documents (${counted(folderSummary(docs))}).`, docs, join(MORE, 'Mac app Documents'), notRunning))
-      kept.push(`Restore with: ${restoreCommand(join(MORE, 'Mac app Documents'), docs)}`)
-    }
-    const picked = [
-      ...bookmarksIn(join(MAC_DATA, 'Library/Preferences', BUNDLE_ID), ['longbook.vaultBookmark', 'vaultBookmark']),
-      ...bookmarksIn(join(MAC_GROUP, 'Library/Preferences', APP_GROUP), ['vaultBookmark']),
-    ]
-    for (const folder of new Set(picked)) {
-      if (folder.startsWith(ICLOUD) || folder.startsWith(MAC_DATA) || !isVault(folder)) continue
-      signedIn ??= accountIn(folder)
-      const to = join(MORE, `Picked folder ${basename(folder)}`)
-      vault.push(moveAction(`Move the vault in the folder picked in the app, ${folder} (${counted(folderSummary(folder))}).`, folder, to, notRunning))
-      kept.push(`Restore with: ${restoreCommand(to, folder)}`)
-    }
-  } else kept.push('A vault in the app\'s own Documents or a picked folder: not checked, see above.')
-  sections.push({ target: 'The vault (moved, never deleted)', actions: vault, kept, blocked })
+  sections.push({ stage: 'vault', target: 'The vault (moved, never deleted)', actions: vault, kept, blocked })
 }
 
 // ── The account ──────────────────────────────────────────────────────────────────────────────
@@ -308,9 +272,9 @@ if (choice.kind === 'delete') {
     }
   }
   kept.push(`--account ${choice.typeToConfirm ? 'alone' : 'named the address'}; ${intro}.`)
-  sections.push({ target: `The account ${masked}`, actions, kept, blocked })
+  sections.push({ stage: 'account', target: `The account ${masked}`, actions, kept, blocked })
 } else {
-  sections.push({ target: 'The account', actions: [], kept: [`Kept. Add --account to delete it (${signedIn ? `the vault was opened by ${maskEmail(signedIn)}` : 'no signed-in address found'}).`] })
+  sections.push({ stage: 'account', target: 'The account', actions: [], kept: [`Kept. Add --account to delete it (${signedIn ? `the vault was opened by ${maskEmail(signedIn)}` : 'no signed-in address found'}).`] })
 }
 
 // ── Claude Code and Claude Desktop on this Mac ───────────────────────────────────────────────
@@ -354,14 +318,10 @@ if (wantMac && process.platform === 'darwin') {
     })
   }
   if (!actions.length && !kept.length) kept.push('No longbook plugin or MCP server is set up here.')
-  sections.push({ target: 'Claude Code and Claude Desktop on this Mac', actions, kept })
+  sections.push({ stage: 'claude', target: 'Claude Code and Claude Desktop on this Mac', actions, kept })
 }
 
 // ── A device ─────────────────────────────────────────────────────────────────────────────────
-const NO_IN_PLACE = 'devicectl can copy files into the app\'s container but cannot delete them, and the keychain (session, ' +
-  'trial stamp) outlives even an uninstall, so the app cannot be reset in place. Run again with --reinstall <path-to-.app>, an ' +
-  'iphoneos build from xcodebuild (device:install deletes its own once installed): the uninstall clears settings, caches and app group.'
-
 function simulatorSection(sim: { udid: string; name: string; runtime: string }): Section {
   const data = attempt('xcrun', ['simctl', 'get_app_container', sim.udid, BUNDLE_ID, 'data'])?.trim() || null
   const group = attempt('xcrun', ['simctl', 'get_app_container', sim.udid, BUNDLE_ID, APP_GROUP])?.trim() || null
@@ -369,7 +329,7 @@ function simulatorSection(sim: { udid: string; name: string; runtime: string }):
   const xml = prefs && existsSync(prefs) ? attempt('plutil', ['-convert', 'xml1', '-o', '-', prefs]) : null
   const local = data ? [join(data, 'Documents/longbook'), join(data, 'Documents')].find(isVault) ?? null : null
   const plan = simulatorPlan({ ...sim, dataContainer: data, groupContainers: [], keys: xml ? topLevelKeys(xml) : [], localVault: local })
-  if (!data) return { target: plan.target, actions: [], kept: plan.kept }
+  if (!data) return { stage: 'app', target: plan.target, actions: [], kept: plan.kept }
   const actions: Action[] = [command('Quit longbook on the simulator.', ['xcrun', 'simctl', 'terminate', sim.udid, BUNDLE_ID], { optional: true })]
   if (local) {
     const docs = join(data, 'Documents')
@@ -385,10 +345,10 @@ function simulatorSection(sim: { udid: string; name: string; runtime: string }):
   for (const rel of ['Library/Caches', 'tmp']) {
     const dir = join(data, rel)
     if (!readable(dir) || !readdirSync(dir).length) continue
-    actions.push({ what: `Empty ${rel}.`, shown: `$ rm -rf ${quote(dir)}/*`, run: () => readdirSync(dir).forEach((n) => rmSync(join(dir, n), { recursive: true, force: true })) })
+    actions.push({ what: `Empty ${rel}.`, shown: `$ rm -rf ${quote(dir)}/${'*'}`, run: () => readdirSync(dir).forEach((n) => rmSync(join(dir, n), { recursive: true, force: true })) })
   }
   actions.push(command('Reset the simulator\'s keychain: the session and trial stamp, and every other app\'s items on this simulator.', ['xcrun', 'simctl', 'keychain', sim.udid, 'reset']))
-  return { target: plan.target, actions, kept: ['Purchases, which StoreKit keeps.'] }
+  return { stage: 'app', target: plan.target, actions, kept: ['Purchases, which StoreKit keeps.'] }
 }
 
 type Phone = { udid: string; name: string }
@@ -411,28 +371,80 @@ function installedBuild(udid: string): string | null | undefined {
 }
 const plistValue = (plist: string, key: string): string | null => attempt('plutil', ['-extract', key, 'raw', '-o', '-', plist])?.trim() ?? null
 
+/** Whether the app runs on the iPhone; undefined when the iPhone does not answer. */
+function phoneAppRunning(udid: string): boolean | undefined {
+  const out = join(mkdtempSync(join(tmpdir(), 'clean-slate-')), 'processes.json')
+  if (attempt('xcrun', ['devicectl', 'device', 'info', 'processes', '--device', udid, '--timeout', '30', '--json-output', out], 60_000) === null) return undefined
+  return appRunning(JSON.parse(readFileSync(out, 'utf8')))
+}
+
+/** The app quits itself once reset; one still running after this ignored the link. */
+function phoneResetActions(phone: Phone): Action[] {
+  const [cmd, ...rest] = phoneResetCommand(phone.udid)
+  return [
+    {
+      what: 'Reset longbook from inside: a fresh launch with the link. It signs out, deletes its keychain items (session, trial start), ' +
+        'its settings and the app group\'s, caches, Application Support, tmp and the widget\'s copy, forgets the folder, and quits.',
+      shown: `$ ${phoneResetCommand(phone.udid).map(quote).join(' ')}`,
+      run: () => void run(cmd, rest, undefined, 90_000),
+    },
+    {
+      what: 'Wait for it to quit, and confirm it is not running.',
+      shown: `$ xcrun devicectl device info processes --device ${phone.udid}`,
+      run: () => {
+        let running = phoneAppRunning(phone.udid)
+        for (let i = 0; i < 10 && running !== false; i++) {
+          pause(2000)
+          running = phoneAppRunning(phone.udid)
+        }
+        if (running === undefined) throw new Error('The iPhone stopped answering. Unlock it and run this again.')
+        if (running) {
+          throw new Error('longbook is still running, so the installed build ignored the link: TestFlight and the App Store ship ' +
+            'without the reset. Run again with --reinstall <a device build .app>.')
+        }
+      },
+    },
+  ]
+}
+
 function phoneSection(phone: Phone): Section {
   const target = `iPhone ${phone.name} (${phone.udid})`
   const build = installedBuild(phone.udid)
   const reach = build === undefined ? 'It does not answer now; connect and unlock it.' : build === null ? 'longbook is not installed on it.' : `longbook build ${build} is installed.`
-  if (!args.reinstall) return { target, actions: [], kept: [reach, NO_IN_PLACE, 'The vault in iCloud: the Mac\'s part of this run moves it, and the iPhone follows once iCloud syncs.'] }
+  const iCloud = 'The vault in iCloud: the Mac\'s part of this run moves it, and the iPhone follows once iCloud syncs.'
+  const copyTo = join(MORE, 'iPhone app Documents')
+  const devicectl = ['xcrun', 'devicectl', 'device']
+  const copyOff = (required: boolean): Action[] => [
+    command('Copy the app\'s Documents off the iPhone first: a vault kept "on this iPhone" lives there.',
+      [...devicectl, 'copy', 'from', '--device', phone.udid, '--domain-type', 'appDataContainer', '--domain-identifier', BUNDLE_ID, '--source', 'Documents', '--destination', copyTo]),
+    { what: 'Count what came off, before anything changes.', shown: `count files in ${quote(copyTo)}`, run: () => {
+      if (!existsSync(copyTo)) {
+        if (required) throw new Error('Nothing arrived from the iPhone; the app stays installed.')
+        return console.log('  the app\'s Documents are empty')
+      }
+      console.log(`  ${counted(folderSummary(copyTo))} copied`)
+    } },
+  ]
+  if (!args.reinstall) {
+    if (!build) return { stage: 'app', target, actions: [], kept: [reach, iCloud], blocked: build === undefined && args.device ? reach : undefined }
+    return {
+      stage: 'app', target, actions: [...copyOff(false), ...phoneResetActions(phone)],
+      kept: [reach, 'A vault kept on this iPhone: the app moves it into Documents › longbook backups, and the copy above is off the iPhone too.',
+        'If the reset is refused because the installed build ignores the link, --reinstall <a device build .app> uninstalls and installs one.', iCloud],
+    }
+  }
+  // The fallback: an uninstall clears settings, caches, the app group and Documents, never the keychain.
   const app = args.reinstall
   const info = join(app, 'Info.plist')
   const id = existsSync(info) ? plistValue(info, 'CFBundleIdentifier') : null
   const platforms = existsSync(info) ? attempt('plutil', ['-extract', 'CFBundleSupportedPlatforms', 'json', '-o', '-', info]) ?? '' : ''
   const version = existsSync(info) ? plistValue(info, 'CFBundleVersion') : null
+  const resets = carriesFirstUseReset(app)
   const blocked = build === undefined ? reach
     : id !== BUNDLE_ID || !platforms.includes('iPhoneOS') ? `${app} is not an iPhone build of ${BUNDLE_ID}.` : undefined
-  const copyTo = join(MORE, 'iPhone app Documents')
-  const devicectl = ['xcrun', 'devicectl', 'device']
   const actions: Action[] = []
   if (build !== null) {
-    actions.push(command('Copy the app\'s Documents off the iPhone first: a vault kept "on this iPhone" lives there, and the uninstall would take it.',
-      [...devicectl, 'copy', 'from', '--device', phone.udid, '--domain-type', 'appDataContainer', '--domain-identifier', BUNDLE_ID, '--source', 'Documents', '--destination', copyTo]))
-    actions.push({ what: 'Count what came off, before anything is removed.', shown: `count files in ${quote(copyTo)}`, run: () => {
-      if (!existsSync(copyTo)) throw new Error('Nothing arrived from the iPhone; the app stays installed.')
-      console.log(`  ${counted(folderSummary(copyTo))} copied`)
-    } })
+    actions.push(...copyOff(true))
     actions.push(command('Uninstall longbook: its settings, caches, app group and Documents go.', [...devicectl, 'uninstall', 'app', '--device', phone.udid, BUNDLE_ID]))
   }
   actions.push(command(`Install ${basename(app)} (build ${version ?? '?'}).`, [...devicectl, 'install', 'app', '--device', phone.udid, app]))
@@ -440,10 +452,12 @@ function phoneSection(phone: Phone): Section {
     const now = installedBuild(phone.udid)
     if (now !== version) throw new Error(`The iPhone reports build ${now ?? 'none'}, not ${version}.`)
   } })
+  // The keychain outlives the uninstall; only the app itself can clear it.
+  if (resets) actions.push(...phoneResetActions(phone))
   return {
-    target, actions, blocked,
-    kept: [reach, 'The keychain items (session, trial stamp): iOS keeps them through an uninstall. The session ends with the account; the trial stamp stays.',
-      'The vault in iCloud: the Mac\'s part of this run moves it, and the iPhone follows once iCloud syncs.'],
+    stage: 'app', target, actions, blocked,
+    kept: [reach, resets ? 'The keychain outlives the uninstall, so the new build resets itself after the install.'
+      : `${basename(app)} is not a device build, so the keychain items (session, trial start) stay through the uninstall. The session ends with the account.`, iCloud],
   }
 }
 
@@ -460,7 +474,7 @@ if (args.device) {
 } else if (wantAutoPhone) {
   const phones = pairedPhones()
   if (phones.length === 1) sections.push(phoneSection(phones[0]))
-  else sections.push({ target: 'iPhone', actions: [], kept: [phones.length ? `${phones.length} paired iPhones; name one with --device <udid>.` : 'No paired iPhone. Name one with --device <udid>.'] })
+  else sections.push({ stage: 'app', target: 'iPhone', actions: [], kept: [phones.length ? `${phones.length} paired iPhones; name one with --device <udid>.` : 'No paired iPhone. Name one with --device <udid>.'] })
 }
 
 // ── The plan ─────────────────────────────────────────────────────────────────────────────────
@@ -471,8 +485,9 @@ const browser = [
   ...(appleLinked ? ['iPhone Settings › Apple Account › Sign in with Apple › longbook: Stop Using Apple Account.'] : []),
 ]
 console.log(`longbook clean slate — ${args.apply ? 'about to apply' : 'dry run, nothing changes'}\n`)
+const ordered = inStageOrder(sections)
 let n = 0
-for (const s of sections) {
+for (const s of ordered) {
   console.log(s.target)
   if (s.blocked) console.log(`  ✗ ${s.blocked}`)
   if (!s.actions.length) console.log('  Nothing to do.')
@@ -482,7 +497,7 @@ for (const s of sections) {
 }
 console.log([`Done by hand, by the person running this:`, ...browser.map((b) => `  · ${b}`)].join('\n') + '\n')
 
-const work = sections.filter((s) => s.actions.length)
+const work = ordered.filter((s) => s.actions.length)
 if (!args.apply) {
   console.log(work.length ? 'Dry run. Add --apply to do the steps above.' : 'Nothing to do.')
   process.exit(0)

@@ -8,6 +8,7 @@ import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { markOnTestFlight, untestedOnDevices } from './release.mts'
+import { carriesFirstUseReset } from './device-build-flag.mts'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -155,6 +156,11 @@ const main = () => {
     'archive',
   ], { stdio: 'inherit' })
   assertExportedVersion(join(archive, 'Products/Applications/longbook.app'), marketing, build)
+  // A device build's reset must never reach TestFlight or the App Store.
+  if (carriesFirstUseReset(join(archive, 'Products/Applications/longbook.app'))) {
+    console.error('The archived app carries the device-build reset, which only device:install builds may. Archive again from a clean derived data folder.')
+    process.exit(1)
+  }
 
   const exported = join(BUILD, 'export')
   execSync(`rm -rf "${exported}"`)

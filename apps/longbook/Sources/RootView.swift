@@ -278,6 +278,9 @@ struct RootView: View {
             // Google's redirect first — its SDK says whether the URL was its own; every
             // other longbook:// link is the email flow's.
             .onOpenURL { url in
+                #if DEVICE_BUILD
+                if FirstUseReset.handles(url) { FirstUseReset.run() }
+                #endif
                 if GoogleNative.handle(url) { return }
                 auth.handle(url)
             }
