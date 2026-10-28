@@ -166,24 +166,24 @@ A. WITH THE DEMO ACCOUNT (it holds no purchase, so both In-App Purchases come up
 2. Enter appreview@longbook.app, click "Send me a code", type the eight-digit code given as the password above and click "Verify and continue". The screen says a code was sent, but none is; no second factor, and the code does not expire.
 3. The first screen is "Activate your longbook". The In-App Purchase "longbook" is the button "Buy longbook" with its price ($38.00 in the US store) at the foot; buy it in the sandbox.
 4. longbook creates its folder in iCloud Drive. If iCloud Drive is off, click "Keep It on this Mac".
-5. "Import a statement" follows, the last of three steps. "Securely Upload Statement" reads a bank statement and "Use My Own AI" connects the user's AI; the demo account can click "Skip". The setup questions are in Settings > Data > Optimize your data.
-6. On the dashboard, "Add commitment" (Command-N) adds one; Settings is at the foot of the sidebar (Command-comma).
-7. Settings > Account: "Subscribe to longbook Cloud" is the second In-App Purchase, also bought in the sandbox. The same screen has "Request a Refund", Sign Out and "Delete Account...".
+5. "Import a statement" is the third step. "Securely Upload Statement" reads a bank statement and "Use My Own AI" connects the user's AI; the demo account can click "Skip". Setup questions: Settings > Statements > Optimize Your Data.
+6. The toolbar + (Command-N) adds a commitment; Settings is longbook > Settings (Command-comma).
+7. Settings > longbook Account > longbook Cloud: "Subscribe to longbook Cloud" is the second In-App Purchase, also bought in the sandbox. That pane has "Request a Refund", Sign Out and "Delete Account...".
 
 IN-APP PURCHASES
 1. "longbook": one-time, non-consumable, Family Sharing on. One purchase unlocks the app on Mac and iPhone and includes 12 months of longbook Cloud. No free trial. For 7 days after a purchase, "Request a Refund" (step 7) passes a refund request to Apple.
-2. "longbook Cloud": auto-renewable, one month, app.longbook.cloud.monthly, Family Sharing on. It covers the features that use our server: the hosted copy for the user's own AI, shared reports and extra statement reading. The licence brings 12 months of Cloud, except to this demo account, so after the purchase "Subscribe to longbook Cloud" (Settings > Account) and "Let AI Read My longbook" (Settings > AI) open the Cloud sheet: price, term, renewal terms, Subscribe, Restore Purchases, Terms and Privacy.
+2. "longbook Cloud": auto-renewable, one month, app.longbook.cloud.monthly, Family Sharing on. It covers what runs on our server: the hosted copy for the user's own AI, shared reports and extra statement reading. The licence brings 12 months of Cloud, except to this demo account, so after the purchase "Subscribe to longbook Cloud" (step 7) and "Let AI Read My longbook" (Settings > AI) open the Cloud sheet: price, term, renewal terms, Subscribe, Restore Purchases, Terms and Privacy.
 Everything else works without Cloud. All payments go through in-app purchase.
 
 STATEMENTS AND AI
 - "Securely Upload Statement" (the Import a statement step, or Command-I): a first-time sheet names Anthropic's AI and asks to accept the privacy policy. Before a file is chosen, the window says it is read once by an AI model and not kept. Our server reads the file, returns suggested charges and does not store it; only the charges the user keeps are saved, in their own folder.
 - "Reorganise my longbook" (Settings > AI) asks first, then sends the folder to our server for one pass; the result arrives as a change to keep or undo.
-- The Help menu lists what leaves the device and has the "Share Usage and Crash Data" switch. Privacy policy: https://longbook.app/privacy-policy/
+- Settings > Data & Privacy lists what leaves the device and has the "Share usage and crash data" switch. Privacy policy: https://longbook.app/privacy-policy/
 
 OTHER FEATURES
-- Menu bar item: the next payment and "Open longbook"; Settings > Menu Bar sets an optional keyboard shortcut for it.
+- Menu bar item: the next payment and "Open longbook"; Settings > General > Login Items and Menu Bar has an optional keyboard shortcut.
 - "next payment" widget. Shortcuts: Next commitment, Add a commitment, Add an expense, Record a charge from a message.
-- Demo longbook: "See Demo" (step 3) or Settings > "Try the Demo…"; made-up data, nothing kept.
+- Demo longbook: Settings > General > Help and Feedback > "Try the Demo…"; made-up data, nothing kept.
 - MCP server: "Let AI Read My longbook" (Settings > AI), off by default, lets the user's AI read it at longbook.app/mcp; its changes wait in Proposals.
 
 ACCOUNT
