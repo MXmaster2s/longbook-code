@@ -111,5 +111,10 @@
     "version": "1.5.0",
     "commit": "e1f368a23c",
     "installed": "2026-10-28"
+  },
+  "58": {
+    "version": "1.5.0",
+    "commit": "148c0270a1",
+    "installed": "2026-10-28"
   }
 }
