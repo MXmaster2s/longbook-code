@@ -12,6 +12,8 @@ struct DashboardView: View {
     @Environment(\.scenePhase) private var scenePhase
     #if os(iOS)
     @Environment(\.horizontalSizeClass) private var sizeClass
+    #else
+    @Environment(\.openSettings) private var openSettings
     #endif
     let model: DashboardModel
     /// The statement importer, opened from a month with nothing in it, signs its call.
@@ -151,7 +153,8 @@ struct DashboardView: View {
         .measured("dashboard_importing_month", .sheet, when: importingMonth != nil)
         .sheet(item: $importingMonth) { asked in
             StatementImportView(model: model, auth: auth, prompt: asked.prompt,
-                                context: asked.namesMonth ? .month(PromptCatalog.monthName(of: asked.firstDay)) : nil) {
+                                context: asked.namesMonth ? .month(PromptCatalog.monthName(of: asked.firstDay)) : nil,
+                                picksOnOpen: asked.picks, dropped: asked.dropped) {
                 importingMonth = nil
             }
         }
@@ -167,13 +170,49 @@ struct DashboardView: View {
         var prompt: String? = nil
         /// Opened for that one month, so the own-AI prompt asks for its report by name.
         var namesMonth = false
+        var picks = false
+        /// The statements dropped on the dashboard, read without the picker.
+        var dropped: [URL] = []
         var id: Int { offset }
         var firstDay: Date { LB.addMonths(LB.firstOfMonth(LB.todayMid()), offset) }
     }
 
     private func loaded(_ data: DashboardData) -> some View {
+        // One canvas for both, so a sheet opened from the empty book stays up as it fills.
         canvas {
             header(data)
+            if isEmptyBook {
+                DashboardStart(
+                    waiting: model.placeholders.map(\.name),
+                    onImport: { importingMonth = MonthAsk(offset: 0, prompt: "No past charges yet. Import a bank statement to add them.") },
+                    onDrop: { importingMonth = MonthAsk(offset: 0, dropped: $0) },
+                    onAdd: { addingForMonth = MonthAsk(offset: 0) },
+                    onOwnAI: openOwnAI
+                )
+            } else {
+                filled(data).screenTutorial(.dashboard)
+            }
+        }
+    }
+
+    /// No commitment and no charge anywhere: the dashboard is one way in, not empty cards.
+    private var isEmptyBook: Bool {
+        model.commitmentCount == 0 && model.chargeCount == 0
+    }
+
+    /// Settings › AI: the Settings window's AI pane on the Mac, the AI screen on the phone.
+    private func openOwnAI() {
+        #if os(macOS)
+        UserDefaults.standard.set(SettingsPane.ai.rawValue, forKey: SettingsPane.pickedKey)
+        openSettings()
+        #else
+        path.append(.mcpServer)
+        #endif
+    }
+
+    /// Today's dashboard: what is due, the 30-day rail, and the month's cards.
+    private func filled(_ data: DashboardData) -> some View {
+        VStack(alignment: .leading, spacing: LBSpacing.s4) {
             heroRow(data)
             // The rail stays whatever the book holds: it carries the Needs details card.
             DashboardRail(model: model, rail: data.rail) {
@@ -200,7 +239,6 @@ struct DashboardView: View {
                 categoryPanel(data)
             }
         }
-        .screenTutorial(.dashboard)
     }
 
     /// Nothing due ahead and no month in the range holding a charge: a book with no money in it yet.
@@ -1424,6 +1462,172 @@ private struct ChipRailWidthKey: PreferenceKey {
     static let defaultValue: CGFloat = 0
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
         value = max(value, nextValue())
+    }
+}
+
+/// A book with nothing in it: one way in instead of empty cards. A statement first, then
+/// a commitment by hand or the reader's own AI. On the Mac a statement dropped on it opens the import.
+private struct DashboardStart: View {
+    /// Names setup picked that still wait for their details.
+    let waiting: [String]
+    let onImport: () -> Void
+    let onDrop: ([URL]) -> Void
+    let onAdd: () -> Void
+    let onOwnAI: () -> Void
+    #if os(macOS)
+    @State private var dropping = false
+    #endif
+
+    private static let title = "Start with a statement"
+    private static let tail = "PDF or CSV. longbook reads it and fills in what you pay, when, and from which account."
+
+    var body: some View {
+        VStack(spacing: 0) {
+            #if os(macOS)
+            dropZone
+            HStack(spacing: LBSpacing.s3) {
+                secondary("Add a commitment by hand") { Measure.used("dashboard_add_by_hand"); onAdd() }
+                secondary("Use your own AI") { Measure.used("dashboard_use_own_ai"); onOwnAI() }
+            }
+            .padding(.top, LBSpacing.s6)
+            #else
+            icon(box: 72, glyph: 30, radius: 18)
+            words(line: "Import a bank or card statement, \(Self.tail)")
+            VStack(spacing: LBSpacing.s3) {
+                primary { Measure.used("dashboard_import_statement"); onImport() }
+                secondary("Add a commitment by hand") { Measure.used("dashboard_add_by_hand"); onAdd() }
+                secondary("Use your own AI") { Measure.used("dashboard_use_own_ai"); onOwnAI() }
+            }
+            .padding(.top, LBSpacing.s6)
+            .padding(.horizontal, LBSpacing.s4)
+            #endif
+            if !waiting.isEmpty { waitingLink.padding(.top, LBSpacing.s6) }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, Self.lead)
+    }
+
+    /// The block sits a little above the middle of a new window, as it does on the phone.
+    #if os(macOS)
+    private static let lead: CGFloat = 76
+    #else
+    private static let lead: CGFloat = 88
+    #endif
+
+    private func icon(box: CGFloat, glyph: CGFloat, radius: CGFloat) -> some View {
+        Image(systemName: "arrow.down.doc")
+            .font(.system(size: glyph, weight: .regular))
+            .foregroundStyle(LBColor.brandText.color)
+            .frame(width: box, height: box)
+            .background(LBColor.chrome.color, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+            .accessibilityHidden(true)
+    }
+
+    private func words(line: String) -> some View {
+        VStack(spacing: LBSpacing.s2) {
+            Text(Self.title)
+                .lbText(.screenTitle)
+                .foregroundStyle(LBColor.textPrimary.color)
+            Text(line)
+                #if os(macOS)
+                .lbText(.body)
+                #else
+                .lbText(.bodySM)
+                #endif
+                .foregroundStyle(LBColor.textSecondary.color)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: 420)
+                #if os(iOS)
+                .padding(.horizontal, LBSpacing.s6)
+                #endif
+        }
+        .multilineTextAlignment(.center)
+        .padding(.top, LBSpacing.s6)
+    }
+
+    private func primary(run: @escaping () -> Void) -> some View {
+        button("Import a statement", fill: LBColor.brand.color, ink: LBColor.onBrand.color, macHeight: 32, run: run)
+    }
+
+    private func secondary(_ title: String, run: @escaping () -> Void) -> some View {
+        button(title, fill: LBColor.chrome.color, ink: LBColor.textPrimary.color, macHeight: 28, run: run)
+    }
+
+    /// Full width and tall on the phone; a small pill on the Mac.
+    private func button(_ title: String, fill: Color, ink: Color, macHeight: CGFloat, run: @escaping () -> Void) -> some View {
+        Button {
+            Measure.used("dashboard_start")
+            LBHaptics.tap()
+            run()
+        } label: {
+            Text(title)
+                #if os(macOS)
+                .lbText(.label)
+                .padding(.horizontal, LBSpacing.s4)
+                .frame(minHeight: macHeight)
+                #else
+                .lbText(.headline)
+                .frame(maxWidth: 400, minHeight: 50)
+                #endif
+                .lineLimit(1)
+                .foregroundStyle(ink)
+                .background(fill, in: Capsule())
+                .contentShape(Capsule())
+        }
+        .lbButtonStyle()
+    }
+
+    #if os(macOS)
+    /// A statement dragged from Finder opens the import, as the button does.
+    private var dropZone: some View {
+        VStack(spacing: 0) {
+            icon(box: 64, glyph: 26, radius: 16)
+            words(line: "Drop a bank or card statement here, \(Self.tail)")
+            primary { Measure.used("dashboard_import_statement"); onImport() }
+                .padding(.top, LBSpacing.s6)
+        }
+        .padding(LBSpacing.s8)
+        .frame(maxWidth: 600, minHeight: 360)
+        .background(dropping ? LBColor.brand.color.opacity(0.10) : Color.clear,
+                    in: RoundedRectangle(cornerRadius: LBRadius.lg, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: LBRadius.lg, style: .continuous)
+                .strokeBorder(dropping ? LBColor.brand.color : LBColor.hairline.color,
+                              style: StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
+        )
+        .dropDestination(for: URL.self) { urls, _ in
+            guard urls.contains(where: Self.readable) else { return false }
+            Measure.used("dashboard_statement_drop")
+            onDrop(urls.filter(Self.readable))
+            return true
+        } isTargeted: { dropping = $0 }
+    }
+
+    /// The shapes the import reads: PDF, CSV, text and Excel.
+    private static func readable(_ url: URL) -> Bool {
+        ["pdf", "csv", "txt", "xls", "xlsx"].contains(url.pathExtension.lowercased())
+    }
+    #endif
+
+    private var waitingLink: some View {
+        NavigationLink(value: Destination.commitments(ListFilter())) {
+            HStack(spacing: LBSpacing.s2) {
+                Text("\(waiting.count) needs details: \(DashboardRail.waitingNames(waiting))")
+                    .lbText(.footnote)
+                    .foregroundStyle(LBColor.textSecondary.color)
+                    .lineLimit(1)
+                Text("Finish")
+                    .lbText(.label)
+                    .foregroundStyle(LBColor.brandText.color)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(LBColor.textQuaternary.color)
+            }
+            .frame(minHeight: 32)
+            .contentShape(Rectangle())
+        }
+        .lbButtonStyle()
+        .lbTapHaptic()
     }
 }
 

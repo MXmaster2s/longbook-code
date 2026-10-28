@@ -20,6 +20,8 @@ struct StatementImportView: View {
     var onBack: (() -> Void)?
     /// Opened from a button that already said Upload: the consent, then the picker, at once.
     var picksOnOpen = false
+    /// Files dropped on the window: read at once, after the consent, without the picker.
+    var dropped: [URL] = []
     let onDone: () -> Void
 
     private enum Stage: Equatable { case pick, working(String), locked, ready, review }
@@ -176,7 +178,10 @@ struct StatementImportView: View {
             // With no home currency, the phone's own region: a London phone starts in pounds.
             currency = model.homeCurrency ?? Locale.current.currency?.identifier ?? "INR"
             // After the sheet has risen, so the consent or the picker is not refused mid-presentation.
-            if picksOnOpen, stage == .pick {
+            if !dropped.isEmpty, stage == .pick {
+                let files = Array(dropped.prefix(Self.filesAtOnce))
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) { withConsent { start(files) } }
+            } else if picksOnOpen, stage == .pick {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) { withConsent { picking = true } }
             }
             #if DEBUG

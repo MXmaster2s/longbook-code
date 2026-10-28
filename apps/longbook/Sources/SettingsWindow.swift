@@ -13,6 +13,10 @@ enum SettingsPane: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
+    /// Where the window keeps the pane on show. Writing a pane here before opening the
+    /// window opens it on that pane.
+    static let pickedKey = "longbook.settings.pane"
+
     /// The sidebar's groups under the account row: the app, what longbook reads and keeps, then help.
     static let groups: [[SettingsPane]] = [
         [.general, .appearance],
@@ -144,7 +148,7 @@ struct SettingsWindowView: View {
     @ObservedObject private var auth = AppSession.shared.auth
     @ObservedObject private var entitlement = AppSession.shared.entitlement
     @AppStorage("appearance") private var appearance = LBAppearance.system.rawValue
-    @AppStorage("longbook.settings.pane") private var picked = SettingsPane.general
+    @AppStorage(SettingsPane.pickedKey) private var picked = SettingsPane.general
     @Environment(\.openWindow) private var openWindow
 
     private var model: DashboardModel { AppSession.shared.model }
