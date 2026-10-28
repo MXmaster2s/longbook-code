@@ -15,6 +15,7 @@ import { CARD_RESOURCES, RESOURCE_LIBRARY, RESOURCE_LLMS, RESOURCE_SCHEMA, TOOLS
 import { MCP_PROMPTS, mcpPromptMessage } from './prompts.js'
 import { VaultWriteError } from './errors.js'
 import { guideWarning } from './guideCheck.js'
+import { IDENTITY } from './identity.js'
 import { failure } from './failure.js'
 import type { Failure, FailureCode } from './failure.js'
 import { WRITE_TOOLS, checkProposal, entitySetOutcome, setOutcome, canonicalToolName } from './proposal.js'
@@ -460,7 +461,7 @@ export async function handleRpc(message: unknown, ctx: RpcContext): Promise<Reco
           protocolVersion: PROTOCOLS.includes(asked) ? asked : PROTOCOLS[0],
           capabilities: { tools: {}, resources: {}, prompts: {} },
           // Distinct from the local server's name — see server.ts.
-          serverInfo: { name: 'longbook (hosted)', version: RELEASE_VERSION },
+          serverInfo: { name: 'longbook (hosted)', ...IDENTITY, version: RELEASE_VERSION },
           instructions: instructionsFor(waiting),
         })
       }

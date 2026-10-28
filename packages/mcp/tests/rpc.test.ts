@@ -31,6 +31,14 @@ test('initialize negotiates a known protocol and names the hosted server apart',
   assert.equal(known.result.serverInfo.name, 'longbook (hosted)', 'the two doors never introduce themselves alike')
 })
 
+test('initialize gives a client the title, words, website and icon to show for longbook', async () => {
+  const info = (await call('initialize', { protocolVersion: '2025-11-25' })).result.serverInfo
+  assert.equal(info.title, 'longbook')
+  assert.equal(info.websiteUrl, 'https://longbook.app')
+  assert.match(info.description, /bills, subscriptions and expenses/)
+  assert.deepEqual(info.icons, [{ src: 'https://longbook.app/apple-touch-icon.png', mimeType: 'image/png', sizes: ['180x180'] }])
+})
+
 test('notifications get no answer; unknown methods get -32601', async () => {
   assert.equal(await handleRpc({ jsonrpc: '2.0', method: 'notifications/initialized' }, ctx()), null)
   assert.equal((await call('completion/complete')).error.code, -32601)
