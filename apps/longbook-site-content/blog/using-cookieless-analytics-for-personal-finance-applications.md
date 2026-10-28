@@ -90,7 +90,7 @@ A few more are of the same kind: the steps of first-run setup, a report shared o
 
 A daily hash cannot tell you whether people come back. A person is a new user every day, so return use, and what people do before they buy, cannot be measured. Our first builds worked that way. From build 34, the apps keep one random id instead.
 
-- **It is random.** The app makes it the first time an event is sent. It is not derived from your device, your Apple ID or your account, and we never use Apple's advertising or vendor identifiers.
+- **It is random.** The app makes it the first time an event is sent. It is not derived from your device, your Apple Account or your account, and we never use Apple's advertising or vendor identifiers.
 - **It stays on the device.** It lives in the app's own settings. It is not stored with your account, sent to our servers or shared with the website's measurement, and it differs on each device. Deleting the app from an iPhone or iPad deletes it.
 - **You can reset it.** Turning off **Share usage and crash data** deletes it. Turning it on again makes a new one, so later records cannot be connected to earlier ones.
 - **PostHog keeps no profile of a person from it.**

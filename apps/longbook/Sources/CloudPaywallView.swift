@@ -125,7 +125,7 @@ struct CloudPaywallView: View {
 
     private var legal: some View {
         VStack(alignment: .leading, spacing: LBSpacing.s2) {
-            Text("Payment is charged to your Apple ID account when the purchase is confirmed. The subscription renews automatically unless it is cancelled at least 24 hours before the end of the current period. Cancel at any time in your Apple ID subscription settings. Apple keeps the invoice.")
+            Text("Payment is charged to your Apple Account when the purchase is confirmed. The subscription renews automatically unless it is cancelled at least 24 hours before the end of the current period. Cancel at any time in your Apple ID subscription settings. Apple keeps the invoice.")
                 .lbText(.footnote)
                 .foregroundStyle(LBColor.textTertiary.color)
                 .fixedSize(horizontal: false, vertical: true)
