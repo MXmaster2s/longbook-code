@@ -83,6 +83,7 @@ Released on [release date] for iPhone and Mac. This is the first version of long
 - **Repeating payments become commitments.** The repeating payments you tick when reading a statement become commitments, planned ahead, so Coming up fills from the first statement.
 - **Any currency.** A statement in pounds, dollars or any other currency is read in that currency, not rupees.
 - **Kept straight away.** A statement you import is kept at once and filed in History, so Changes does not ask again.
+- **Your say before it goes to an AI.** Before longbook first sends a statement to an AI, it asks you, and the statement is sent only once you agree. What happens to it after that is in [how longbook turns your bank statements into data](/blog/using-ai-for-statements-to-data/).
 
 ### Every day
 
