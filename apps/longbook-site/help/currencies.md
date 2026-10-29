@@ -17,7 +17,7 @@ The commitment form has a currency beside the amount. INR, USD, EUR and GBP are 
 
 ## Home currency
 
-In **Settings**, under **Display & currency**, **Home currency** sets which currency the dashboard leads with. **Automatic** leads with the one most recurring commitments use. The choice appears once your recurring commitments use more than one currency.
+On iPhone in **Settings**, under **Display & currency**, and on Mac in the Settings window under **General**, **Home currency** sets which currency the dashboard leads with. **Automatic** leads with the one most recurring commitments use. The choice appears once your recurring commitments use more than one currency.
 
 ## Questions
 
@@ -33,6 +33,6 @@ Any currency in current use, by its three-letter code.
 
 An amount said in rupees, dollars, pounds, euros, dirhams or yen keeps that currency. Any other amount takes the currency most of your commitments use.
 
-Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.
+Still have a question? Tap **Support** in the corner of any screen in the app, or write to contact@longbook.app and a person answers.
 
 - [All help articles](https://longbook.app/help.md)

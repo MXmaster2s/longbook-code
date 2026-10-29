@@ -28,6 +28,6 @@ Then no mark appears. A card shows the mark only when a note exists for it.
 
 Connect your AI and ask it a question about your month, an account or a person. Ask it to leave a note on the card.
 
-Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.
+Still have a question? Tap **Support** in the corner of any screen in the app, or write to contact@longbook.app and a person answers.
 
 - [All help articles](https://longbook.app/help.md)

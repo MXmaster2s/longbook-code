@@ -28,6 +28,6 @@ No. Siri adds a one-time commitment. Set a repeat in the commitment's form in th
 
 To the longbook folder in iCloud Drive, without opening the app. iCloud Drive has to be on. Everything it adds shows in **Proposals** as Siri.
 
-Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.
+Still have a question? Tap **Support** in the corner of any screen in the app, or write to contact@longbook.app and a person answers.
 
 - [All help articles](https://longbook.app/help.md)

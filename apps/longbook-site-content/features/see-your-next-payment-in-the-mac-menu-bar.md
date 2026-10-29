@@ -10,7 +10,7 @@ platforms: mac
 mac: mac-menu-bar
 aliases: mac-menu-bar, menu-bar
 related: add-longbook-widget-to-your-iphone, calendar-view-of-your-expenses, manage-your-subscriptions
-labels: Open longbook, Refresh, Quit longbook, Today, Tomorrow, from the last copy
+labels: Open longbook, Refresh, Quit longbook, Today, Tomorrow, from the last copy, Open at login, Show in the menu bar, Hide the Dock icon
 ---
 
 The next payment in the Mac menu bar: the amount due and how many days away it is, even with every window closed.
@@ -41,7 +41,11 @@ longbook reminds you of the next payment from the Mac menu bar. It stays there w
 
 ### Does the menu bar item need a window open?
 
-No. It stays in the menu bar with every longbook window closed, as long as the app is running. longbook does not start itself at login, and **Quit longbook** removes the item.
+No. It stays in the menu bar with every longbook window closed, as long as the app is running. To have it there from the moment you log in, turn on **Open at login** in Settings, under **General**, then **Login Items and Menu Bar**. **Quit longbook** removes the item.
+
+### Can longbook live only in the menu bar?
+
+Yes. **Hide the Dock icon**, on the same page, takes longbook out of the Dock and keeps the menu bar item, with **Settings…** in its menu. **Show in the menu bar** turns the item itself on or off.
 
 ### Is there a widget for the Mac?
 

@@ -15,7 +15,7 @@ Needs **longbook Cloud** ($4 a month, the first 12 months included with your pur
 - **Claude Code**: `claude mcp add --transport http longbook https://longbook.app/mcp`, then run `/mcp` to sign in.
 - **Other AI apps** that support remote MCP: point them at the address.
 
-First, in **AI Connections**, turn on **Let AI Read My longbook**. Your AI then reads a copy only your account can reach. To let it suggest changes, also turn on **Allow proposals**. Suggestions wait in **Proposals**.
+First, in **AI Connections** (on Mac, the **AI** pane of the Settings window), turn on **Let AI Read My longbook**. Your AI then reads a copy only your account can reach. To let it suggest changes, also turn on **Allow proposals**. Suggestions wait in **Proposals**.
 
 ## On your computer, free
 
@@ -39,6 +39,6 @@ Disconnect it in **AI Connections**, or turn off **Let AI Read My longbook**. It
 
 In Support, tap **Ask a person** to open an email to the team, and tell us which AI you use and the message it shows.
 
-Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.
+Still have a question? Tap **Support** in the corner of any screen in the app, or write to contact@longbook.app and a person answers.
 
 - [All help articles](https://longbook.app/help.md)

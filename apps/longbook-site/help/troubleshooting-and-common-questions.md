@@ -46,6 +46,6 @@ Family Sharing gives each person longbook with their own folder. To show someone
 
 In Support, tap **Ask a person** to open an email to the team, or write to contact@longbook.app.
 
-Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.
+Still have a question? Tap **Support** in the corner of any screen in the app, or write to contact@longbook.app and a person answers.
 
 - [All help articles](https://longbook.app/help.md)
