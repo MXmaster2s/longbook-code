@@ -398,7 +398,12 @@
   </url>
   <url>
     <loc>https://longbook.app/blog/</loc>
-    <lastmod>2026-10-28</lastmod>
+    <lastmod>2026-10-29</lastmod>
+  </url>
+  <url>
+    <loc>https://longbook.app/blog/test-longbook-1-5-0-on-testflight/</loc>
+    <lastmod>2026-10-29</lastmod>
+    <image:image><image:loc>https://longbook.app/blog/media/testflight-150/share.jpg</image:loc></image:image>
   </url>
   <url>
     <loc>https://longbook.app/blog/open-any-folder-in-longbook/</loc>
