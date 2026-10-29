@@ -134,5 +134,10 @@
     "commit": "7e331fe81a",
     "installed": "2026-10-29",
     "testflight": "2026-10-29"
+  },
+  "62": {
+    "version": "1.5.0",
+    "commit": "aa95f0c8ff",
+    "installed": "2026-10-29"
   }
 }
