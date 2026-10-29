@@ -58,6 +58,7 @@ Released on [release date] for iPhone and Mac. Getting started is shorter, a sta
 - **A shorter sidebar.** The sidebar shows only the people and accounts you star.
 - **Controls that answer the pointer.** Buttons, sidebar rows and cards light up under the pointer and darken while pressed. Tab shows a focus ring, and controls you cannot use yet are dimmed.
 - **Buttons for iCloud and backups.** Move to iCloud and Back Up Now in Settings are buttons.
+- **A statement review you can see whole.** The statement review opens wide enough to show every card whole, where before its edges were cut off.
 - **A steadier start.** longbook no longer quits at launch while it reads a crash report from an earlier session.
 
 ### On longbook.app
