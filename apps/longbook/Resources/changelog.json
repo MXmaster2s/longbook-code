@@ -1,6 +1,42 @@
 [
   {
     "version": "1.5.0",
+    "build": 60,
+    "date": "2026-10-29",
+    "changes": [
+      "Getting started takes three steps: welcome and sign in, activate your longbook, then import a statement. Once a statement is kept, your longbook opens.",
+      "The setup questions moved to Settings as Optimize your data, where your answers help longbook read your statements.",
+      "On the Mac, Settings in the sidebar opens a menu, and Settings… opens the Settings window, with panes for General, Appearance, Account, AI, Statements, Data & privacy, Tutorials and About.",
+      "On the Mac, longbook can open at login, check for updates on its own, and hide its Dock icon while the menu bar shows the next payment.",
+      "On the Mac, Move to iCloud and Back Up Now in Settings are buttons.",
+      "On the Mac, an AI connected to longbook on this computer now sees every choice its tools offer, such as listing cancelled commitments or reading one chapter of the guide.",
+      "An AI connected to longbook now reads longbook's guide for the task before it writes, and is told which part to read when it hasn't.",
+      "The Changes screen is now called Proposals, so it no longer reads like Charges at a glance.",
+      "Each screen shows a short tutorial the first time you open it. Replay any of them in Settings > Tutorials.",
+      "Support inside the app: ask a question and longbook's AI answers from the help articles, or email a person.",
+      "Optimize your data keeps the people and accounts you pick as hints for your AI, instead of adding them to People and Accounts.",
+      "Star a person or an account to keep it at the top of its list. On the Mac, the sidebar shows only the starred ones.",
+      "People and Accounts each have a search and a filter by relationship or type.",
+      "Importing a statement adds its account and the people it names. You can turn this off in Settings.",
+      "Importing a statement also adds the accounts and people your transfers and card payments go to.",
+      "Settings > Data & privacy can open a longbook from another folder, and leaves your current folder as it is.",
+      "On the Mac, buttons, sidebar rows and cards light up under the pointer and darken while pressed, Tab shows a focus ring, and unavailable controls are dimmed.",
+      "Naming a new account shows an example from your region, and the UPI account type is offered in India only. Accounts already of that type keep it.",
+      "The purchase screen shows Family Sharing on its own card: everyone in your Apple family gets longbook on their own account and devices.",
+      "After an update, What's New shows what changed, once. Open it again any time from Settings, or read every version on longbook.app.",
+      "The statement review now shows Commitments, Past expenses, People and Accounts, in that order, with every commitment ticked to start. After Add, the sheet closes and Proposals shows what was recorded.",
+      "A statement review offers every person and every account the statement prints, your own other accounts included, so you untick rather than miss one. The statement's own account is always named, even when the header prints no number.",
+      "Use My Own AI copies prompts that set longbook up for you: in Claude, the longbook plugin or connector; in ChatGPT, a plugin named longbook with its website and icon.",
+      "The Support button sits in the corner of every screen on iPhone and Mac from the start, and steps aside while Support is open.",
+      "In Support, the camera button attaches a screenshot of your screen to your message, and longbook's AI reads it to help. It may show amounts, so check it first; you can still email it to the team instead.",
+      "Deleting a planned charge asks whether to remove only that charge, or that one and every one after it, which also ends the commitment's plan there.",
+      "The statement review is one list drawn with the app's own cards: commitments, past expenses, people and accounts, every item ticked, and only Discard or Add closes it.",
+      "A new longbook's Dashboard shows one place to start: import a statement, add a commitment by hand, or use your own AI. On the Mac, drop a statement on it to import it.",
+      "On the Mac, longbook no longer quits at launch while it reads a crash report from an earlier session."
+    ]
+  },
+  {
+    "version": "1.5.0",
     "build": 59,
     "date": "2026-10-29",
     "changes": [
