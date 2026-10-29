@@ -61,7 +61,7 @@ Then tap Securely Upload Statement and pick a bank or card statement, as a PDF, 
 
 The list shows Commitments, Past expenses, People and Accounts, all ticked. Untick anything wrong and tap Add. Proposals then shows what was recorded, and you can keep or undo it there.
 
-Did it miss a payment, a person or an account that your statement shows? Tell us which one, and which bank it came from. Your statement is read by an AI and is covered by the [privacy policy](https://longbook.app/privacy-policy/), which longbook asks you to accept before the first one.
+Did it miss a payment, a person or an account that your statement shows? Tell us which one, and which bank it came from.
 
 ### 3. An empty longbook
 

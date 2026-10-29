@@ -626,8 +626,8 @@
     },
     {
       "path": "blog/media/testflight-150/share.jpg",
-      "bytes": 85123,
-      "sha256": "85afe2dbc4dd20fec5c94fab4f42ae323b248c925e7c05b0182ec519a62944c7"
+      "bytes": 85117,
+      "sha256": "e3b15826e306cadd1b8ae305228d850d39e288254d3f61ff478369aa46f0b2f8"
     },
     {
       "path": "features/media/get-spending-insights.jpg",
