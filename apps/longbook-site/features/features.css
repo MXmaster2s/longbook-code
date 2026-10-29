@@ -317,6 +317,17 @@ code { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.92
 .btoc ol { margin:0; padding-left:20px; display:grid; gap:4px; font-size:var(--lb-type-body-sm-size); }
 .btoc a { color:var(--lb-text-secondary); text-decoration:none; }
 .btoc a:hover { color:var(--lb-brand-text); }
+/* Release notes: the versions as the features page's chips, held under the header while reading. */
+.bvers { position:sticky; top:66px; z-index:5; display:flex; gap:6px; overflow-x:auto; margin:32px 0 0; padding:10px 0;
+         background:var(--lb-canvas); scrollbar-width:none; }
+.bvers::-webkit-scrollbar { display:none; }
+.bvers a { flex:0 0 auto; display:flex; gap:8px; align-items:center; padding:8px 12px; border:1px solid var(--lb-hairline);
+           border-radius:var(--lb-radius-xs); background:var(--lb-card); color:var(--lb-text-secondary); text-decoration:none;
+           font-size:var(--lb-type-body-sm-size); transition:background .14s ease, color .14s ease; }
+.bvers a span { color:var(--lb-text-quaternary); font-variant-numeric:tabular-nums; }
+.bvers a:hover { color:var(--lb-text-primary); }
+.bver .prose { margin-top:32px; }
+.bver .prose h2, .bver .prose h3 { scroll-margin-top:140px; }
 .prose { margin-top:48px; font-size:17px; line-height:1.7; color:var(--lb-text-secondary); }
 .prose > p, .prose > ul, .prose > ol { margin:0 0 18px; }
 .prose li { margin:0 0 8px; }

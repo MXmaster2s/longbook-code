@@ -1,9 +1,9 @@
-# 1.5.0 Release Notes
+# Release Notes
 
 > longbook is a memory for your financial commitments, on iPhone and Mac. This page lists what each version brings, newest first, starting with 1.4.1, the first release on the App Store.
 
 - Page: https://longbook.app/blog/release-notes/
-- Published: 24 October 2026
+- Published: 29 October 2026
 - By: The longbook team
 
 longbook keeps the payments that come back, such as subscriptions, insurance, rent and loans, in a folder in your own iCloud. Every new version is added to this page, so the newest one is always at the top.
@@ -63,7 +63,7 @@ Released on [release date] for iPhone and Mac. Getting started is shorter, a sta
 
 ## 1.4.1
 
-Released 24 October 2026 for iPhone and Mac. This is the first version of longbook on the App Store. Here is what it brings, grouped by what you do with longbook.
+Released on [release date] for iPhone and Mac. This is the first version of longbook on the App Store. Here is what it brings, grouped by what you do with longbook.
 
 ### Getting started
 
@@ -78,7 +78,6 @@ Released 24 October 2026 for iPhone and Mac. This is the first version of longbo
 - **Repeating payments become commitments.** The repeating payments you tick when reading a statement become commitments, planned ahead, so Coming up fills from the first statement.
 - **Any currency.** A statement in pounds, dollars or any other currency is read in that currency, not rupees.
 - **Kept straight away.** A statement you import is kept at once and filed in History, so Changes does not ask again.
-- **Your say before it goes to an AI.** Before longbook first sends a statement to an AI, it asks you to accept the [privacy policy](https://longbook.app/privacy-policy/), with the policy right there to read. What happens to the statement after that is in [how longbook turns your bank statements into data](https://longbook.app/blog/using-ai-for-statements-to-data.md).
 
 ### Every day
 

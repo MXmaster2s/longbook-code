@@ -401,14 +401,14 @@
     <lastmod>2026-10-29</lastmod>
   </url>
   <url>
-    <loc>https://longbook.app/blog/open-any-folder-in-longbook/</loc>
-    <lastmod>2026-10-28</lastmod>
-    <image:image><image:loc>https://longbook.app/blog/media/open-any-folder/share.jpg</image:loc></image:image>
-  </url>
-  <url>
     <loc>https://longbook.app/blog/release-notes/</loc>
     <lastmod>2026-10-29</lastmod>
     <image:image><image:loc>https://longbook.app/blog/media/release-notes/share.jpg</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://longbook.app/blog/open-any-folder-in-longbook/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <image:image><image:loc>https://longbook.app/blog/media/open-any-folder/share.jpg</image:loc></image:image>
   </url>
   <url>
     <loc>https://longbook.app/blog/how-to-show-reviews-about-your-product-to-the-world/</loc>

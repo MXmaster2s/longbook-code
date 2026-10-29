@@ -262,15 +262,38 @@ export function blockHtml(b: PostBlock, stills: Map<string, Still>): string {
   }
 }
 
+const VERSION = /^\d+\.\d+\.\d+$/
+
+/** The changes listed under each ## of a post, by its id: every list item until the next ##. */
+export function itemsByH2(blocks: PostBlock[]): Map<string, number> {
+  const out = new Map<string, number>()
+  let at = ''
+  for (const b of blocks) {
+    if (b.kind === 'h2') out.set((at = b.id), 0)
+    else if (at && (b.kind === 'ul' || b.kind === 'ol')) out.set(at, out.get(at)! + b.items.length)
+  }
+  return out
+}
+
+/** Release notes, where every ## is a version, jump between versions with the features page's chips. */
+export function versionNav(blocks: PostBlock[]): string {
+  const h2s = blocks.filter((b): b is Extract<PostBlock, { kind: 'h2' }> => b.kind === 'h2')
+  if (!h2s.length || !h2s.every((h) => VERSION.test(h.text))) return ''
+  const items = itemsByH2(blocks)
+  return '<nav class="bvers" aria-label="Versions">' +
+    h2s.map((h) => `<a href="#${h.id}">${esc(h.text)}<span>${items.get(h.id)}</span></a>`).join('') + '</nav>'
+}
+
 export function postPage(p: Post, ctx: Ctx, stills: Map<string, Still>, jsonld: object): string {
   const h2s = p.body.filter((b): b is Extract<PostBlock, { kind: 'h2' }> => b.kind === 'h2')
-  const toc = h2s.length > 2
+  const versions = versionNav(p.body)
+  const toc = versions || (h2s.length > 2
     ? `<nav class="btoc" aria-label="In this post"><p>In this post</p><ol>` +
       h2s.map((h) => `<li><a href="#${h.id}">${inlineHtml(h.text)}</a></li>`).join('') + '</ol></nav>'
-    : ''
+    : '')
   const main = [
     '<main class="fp bp"><div class="fwrap">',
-    '<article class="post" aria-labelledby="post-title">',
+    `<article class="post${versions ? ' bver' : ''}" aria-labelledby="post-title">`,
     `<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/blog/">Blog</a></li><li aria-current="page">${esc(p.title)}</li></ol></nav>`,
     `<header class="bhero"><h1 id="post-title">${esc(p.title)}</h1><p class="lead">${inlineHtml(p.lead)}</p>` +
       `<p class="bmeta">${AUTHOR} · <time datetime="${p.date}">${longDate(p.date)}</time> · ${readingMinutes(p)} min read</p>` +
