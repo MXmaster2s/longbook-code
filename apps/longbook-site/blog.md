@@ -7,7 +7,7 @@
 ## Posts
 
 - [Open any folder in longbook](https://longbook.app/blog/open-any-folder-in-longbook.md): Your longbook is one open file in a folder you choose. Open another folder, or have any tool write one longbook opens. (26 October 2026)
-- [1.4.1 Release Notes](https://longbook.app/blog/release-notes.md): What each version of longbook brings, newest first. 1.4.1 is the first release on the App Store, for iPhone and Mac. (24 October 2026)
+- [1.5.0 Release Notes](https://longbook.app/blog/release-notes.md): What each version of longbook brings, newest first. 1.4.1 is the first release on the App Store, for iPhone and Mac. (24 October 2026)
 - [How to show reviews about your product to the world](https://longbook.app/blog/how-to-show-reviews-about-your-product-to-the-world.md): The kind words people post about your app scroll away in a day. How we keep ours on one page search engines read. (15 October 2026)
 - [Using Claude to record your expenses](https://longbook.app/blog/using-claude-to-record-your-expenses.md): Claude checks your email every morning and records each expense in longbook. Find it in All charges on iPhone and Mac. (15 October 2026)
 - [Using Claude to remember your credit card payments](https://longbook.app/blog/using-claude-to-remember-credit-card-payments.md): Claude reads your card bill emails every morning and records them in longbook. The due date waits on iPhone and Mac. (15 October 2026)

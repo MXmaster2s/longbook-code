@@ -58,10 +58,10 @@ export const headingId = (text: string): string =>
 // quote (every line starting with ">"), a paragraph, a screen's audit between ":::audit" and ":::",
 // a film between ":::film /blog/media/<name>.mp4" and ":::" (its description, then any caption),
 // or code fenced by "```", kept as written.
-export function parseBlocks(lines: string[], file: string): PostBlock[] {
+export function parseBlocks(lines: string[], file: string, nest = false): PostBlock[] {
   const out: PostBlock[] = []
-  // A ### belongs to the ## above it, so its id carries that one's: two versions on a page can each
-  // have an "On the Mac" and an old link to one still finds it when a newer version is added.
+  // In a post (nest), a ### belongs to the ## above it, so its id carries that one's: two versions can
+  // each have an "On the Mac". Help articles keep plain ids, so their links stay as they are.
   let section = ''
   let run: string[] = []
   const flush = (): void => {
@@ -104,7 +104,7 @@ export function parseBlocks(lines: string[], file: string): PostBlock[] {
       flush()
       const id = headingId(h[2]!)
       if (h[1] === '##') section = id
-      out.push({ kind: h[1] === '##' ? 'h2' : 'h3', text: h[2]!.trim(), id: h[1] === '###' && section ? `${section}-${id}` : id })
+      out.push({ kind: h[1] === '##' ? 'h2' : 'h3', text: h[2]!.trim(), id: nest && h[1] === '###' && section ? `${section}-${id}` : id })
     } else if (line) run.push(line)
     else flush()
   }
@@ -156,7 +156,7 @@ export function parsePost(text: string, file: string): Post {
   for (const k of ['date', 'updated']) {
     if (data[k] && !/^\d{4}-\d{2}-\d{2}$/.test(data[k]!)) throw new Error(`${file}: ${k} is not a YYYY-MM-DD date`)
   }
-  const blocks = parseBlocks(body.split('\n'), file)
+  const blocks = parseBlocks(body.split('\n'), file, true)
   const words = [data.lead!, ...textsOf(blocks)].map(plainText).join(' ').split(/\s+/).filter(Boolean).length
   return {
     slug: data.slug!,

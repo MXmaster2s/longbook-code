@@ -53,6 +53,10 @@
 /testflight             /ios/  301!
 /testflight/*           /ios/  301!
 
+# The app's What's New links to /release-notes/; the notes are one page on the blog.
+/release-notes          /blog/release-notes/  301!
+/release-notes/*        /blog/release-notes/  301!
+
 /feedback               https://insigh.to/b/longbook  302!
 /feedback/*             https://insigh.to/b/longbook  302!
 

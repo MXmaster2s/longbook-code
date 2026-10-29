@@ -1,6 +1,6 @@
 ---
 slug: release-notes
-title: 1.4.1 Release Notes
+title: 1.5.0 Release Notes
 seo_title: longbook release notes for iPhone and Mac
 description: What each version of longbook for iPhone and Mac brings, newest first. Starts with 1.4.1, the first release on the App Store.
 card: What each version of longbook brings, newest first. 1.4.1 is the first release on the App Store, for iPhone and Mac.
@@ -11,6 +11,59 @@ image_alt: longbook release notes for iPhone and Mac, on the longbook blog
 ---
 
 longbook keeps the payments that come back, such as subscriptions, insurance, rent and loans, in a folder in your own iCloud. Every new version is added to this page, so the newest one is always at the top.
+
+## 1.5.0
+
+Released on [release date] for iPhone and Mac. Getting started is shorter, a statement review shows everything on one list, Support is on every screen, and the Mac gets its own Settings window. Here is what it brings, grouped by what you do with longbook.
+
+### Getting started
+
+- **Three steps.** Welcome and sign in, activate your longbook, then import a statement. Once a statement is kept, your longbook opens.
+- **A place to start.** If you skip the statement, the Dashboard offers three ways in: import a statement, add a commitment by hand, or use your own AI. On the Mac, you can also drop a statement file on it.
+- **A tutorial for each screen.** The first time you open a screen, a short tutorial shows what it is for. Replay any of them in Settings, then Tutorials.
+- **Family Sharing, on its own card.** The purchase screen shows that everyone in your Apple family gets longbook on their own account and devices.
+- **What changed, after an update.** What's New shows the changes once after an update. Open it again from Settings, or read every version on this page.
+
+### Importing a statement
+
+- **One list to review.** The review shows Commitments, Past expenses, People and Accounts, in that order, with every item ticked. Untick what is wrong and tap Add. The review closes and [Proposals](/features/review-every-change-your-ai-makes/) shows what was recorded.
+- **Nothing it prints is missed.** The review offers every person and every account the statement prints, your own other accounts included, along with the accounts and people your transfers and card payments go to. The statement's own account is always named, even when its header prints no number.
+- **Your choice.** Adding a statement's people and accounts can be turned off in Settings.
+- **Optimize your data.** The setup questions moved to Settings. The people and accounts you pick there are hints that help longbook read your statements, and they are not added to People and Accounts.
+
+### Every day
+
+- **Changes is now Proposals.** The screen that holds what you or your AI added is called Proposals, so it no longer reads like Charges at a glance.
+- **This charge, or every one after it.** Deleting a planned charge asks whether to remove only that one, or that one and every one after it, which also ends the commitment's plan there.
+- **Stars, search and filters.** Star a person or an account to keep it at the top of its list. People and Accounts each have a search and a filter by relationship or type.
+- **Examples from your region.** Naming a new account shows an example from your region, and the UPI account type is offered in India only. Accounts that already have that type keep it.
+- **Open another longbook.** Settings, then Data & privacy, can open a longbook from another folder, and leaves your current folder as it is.
+
+### Support
+
+- **Help on every screen.** A Support button sits in the corner of every screen on iPhone and Mac, and steps aside while Support is open.
+- **Ask, or write to a person.** Ask a question and longbook's AI answers from the [help articles](/help/), or email the team.
+- **Show us the screen.** The camera button attaches a screenshot of your screen to your message, and longbook's AI reads it to help. A screenshot can show amounts, so check it before you send it.
+
+### Your AI
+
+- **Use My Own AI.** It copies a prompt that sets longbook up for you: in Claude, the longbook plugin or connector, and in ChatGPT, a plugin named longbook with its website and icon.
+- **It reads the guide first.** An AI connected to longbook reads longbook's guide for the task before it writes, and is told which part to read when it has not.
+- **Every choice, on the Mac.** An AI connected to longbook on your Mac sees every choice its tools offer, such as listing cancelled commitments or reading one chapter of the guide.
+
+### On the Mac
+
+- **A real Settings window.** Settings in the sidebar opens a menu, and Settings opens the Settings window, with panes for General, Appearance, Account, AI, Statements, Data & privacy, Tutorials and About.
+- **Open at login.** longbook can open at login, check for updates on its own, and hide its Dock icon while the [menu bar](/features/see-your-next-payment-in-the-mac-menu-bar/) shows the next payment.
+- **A shorter sidebar.** The sidebar shows only the people and accounts you star.
+- **Controls that answer the pointer.** Buttons, sidebar rows and cards light up under the pointer and darken while pressed. Tab shows a focus ring, and controls you cannot use yet are dimmed.
+- **Buttons for iCloud and backups.** Move to iCloud and Back Up Now in Settings are buttons.
+- **A steadier start.** longbook no longer quits at launch while it reads a crash report from an earlier session.
+
+### On longbook.app
+
+- **Pages your AI can read.** When an AI assistant asks longbook.app for Markdown, it gets each page's text without the layout, and AI tools can find the longbook server's details on the site.
+- **Pictures you may use.** The blog's pictures now say how you may use them, the same way as the [media kit](https://longbook.app/media-kit/): free for writing about longbook.
 
 ## 1.4.1
 
