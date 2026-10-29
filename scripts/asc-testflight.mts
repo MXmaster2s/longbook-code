@@ -21,7 +21,17 @@ const REVIEW_NOTES =
 // updates screen say the same thing.
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 // Testers start knowing nothing: the standing guide first, then what this build changed.
-const WHATS_NEW = `${readFileSync(join(ROOT, 'scripts/testflight-guide.txt'), 'utf8').trim()}\n\nNEW IN THIS BUILD\n${newestRelease(readFileSync(join(ROOT, 'apps/longbook/Resources/changelog.json'), 'utf8')).changes.map((c) => `- ${c}`).join('\n')}`.slice(0, 4000)
+// TestFlight takes 4000 characters, so whole lines fit and the rest is a link away.
+const whatsNew = (): string => {
+  const more = '\n- Everything else: https://longbook.app/release-notes/'
+  let text = `${readFileSync(join(ROOT, 'scripts/testflight-guide.txt'), 'utf8').trim()}\n\nNEW IN THIS BUILD`
+  for (const change of newestRelease(readFileSync(join(ROOT, 'apps/longbook/Resources/changelog.json'), 'utf8')).changes) {
+    if (text.length + change.length + 3 + more.length > 4000) return text + more
+    text += `\n- ${change}`
+  }
+  return text
+}
+const WHATS_NEW = whatsNew()
 
 const argv = process.argv.slice(2)
 // A build number can recur across versions; the one meant is the project's version's.

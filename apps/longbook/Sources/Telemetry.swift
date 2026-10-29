@@ -480,11 +480,29 @@ struct Diagnostic: Sendable {
     private static func scrub(_ value: Any) -> Any {
         if let object = value as? [String: Any] {
             var kept: [String: Any] = [:]
-            for (key, inner) in object where !scrubbedKeys.contains(key) { kept[key] = scrub(inner) }
+            for (key, inner) in object where !scrubbedKeys.contains(key) {
+                kept[key] = key == "callStackRootFrames" ? flatFrames(inner as? [Any] ?? []) : scrub(inner)
+            }
             return kept
         }
         if let list = value as? [Any] { return list.map(scrub) }
         return value
+    }
+
+    /// MetricKit nests a call stack one level per frame. Written back out that deep, it
+    /// overflowed MetricKit's thread and crashed the app, so frames become one list with depths.
+    static func flatFrames(_ roots: [Any]) -> [[String: Any]] {
+        var flat: [[String: Any]] = []
+        var pending: [(frame: Any, depth: Int)] = roots.reversed().map { ($0, 0) }
+        while let (frame, depth) = pending.popLast() {
+            guard let object = frame as? [String: Any] else { continue }
+            var kept = object.filter { $0.key != "subFrames" && !scrubbedKeys.contains($0.key) }
+            kept["depth"] = depth
+            flat.append(kept)
+            let children = object["subFrames"] as? [Any] ?? []
+            pending += children.reversed().map { ($0, depth + 1) }
+        }
+        return flat
     }
 }
 

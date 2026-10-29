@@ -1,39 +1,43 @@
-Thank you for testing longbook. You don't need to know anything about it first. Please try everything below and tell us what confused you, broke, or felt slow (screenshot in TestFlight, or contact@longbook.app).
+Thank you for testing longbook. Start from nothing and go in this order. When something confuses you, breaks or feels slow, take a screenshot and send it with TestFlight's feedback, or write to contact@longbook.app.
 
 WHAT LONGBOOK IS
-A private memory for the money you pay again and again: subscriptions, rent, insurance, loans, salaries, bills. It never connects to your bank. Your data stays in a folder in your own iCloud Drive.
+A private memory for the money you pay again and again: subscriptions, rent, insurance, loans, fees. It never connects to your bank. Your longbook is a folder in your own iCloud Drive.
 
-1. GETTING IN
-- Open the app, read the two welcome pages, tap Continue.
-- Sign in with Apple, Google or your email (a code is emailed to you). Signing in makes your account.
-- Buy longbook. TestFlight purchases cost nothing. Try Restore Purchase and See Demo too.
-- If iCloud Drive is off, choose Keep It on this iPhone (or Mac).
+1. GET STARTED (3 steps)
+- Sign in with Apple (iPhone), Google, or your email (a code is emailed to you).
+- Activate your longbook: the one-time purchase costs nothing on TestFlight. Try Restore Purchase and See Demo too.
+- Import a statement: tap Securely Upload Statement and pick a bank or card statement (PDF, CSV or Excel), or tap Skip.
 
-2. SETUP (3 steps)
-- Step 1: tick what you pay for (rent, Netflix, insurance...). Each question opens after a few seconds.
-- Step 2: tick the accounts you pay from.
-- Step 3: tap Securely Upload Statement and pick a bank or card statement (PDF, CSV or Excel). Review what it found, tick the repeating payments, and tap Add.
+2. THE STATEMENT REVIEW
+- It lists Commitments, Past expenses, People and Accounts, all ticked.
+- Untick anything wrong and tap Add. Proposals then shows what was recorded; keep or undo it there.
+- Did it miss a payment, a person or an account the statement shows? Tell us.
 
-3. EVERYDAY USE
-- Dashboard: Next payment, Coming up, Spending by month.
+3. AN EMPTY LONGBOOK
+- After Skip, the Dashboard offers three ways to start: import a statement, add a commitment, or Use My Own AI.
+- On the Mac, drop a statement file onto the Dashboard.
+
+4. EVERYDAY USE
 - The + button: add a commitment (name, how often, amount) or a one-time expense.
-- Open any commitment: edit it, mark it paid, bookmark it, cancel it.
-- Calendar: every payment on its day.
-- Reports: a report for each month with charges.
-- Settings > Changes: keep or undo what a statement or your AI added.
-- Settings > Accounts and People: add your accounts and family members.
-- Settings > Trips: start a trip report.
+- Open a commitment: edit it, mark it paid, bookmark it, cancel it. Delete a planned charge and choose this one or every one after.
+- Calendar, Charges and Reports (one for each month with charges).
+- People and Accounts: star, search and filter.
+- Each screen shows a short tutorial once. Replay them in Settings > Tutorials.
 
-4. YOUR AI
-- Settings > AI Connections: Let AI Read My longbook, then connect Claude or ChatGPT and ask "What do I pay next?".
-- Reorganise my longbook: tidies names and categories in one change you can undo.
+5. SUPPORT
+- The Support button sits in the corner of every screen. Ask a question, attach a screenshot with the camera button, or email the team.
 
-5. ACCOUNT AND PRIVACY
-- Settings > Account and plan: your licence, longbook Cloud, Request a Refund (within 7 days).
-- Delete Account... removes your account but keeps your folder.
-- Settings > Help & about: what leaves your device, and the usage data switch.
+6. YOUR AI
+- Settings > AI Connections: Let AI Read My longbook, then connect Claude or ChatGPT. Use My Own AI copies the prompt for you.
+- Ask it "What do I pay next?" or "Add my statement".
 
-6. ALSO TRY
-- Dark mode and larger text sizes.
-- The longbook widget on your Home Screen (iPhone) or the menu bar (Mac).
-- Signing out and back in, and the same account on a second device.
+7. SETTINGS AND PRIVACY
+- Optimize your data: the people and accounts that help longbook read statements.
+- Account: your licence, longbook Cloud, Request a Refund, Sign Out, Delete Account.
+- Data & privacy: what leaves your device, and opening a longbook from another folder.
+- On the Mac: open at login, the next payment in the menu bar, hiding the Dock icon.
+
+8. ALSO TRY
+- Dark mode and larger text.
+- The Home Screen widget (iPhone) and the menu bar item (Mac).
+- The same account on a second device.
