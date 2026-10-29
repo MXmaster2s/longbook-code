@@ -538,6 +538,7 @@ final class DashboardModel {
     /// instead of waiting again on every retry.
     private var awaitedICloud = false
     private var probingICloud = false
+    private var creatingICloudVault = false
 
     /// iCloud is off, so the longbook is made beside the app, in its Documents folder,
     /// where `VaultSource` already looks. A vault already there is opened, never replaced.
@@ -559,12 +560,16 @@ final class DashboardModel {
     /// The reader chose a fresh start. Still adopt-first underneath: another device may
     /// have won the race between their tap and this write.
     func createICloudVault() {
+        // The first-run screen asks on its own and the button asks again; one scaffold at a time.
+        guard !creatingICloudVault else { return }
+        creatingICloudVault = true
         state = .provisioning("Creating your longbook vault…")
         Task { [weak self] in
             let result = await Task.detached(priority: .userInitiated) {
                 VaultProvisioner.ensureICloudVault()
             }.value
             guard let self else { return }
+            self.creatingICloudVault = false
             switch result {
             case .ready(let folder, let found):
                 // The reader asked for a new vault and got the one they already had. Say so

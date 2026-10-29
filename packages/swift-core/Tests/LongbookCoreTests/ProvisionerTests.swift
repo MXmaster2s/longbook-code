@@ -105,4 +105,28 @@ final class ProvisionerTests: XCTestCase {
         }
         XCTAssertNoThrow(try VaultReader.load(from: root))
     }
+    /// An empty container is checked with iCloud before anything is written there. A vault
+    /// iCloud knows of but has not sent is adopted, never scaffolded beside.
+    func testEmptyListingDefersToICloudsIndex() {
+        var asked: [Bool] = []
+        let known = VaultContainer.confirmEmpty(.empty(root), listing: [], timeout: 1) { keepListening, _ in
+            asked.append(keepListening)
+            return true
+        }
+        XCTAssertEqual(known, .hasVault(root))
+
+        let unknown = VaultContainer.confirmEmpty(.empty(root), listing: ["documents"], timeout: 1) { keepListening, _ in
+            asked.append(keepListening)
+            return false
+        }
+        XCTAssertEqual(unknown, .empty(root))
+        // Nothing listed at all may mean nothing has arrived yet, so that one waits for news.
+        XCTAssertEqual(asked, [true, false])
+
+        let present = VaultContainer.confirmEmpty(.hasVault(root), listing: [], timeout: 1) { _, _ in
+            XCTFail("a vault already here needs no second opinion")
+            return false
+        }
+        XCTAssertEqual(present, .hasVault(root))
+    }
 }

@@ -71,7 +71,7 @@ public enum VaultMigration {
     /// Move the vault at `source` into the app's iCloud container. Returns the new folder.
     public static func moveToICloud(from source: URL, fileManager: FileManager = .default) throws -> URL {
         let destination: URL
-        switch VaultContainer.probe() {
+        switch VaultContainer.probeBeforeCreating() {
         case .unavailable:
             throw Failure.iCloudUnavailable
         case .hasVault:

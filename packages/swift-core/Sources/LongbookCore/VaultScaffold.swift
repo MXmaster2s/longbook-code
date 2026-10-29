@@ -13,12 +13,10 @@ public enum VaultScaffold {
         ]
     }
 
-    /// Create the folder, write the memory plus every contract file given.
+    /// Create the folder, write the memory plus every contract file given; returns names written.
     ///
-    /// Memory FIRST, failure fatal; library.json, the revision stamp, LAST. A contract file
-    /// failing is not fatal: `VaultContract.heal(in:)` writes it on a later open.
-    ///
-    /// Returns names actually written, so a caller can tell complete from memory-only.
+    /// Memory FIRST, failure fatal; library.json, the revision stamp, LAST. A failed contract
+    /// file is healed on a later open. A name present or still coming from iCloud is skipped.
     @discardableResult
     public static func create(
         at folder: URL,
@@ -26,21 +24,27 @@ public enum VaultScaffold {
         fileManager: FileManager = .default
     ) throws -> [String] {
         try fileManager.createDirectory(at: folder, withIntermediateDirectories: true)
+        // Replacing it would empty a real vault; racing its download leaves iCloud keeping both as "name 2".
+        let taken = Set((try? fileManager.contentsOfDirectory(atPath: folder.path)) ?? [])
+        func present(_ name: String) -> Bool { taken.contains(name) || taken.contains(".\(name).icloud") }
 
-        let memory = try JSONSerialization.data(
-            withJSONObject: freshMemory(),
-            options: [.prettyPrinted, .sortedKeys]
-        )
-        try coordinatedWrite(memory, to: folder.appendingPathComponent(VaultReader.dataFile))
+        var written: [String] = []
+        if !present(VaultReader.dataFile) {
+            let memory = try JSONSerialization.data(
+                withJSONObject: freshMemory(),
+                options: [.prettyPrinted, .sortedKeys]
+            )
+            try coordinatedWrite(memory, to: folder.appendingPathComponent(VaultReader.dataFile))
+            written.append(VaultReader.dataFile)
+        }
 
         // The drop zone for statements and source files — named so the folder invites them.
         try? fileManager.createDirectory(
             at: folder.appendingPathComponent("documents"), withIntermediateDirectories: true
         )
 
-        var written = [VaultReader.dataFile]
         for name in VaultContract.writeOrder(contractFiles.keys) {
-            guard let body = contractFiles[name] else { continue }
+            guard let body = contractFiles[name], !present(name) else { continue }
             do {
                 try coordinatedWrite(body, to: folder.appendingPathComponent(name))
                 written.append(name)
