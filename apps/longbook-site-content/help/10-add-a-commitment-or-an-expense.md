@@ -27,7 +27,8 @@ Everything an AI or Siri adds waits in **Proposals**.
 
 - **Mark paid** on a charge once it is paid.
 - **Pause** a commitment, or set the day it stops.
-- A new price applies to **Only this charge** or to **This and later charges**. Charges already paid keep their amount.
+- A new price applies to **Only This Charge** or to **This and Every One After**. Charges already paid keep their amount.
+- Deleting a planned charge asks the same: **Only This Charge**, or **This and Every One After**, which also ends the commitment's plan there. Paid charges stay.
 
 ## Questions
 

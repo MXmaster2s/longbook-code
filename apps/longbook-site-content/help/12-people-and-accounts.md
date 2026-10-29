@@ -33,7 +33,7 @@ Their commitments stay, without that person or account. longbook tells you how m
 No. Balances change only when you, a statement or your AI record one.
 
 ### Can a statement add people and accounts?
-Yes, while **Add accounts and people found in statements** is on. It's on unless you turn it off: on iPhone in **Settings** under **Import**, and on Mac in the Settings window under **Statements**. The review then offers, ticked, every person the statement prints and every account: the statement's own account, and the accounts and people that transfers and card payments go to. Untick what you don't want before you tap **Add**. A closing balance on the statement updates its account.
+Yes, while **Add accounts and people found in statements** is on. It's on unless you turn it off: on iPhone in **Settings** under **Import**, and on Mac in the Settings window under **Statements**, as **Add accounts and people found**. The review then offers, ticked, every person the statement prints and every account: the statement's own account, and the accounts and people that transfers and card payments go to. Untick what you don't want before you tap **Add**. A closing balance on the statement updates its account.
 
 With the switch off, they still appear in the review, unticked, and nothing is added unless you tick it.
 

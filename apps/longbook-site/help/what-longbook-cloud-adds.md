@@ -28,6 +28,6 @@ The copy is also deleted after 90 days without the app refreshing it, or 30 days
 
 Everything else keeps working: your records, reminders, widgets, imports within the included share, and Claude on your Mac reading your folder directly.
 
-Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.
+Still have a question? Tap **Support** in the corner of any screen in the app, or write to contact@longbook.app and a person answers.
 
 - [All help articles](https://longbook.app/help.md)

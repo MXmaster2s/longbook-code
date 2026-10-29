@@ -86,7 +86,7 @@ const firstLine = (a: HelpArticle): string => {
 }
 
 const STILL = '<aside class="hstill" aria-labelledby="still"><h2 id="still">Still have a question?</h2>' +
-  '<p>Open <strong>Support</strong> in the app, under <strong>Settings</strong>, then <strong>Help &amp; about</strong>, ' +
+  '<p>Tap <strong>Support</strong> in the corner of any screen in the app, ' +
   'or write to <a href="mailto:contact@longbook.app">contact@longbook.app</a> and a person answers.</p></aside>'
 
 export function helpPage(a: HelpArticle, ctx: Ctx, jsonld: object): string {
@@ -138,7 +138,7 @@ export function helpIndexPage(articles: HelpArticle[], ctx: Ctx, jsonld: object)
   }, main, ctx)
 }
 
-const STILL_MD = 'Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.'
+const STILL_MD = 'Still have a question? Tap **Support** in the corner of any screen in the app, or write to contact@longbook.app and a person answers.'
 
 export function helpMarkdown(a: HelpArticle): string {
   const out = [`# ${a.title}`, '', `- Page: ${helpUrl(a.slug)}`, '', ...a.body.flatMap((b) => [helpBlockMd(b), '']),

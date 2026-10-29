@@ -34,6 +34,6 @@ For Claude on the web, the Claude phone app, or ChatGPT. They run on other compu
 
 Into your folder at once, and into **Proposals** with your AI's name.
 
-Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.
+Still have a question? Tap **Support** in the corner of any screen in the app, or write to contact@longbook.app and a person answers.
 
 - [All help articles](https://longbook.app/help.md)

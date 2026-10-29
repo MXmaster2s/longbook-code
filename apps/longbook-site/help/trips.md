@@ -36,6 +36,6 @@ Yes. Ask it: "Make a report of my Goa trip in my longbook". It fills in as the t
 
 It may not be confirmed yet, it may fall outside the trip's days, or it may be paid from an account the trip doesn't count.
 
-Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.
+Still have a question? Tap **Support** in the corner of any screen in the app, or write to contact@longbook.app and a person answers.
 
 - [All help articles](https://longbook.app/help.md)

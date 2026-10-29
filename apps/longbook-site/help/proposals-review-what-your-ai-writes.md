@@ -33,6 +33,6 @@ Writes from an AI through the MCP server, Siri, the Shortcuts action, a statemen
 
 No. Every proposal names its writer. Through the online connection, a signed-in AI can only make proposals, and only after **Allow proposals** is on.
 
-Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.
+Still have a question? Tap **Support** in the corner of any screen in the app, or write to contact@longbook.app and a person answers.
 
 - [All help articles](https://longbook.app/help.md)

@@ -32,6 +32,6 @@ longbook is a one-time purchase with a 7-day refund. Launch prices are $38 for t
 
 Yes. Write to us in Support, or use the feedback board in Help & about.
 
-Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.
+Still have a question? Tap **Support** in the corner of any screen in the app, or write to contact@longbook.app and a person answers.
 
 - [All help articles](https://longbook.app/help.md)

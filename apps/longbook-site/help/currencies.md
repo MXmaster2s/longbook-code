@@ -33,6 +33,6 @@ Any currency in current use, by its three-letter code.
 
 An amount said in rupees, dollars, pounds, euros, dirhams or yen keeps that currency. Any other amount takes the currency most of your commitments use.
 
-Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.
+Still have a question? Tap **Support** in the corner of any screen in the app, or write to contact@longbook.app and a person answers.
 
 - [All help articles](https://longbook.app/help.md)

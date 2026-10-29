@@ -32,7 +32,7 @@ Each line comes back with a name, date, amount and category, and money in is mar
 
 ### Commitments and members
 
-Payments that repeat are offered as commitments to fill in, the people a statement pays as members, and the accounts that transfers and card payments go to as accounts, each on its own tab of the review and matched to what longbook already holds. **Add accounts and people found in statements**, on unless turned off, decides whether those people and accounts start ticked. A line that belongs to a recurring commitment longbook already holds is recorded as that commitment's charge. What is recorded shows in [Proposals](/features/review-every-change-your-ai-makes/), and each month the statement fills gets a [monthly report](/features/create-monthly-expense-reports/).
+Payments that repeat are offered as commitments to fill in, the people a statement pays as members, and the accounts that transfers and card payments go to as accounts, all on one list of the app's own cards, every item ticked and matched to what longbook already holds. **Add accounts and people found in statements**, on unless turned off, decides whether those people and accounts start ticked. A line that belongs to a recurring commitment longbook already holds is recorded as that commitment's charge. What is recorded shows in [Proposals](/features/review-every-change-your-ai-makes/), and each month the statement fills gets a [monthly report](/features/create-monthly-expense-reports/).
 
 ## Why it exists
 

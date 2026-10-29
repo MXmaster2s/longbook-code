@@ -39,6 +39,6 @@ Disconnect it in **AI Connections**, or turn off **Let AI Read My longbook**. It
 
 In Support, tap **Ask a person** to open an email to the team, and tell us which AI you use and the message it shows.
 
-Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.
+Still have a question? Tap **Support** in the corner of any screen in the app, or write to contact@longbook.app and a person answers.
 
 - [All help articles](https://longbook.app/help.md)

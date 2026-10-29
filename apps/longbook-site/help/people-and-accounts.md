@@ -38,7 +38,7 @@ No. Balances change only when you, a statement or your AI record one.
 
 ### Can a statement add people and accounts?
 
-Yes, while **Add accounts and people found in statements** is on. It's on unless you turn it off: on iPhone in **Settings** under **Import**, and on Mac in the Settings window under **Statements**. The review then offers, ticked, every person the statement prints and every account: the statement's own account, and the accounts and people that transfers and card payments go to. Untick what you don't want before you tap **Add**. A closing balance on the statement updates its account.
+Yes, while **Add accounts and people found in statements** is on. It's on unless you turn it off: on iPhone in **Settings** under **Import**, and on Mac in the Settings window under **Statements**, as **Add accounts and people found**. The review then offers, ticked, every person the statement prints and every account: the statement's own account, and the accounts and people that transfers and card payments go to. Untick what you don't want before you tap **Add**. A closing balance on the statement updates its account.
 
 With the switch off, they still appear in the review, unticked, and nothing is added unless you tick it.
 
@@ -46,6 +46,6 @@ With the switch off, they still appear in the review, unticked, and nothing is a
 
 No. **Optimize your data** keeps your answers, such as a cook or a card, as hints for reading your statements. They help your AI and the statement reader name things, but **People** and **Accounts** list only what you add or what a statement shows.
 
-Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.
+Still have a question? Tap **Support** in the corner of any screen in the app, or write to contact@longbook.app and a person answers.
 
 - [All help articles](https://longbook.app/help.md)

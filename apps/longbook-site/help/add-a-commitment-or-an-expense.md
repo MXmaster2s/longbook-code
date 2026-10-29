@@ -29,7 +29,8 @@ Everything an AI or Siri adds waits in **Proposals**.
 
 - **Mark paid** on a charge once it is paid.
 - **Pause** a commitment, or set the day it stops.
-- A new price applies to **Only this charge** or to **This and later charges**. Charges already paid keep their amount.
+- A new price applies to **Only This Charge** or to **This and Every One After**. Charges already paid keep their amount.
+- Deleting a planned charge asks the same: **Only This Charge**, or **This and Every One After**, which also ends the commitment's plan there. Paid charges stay.
 
 ## Questions
 
@@ -45,6 +46,6 @@ Yes. Add it as **One-time** and mark it paid.
 
 No. It records and totals what goes out.
 
-Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.
+Still have a question? Tap **Support** in the corner of any screen in the app, or write to contact@longbook.app and a person answers.
 
 - [All help articles](https://longbook.app/help.md)

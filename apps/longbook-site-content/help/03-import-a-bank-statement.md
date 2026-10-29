@@ -14,7 +14,7 @@ Payments that repeat are offered as commitments, every one ticked. Every person 
 
 ### Adding the people and accounts it finds
 
-**Add accounts and people found in statements** decides whether the people and accounts start ticked. It's on unless you turn it off: on iPhone in **Settings** under **Import**, and on Mac in the Settings window under **Statements**. With it off, they start unticked, and only what you tick is added.
+**Add accounts and people found in statements** decides whether the people and accounts start ticked. It's on unless you turn it off: on iPhone in **Settings** under **Import**, and on Mac in the Settings window under **Statements**, where it's called **Add accounts and people found**. With it off, they start unticked, and only what you tick is added.
 
 ## What is sent, and what is kept
 

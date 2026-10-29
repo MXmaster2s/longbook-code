@@ -39,6 +39,6 @@ No. longbook never connects to a bank, and your AI doesn't need one.
 
 See "Prompts to set up and keep longbook current" and "Prompts to ask, report and tidy".
 
-Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.
+Still have a question? Tap **Support** in the corner of any screen in the app, or write to contact@longbook.app and a person answers.
 
 - [All help articles](https://longbook.app/help.md)

@@ -16,7 +16,7 @@ Payments that repeat are offered as commitments, every one ticked. Every person 
 
 ### Adding the people and accounts it finds
 
-**Add accounts and people found in statements** decides whether the people and accounts start ticked. It's on unless you turn it off: on iPhone in **Settings** under **Import**, and on Mac in the Settings window under **Statements**. With it off, they start unticked, and only what you tick is added.
+**Add accounts and people found in statements** decides whether the people and accounts start ticked. It's on unless you turn it off: on iPhone in **Settings** under **Import**, and on Mac in the Settings window under **Statements**, where it's called **Add accounts and people found**. With it off, they start unticked, and only what you tick is added.
 
 ## What is sent, and what is kept
 
@@ -42,6 +42,6 @@ longbook first checks that a file is a statement. A file that isn't, such as a r
 
 Undo the proposal on the Proposals screen and nothing stays in your longbook. Then in Support, tap **Ask a person** to open an email to the team, and tell us the bank's name and what went wrong. Please don't send the statement itself.
 
-Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.
+Still have a question? Tap **Support** in the corner of any screen in the app, or write to contact@longbook.app and a person answers.
 
 - [All help articles](https://longbook.app/help.md)

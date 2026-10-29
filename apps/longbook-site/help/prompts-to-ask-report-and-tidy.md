@@ -25,6 +25,6 @@ Paste these into Claude or ChatGPT with the longbook connector on.
 
 In the app, **Reorganise my longbook** on the AI Connections screen runs it with longbook's own AI. It is limited each month, and more with Cloud.
 
-Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.
+Still have a question? Tap **Support** in the corner of any screen in the app, or write to contact@longbook.app and a person answers.
 
 - [All help articles](https://longbook.app/help.md)

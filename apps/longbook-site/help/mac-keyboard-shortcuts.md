@@ -39,6 +39,6 @@ The longbook menu also has **Check for Updates…** and **Tips**. The **Settings
 
 The longbook item in the Mac menu bar shows your next payment. Its menu has **Open longbook**, **Refresh** and **Quit longbook**. See "The widget and the Mac menu bar".
 
-Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.
+Still have a question? Tap **Support** in the corner of any screen in the app, or write to contact@longbook.app and a person answers.
 
 - [All help articles](https://longbook.app/help.md)

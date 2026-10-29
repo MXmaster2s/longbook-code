@@ -10,7 +10,7 @@ The bottom bar has five places:
 - **Reports**: one report for every month that has a confirmed charge.
 - **Settings**: everything else.
 
-Settings opens everything else: **Proposals**, **Insights**, **Bookmarks**, **Accounts**, **People**, **Import a statement** and **Add accounts and people found in statements**, **Trips**, **AI Connections**, **Display & currency**, **Data & privacy**, **Optimize your data**, **Try the demo**, **Tips**, **Tutorials**, **Help & about**, and your account at the top.
+Settings opens everything else: **Proposals**, **Insights**, **Bookmarks**, **Accounts**, **People**, **Import a statement** and **Add accounts and people found in statements**, **Trips**, **AI Connections**, **Display & currency**, **Data & privacy**, **Optimize your data**, **Try the demo**, **Tips**, **Tutorials**, **Help & about**, **What’s new**, and your account at the top.
 
 ## On Mac
 
@@ -34,7 +34,7 @@ The sidebar lists them all:
 
 ## Settings
 
-On Mac, Settings is a window of its own, like the Mac's System Settings. Its sidebar has a search field, your longbook account, then **General**, **Appearance**, **AI**, **Statements**, **Data & privacy** and **Tutorials**. Back and Forward (⌘[ and ⌘]) move between pages. **AI** is where you connect your AI, copy prompts, and set up Siri and Shortcuts; on iPhone that's **AI Connections**.
+On Mac, Settings is a window of its own, like the Mac's System Settings. Its sidebar has a search field, your longbook account, then **General**, **Appearance**, **AI**, **Statements**, **Data & Privacy** and **Tutorials**. Back and Forward (⌘[ and ⌘]) move between pages. **AI** is where you connect your AI, copy prompts, and set up Siri and Shortcuts; on iPhone that's **AI Connections**.
 
 ## Questions
 

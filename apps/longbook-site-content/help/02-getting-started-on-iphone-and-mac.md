@@ -10,6 +10,10 @@ longbook keeps your records in a longbook folder in your iCloud Drive, as plain 
 
 To keep it somewhere else, choose **Choose Folder** at setup. Syncing between devices comes from iCloud Drive.
 
+## The first run
+
+Setup has three steps: sign in, activate your longbook, then import a statement. Tap **Securely Upload Statement** to pick one, or **Skip** to start with an empty longbook. Once a statement is kept, your longbook opens.
+
 ## Add your first payments
 
 You can fill your longbook in three ways:
@@ -26,7 +30,7 @@ Setup asks about the people you pay and the accounts you pay from. Your answers 
 
 ## Settings on Mac
 
-On Mac, Settings opens in its own window: choose **Settings…** from the **Settings** row at the foot of the sidebar, or press ⌘,. Its sidebar has **General**, **Appearance**, **AI**, **Statements**, **Data & privacy** and **Tutorials**, with your longbook account at the top. **General** holds **About**, **Software Update**, **Login Items and Menu Bar**, and **Help and Feedback**; that's where you'll find **Launch at login**, **Check for updates automatically**, **Show the next payment in the menu bar** and **Hide the Dock icon**.
+On Mac, Settings opens in its own window: choose **Settings…** from the **Settings** row at the foot of the sidebar, or press ⌘,. Its sidebar has **General**, **Appearance**, **AI**, **Statements**, **Data & Privacy** and **Tutorials**, with your longbook account at the top. **General** holds **About**, **Software Update**, **Home currency**, **Login Items and Menu Bar**, and **Help and Feedback**. **Software Update** has **Check automatically**. **Login Items and Menu Bar** has **Open at login**, **Show in the menu bar**, a **Keyboard shortcut** for the menu bar item, and **Hide the Dock icon**.
 
 ## Look around first
 

@@ -29,6 +29,6 @@ A bookmark changes nothing about a commitment. It is a display setting saved in 
 
 Yes. The next payment stays in view on the iPhone widget and in the Mac menu bar.
 
-Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.
+Still have a question? Tap **Support** in the corner of any screen in the app, or write to contact@longbook.app and a person answers.
 
 - [All help articles](https://longbook.app/help.md)

@@ -14,6 +14,10 @@ The dashboard shows what is due next and what each month cost, by day, by accoun
 
 The month picker opens any month that holds charges. Tap an account or a category to see that month's charges for it.
 
+## A new longbook
+
+Until your longbook holds a commitment or a charge, the dashboard shows one card, **Start with a statement**, with three ways in: **Import a statement**, **Add a commitment by hand**, or **Use your own AI**, which opens **AI Connections** (on Mac, the **AI** pane of the Settings window). On Mac, you can also drop a statement file from Finder onto the card.
+
 ## Questions
 
 ### Does it include transfers?

@@ -32,6 +32,6 @@ If a family member doesn't see longbook as purchased, check that purchase sharin
 
 In Support, tap **Ask a person** to open an email to the team, and tell us the date of each charge. Please don't send card numbers. Apple's receipt email is enough.
 
-Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.
+Still have a question? Tap **Support** in the corner of any screen in the app, or write to contact@longbook.app and a person answers.
 
 - [All help articles](https://longbook.app/help.md)

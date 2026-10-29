@@ -34,6 +34,6 @@ No. Claude reads it through its own mail connector and writes to longbook throug
 
 The round checks what longbook already holds and skips an email whose amount and day are already recorded. Anything that slips through shows in **Proposals**, to undo.
 
-Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.
+Still have a question? Tap **Support** in the corner of any screen in the app, or write to contact@longbook.app and a person answers.
 
 - [All help articles](https://longbook.app/help.md)

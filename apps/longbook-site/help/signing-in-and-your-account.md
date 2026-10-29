@@ -32,6 +32,6 @@ Deleting your account removes your email and everything hosted for you: the copy
 
 If you bought Cloud, cancel it in your Apple Account's subscription settings too. Deleting the account doesn't cancel it.
 
-Still have a question? Open **Support** in the app, under **Settings**, then **Help & about**, or write to contact@longbook.app and a person answers.
+Still have a question? Tap **Support** in the corner of any screen in the app, or write to contact@longbook.app and a person answers.
 
 - [All help articles](https://longbook.app/help.md)
