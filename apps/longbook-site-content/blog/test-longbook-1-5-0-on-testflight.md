@@ -18,7 +18,7 @@ longbook is a private memory for the money you pay again and again: subscription
 2. Open the [longbook TestFlight link](https://testflight.apple.com/join/g66Nd3Na) and tap Accept, then Install.
 3. Open longbook and follow the steps below.
 
-TestFlight is Apple's way of trying an app before it is released. Nothing is charged on TestFlight.
+TestFlight is Apple's way of trying an app before it is released. The build is 1.5.0 (59), the same one for iPhone and Mac, and nothing is charged on TestFlight.
 
 ## What is new in 1.5.0
 
@@ -32,6 +32,24 @@ These are the changes you will notice in the first ten minutes.
 - **Delete this charge, or every one after it.** Deleting a planned charge now asks whether to remove only that one, or that one and all the ones after it.
 - **Use My Own AI.** In Settings, this copies a prompt that sets longbook up in Claude or ChatGPT, so you do not have to write it.
 - **A tutorial for each screen.** The first time you open a screen, a short tutorial shows what it is for. You can replay any of them in Settings, then Tutorials.
+
+### Also in 1.5.0
+
+- **Changes is now Proposals,** so it no longer reads like Charges at a glance.
+- **Stars, search and filters.** Star a person or an account to keep it at the top of its list. People and Accounts each have a search and a filter by relationship or type.
+- **Optimize your data.** The setup questions moved to Settings. The people and accounts you pick there help longbook read your statements, and are not added to People and Accounts.
+- **Open another longbook.** Settings, then Data & privacy, can open a longbook from another folder and leaves your current one as it is.
+- **Examples from your region.** Naming a new account shows an example from your region, and the UPI account type is offered in India only.
+- **Family Sharing, on its own card.** The purchase screen shows that everyone in your Apple family gets longbook on their own account and devices.
+- **What's New after an update.** It shows what changed once, and you can open it again from Settings.
+- **Your AI reads the guide first.** An AI connected to longbook reads longbook's guide for the task before it writes.
+- **On the Mac,** Settings opens its own window with a pane for each part, longbook can open at login and check for updates on its own, the sidebar shows only the people and accounts you star, and buttons, rows and cards answer the pointer and the Tab key. longbook also no longer quits at launch while it reads a crash report from an earlier session.
+
+### Outside the app
+
+- **Support was designed before it was built,** for iPhone and Mac, in light and dark, so the chat and its screenshot button look like the rest of longbook.
+- **longbook.app is easier for AI assistants to read.** An assistant that asks for Markdown gets each page's text without the layout, and AI tools can find the longbook server's details on the site.
+- **The blog's pictures say how you may use them,** the same way as the [media kit](https://longbook.app/media-kit/): free for writing about longbook.
 
 ## What to test
 
