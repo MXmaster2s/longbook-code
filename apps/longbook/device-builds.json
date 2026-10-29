@@ -120,6 +120,7 @@
   "59": {
     "version": "1.5.0",
     "commit": "d06ba98f54",
-    "installed": "2026-10-29"
+    "installed": "2026-10-29",
+    "testflight": "2026-10-29"
   }
 }
