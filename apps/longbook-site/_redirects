@@ -173,6 +173,8 @@ https://longbook-app.netlify.app/*  https://longbook.app/:splat  301!
 /help/glossary/index.html.md                                                      /help/glossary.md                                                      200
 /reviews/index.md                                                                 /reviews.md                                                            200
 /reviews/index.html.md                                                            /reviews.md                                                            200
+/blog/test-longbook-1-5-0-on-testflight/index.md                                  /blog/test-longbook-1-5-0-on-testflight.md                             200
+/blog/test-longbook-1-5-0-on-testflight/index.html.md                             /blog/test-longbook-1-5-0-on-testflight.md                             200
 /blog/open-any-folder-in-longbook/index.md                                        /blog/open-any-folder-in-longbook.md                                   200
 /blog/open-any-folder-in-longbook/index.html.md                                   /blog/open-any-folder-in-longbook.md                                   200
 /blog/how-to-show-reviews-about-your-product-to-the-world/index.md                /blog/how-to-show-reviews-about-your-product-to-the-world.md           200

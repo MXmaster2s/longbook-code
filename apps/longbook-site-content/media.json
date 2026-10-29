@@ -232,6 +232,12 @@
       "out": "reviews/share.jpg",
       "width": 1200,
       "height": 630
+    },
+    {
+      "source": "blog-testflight-150-share.png",
+      "out": "blog/media/testflight-150/share.jpg",
+      "width": 1200,
+      "height": 630
     }
   ]
 }

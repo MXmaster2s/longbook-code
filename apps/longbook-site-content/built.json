@@ -625,6 +625,11 @@
       "sha256": "68215a5dffa8770350b878b199e8c46cb28e4d560136dfd89905f76ec2010d58"
     },
     {
+      "path": "blog/media/testflight-150/share.jpg",
+      "bytes": 85082,
+      "sha256": "c32e4c92239b03eb06334033e7d906c00e758bdfb7ccef840d896fa55836b3f8"
+    },
+    {
       "path": "features/media/get-spending-insights.jpg",
       "bytes": 57493,
       "sha256": "73abd05be8beddad4b2da44bdb5f7b881693ae92cbc596f9d4bec1e719da74e1"
