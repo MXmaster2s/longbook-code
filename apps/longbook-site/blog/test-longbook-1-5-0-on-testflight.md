@@ -14,7 +14,7 @@ longbook is a private memory for the money you pay again and again: subscription
 2. Open the [longbook TestFlight link](https://testflight.apple.com/join/g66Nd3Na) and tap Accept, then Install.
 3. Open longbook and follow the steps below.
 
-TestFlight is Apple's way of trying an app before it is released. The build is 1.5.0 (59), the same one for iPhone and Mac, and nothing is charged on TestFlight.
+TestFlight is Apple's way of trying an app before it is released. The build is 1.5.0 (60), the same one for iPhone and Mac, and nothing is charged on TestFlight.
 
 ## What is new in 1.5.0
 
@@ -39,7 +39,7 @@ These are the changes you will notice in the first ten minutes.
 - **Family Sharing, on its own card.** The purchase screen shows that everyone in your Apple family gets longbook on their own account and devices.
 - **What's New after an update.** It shows what changed once, and you can open it again from Settings.
 - **Your AI reads the guide first.** An AI connected to longbook reads longbook's guide for the task before it writes.
-- **On the Mac,** Settings opens its own window with a pane for each part, longbook can open at login and check for updates on its own, the sidebar shows only the people and accounts you star, and buttons, rows and cards answer the pointer and the Tab key. longbook also no longer quits at launch while it reads a crash report from an earlier session.
+- **On the Mac,** Settings opens its own window with a pane for each part, longbook can open at login and check for updates on its own, the sidebar shows only the people and accounts you star, and buttons, rows and cards answer the pointer and the Tab key. The statement review opens wide enough to show every card whole, where before its edges were cut off, and longbook no longer quits at launch while it reads a crash report from an earlier session.
 
 ### Outside the app
 
