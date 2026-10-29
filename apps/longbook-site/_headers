@@ -1144,6 +1144,21 @@
   Link: <https://longbook.app/reviews/>; rel="canonical"
   X-Robots-Tag: noindex, follow
 
+/blog/release-notes.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/blog/release-notes/>; rel="canonical"
+  X-Robots-Tag: noindex, follow
+
+/blog/release-notes/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/blog/release-notes/>; rel="canonical"
+  X-Robots-Tag: noindex, follow
+
+/blog/release-notes/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/blog/release-notes/>; rel="canonical"
+  X-Robots-Tag: noindex, follow
+
 /blog/open-any-folder-in-longbook.md
   Content-Type: text/markdown; charset=utf-8
   Link: <https://longbook.app/blog/open-any-folder-in-longbook/>; rel="canonical"

@@ -58,8 +58,11 @@ export const headingId = (text: string): string =>
 // quote (every line starting with ">"), a paragraph, a screen's audit between ":::audit" and ":::",
 // a film between ":::film /blog/media/<name>.mp4" and ":::" (its description, then any caption),
 // or code fenced by "```", kept as written.
-export function parseBlocks(lines: string[], file: string): PostBlock[] {
+export function parseBlocks(lines: string[], file: string, nest = false): PostBlock[] {
   const out: PostBlock[] = []
+  // In a post (nest), a ### belongs to the ## above it, so its id carries that one's: two versions can
+  // each have an "On the Mac". Help articles keep plain ids, so their links stay as they are.
+  let section = ''
   let run: string[] = []
   const flush = (): void => {
     if (run.length) out.push(blockOf(run, file))
@@ -99,7 +102,9 @@ export function parseBlocks(lines: string[], file: string): PostBlock[] {
     const h = /^(##|###) (.+)$/.exec(line)
     if (h) {
       flush()
-      out.push({ kind: h[1] === '##' ? 'h2' : 'h3', text: h[2]!.trim(), id: headingId(h[2]!) })
+      const id = headingId(h[2]!)
+      if (h[1] === '##') section = id
+      out.push({ kind: h[1] === '##' ? 'h2' : 'h3', text: h[2]!.trim(), id: nest && h[1] === '###' && section ? `${section}-${id}` : id })
     } else if (line) run.push(line)
     else flush()
   }
@@ -151,7 +156,7 @@ export function parsePost(text: string, file: string): Post {
   for (const k of ['date', 'updated']) {
     if (data[k] && !/^\d{4}-\d{2}-\d{2}$/.test(data[k]!)) throw new Error(`${file}: ${k} is not a YYYY-MM-DD date`)
   }
-  const blocks = parseBlocks(body.split('\n'), file)
+  const blocks = parseBlocks(body.split('\n'), file, true)
   const words = [data.lead!, ...textsOf(blocks)].map(plainText).join(' ').split(/\s+/).filter(Boolean).length
   return {
     slug: data.slug!,
@@ -257,15 +262,38 @@ export function blockHtml(b: PostBlock, stills: Map<string, Still>): string {
   }
 }
 
+const VERSION = /^\d+\.\d+\.\d+$/
+
+/** The changes listed under each ## of a post, by its id: every list item until the next ##. */
+export function itemsByH2(blocks: PostBlock[]): Map<string, number> {
+  const out = new Map<string, number>()
+  let at = ''
+  for (const b of blocks) {
+    if (b.kind === 'h2') out.set((at = b.id), 0)
+    else if (at && (b.kind === 'ul' || b.kind === 'ol')) out.set(at, out.get(at)! + b.items.length)
+  }
+  return out
+}
+
+/** Release notes, where every ## is a version, jump between versions with the features page's chips. */
+export function versionNav(blocks: PostBlock[]): string {
+  const h2s = blocks.filter((b): b is Extract<PostBlock, { kind: 'h2' }> => b.kind === 'h2')
+  if (!h2s.length || !h2s.every((h) => VERSION.test(h.text))) return ''
+  const items = itemsByH2(blocks)
+  return '<nav class="bvers" aria-label="Versions">' +
+    h2s.map((h) => `<a href="#${h.id}">${esc(h.text)}<span>${items.get(h.id)}</span></a>`).join('') + '</nav>'
+}
+
 export function postPage(p: Post, ctx: Ctx, stills: Map<string, Still>, jsonld: object): string {
   const h2s = p.body.filter((b): b is Extract<PostBlock, { kind: 'h2' }> => b.kind === 'h2')
-  const toc = h2s.length > 2
+  const versions = versionNav(p.body)
+  const toc = versions || (h2s.length > 2
     ? `<nav class="btoc" aria-label="In this post"><p>In this post</p><ol>` +
       h2s.map((h) => `<li><a href="#${h.id}">${inlineHtml(h.text)}</a></li>`).join('') + '</ol></nav>'
-    : ''
+    : '')
   const main = [
     '<main class="fp bp"><div class="fwrap">',
-    '<article class="post" aria-labelledby="post-title">',
+    `<article class="post${versions ? ' bver' : ''}" aria-labelledby="post-title">`,
     `<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/blog/">Blog</a></li><li aria-current="page">${esc(p.title)}</li></ol></nav>`,
     `<header class="bhero"><h1 id="post-title">${esc(p.title)}</h1><p class="lead">${inlineHtml(p.lead)}</p>` +
       `<p class="bmeta">${AUTHOR} · <time datetime="${p.date}">${longDate(p.date)}</time> · ${readingMinutes(p)} min read</p>` +

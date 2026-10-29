@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { blockHtml, blockMd, parseBlocks, parsePost, postJsonld, posterOf, validatePosts, type BlogFilms, type Still } from './blog.mts'
+import { blockHtml, blockMd, parseBlocks, parsePost, postJsonld, posterOf, validatePosts, versionNav, type BlogFilms, type Still } from './blog.mts'
 
 const FILM = '/blog/media/sample/clip.mp4'
 const film = (inner: string): string[] => [`:::film ${FILM}`, ...inner.split('\n'), ':::']
@@ -82,4 +82,17 @@ test('a code block keeps its lines as written, escaped on the page and fenced in
 
 test('a code block that is not closed is refused', () => {
   assert.throws(() => parseBlocks(['```json', '{}'], 'blog/x.md'), /never closed/)
+})
+
+test('in a post, a ### takes its ## heading into its id, so two versions can share a sub-heading', () => {
+  const lines = ['## 1.5.0', '### On the Mac', '## 1.4.1', '### On the Mac']
+  const ids = (nest: boolean): string[] => parseBlocks(lines, 'blog/x.md', nest).map((b) => (b as { id: string }).id)
+  assert.deepEqual(ids(true), ['1-5-0', '1-5-0-on-the-mac', '1-4-1', '1-4-1-on-the-mac'])
+  assert.deepEqual(ids(false), ['1-5-0', 'on-the-mac', '1-4-1', 'on-the-mac'])
+})
+
+test('release notes, every ## a version, get a chip per version with its number of changes', () => {
+  const blocks = parseBlocks(['## 1.5.0', '### Every day', '- a', '- b', '## 1.4.1', '- c'], 'blog/x.md', true)
+  assert.equal(versionNav(blocks), '<nav class="bvers" aria-label="Versions"><a href="#1-5-0">1.5.0<span>2</span></a><a href="#1-4-1">1.4.1<span>1</span></a></nav>')
+  assert.equal(versionNav(parseBlocks(['## 1.5.0', '## Why'], 'blog/x.md', true)), '')
 })

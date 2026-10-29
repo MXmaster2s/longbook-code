@@ -53,6 +53,10 @@
 /testflight             /ios/  301!
 /testflight/*           /ios/  301!
 
+# The app's What's New links to /release-notes/; the notes are one page on the blog.
+/release-notes          /blog/release-notes/  301!
+/release-notes/*        /blog/release-notes/  301!
+
 /feedback               https://insigh.to/b/longbook  302!
 /feedback/*             https://insigh.to/b/longbook  302!
 
@@ -173,6 +177,8 @@ https://longbook-app.netlify.app/*  https://longbook.app/:splat  301!
 /help/glossary/index.html.md                                                      /help/glossary.md                                                      200
 /reviews/index.md                                                                 /reviews.md                                                            200
 /reviews/index.html.md                                                            /reviews.md                                                            200
+/blog/release-notes/index.md                                                      /blog/release-notes.md                                                 200
+/blog/release-notes/index.html.md                                                 /blog/release-notes.md                                                 200
 /blog/open-any-folder-in-longbook/index.md                                        /blog/open-any-folder-in-longbook.md                                   200
 /blog/open-any-folder-in-longbook/index.html.md                                   /blog/open-any-folder-in-longbook.md                                   200
 /blog/how-to-show-reviews-about-your-product-to-the-world/index.md                /blog/how-to-show-reviews-about-your-product-to-the-world.md           200
