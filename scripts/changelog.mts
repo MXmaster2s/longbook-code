@@ -36,6 +36,6 @@ export function changelogProblems(projectYml: string, changelogJson: string): st
   if (!/^\d{4}-\d{2}-\d{2}$/.test(newest.date)) problems.push(`the newest entry's date "${newest.date}" is not a day`)
   const long = newest.changes.filter((c) => c.length > 300)
   if (long.length) problems.push(`${long.length} change(s) run past 300 characters`)
-  if (newest.changes.join(' ').length > 4000) problems.push('the notes run past TestFlight\'s 4000 characters')
+  // TestFlight's 4000 characters are kept by asc-testflight, which links the release notes for the rest.
   return problems
 }

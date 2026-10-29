@@ -160,8 +160,9 @@ struct StatementImportView: View {
         .frame(maxWidth: columnWidth)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         #if os(macOS)
-        // Two people or accounts side by side want the review wider than the pick.
-        .frame(minWidth: stage == .review ? 760 : 520, minHeight: stage == .review ? 680 : 560)
+        // A Mac sheet keeps the size it opened at, so it opens at the review's size: two
+        // people or accounts side by side need 760, and a narrower sheet cut the review off.
+        .frame(minWidth: 760, minHeight: 680)
         #endif
         .background(LBColor.canvas.color)
         // Once a statement is read the sheet is modal: only Discard or Add closes it.
