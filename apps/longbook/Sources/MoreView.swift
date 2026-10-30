@@ -73,6 +73,7 @@ struct MoreView: View {
         .sheet(isPresented: $importing) {
             StatementImportView(model: model, auth: auth) { importing = false }
         }
+        .measured("more_past_imports", .sheet, when: showingPastImports)
         .sheet(isPresented: $showingPastImports) {
             NavigationStack {
                 ScrollView { PastImportsList(records: model.pastImports()) }

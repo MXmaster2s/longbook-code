@@ -179,9 +179,9 @@ amount, the date, the account and the currency as printed, and never guess them;
 name, the category and which commitment a line belongs to, write them, and show them in the
 table. A person a line names is a member, as printed; a role for them is a question, their
 place is not. Money in — salary, a refund, interest — is
-written too, as a one-time row with `direction: "in"`; it never counts as spending. Skip
-movements between the owner's own accounts; one the owner wants remembered is a row with
-`direction: "transfer"`. The method and the worked lines are in `Importing statements` below.
+written too, as a one-time row with `direction: "in"`; it never counts as spending. Every
+other line is a row, an ATM withdrawal and a card bill payment included; a line is a
+`direction: "transfer"` only by the Transfers rule. The method and the worked lines are in `Importing statements` below.
 
 **3. Set what comes round.** A payee the statements show at least three times, a steady
 month, quarter or year apart, repeats: `promote_to_recurring` it now. So does one the bank's
@@ -651,10 +651,10 @@ SPOTIFY 119.00 on the 12th, Sept 2025 through April 2026, then nothing
   storage; say which you chose. Seen twice, a month apart: promoted monthly as a guess,
   "Apple (Guessed)", notes "Guessed: Seen twice, a month apart; the same rhythm assumed".
 
-28/06/2026  CREDIT CARD PAYMENT        42,310.00   → skip (the memory holds no bill row for it;
-                                                     the card statement has the charges)
+28/06/2026  CREDIT CARD PAYMENT        42,310.00   → one row, a charge like any other (not a transfer:
+                                                     the card is no Self account)
 30/06/2026  SALARY CREDIT             1,50,000.00  → one row, direction "in" (money in, kept apart)
-14/06/2026  ATM WDL                   10,000.00    → skip (a movement)
+14/06/2026  ATM WDL                   10,000.00    → one row, a charge
 ```
 
 The questions to the owner after the facts are written, in shape — one message, nothing
