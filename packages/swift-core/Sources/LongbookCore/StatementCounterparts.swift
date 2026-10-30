@@ -4,35 +4,59 @@
 import Foundation
 
 public enum StatementCounterparts {
-    /// The accounts and people the charges name on their other side, new to the book.
-    public struct Found: Equatable, Sendable {
-        public var accounts: [String]
-        public var people: [String]
+    /// An account a line prints on its other side, and the person it belongs to when the
+    /// line names one beside it.
+    public struct Account: Equatable, Sendable {
+        public var name: String
+        public var person: String?
 
-        public init(accounts: [String] = [], people: [String] = []) {
-            self.accounts = accounts
-            self.people = people
+        public init(name: String, person: String? = nil) {
+            self.name = name
+            self.person = person
         }
     }
 
+    /// The accounts and people the charges name on their other side, new to the book.
+    public struct Found: Equatable, Sendable {
+        public var accounts: [Account]
+        public var people: [String]
+
+        public init(accounts: [Account] = [], people: [String] = []) {
+            self.accounts = accounts
+            self.people = people
+        }
+
+        public var accountNames: [String] { accounts.map(\.name) }
+    }
+
+    /// The account a line prints on its other side, as Accounts names it: the other side
+    /// itself when that is an account, else the bank account printed beside a person, with
+    /// the person. Nil when the line prints none.
+    public static func account(on charge: StatementCloud.Charge) -> Account? {
+        if charge.counterpartKind == "account", let raw = charge.counterpart, let name = accountName(raw) {
+            return Account(name: name, person: nil)
+        }
+        guard let bank = charge.counterpartBank, let name = accountName(bank) else { return nil }
+        let person = charge.counterpartKind == "person" ? charge.counterpart.flatMap(personName) : nil
+        return Account(name: name, person: person)
+    }
+
     /// Every counterpart once, in the order the lines name them, leaving out any account or
-    /// person `knownAccounts` or `knownPeople` already holds.
+    /// person `knownAccounts` or `knownPeople` already holds. An account seen first without
+    /// its person takes the person a later line prints beside it.
     public static func found(in charges: [StatementCloud.Charge], knownAccounts: [String], knownPeople: [String]) -> Found {
         var out = Found()
         for charge in charges {
-            guard let raw = charge.counterpart else { continue }
-            switch charge.counterpartKind {
-            case "account":
-                guard let name = accountName(raw),
-                      !(knownAccounts + out.accounts).contains(where: { sameAccount($0, name) }) else { continue }
-                out.accounts.append(name)
-            case "person":
-                guard let name = personName(raw),
-                      !(knownPeople + out.people).contains(where: { nameKey($0) == nameKey(name) }) else { continue }
-                out.people.append(name)
-            default:
-                continue
+            if let account = account(on: charge) {
+                if let at = out.accounts.firstIndex(where: { sameAccount($0.name, account.name) }) {
+                    if out.accounts[at].person == nil { out.accounts[at].person = account.person }
+                } else if !knownAccounts.contains(where: { sameAccount($0, account.name) }) {
+                    out.accounts.append(account)
+                }
             }
+            guard charge.counterpartKind == "person", let raw = charge.counterpart, let name = personName(raw),
+                  !(knownPeople + out.people).contains(where: { nameKey($0) == nameKey(name) }) else { continue }
+            out.people.append(name)
         }
         return out
     }

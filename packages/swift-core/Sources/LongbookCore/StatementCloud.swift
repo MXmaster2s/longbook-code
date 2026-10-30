@@ -54,14 +54,18 @@ public enum StatementCloud {
         /// `counterpartKind` is "account" or "person". An answer without them reads as nil.
         public let counterpart: String?
         public let counterpartKind: String?
+        /// The bank account printed beside a person on the other side ("Axis savings ••1234"),
+        /// or the owner's own other account; nil when the line prints none.
+        public let counterpartBank: String?
 
         enum CodingKeys: String, CodingKey {
             case date, amount, name, narration, account, category, kind, member, counterpart
             case counterpartKind = "counterpart_kind"
+            case counterpartBank = "counterpart_bank"
         }
 
         public init(date: String, amount: Double, name: String, narration: String, account: String, category: String?,
-                    kind: String, member: String?, counterpart: String? = nil, counterpartKind: String? = nil) {
+                    kind: String, member: String?, counterpart: String? = nil, counterpartKind: String? = nil, counterpartBank: String? = nil) {
             self.date = date
             self.amount = amount
             self.name = name
@@ -72,6 +76,28 @@ public enum StatementCloud {
             self.member = member
             self.counterpart = counterpart
             self.counterpartKind = counterpartKind
+            self.counterpartBank = counterpartBank
+        }
+
+        public init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            date = try c.decode(String.self, forKey: .date)
+            amount = try c.decode(Double.self, forKey: .amount)
+            name = try c.decode(String.self, forKey: .name)
+            narration = try c.decode(String.self, forKey: .narration)
+            account = try c.decode(String.self, forKey: .account)
+            category = try c.decodeIfPresent(String.self, forKey: .category)
+            kind = try c.decode(String.self, forKey: .kind)
+            member = try c.decodeIfPresent(String.self, forKey: .member)
+            counterpart = try c.decodeIfPresent(String.self, forKey: .counterpart)
+            counterpartKind = try c.decodeIfPresent(String.self, forKey: .counterpartKind)
+            counterpartBank = try c.decodeIfPresent(String.self, forKey: .counterpartBank)
+        }
+
+        /// The same line under another name.
+        func renamed(_ name: String) -> Charge {
+            Charge(date: date, amount: amount, name: name, narration: narration, account: account, category: category, kind: kind,
+                   member: member, counterpart: counterpart, counterpartKind: counterpartKind, counterpartBank: counterpartBank)
         }
     }
 
@@ -101,14 +127,19 @@ public enum StatementCloud {
         public let dates: [String]
         public let category: String?
         public let endsOn: String?
+        /// Backed by fewer than three sightings: the name says so and `reason` says why, in
+        /// one sentence. An answer without the fields reads as not guessed.
+        public let guessed: Bool
+        public let reason: String
 
         enum CodingKeys: String, CodingKey {
-            case name, cycle, amount, dates, category
+            case name, cycle, amount, dates, category, guessed, reason
             case customDays = "custom_days"
             case endsOn = "ends_on"
         }
 
-        public init(name: String, cycle: String, customDays: Int?, amount: Double, dates: [String], category: String?, endsOn: String?) {
+        public init(name: String, cycle: String, customDays: Int?, amount: Double, dates: [String], category: String?, endsOn: String?,
+                    guessed: Bool = false, reason: String = "") {
             self.name = name
             self.cycle = cycle
             self.customDays = customDays
@@ -116,6 +147,33 @@ public enum StatementCloud {
             self.dates = dates
             self.category = category
             self.endsOn = endsOn
+            self.guessed = guessed
+            self.reason = guessed ? reason : ""
+        }
+
+        public init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            let guessed = try c.decodeIfPresent(Bool.self, forKey: .guessed) ?? false
+            self.init(name: try c.decode(String.self, forKey: .name), cycle: try c.decode(String.self, forKey: .cycle),
+                      customDays: try c.decodeIfPresent(Int.self, forKey: .customDays), amount: try c.decode(Double.self, forKey: .amount),
+                      dates: try c.decodeIfPresent([String].self, forKey: .dates) ?? [], category: try c.decodeIfPresent(String.self, forKey: .category),
+                      endsOn: try c.decodeIfPresent(String.self, forKey: .endsOn), guessed: guessed,
+                      reason: (try c.decodeIfPresent(String.self, forKey: .reason) ?? "").trimmingCharacters(in: .whitespacesAndNewlines))
+        }
+
+        /// The same repeat under the name the owner would say.
+        func renamed(_ name: String) -> Repeat {
+            Repeat(name: name, cycle: cycle, customDays: customDays, amount: amount, dates: dates, category: category, endsOn: endsOn,
+                   guessed: guessed, reason: reason)
+        }
+
+        /// The name the commitment is written under: a guess says so at its end.
+        public var writtenName: String { guessed ? "\(name) (Guessed)" : name }
+
+        /// The first line of a guessed commitment's notes; nil when nothing was guessed.
+        public var guessedNote: String? {
+            guard guessed else { return nil }
+            return "Guessed: \(reason.isEmpty ? "seen fewer than three times" : reason)"
         }
     }
 
@@ -180,7 +238,10 @@ public enum StatementCloud {
             let codes = answers.compactMap { $0.currency?.trimmingCharacters(in: .whitespaces).uppercased() }
                 .filter { $0.count == 3 && $0.allSatisfy(\.isLetter) }
             let currency = Dictionary(codes.map { ($0, 1) }, uniquingKeysWith: +).max { $0.value < $1.value }?.key
-            return Prepared(account: account, charges: mendDates(answers.flatMap(\.charges), today: today), repeats: review.repeats,
+            // Names arrive cleaned on both sides, so a repeat still names the charges it groups.
+            let charges = mendDates(answers.flatMap(\.charges), today: today).map { $0.renamed(StatementNaming.clean($0.name)) }
+            let repeats = review.repeats.map { $0.renamed(StatementNaming.clean($0.name)) }
+            return Prepared(account: account, charges: charges, repeats: repeats,
                             members: review.members, notes: notes.joined(separator: " "),
                             balance: balance?.0, balanceDate: balance?.1, currency: currency)
         }
@@ -212,7 +273,8 @@ public enum StatementCloud {
                 if date <= today { previous = date }
                 out.append(date == charge.date ? charge : Charge(date: date, amount: charge.amount, name: charge.name, narration: charge.narration,
                                                                   account: charge.account, category: charge.category, kind: charge.kind, member: charge.member,
-                                                                  counterpart: charge.counterpart, counterpartKind: charge.counterpartKind))
+                                                                  counterpart: charge.counterpart, counterpartKind: charge.counterpartKind,
+                                                                  counterpartBank: charge.counterpartBank))
             }
             return out
         }
@@ -237,13 +299,14 @@ public enum StatementCloud {
                     }
                 }
                 let tag = charge.category.flatMap { named in tags.first { $0.caseInsensitiveCompare(named) == .orderedSame } }
-                let name = charge.name.trimmingCharacters(in: .whitespacesAndNewlines)
+                let name = StatementNaming.clean(charge.name)
                 let account = charge.account.trimmingCharacters(in: .whitespaces).isEmpty ? self.account : charge.account
                 return StatementCandidate(
                     line: line, name: name.isEmpty ? StatementNaming.plainName(charge.narration) : name,
                     tag: tag, keep: skip == nil, skipReason: skip, file: account,
                     member: charge.kind == "for_member" ? charge.member : nil,
-                    direction: direction(of: charge.kind)
+                    direction: direction(of: charge.kind),
+                    counterpartAccount: StatementCounterparts.account(on: charge)?.name
                 )
             }
         }

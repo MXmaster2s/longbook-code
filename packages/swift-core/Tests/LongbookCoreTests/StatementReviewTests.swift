@@ -86,6 +86,51 @@ final class StatementReviewTests: XCTestCase {
         XCTAssertEqual(VaultHistory.verdict(ours: false, hasOpenReview: false, base: .bytes, synced: true, unchanged: false), .adopt)
     }
 
+    func testAGuessedRepeatIsWrittenAsOneAndAPersonsBankIsTheirs() throws {
+        let raw = try openingVault()
+        var review = bigReview(attachingTo: nil)
+        // The gym repeats twelve times; a premium seen twice is promoted as a guess.
+        review.files[0].rows += [line("Star Health", "2025-01-12", 9200), line("Star Health", "2025-07-12", 9200)]
+        for index in review.files[0].rows.indices where review.files[0].rows[index].name == "Shop 3" {
+            review.files[0].rows[index].counterpartAccount = "Axis savings ••1234"
+        }
+        let premium = StatementCloud.Repeat(name: "Star Health", cycle: "custom", customDays: 183, amount: 9200,
+                                            dates: ["2025-01-12", "2025-07-12"], category: "insurance", endsOn: nil,
+                                            guessed: true, reason: "Seen twice, half a year apart; the insurer's name says it comes round.")
+        review.repeats.append((premium, CommitmentPlaceholder(name: "Star Health", group: "Custom", tag: "insurance")))
+        review.accounts = ["Axis savings ••1234"]
+        review.accountOwners = ["Axis savings ••1234": "Anil"]
+
+        let result = try StatementImport.write(review, to: raw, now: now, schema: VaultContract.bundledSchema())
+        let next = result.vault
+        XCTAssertEqual(result.promoted, ["Cult gym", "Star Health"])
+        let subs = next["commitments"] as? [[String: Any]] ?? []
+        let guessed = try XCTUnwrap(subs.first { ($0["name"] as? String) == "Star Health (Guessed)" }, "the name says it is a guess")
+        XCTAssertEqual(guessed["billing_cycle"] as? String, "custom")
+        XCTAssertEqual((guessed["notes"] as? String)?.components(separatedBy: "\n").first,
+                       "Guessed: Seen twice, half a year apart; the insurer's name says it comes round.")
+        XCTAssertFalse(subs.contains { ($0["name"] as? String) == "Star Health" }, "the two one-time rows are the commitment's own now")
+        let gym = try XCTUnwrap(subs.first { ($0["name"] as? String) == "Cult gym" })
+        XCTAssertTrue((gym["notes"] as? String ?? "").isEmpty, "a proven repeat carries no guess")
+
+        // The found account belongs to the person named beside it, and the rows that moved
+        // money to it carry its id beside its name.
+        let people = next["members"] as? [[String: Any]] ?? []
+        let anil = try XCTUnwrap(people.first { ($0["name"] as? String) == "Anil" }?["id"] as? String)
+        let accounts = next["accounts"] as? [[String: Any]] ?? []
+        let axis = try XCTUnwrap(accounts.first { ($0["name"] as? String) == "Axis savings ••1234" })
+        XCTAssertEqual(axis["member_id"] as? String, anil)
+        let shop3 = subs.filter { ($0["name"] as? String) == "Shop 3" }
+        XCTAssertEqual(shop3.count, 12)
+        for row in shop3 {
+            let details = try XCTUnwrap(row["details"] as? [String: Any])
+            XCTAssertEqual(details["counterpart_account"] as? String, "Axis savings ••1234")
+            XCTAssertEqual(details["counterpart_account_id"] as? String, axis["id"] as? String)
+        }
+        XCTAssertNil((subs.first { ($0["name"] as? String) == "Shop 5" }?["details"] as? [String: Any])?["counterpart_account_id"])
+        XCTAssertTrue(OwnEdit.isOwn(from: raw, to: try roundTrip(next)))
+    }
+
     func testAnOldStatementNeverRewindsANewerBalance() throws {
         var raw = try openingVault()
         raw = try VaultPatch.ensureEntity(.paymentMethod, named: "HDFC savings 4417", in: raw, now: now).vault

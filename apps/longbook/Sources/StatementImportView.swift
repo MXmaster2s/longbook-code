@@ -80,7 +80,7 @@ struct StatementImportView: View {
     @State private var members: [StatementCloud.Member] = []
     @State private var chosenMembers: Set<String> = []
     /// Accounts on the other side of transfers and card payments, new to the book.
-    @State private var foundAccounts: [String] = []
+    @State private var foundAccounts: [StatementCounterparts.Account] = []
     @State private var chosenAccounts: Set<String> = []
     @State private var notes = ""
     @State private var currency = "INR"
@@ -710,7 +710,7 @@ struct StatementImportView: View {
         keptCount
             + repeats.filter { chosenRepeats.contains($0.name) }.count
             + members.filter { chosenMembers.contains($0.name) }.count
-            + foundAccounts.filter { chosenAccounts.contains($0) }.count
+            + foundAccounts.filter { chosenAccounts.contains($0.name) }.count
             + ownAccounts.filter(ownAccountTicked).count
     }
 
@@ -1021,17 +1021,17 @@ struct StatementImportView: View {
                       line: foundAccounts.isEmpty
                         ? "The account this statement belongs to."
                         : "The account this statement belongs to, and the ones its transfers go to.",
-                      anyTicked: ownAccounts.contains(where: ownAccountTicked) || foundAccounts.contains { chosenAccounts.contains($0) }) { on in
+                      anyTicked: ownAccounts.contains(where: ownAccountTicked) || foundAccounts.contains { chosenAccounts.contains($0.name) }) { on in
                 ownAccountsTicked = on ? Set(ownAccounts.map(\.id)) : []
-                chosenAccounts = on ? Set(foundAccounts) : []
+                chosenAccounts = on ? Set(foundAccounts.map(\.name)) : []
             }
             LazyVGrid(columns: entityColumns, alignment: .leading, spacing: LBSpacing.s4) {
                 ForEach(ownAccounts) { read in
                     ownAccountTile(read)
                 }
-                ForEach(foundAccounts, id: \.self) { account in
-                    entityTile(foundAccountCard(account), ticked: chosenAccounts.contains(account)) {
-                        if chosenAccounts.contains(account) { chosenAccounts.remove(account) } else { chosenAccounts.insert(account) }
+                ForEach(foundAccounts, id: \.name) { account in
+                    entityTile(foundAccountCard(account), ticked: chosenAccounts.contains(account.name)) {
+                        if chosenAccounts.contains(account.name) { chosenAccounts.remove(account.name) } else { chosenAccounts.insert(account.name) }
                     }
                 }
             }
@@ -1120,12 +1120,13 @@ struct StatementImportView: View {
         )
     }
 
-    /// An account a transfer goes to: only its name is known.
-    private func foundAccountCard(_ name: String) -> DashboardModel.EntityCard {
+    /// An account found on a line's other side, with the person it belongs to when known.
+    private func foundAccountCard(_ account: StatementCounterparts.Account) -> DashboardModel.EntityCard {
         DashboardModel.EntityCard(
-            id: "statement.found.\(name)", kind: .paymentMethod, name: name, tag: nil, ink: nil,
+            id: "statement.found.\(account.name)", kind: .paymentMethod, name: account.name, tag: nil, ink: nil,
             isReal: true, isIncomplete: false, commitments: 0, charges: 0, addedOn: nil,
-            balance: nil, balanceDate: nil, balanceCurrency: money, accountCount: 0, next: nil, window: []
+            balance: nil, balanceDate: nil, balanceCurrency: money,
+            owner: account.person.map { (id: "", name: $0, ink: Int?.none) }, accountCount: 0, next: nil, window: []
         )
     }
 
@@ -1853,7 +1854,8 @@ struct StatementImportView: View {
         let named = Set(seen.map { $0.name.lowercased() })
         for ruled in StatementImport.repeats(in: found) where !named.contains(ruled.name.lowercased()) {
             seen.append(StatementCloud.Repeat(name: ruled.name, cycle: ruled.cycle.rawValue, customDays: ruled.customDays,
-                                              amount: ruled.amount, dates: ruled.dates, category: nil, endsOn: nil))
+                                              amount: ruled.amount, dates: ruled.dates, category: nil, endsOn: nil,
+                                              guessed: ruled.guessed, reason: ruled.reason))
         }
         repeats = seen
         // Every commitment found is ticked; the owner unticks what is not one.
@@ -1863,7 +1865,7 @@ struct StatementImportView: View {
         var others = StatementCounterparts.Found()
         for read in files {
             guard let prepared = read.prepared else { continue }
-            let more = prepared.counterparts(knownAccounts: model.accountNames + files.map(\.account) + others.accounts,
+            let more = prepared.counterparts(knownAccounts: model.accountNames + files.map(\.account) + others.accountNames,
                                              knownPeople: model.memberNames + seenMembers.map(\.name) + others.people)
             others.accounts += more.accounts
             others.people += more.people
@@ -1873,7 +1875,7 @@ struct StatementImportView: View {
         foundAccounts = others.accounts
         // With the switch off, a person or an account is added only when ticked here.
         chosenMembers = StatementFinds.on ? Set(members.map(\.name)) : []
-        chosenAccounts = StatementFinds.on ? Set(foundAccounts) : []
+        chosenAccounts = StatementFinds.on ? Set(foundAccounts.map(\.name)) : []
         ownAccountsTicked = StatementFinds.on ? Set(files.filter { $0.prepared != nil }.map(\.id)) : []
         notes = said.joined(separator: " ")
         // The reading is done; the review opens when the reader is ready for it, not
@@ -1921,7 +1923,9 @@ struct StatementImportView: View {
                     $0.name.caseInsensitiveCompare(row.name) == .orderedSame
                         && VaultPatch.storedDirection(model.subscription(id: $0.id)?.direction) == VaultPatch.storedDirection(row.direction)
                 }) {
-                    let charge: [String: Any] = ["date": row.line.date, "amount": row.line.amount, "paid": true, "basis": "statement"]
+                    var charge: [String: Any] = ["date": row.line.date, "amount": row.line.amount, "paid": true, "basis": "statement"]
+                    let line = StatementNaming.scrubbed(row.line.payee)
+                    if !line.isEmpty { charge["note"] = StatementImport.notePrefix + line }
                     if let at = attached.firstIndex(where: { $0.id == home.id }) { attached[at].charges.append(charge) } else { attached.append((home.id, [charge])) }
                 } else {
                     ownRows.append(row)
@@ -1940,7 +1944,9 @@ struct StatementImportView: View {
             (repeated: $0, placeholder: CommitmentPlaceholder(name: $0.name, group: $0.dates.isEmpty ? "Named" : cycleWord($0).capitalized,
                                                                 tag: $0.category ?? ""))
         }
-        let review = StatementImport.Review(members: chosen, accounts: foundAccounts.filter { chosenAccounts.contains($0) },
+        let chosenFound = foundAccounts.filter { chosenAccounts.contains($0.name) }
+        let owners = Dictionary(chosenFound.compactMap { account in account.person.map { (account.name, $0) } }, uniquingKeysWith: { first, _ in first })
+        let review = StatementImport.Review(members: chosen, accounts: chosenFound.map(\.name), accountOwners: owners,
                                             files: reviewed, currency: money, repeats: ticked, waiting: model.placeholders)
         adding = true
         Task {

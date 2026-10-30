@@ -73,6 +73,9 @@ public struct StatementCandidate: Identifiable, Equatable, Sendable {
     /// "in" for money that arrived on this line, "transfer" for the owner's own money
     /// moving; nil for a charge.
     public var direction: String?
+    /// The account on the line's other side, as Accounts names it ("Axis savings ••1234"):
+    /// the other side itself, or the bank account printed beside a person.
+    public var counterpartAccount: String?
 
     public var isIncome: Bool { direction == "in" }
     /// Unticked by default; kept by the owner, it is written as a transfer, never as spending.
@@ -84,7 +87,7 @@ public struct StatementCandidate: Identifiable, Equatable, Sendable {
     }
 
     public init(id: String = UUID().uuidString, line: StatementLine, name: String, tag: String?, keep: Bool, skipReason: String?,
-                file: String = "", member: String? = nil, direction: String? = nil) {
+                file: String = "", member: String? = nil, direction: String? = nil, counterpartAccount: String? = nil) {
         self.id = id
         self.line = line
         self.name = name
@@ -94,10 +97,12 @@ public struct StatementCandidate: Identifiable, Equatable, Sendable {
         self.file = file
         self.member = member
         self.direction = direction
+        self.counterpartAccount = counterpartAccount
     }
 }
 
 /// A rhythm spotted among the kept lines: the same name at the same amount, evenly apart.
+/// Two sightings are a guess, said so with the reason; three or more are not.
 public struct StatementRepeat: Equatable {
     public let name: String
     public let amount: Double
@@ -105,6 +110,8 @@ public struct StatementRepeat: Equatable {
     public let customDays: Int?
     public let dates: [String]
     public let candidateIds: [String]
+    public let guessed: Bool
+    public let reason: String
 }
 
 // MARK: - reading lines
@@ -682,6 +689,30 @@ public enum StatementNaming {
         return words.isEmpty ? "Unnamed charge" : words.joined(separator: " ")
     }
 
+    /// The marker a guessed commitment's name ends with; the owner's edit of the name removes it.
+    public static let guessedMark = " (Guessed)"
+
+    /// A name as the owner would say it: no currency sign or amount, nothing in brackets
+    /// (a trailing "(Guessed)" alone stays), no "paid via …" tail, two to four words kept
+    /// as the reader wrote them. Empty when nothing is left, so a caller can fall back.
+    public static func clean(_ name: String) -> String {
+        var text = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let guessed = text.hasSuffix(guessedMark)
+        if guessed { text = String(text.dropLast(guessedMark.count)) }
+        // Anything in brackets, with the brackets: "(₹649)", "[monthly]", "(via CRED)".
+        text = text.replacingOccurrences(of: #"\s*[\(\[\{][^\)\]\}]*[\)\]\}]"#, with: "", options: .regularExpression)
+        // "paid via UPI", "paid through CRED", "via Paytm" at the end.
+        text = text.replacingOccurrences(of: #"(?i)\s*\b(paid\s+(via|through|by)|via|through)\b.*$"#, with: "", options: .regularExpression)
+        // A currency sign or code with its amount, or an amount alone: "₹649", "Rs. 1,200", "INR 500", "649.00".
+        text = text.replacingOccurrences(of: #"(?i)(?:[₹$€£]|\b(?:rs\.?|inr|usd|eur|gbp))\s*\d[\d,]*(?:\.\d+)?"#, with: "", options: .regularExpression)
+        text = text.replacingOccurrences(of: #"(?<![\p{L}\d])\d[\d,]*\.\d+(?![\p{L}\d])"#, with: "", options: .regularExpression)
+        text = text.replacingOccurrences(of: #"[₹$€£]"#, with: "", options: .regularExpression)
+        text = text.replacingOccurrences(of: #"\s*[-–—:,]\s*$"#, with: "", options: .regularExpression)
+        text = text.replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression).trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return "" }
+        return guessed ? text + guessedMark : text
+    }
+
     /// The narration with every long number gone, fit to sit in details without carrying a
     /// card, an account or a reference.
     public static func scrubbed(_ payee: String) -> String {
@@ -788,7 +819,7 @@ public enum StatementImport {
     }
 
     /// The kept lines grouped by name and amount; a group evenly spaced is a rhythm worth
-    /// asking about. Order is first appearance.
+    /// asking about. Order is first appearance. Two sightings are a guess, said so.
     public static func repeats(in candidates: [StatementCandidate]) -> [StatementRepeat] {
         var order: [String] = []
         var groups: [String: [StatementCandidate]] = [:]
@@ -805,21 +836,31 @@ public enum StatementImport {
             let gaps = zip(days.dropFirst(), days).map { $0 - $1 }.sorted()
             guard !gaps.isEmpty else { continue }
             let median = gaps[gaps.count / 2]
-            let cycle: (BillingCycle, Int?)
+            let cycle: (BillingCycle, Int?, String)
             switch median {
-            case 26...35: cycle = (.monthly, nil)
-            case 350...380: cycle = (.yearly, nil)
-            case 85...96: cycle = (.custom, 91)
-            case 175...190: cycle = (.custom, 183)
+            case 26...35: cycle = (.monthly, nil, "a month")
+            case 350...380: cycle = (.yearly, nil, "a year")
+            case 85...96: cycle = (.custom, 91, "a quarter")
+            case 175...190: cycle = (.custom, 183, "half a year")
             default: continue
             }
+            let guessed = group.count < 3
             out.append(StatementRepeat(
                 name: group[0].name, amount: group[0].line.amount, cycle: cycle.0, customDays: cycle.1,
-                dates: group.map(\.line.date), candidateIds: group.map(\.id)
+                dates: group.map(\.line.date), candidateIds: group.map(\.id), guessed: guessed,
+                reason: guessed ? "Seen twice, \(cycle.2) apart; the same rhythm assumed." : ""
             ))
         }
         return out
     }
+
+    /// What a charge's note opens with; the rest is the statement line, its numbers gone.
+    public static let notePrefix = "Statement line: "
+
+    /// The key a one-time row's details name the other side's account under, and the key
+    /// the review fills with that account's id once it exists.
+    public static let counterpartAccountKey = "counterpart_account"
+    public static let counterpartAccountIdKey = "counterpart_account_id"
 
     /// One add_commitments proposal of the kept lines: each a one-time row, paid, basis
     /// statement, on the account the statement is, signed as the import so Changes says so.
@@ -845,7 +886,15 @@ public enum StatementImport {
             if let direction = VaultPatch.storedDirection(candidate.direction) { row["direction"] = direction }
             if let member = candidate.member?.trimmingCharacters(in: .whitespaces), !member.isEmpty { row["member"] = member }
             let line = StatementNaming.scrubbed(candidate.line.payee)
-            if !line.isEmpty { row["details"] = ["statement_line": line] }
+            var details: [String: Any] = [:]
+            if !line.isEmpty {
+                row["note"] = notePrefix + line
+                details["statement_line"] = line
+            }
+            if let other = candidate.counterpartAccount?.trimmingCharacters(in: .whitespaces), !other.isEmpty {
+                details[counterpartAccountKey] = other
+            }
+            if !details.isEmpty { row["details"] = details }
             return row
         }
         return PendingWrite(

@@ -37,6 +37,8 @@ extension StatementImport {
     public struct Review: @unchecked Sendable {
         public var members: [String]
         public var accounts: [String]
+        /// Who each found account belongs to, by account name, when a line printed the person.
+        public var accountOwners: [String: String]
         public var files: [ReviewFile]
         public var currency: String
         /// The ticked repeats, each with the placeholder it waits as when no lines carry it.
@@ -44,10 +46,11 @@ extension StatementImport {
         /// What already waits on the timeline.
         public var waiting: [CommitmentPlaceholder]
 
-        public init(members: [String], accounts: [String], files: [ReviewFile], currency: String,
+        public init(members: [String], accounts: [String], accountOwners: [String: String] = [:], files: [ReviewFile], currency: String,
                     repeats: [(repeated: StatementCloud.Repeat, placeholder: CommitmentPlaceholder)], waiting: [CommitmentPlaceholder]) {
             self.members = members
             self.accounts = accounts
+            self.accountOwners = accountOwners
             self.files = files
             self.currency = currency
             self.repeats = repeats
@@ -71,7 +74,12 @@ extension StatementImport {
             vault = try VaultPatch.ensureEntity(.familyMember, named: name, in: vault, now: now).vault
         }
         for name in review.accounts {
-            vault = try VaultPatch.ensureEntity(.paymentMethod, named: name, in: vault, now: now).vault
+            let made = try VaultPatch.ensureEntity(.paymentMethod, named: name, in: vault, now: now)
+            vault = made.vault
+            // An account a line printed beside a person belongs to that person, once both exist.
+            if let person = review.accountOwners[name], let owner = memberId(named: person, in: vault) {
+                vault = try VaultPatch.setEntityDetails(.paymentMethod, id: made.id, in: vault, now: now, ownerMemberId: .some(owner))
+            }
         }
         let before = Set((raw["commitments"] as? [[String: Any]] ?? []).compactMap { $0["id"] as? String })
         var written = 0
@@ -87,6 +95,7 @@ extension StatementImport {
             if !own.isEmpty {
                 let write = proposal(file.rows, accounts: ["": named], currency: review.currency, source: source)
                 vault = try applied(write, to: vault, now: now, schema: schema)
+                vault = linkCounterpartAccounts(in: vault, madeSince: before)
                 written += own.count
             }
             for (id, charges) in file.attached {
@@ -122,6 +131,39 @@ extension StatementImport {
         return next
     }
 
+    /// The id of the person named, matched as names match; nil when the book holds none.
+    static func memberId(named name: String, in raw: [String: Any]) -> String? {
+        let key = nameKey(name)
+        return (raw[VaultPatch.EntityKind.familyMember.rawValue] as? [[String: Any]] ?? [])
+            .first { nameKey($0["name_key"] as? String ?? $0["name"] as? String ?? "") == key }?["id"] as? String
+    }
+
+    /// The id of the account an account name means, matched as Accounts match two names
+    /// for one account; nil when the book holds none.
+    static func accountId(named name: String, in raw: [String: Any]) -> String? {
+        (raw[VaultPatch.EntityKind.paymentMethod.rawValue] as? [[String: Any]] ?? [])
+            .first { StatementCounterparts.sameAccount($0["name"] as? String ?? "", name) }?["id"] as? String
+    }
+
+    /// Every row written since `before` whose details name the other side's account gets
+    /// that account's id beside the name, when the book holds the account.
+    static func linkCounterpartAccounts(in raw: [String: Any], madeSince before: Set<String>) -> [String: Any] {
+        var vault = raw
+        var rows = vault["commitments"] as? [[String: Any]] ?? []
+        var changed = false
+        for index in rows.indices {
+            guard let id = rows[index]["id"] as? String, !before.contains(id),
+                  var details = rows[index]["details"] as? [String: Any],
+                  let name = details[counterpartAccountKey] as? String, details[counterpartAccountIdKey] == nil,
+                  let accountId = accountId(named: name, in: vault) else { continue }
+            details[counterpartAccountIdKey] = accountId
+            rows[index]["details"] = details
+            changed = true
+        }
+        if changed { vault["commitments"] = rows }
+        return vault
+    }
+
     /// Whether a balance dated `day` is as new as the one the account holds. An undated
     /// balance counts as older than a dated one, and anything beats no balance at all.
     static func balanceIsNewer(_ day: String?, account id: String, in raw: [String: Any]) -> Bool {
@@ -151,7 +193,10 @@ extension StatementImport {
                 return id
             }
             guard !ids.isEmpty else { continue }
-            var payload: [String: Any] = ["ids": ids, "billing_cycle": repeated.cycle, "plan_months": 24]
+            // A guess is written as one: the name says so at its end, the notes open with why.
+            var payload: [String: Any] = ["ids": ids, "billing_cycle": repeated.cycle, "plan_months": 24,
+                                          "name": StatementNaming.clean(repeated.writtenName)]
+            if let note = repeated.guessedNote { payload["notes"] = note }
             if let days = repeated.customDays { payload["custom_cycle_days"] = days }
             if let endsOn = repeated.endsOn { payload["ends_on"] = endsOn }
             if let tag = repeated.category { payload["tag"] = tag }

@@ -170,6 +170,11 @@ final class StatementImportTests: XCTestCase {
         XCTAssertEqual(repeats[1].cycle, .custom)
         XCTAssertEqual(repeats[1].customDays, 183)
         XCTAssertEqual(repeats[2].cycle, .yearly)
+        // Twelve sightings prove a rhythm; two are a guess, and the reason says so.
+        XCTAssertEqual(repeats.map(\.guessed), [false, true, true])
+        XCTAssertEqual(repeats[0].reason, "")
+        XCTAssertEqual(repeats[1].reason, "Seen twice, half a year apart; the same rhythm assumed.")
+        XCTAssertEqual(repeats[2].reason, "Seen twice, a year apart; the same rhythm assumed.")
     }
 
     // MARK: the proposal
@@ -204,6 +209,71 @@ final class StatementImportTests: XCTestCase {
         XCTAssertNotNil(accounts.first { $0["name"] as? String == "HDFC savings" }, "the statement is the account")
         let details = try XCTUnwrap(netflix["details"] as? [String: Any])
         XCTAssertEqual(details["statement_line"] as? String, "UPI-NETFLIX.COM", "the narration rides along, scrubbed of its numbers")
+        XCTAssertEqual(charges[0]["note"] as? String, "Statement line: UPI-NETFLIX.COM", "the charge's note is the line, its numbers gone")
+    }
+
+    func testANameIsCleanedToWhatTheOwnerWouldSay() {
+        XCTAssertEqual(StatementNaming.clean("Netflix (₹649)"), "Netflix")
+        XCTAssertEqual(StatementNaming.clean("House rent [monthly]"), "House rent")
+        XCTAssertEqual(StatementNaming.clean("Axis card bill (via CRED)"), "Axis card bill")
+        XCTAssertEqual(StatementNaming.clean("Airtel paid via UPI"), "Airtel")
+        XCTAssertEqual(StatementNaming.clean("Rs. 1,200 Sunita"), "Sunita")
+        XCTAssertEqual(StatementNaming.clean("Sunita 9000.00"), "Sunita")
+        XCTAssertEqual(StatementNaming.clean("Swiggy INR 450 -"), "Swiggy")
+        XCTAssertEqual(StatementNaming.clean("Star Health (Guessed)"), "Star Health (Guessed)", "the guess mark alone stays")
+        XCTAssertEqual(StatementNaming.clean("Star Health (yearly) (Guessed)"), "Star Health (Guessed)")
+        XCTAssertEqual(StatementNaming.clean("₹649"), "", "nothing left is empty, so the caller falls back")
+        XCTAssertEqual(StatementNaming.clean("  Hoornapriya Amba Fue  "), "Hoornapriya Amba Fue")
+    }
+
+    func testTheOtherSidesBankBecomesAnAccountOwnedByThePerson() throws {
+        let piece = """
+        {"account":"HDFC savings 4417",
+         "charges":[
+          {"date":"2026-07-01","amount":9000,"name":"Sunita D","narration":"UPI/SUNITA D/UTIB0001234","account":"HDFC savings 4417","category":null,"kind":"for_member","member":"Sunita D","counterpart":"Sunita D","counterpart_kind":"person","counterpart_bank":"Axis savings ••1234"},
+          {"date":"2026-07-02","amount":500,"name":"Sunita D","narration":"UPI/SUNITA D/UTIB0001234","account":"HDFC savings 4417","category":null,"kind":"for_member","member":"Sunita D","counterpart":"Sunita D","counterpart_kind":"person","counterpart_bank":"AXIS SAV XX1234"},
+          {"date":"2026-07-03","amount":20000,"name":"To Kotak","narration":"IMPS/SELF/KKBK0000500","account":"HDFC savings 4417","category":null,"kind":"own_transfer","member":null,"counterpart":null,"counterpart_kind":null,"counterpart_bank":"Kotak savings ••9876"},
+          {"date":"2026-07-04","amount":38000,"name":"Axis card bill (₹38,000)","narration":"CRED CARD PYMT AXIS","account":"HDFC savings 4417","category":null,"kind":"card_bill","member":null,"counterpart":"Axis card ••4402","counterpart_kind":"account","counterpart_bank":null},
+          {"date":"2026-07-05","amount":649,"name":"Netflix","narration":"NETFLIX","account":"HDFC savings 4417","category":null,"kind":"spend","member":null,"counterpart":null,"counterpart_kind":null,"counterpart_bank":null}
+         ],
+         "notes":""}
+        """
+        let answer = try JSONDecoder().decode(StatementCloud.ChargesAnswer.self, from: Data(piece.utf8))
+        XCTAssertEqual(answer.charges[0].counterpartBank, "Axis savings ••1234")
+        XCTAssertNil(answer.charges[4].counterpartBank)
+        let prepared = StatementCloud.Prepared.assemble([answer], review: .empty)
+        XCTAssertEqual(prepared.charges[3].name, "Axis card bill", "a name arrives cleaned")
+
+        let found = prepared.counterparts(knownAccounts: [], knownPeople: [])
+        XCTAssertEqual(found.accounts, [
+            .init(name: "Axis savings ••1234", person: "Sunita D"),
+            .init(name: "Kotak savings ••9876", person: nil),
+            .init(name: "Axis card ••4402", person: nil),
+        ], "a person's bank is theirs; the owner's own other account is nobody's; one account is one however spelt")
+        XCTAssertEqual(found.people, ["Sunita D"])
+
+        let candidates = prepared.candidates(among: [])
+        XCTAssertEqual(candidates.map(\.counterpartAccount), ["Axis savings ••1234", "Axis savings ••1234", "Kotak savings ••9876", "Axis card ••4402", nil])
+        let rows = try XCTUnwrap(StatementImport.proposal(candidates, accounts: [:], currency: "INR", source: "documents/hdfc.pdf").payload["rows"] as? [[String: Any]])
+        XCTAssertEqual((rows[0]["details"] as? [String: Any])?["counterpart_account"] as? String, "Axis savings ••1234")
+        XCTAssertEqual((rows[0]["details"] as? [String: Any])?["statement_line"] as? String, "UPI/SUNITA D")
+        XCTAssertEqual(rows[0]["note"] as? String, "Statement line: UPI/SUNITA D")
+        XCTAssertNil((rows[2]["details"] as? [String: Any])?["counterpart_account"], "the money in is written without one")
+    }
+
+    func testAnOlderReviewAnswerReadsAsNotGuessed() throws {
+        let old = #"{"repeats":[{"name":"Netflix","cycle":"monthly","custom_days":null,"amount":649,"dates":["2026-07-01"],"category":null,"ends_on":null}],"members":[],"notes":""}"#
+        let decoded = try JSONDecoder().decode(StatementCloud.ReviewAnswer.self, from: Data(old.utf8))
+        XCTAssertFalse(decoded.repeats[0].guessed)
+        XCTAssertEqual(decoded.repeats[0].reason, "")
+        XCTAssertEqual(decoded.repeats[0].writtenName, "Netflix")
+        XCTAssertNil(decoded.repeats[0].guessedNote)
+        let guessed = #"{"repeats":[{"name":"Star Health (yearly)","cycle":"yearly","custom_days":null,"amount":9200,"dates":["2026-01-12"],"category":"insurance","ends_on":null,"guessed":true,"reason":"Seen once; yearly assumed from the insurer's name."}],"members":[],"notes":""}"#
+        let read = try JSONDecoder().decode(StatementCloud.ReviewAnswer.self, from: Data(guessed.utf8))
+        let prepared = StatementCloud.Prepared.assemble([], review: read)
+        XCTAssertEqual(prepared.repeats[0].name, "Star Health", "the cycle in brackets is no part of the name")
+        XCTAssertEqual(prepared.repeats[0].writtenName, "Star Health (Guessed)")
+        XCTAssertEqual(prepared.repeats[0].guessedNote, "Guessed: Seen once; yearly assumed from the insurer's name.")
     }
 
     func testAStatementReadTwiceWritesNothingTwice() {
@@ -349,13 +419,13 @@ final class StatementImportTests: XCTestCase {
         XCTAssertEqual(prepared.charges[2].counterpart, "UPI/RAMESH K", "the fields survive the date mending")
 
         let found = prepared.counterparts(knownAccounts: ["Paytm wallet"], knownPeople: ["sunita d"])
-        XCTAssertEqual(found.accounts, ["HDFC savings ••4417", "Axis card ••1234"],
+        XCTAssertEqual(found.accountNames, ["HDFC savings ••4417", "Axis card ••1234"],
                        "named as the owner says them; the statement's own account and a second spelling of one are left out")
         XCTAssertEqual(found.people, ["Ramesh K"], "a person the book holds, matched loosely, is not added twice")
 
         // Added as the import adds them, each is one row, and adding again finds it.
         var vault: [String: Any] = [:]
-        for name in found.accounts { vault = try VaultPatch.ensureEntity(.paymentMethod, named: name, in: vault, now: Date()).vault }
+        for name in found.accountNames { vault = try VaultPatch.ensureEntity(.paymentMethod, named: name, in: vault, now: Date()).vault }
         for name in found.people { vault = try VaultPatch.ensureEntity(.familyMember, named: name, in: vault, now: Date()).vault }
         vault = try VaultPatch.ensureEntity(.paymentMethod, named: "hdfc savings ••4417", in: vault, now: Date()).vault
         let accounts = try XCTUnwrap(vault[VaultPatch.EntityKind.paymentMethod.rawValue] as? [[String: Any]])
