@@ -16,7 +16,7 @@ export const COUNTERPART_PROPERTIES = {
   },
   counterpart_bank: {
     type: ['string', 'null'],
-    description: 'The bank account printed beside a person on the other side, or the owner\'s own other account on an own_transfer or card_bill: bank, kind, last four digits after "••" ("Axis savings ••1234"); else null',
+    description: 'The bank account printed beside a person on the other side, or the owner\'s own other account on a payment to it or a card bill payment: bank, kind, last four digits after "••" ("Axis savings ••1234"); else null',
   },
 } as const
 
@@ -25,7 +25,7 @@ export const COUNTERPART_REQUIRED = ['counterpart', 'counterpart_kind', 'counter
 /** What the charges prompt says about the other side: the rules, then which field holds what. */
 export const COUNTERPART_INSTRUCTIONS =
   statementRuleText('counterparts') +
-  ' counterpart holds the other side ("HDFC savings ••4417", "Ramesh K"), counterpart_kind "account" or "person", both null when the line prints none. counterpart_bank holds the bank account printed beside a person, or the owner\'s own other account when the kind is own_transfer or card_bill; else null.'
+  ' counterpart holds the other side ("HDFC savings ••4417", "Ramesh K"), counterpart_kind "account" or "person", both null when the line prints none. counterpart_bank holds the bank account printed beside a person, or the owner\'s own other account on a payment to it or a card bill payment; else null.'
 
 const MAX_COUNTERPART_CHARS = 60
 

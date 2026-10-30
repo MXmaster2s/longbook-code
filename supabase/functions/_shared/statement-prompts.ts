@@ -23,7 +23,7 @@ const CHARGE = {
     narration: { type: 'string', description: 'The statement line, without card, account or reference numbers' },
     account: { type: 'string', description: 'The account the statement is' },
     category: { type: ['string', 'null'], description: 'One of the given categories, or null' },
-    kind: { type: 'string', enum: ['spend', 'for_member', 'fee', 'own_transfer', 'card_bill', 'income'] },
+    kind: { type: 'string', enum: ['spend', 'for_member', 'fee', 'income'] },
     member: { type: ['string', 'null'], description: 'The member this is for, when kind is for_member' },
     ...COUNTERPART_PROPERTIES,
   },
@@ -32,9 +32,10 @@ const CHARGE = {
 /** The charges task's answer: every charge in the piece, and the account it is. */
 export const CHARGES_SHAPE = {
   type: 'object', additionalProperties: false,
-  required: ['account', 'currency', 'charges', 'notes', 'closing_balance', 'closing_balance_date'],
+  required: ['account', 'holder', 'currency', 'charges', 'notes', 'closing_balance', 'closing_balance_date'],
   properties: {
-    account: { type: 'string', description: 'The account this file is, from its header: bank, kind, last four digits; bank and kind alone when no number is printed. Never empty' },
+    account: { type: 'string', description: 'The account this file is, from its header: bank, kind, last four digits; bank and kind alone when no number is printed; never a person\'s name. Never empty' },
+    holder: { type: ['string', 'null'], description: 'The account holder\'s name exactly as the statement prints it in its header; null when it prints none' },
     currency: { type: ['string', 'null'], description: 'The ISO 4217 code of the currency the amounts are printed in (GBP for pounds sterling, INR for rupees); null when the piece does not show it' },
     charges: { type: 'array', items: CHARGE },
     notes: { type: 'string', description: 'What could not be placed, in a sentence; else empty' },
@@ -108,7 +109,7 @@ export function chargesInstructions(body: PromptInputs, today = new Date().toISO
       ? `This piece is from a file whose account is "${body.account_hint}"; use that account name for every line unless the piece itself plainly says otherwise.`
       : 'Name the account from the header (bank, kind, last four digits when printed), e.g. "HDFC savings 4417" or "Axis card 4402". When the header prints no number, the bank and the kind are the name ("Kotak savings"); account is never empty.',
     statementRuleText('reading') + ' The closing balance goes in closing_balance with its day in closing_balance_date, null when the piece prints none.',
-    statementRuleText('kinds'),
+    statementRuleText('kinds') + ' ' + statementRuleText('transfers'),
     statementRuleText('people') + ' member holds the person on a for_member line; null otherwise.',
     COUNTERPART_INSTRUCTIONS,
     statementRuleText('names'),
