@@ -363,8 +363,9 @@ public enum StatementCloud {
     // MARK: calls
 
     /// One piece up, its charges down. `importId` names the file every piece belongs to,
-    /// so the server can count the whole file's reading against one budget.
-    public static func charges(of piece: Piece, importId: String, accountHint: String?, categories: [String], members: [String], accounts: [String], currency: String, token: String?) async throws -> ChargesAnswer {
+    /// so the server can count the whole file's reading against one budget. `hint` is
+    /// what a second reading is told about the first, at most `StatementCompleteness.hintLimit`.
+    public static func charges(of piece: Piece, importId: String, accountHint: String?, categories: [String], members: [String], accounts: [String], currency: String, token: String?, hint: String? = nil) async throws -> ChargesAnswer {
         struct Body: Encodable {
             let task = "charges"
             let import_id: String
@@ -374,8 +375,10 @@ public enum StatementCloud {
             let members: [String]
             let accounts: [String]
             let currency: String
+            let hint: String?
         }
-        return try await call(Body(import_id: importId, file: piece, account_hint: accountHint, categories: categories, members: members, accounts: accounts, currency: currency), token: token)
+        let clipped = hint.map { String($0.prefix(StatementCompleteness.hintLimit)) }
+        return try await call(Body(import_id: importId, file: piece, account_hint: accountHint, categories: categories, members: members, accounts: accounts, currency: currency, hint: clipped), token: token)
     }
 
     /// The year's charges up, the people and the rhythms down.

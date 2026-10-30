@@ -14,12 +14,15 @@ public struct StatementLine: Equatable, Sendable {
     public let payee: String
     public let amount: Double
     public let direction: Direction
+    /// The page it was printed on, counted from 1, when the file is paged.
+    public let page: Int?
 
-    public init(date: String, payee: String, amount: Double, direction: Direction) {
+    public init(date: String, payee: String, amount: Double, direction: Direction, page: Int? = nil) {
         self.date = date
         self.payee = payee
         self.amount = amount
         self.direction = direction
+        self.page = page
     }
 }
 
@@ -53,7 +56,12 @@ public struct StatementWord: Equatable, Sendable {
 /// The words that share a printed line, left to right.
 public struct StatementRow: Equatable, Sendable {
     public var words: [StatementWord]
-    public init(words: [StatementWord]) { self.words = words }
+    /// The page the row sits on, counted from 1; 0 when the source has no pages.
+    public var page: Int
+    public init(words: [StatementWord], page: Int = 0) {
+        self.words = words
+        self.page = page
+    }
     /// The row as a person would read it aloud.
     public var line: String { words.map(\.text).joined(separator: " ") }
 }
@@ -73,6 +81,8 @@ public struct StatementCandidate: Identifiable, Equatable, Sendable {
     /// "in" for money that arrived on this line, "transfer" for the owner's own money
     /// moving; nil for a charge.
     public var direction: String?
+    /// Read from the file on the device, because the server's reading left the line out.
+    public var readLocally: Bool
 
     public var isIncome: Bool { direction == "in" }
     /// Unticked by default; kept by the owner, it is written as a transfer, never as spending.
@@ -84,7 +94,7 @@ public struct StatementCandidate: Identifiable, Equatable, Sendable {
     }
 
     public init(id: String = UUID().uuidString, line: StatementLine, name: String, tag: String?, keep: Bool, skipReason: String?,
-                file: String = "", member: String? = nil, direction: String? = nil) {
+                file: String = "", member: String? = nil, direction: String? = nil, readLocally: Bool = false) {
         self.id = id
         self.line = line
         self.name = name
@@ -94,6 +104,7 @@ public struct StatementCandidate: Identifiable, Equatable, Sendable {
         self.file = file
         self.member = member
         self.direction = direction
+        self.readLocally = readLocally
     }
 }
 
@@ -162,7 +173,7 @@ public enum StatementLines {
         guard mended.count * 10 >= outside.count * 9 else { return lines }
         return lines.map { line in
             guard line.date < period.from || line.date > period.to, let day = swapped(line.date) else { return line }
-            return StatementLine(date: day, payee: line.payee, amount: line.amount, direction: line.direction)
+            return StatementLine(date: day, payee: line.payee, amount: line.amount, direction: line.direction, page: line.page)
         }
     }
 
@@ -176,18 +187,22 @@ public enum StatementLines {
             else { continue }
             var amount: Double?
             var direction: StatementLine.Direction = .debit
-            if let value = cell(record, columns.withdrawal).flatMap(parseAmount), value > 0 {
-                amount = value
-            } else if let value = cell(record, columns.deposit).flatMap(parseAmount), value > 0 {
-                amount = value
-                direction = .credit
+            // A reversal printed as a negative withdrawal is money back in; a negative
+            // deposit is money out.
+            if let value = cell(record, columns.withdrawal).flatMap(parseAmount), value != 0 {
+                amount = abs(value)
+                direction = value < 0 ? .credit : .debit
+            } else if let value = cell(record, columns.deposit).flatMap(parseAmount), value != 0 {
+                amount = abs(value)
+                direction = value < 0 ? .debit : .credit
             } else if let value = cell(record, columns.amount).flatMap(parseAmount), value != 0 {
                 amount = abs(value)
                 let type = cell(record, columns.type)?.uppercased() ?? ""
                 direction = (type.contains("CR") || value < 0) ? .credit : .debit
             }
             guard let amount else { continue }
-            out.append(StatementLine(date: date, payee: payee, amount: amount, direction: direction))
+            let page = cell(record, columns.page).flatMap { Int($0) }.flatMap { $0 > 0 ? $0 : nil }
+            out.append(StatementLine(date: date, payee: payee, amount: amount, direction: direction, page: page))
         }
         return out
     }
@@ -220,11 +235,12 @@ public enum StatementLines {
         edges = zip(edges, rowsAt).sorted { $0.0 < $1.0 }.map(\.0)
 
         let header = headerLabels(rows, dated: dated, columns: edges.count)
-        var records: [[String]] = [["Date", "Narration"] + header]
+        // The page comes first so a line can be traced to the piece that carried it.
+        var records: [[String]] = [["Page", "Date", "Narration"] + header]
         for block in blocks(rows) {
             let row = block.anchor
             guard let (dateToken, rest) = leadingDate(row.line), let date = parseDate(dateToken) else { continue }
-            var record = [date, ""]
+            var record = [String(row.page), date, ""]
             record += Array(repeating: "", count: edges.count)
             var payee: [String] = []
             var marker = ""
@@ -240,7 +256,7 @@ public enum StatementLines {
                 if currencyWords.contains(upper) { continue }
                 guard !isAmountToken(word.text) else {
                     let column = edges.enumerated().min { abs($0.element - word.maxX) < abs($1.element - word.maxX) }?.offset ?? 0
-                    if record[2 + column].isEmpty { record[2 + column] = word.text }
+                    if record[3 + column].isEmpty { record[3 + column] = word.text }
                     pastAmount = true
                     continue
                 }
@@ -248,7 +264,7 @@ public enum StatementLines {
             }
             // A narration wrapped onto the lines around its row reads as one.
             let around = block.above.map(\.line) + [payee.joined(separator: " ")] + block.below.map(\.line)
-            record[1] = around.filter { !$0.isEmpty }.joined(separator: " ")
+            record[2] = around.filter { !$0.isEmpty }.joined(separator: " ")
             // A marked row says its own direction; the columns say the rest.
             records.append(marker.isEmpty ? record : record + [marker])
         }
@@ -392,6 +408,8 @@ public enum StatementLines {
         var deposit: Int?
         var amount: Int?
         var type: Int?
+        /// The page column fromColumns writes; a bank's own sheet has none.
+        var page: Int?
     }
 
     /// The first record naming a date, a narration and some amount column.
@@ -407,7 +425,9 @@ public enum StatementLines {
                 ?? names.firstIndex { $0.contains("date") }
             for (i, name) in names.enumerated() {
                 if name.contains("date") { continue }
-                if ["narration", "description", "particulars", "remarks", "details"].contains(where: name.contains) {
+                if name == "page" {
+                    columns.page = columns.page ?? i
+                } else if ["narration", "description", "particulars", "remarks", "details"].contains(where: name.contains) {
                     columns.narration = columns.narration ?? i
                 } else if ["withdrawal", "debit"].contains(where: name.contains) || name == "dr" {
                     columns.withdrawal = columns.withdrawal ?? i
@@ -435,7 +455,7 @@ public enum StatementLines {
 
     /// The date a line starts with, and the rest. A row number printed before the date,
     /// as some banks do, is stepped over.
-    private static func leadingDate(_ line: String) -> (String, String)? {
+    static func leadingDate(_ line: String) -> (String, String)? {
         let patterns = [
             #"^(?:\d{1,4}\.?\s+)?(\d{1,2}[./-]\d{1,2}[./-]\d{2,4})\s+(.+)$"#,
             #"^(?:\d{1,4}\.?\s+)?(\d{4}-\d{2}-\d{2})\s+(.+)$"#,
@@ -454,7 +474,7 @@ public enum StatementLines {
 
     /// Statement amounts carry a decimal point or grouping commas; a bare integer at the
     /// end of a narration is a reference, not money.
-    private static func isAmountToken(_ token: String) -> Bool {
+    static func isAmountToken(_ token: String) -> Bool {
         let cleaned = token.replacingOccurrences(of: "₹", with: "").replacingOccurrences(of: "INR", with: "")
         return cleaned.range(of: #"^-?\d[\d,]*\.\d{1,2}$|^-?\d{1,3}(,\d{2,3})+$"#, options: .regularExpression) != nil
     }

@@ -396,6 +396,17 @@ public func fmtMoney(_ amount: Double, _ currency: String) -> String {
     return f.string(from: NSNumber(value: amount)) ?? "\(currency) \(amount)"
 }
 
+/// The same to the paisa, for a figure that must be checked rather than read: "₹47.49".
+public func fmtMoneyExact(_ amount: Double, _ currency: String) -> String {
+    let f = NumberFormatter()
+    f.numberStyle = .currency
+    f.currencyCode = currency
+    if let id = currencyLocales[currency] { f.locale = Locale(identifier: id) }
+    f.minimumFractionDigits = 2
+    f.maximumFractionDigits = 2
+    return f.string(from: NSNumber(value: amount)) ?? "\(currency) \(amount)"
+}
+
 /// An amount as a form's field holds it: a whole number without a point, nothing in exponent
 /// form, and no conversion a huge number could trap on.
 public func plainAmount(_ amount: Double) -> String {
