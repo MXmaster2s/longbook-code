@@ -1,5 +1,5 @@
 {
-  "contract_revision": 47,
+  "contract_revision": 48,
   "groups": [
     {
       "id": "setup",
@@ -55,7 +55,7 @@
         "8. Guess by how much a wrong guess would cost. Copy the amount, the date, the account and the currency exactly as the statement prints them; never guess those. Guess the name, the category, and which commitment a line belongs to, write them, and show them in the table at the end. Ask before writing who a payment is for.",
         "9. Set a charge to repeat when the statement shows the same payee at least three times, a steady month, quarter or year apart, still going at the statement's end: plan it 24 months ahead, set its price to its latest amount if that changed, and show it in the table. Through a sign-in or a key, the rows you wrote reach the longbook only when the user's app is next open, so list these repeats in the table as ones you will set, and set them after the user answers. Record a repeat that stopped before the statement's end as stopped. A charge seen once or twice that may repeat, such as a yearly premium, is not set to repeat: put your guess of how often in the questions.",
         "10. Record money in (salary, a refund, interest, cashback) as money in, kept apart from spending.",
-        "11. Skip movements between the user's own accounts: card bill payments, ATM or cash withdrawals, transfers to their own savings, wallet top-ups. One exception: when the longbook already holds that month's card bill, this line marks it paid.",
+        "11. Write every line, including card bill payments, ATM or cash withdrawals, payments to their own savings and wallet top-ups, as one-time rows like the rest. Only a line between two accounts owned by people tagged self is a transfer, and longbook marks those by itself.",
         "12. Set each account's balance to its statement's closing balance, dated the statement's last day. If a statement prints none, leave the balance alone and say so at the end. Never work one out yourself.",
         "13. Count what you wrote. If a waiting name or a yearly charge, such as a premium, may fall before the statements' first day, or the statements held only a few charges, ask for older or longer statements before guessing anything. Never write anything a second time because the longbook looks unchanged: through a sign-in or a key, your changes reach it only when the user's app is next open.",
         "14. In the end, when responding:",
@@ -99,7 +99,7 @@
         "8. Guess by how much a wrong guess would cost. Copy the amount, the date, the account and the currency exactly as the statement prints them; never guess those. Guess the name, the category, and which commitment a line belongs to, write them, and show them in the table at the end. Ask before writing who a payment is for.",
         "9. Set a charge to repeat when the statement shows the same payee at least three times, a steady month, quarter or year apart, still going at the statement's end: plan it 24 months ahead, set its price to its latest amount if that changed, and show it in the table. Through a sign-in or a key, the rows you wrote reach the longbook only when the user's app is next open, so list these repeats in the table as ones you will set, and set them after the user answers. Record a repeat that stopped before the statement's end as stopped. A charge seen once or twice that may repeat, such as a yearly premium, is not set to repeat: put your guess of how often in the questions.",
         "10. Record money in (salary, a refund, interest, cashback) as money in, kept apart from spending.",
-        "11. Skip movements between the user's own accounts: card bill payments, ATM withdrawals, transfers to their own savings, wallet top-ups. One exception: when the longbook already holds that month's card bill, this line marks it paid.",
+        "11. Write every line, including card bill payments, ATM withdrawals, payments to their own savings and wallet top-ups, as one-time rows like the rest. Only a line between two accounts owned by people tagged self is a transfer, and longbook marks those by itself.",
         "12. Choose categories from the user's own list first, then longbook's built-in categories. Make a new one only when nothing fits.",
         "13. Set the account's balance to the statement's closing balance, dated the statement's last day.",
         "14. In the end, when responding:",

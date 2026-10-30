@@ -45,9 +45,15 @@ public enum StatementCompleteness {
         public var peopleListed: Int
         /// Accounts the lines name on their other side.
         public var accountsNamed: Int
+        /// How many of the people named are among those listed, and how many of the accounts
+        /// named were found as accounts. Equal to the named counts unless the reading says otherwise.
+        public var peopleCovered: Int
+        public var accountsFound: Int
 
         public init(read: Int, expectedCount: Int?, missing: [StatementLine], extra: Int, balance: Balance,
-                    peopleNamed: Int, peopleListed: Int, accountsNamed: Int) {
+                    peopleNamed: Int, peopleListed: Int, accountsNamed: Int, peopleCovered: Int? = nil, accountsFound: Int? = nil) {
+            self.peopleCovered = peopleCovered ?? peopleNamed
+            self.accountsFound = accountsFound ?? accountsNamed
             self.read = read
             self.expectedCount = expectedCount
             self.missing = missing
@@ -67,6 +73,29 @@ public enum StatementCompleteness {
             var words = "\(expectedCount - missing.count) of \(expectedCount) line\(expectedCount == 1 ? "" : "s")"
             if !missing.isEmpty { words += ", \(missing.count) read from the file" }
             return words + balanceWords(currency: currency).map { " · " + $0 }.orEmpty
+        }
+
+        /// The average percent of lines read out of the file's, the balance (100 matches, 0
+        /// off, left out when unknown), people named who are listed, and accounts named who
+        /// are found. A part with nothing to check is left out; none at all is 100.
+        public var score: Int {
+            var parts: [Double] = []
+            if let expectedCount, expectedCount > 0 { parts.append(Double(max(0, expectedCount - missing.count)) / Double(expectedCount)) }
+            switch balance {
+            case .matches: parts.append(1)
+            case .off: parts.append(0)
+            case .unknown: break
+            }
+            if peopleNamed > 0 { parts.append(Double(min(peopleCovered, peopleNamed)) / Double(peopleNamed)) }
+            if accountsNamed > 0 { parts.append(Double(min(accountsFound, accountsNamed)) / Double(accountsNamed)) }
+            guard !parts.isEmpty else { return 100 }
+            return Int((parts.reduce(0, +) / Double(parts.count) * 100).rounded())
+        }
+
+        /// The review header for one file: "Import Completeness Score: 100% · 4542.pdf: 134 of
+        /// 134 lines · balance matches".
+        public func headline(file: String, currency: String) -> String {
+            "Import Completeness Score: \(score)% · \(file): \(summary(currency: currency))"
         }
 
         /// "balance matches", "balance off by ₹47.49"; nil when the file prints no balances.
@@ -184,10 +213,14 @@ public enum StatementCompleteness {
     public static func compare(prepared: StatementCloud.Prepared, expected: Expected?) -> Report {
         let charges = prepared.charges
         let named = charges.compactMap(\.member) + charges.filter { $0.counterpartKind == "person" }.compactMap(\.counterpart)
+        let listed = Set(prepared.members.map { nameKey($0.name) })
+        let accountsOnLines = charges.filter { $0.counterpartKind == "account" }.compactMap(\.counterpart)
         var report = Report(
             read: charges.count, expectedCount: expected?.count, missing: [], extra: 0, balance: .unknown,
             peopleNamed: distinct(named), peopleListed: prepared.members.count,
-            accountsNamed: distinct(charges.filter { $0.counterpartKind == "account" }.compactMap(\.counterpart))
+            accountsNamed: distinct(accountsOnLines),
+            peopleCovered: Set(named.map(nameKey)).filter { !$0.isEmpty && listed.contains($0) }.count,
+            accountsFound: distinct(accountsOnLines.filter { StatementCounterparts.accountName($0) != nil })
         )
         guard let expected else { return report }
         var pool: [String: Int] = [:]
@@ -304,7 +337,7 @@ public enum StatementCompleteness {
     // MARK: filling from the file
 
     /// The lines still missing, as candidates read from the file: ticked, named plainly,
-    /// money in marked as such, the owner's own movements unticked with the reason.
+    /// money in marked as such.
     public static func fill(missing: [StatementLine], among tags: [String] = TagLibrary.entries(kind: "commitment").map(\.name),
                             today: String = LB.toISO(LB.todayMid())) -> [StatementCandidate] {
         missing.map { line in
@@ -317,9 +350,6 @@ public enum StatementCompleteness {
             }
             if income {
                 return StatementCandidate(line: line, name: name, tag: tag, keep: true, skipReason: nil, direction: "in", readLocally: true)
-            }
-            if case .skip(let why) = StatementTriage.verdict(line), why == StatementTriage.ownMovement {
-                return StatementCandidate(line: line, name: name, tag: tag, keep: true, skipReason: why, direction: "transfer", readLocally: true)
             }
             return StatementCandidate(line: line, name: name, tag: tag, keep: true, skipReason: nil, readLocally: true)
         }

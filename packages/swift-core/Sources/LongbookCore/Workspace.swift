@@ -125,6 +125,13 @@ public struct Workspace {
         set { raw["onboardingDevice"] = newValue.flatMap { $0.isEmpty ? nil : $0 } ?? NSNull() }
     }
 
+    /// The statements imported, oldest first: counts only, never a line. The newest
+    /// `ImportRecord.limit` stay.
+    public var imports: [ImportRecord] {
+        get { ((raw["imports"] as? [[String: Any]]) ?? []).compactMap(ImportRecord.init(raw:)) }
+        set { raw["imports"] = newValue.suffix(ImportRecord.limit).map(\.raw) }
+    }
+
     /// Case-insensitive, order-preserving: "inr" typed after "INR" is the same code twice.
     private func dedup(_ codes: [String]) -> [String] {
         var seen = Set<String>()
@@ -133,6 +140,73 @@ public struct Workspace {
             if seen.insert(code.lowercased()).inserted { out.append(code) }
         }
         return out
+    }
+}
+
+/// One statement's import, as the Past Imports list shows it. Counts only.
+public struct ImportRecord: Equatable, Sendable {
+    /// How many records the workspace keeps.
+    public static let limit = 200
+
+    public var file: String
+    /// YYYY-MM-DD, the day it was added.
+    public var date: String
+    /// Lines of the file the reading answered for.
+    public var read: Int
+    /// Lines the file holds; nil when the device could not read it.
+    public var expected: Int?
+    /// "matches", "off" or "unknown".
+    public var balance: String
+    public var score: Int
+
+    public init(file: String, date: String, read: Int, expected: Int?, balance: String, score: Int) {
+        self.file = file
+        self.date = date
+        self.read = read
+        self.expected = expected
+        self.balance = balance
+        self.score = score
+    }
+
+    /// A report's counts, for the file it was made from.
+    public init(file: String, date: String, report: StatementCompleteness.Report) {
+        let word: String
+        switch report.balance {
+        case .matches: word = "matches"
+        case .off: word = "off"
+        case .unknown: word = "unknown"
+        }
+        self.init(file: file, date: date, read: report.expectedCount.map { $0 - report.missing.count } ?? report.read,
+                  expected: report.expectedCount, balance: word, score: report.score)
+    }
+
+    init?(raw: [String: Any]) {
+        guard let file = raw["file"] as? String, let date = raw["date"] as? String,
+              let read = (raw["read"] as? NSNumber)?.intValue, let score = (raw["score"] as? NSNumber)?.intValue else { return nil }
+        self.init(file: file, date: date, read: read, expected: (raw["expected"] as? NSNumber)?.intValue,
+                  balance: raw["balance"] as? String ?? "unknown", score: score)
+    }
+
+    var raw: [String: Any] {
+        var out: [String: Any] = ["file": file, "date": date, "read": read, "balance": balance, "score": score]
+        if let expected { out["expected"] = expected }
+        return out
+    }
+
+    /// "Import Completeness Score: 100% · 4542.pdf: 134 of 134 lines · balance matches".
+    public var line: String {
+        var words = "Import Completeness Score: \(score)% · \(file): "
+        if let expected {
+            words += "\(read) of \(expected) line\(expected == 1 ? "" : "s")"
+        } else {
+            words += "read \(read) line\(read == 1 ? "" : "s")"
+        }
+        switch balance {
+        case "matches": words += " · balance matches"
+        case "off": words += " · balance off"
+        default: break
+        }
+        return words
     }
 }
 

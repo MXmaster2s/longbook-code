@@ -678,8 +678,8 @@ struct StatementImportView: View {
                 .fixedSize(horizontal: false, vertical: true)
             ForEach(completenessLines, id: \.self) { line in
                 Text(line)
-                    .lbText(.footnote)
-                    .foregroundStyle(LBColor.textTertiary.color)
+                    .lbText(.body)
+                    .foregroundStyle(LBColor.textPrimary.color)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if !accountsNamed {
@@ -697,13 +697,10 @@ struct StatementImportView: View {
         }
     }
 
-    /// Each file's reading against the file: "134 of 134 lines · balance matches", named
-    /// by file when more than one was read.
+    /// Each file's reading against the file, always named by file: "Import Completeness
+    /// Score: 100% · 4542.pdf: 134 of 134 lines · balance matches".
     private var completenessLines: [String] {
-        let read = files.filter { $0.report != nil }
-        return read.compactMap { file in
-            file.report.map { read.count > 1 ? "\(file.name): \($0.summary(currency: money))" : $0.summary(currency: money) }
-        }
+        files.compactMap { file in file.report.map { $0.headline(file: file.name, currency: money) } }
     }
 
     /// "Found 3 commitments, 2 people and 1 account"; past expenses only when nothing else was found.
@@ -738,7 +735,7 @@ struct StatementImportView: View {
         keptCount
             + repeats.filter { chosenRepeats.contains($0.name) }.count
             + members.filter { chosenMembers.contains($0.name) }.count
-            + foundAccounts.filter { chosenAccounts.contains($0.name) }.count
+            + foundAccounts.filter { chosenAccounts.contains($0.id) }.count
             + ownAccounts.filter(ownAccountTicked).count
     }
 
@@ -1050,17 +1047,17 @@ struct StatementImportView: View {
                       line: foundAccounts.isEmpty
                         ? "The account this statement belongs to."
                         : "The account this statement belongs to, and the ones its transfers go to.",
-                      anyTicked: ownAccounts.contains(where: ownAccountTicked) || foundAccounts.contains { chosenAccounts.contains($0.name) }) { on in
+                      anyTicked: ownAccounts.contains(where: ownAccountTicked) || foundAccounts.contains { chosenAccounts.contains($0.id) }) { on in
                 ownAccountsTicked = on ? Set(ownAccounts.map(\.id)) : []
-                chosenAccounts = on ? Set(foundAccounts.map(\.name)) : []
+                chosenAccounts = on ? Set(foundAccounts.map(\.id)) : []
             }
             LazyVGrid(columns: entityColumns, alignment: .leading, spacing: LBSpacing.s4) {
                 ForEach(ownAccounts) { read in
                     ownAccountTile(read)
                 }
-                ForEach(foundAccounts, id: \.name) { account in
-                    entityTile(foundAccountCard(account), ticked: chosenAccounts.contains(account.name)) {
-                        if chosenAccounts.contains(account.name) { chosenAccounts.remove(account.name) } else { chosenAccounts.insert(account.name) }
+                ForEach(foundAccounts, id: \.id) { account in
+                    entityTile(foundAccountCard(account), ticked: chosenAccounts.contains(account.id)) {
+                        if chosenAccounts.contains(account.id) { chosenAccounts.remove(account.id) } else { chosenAccounts.insert(account.id) }
                     }
                 }
             }
@@ -1168,7 +1165,7 @@ struct StatementImportView: View {
     /// An account found on a line's other side, with the person it belongs to when known.
     private func foundAccountCard(_ account: StatementCounterparts.Account) -> DashboardModel.EntityCard {
         DashboardModel.EntityCard(
-            id: "statement.found.\(account.name)", kind: .paymentMethod, name: account.name, tag: nil, ink: nil,
+            id: "statement.found.\(account.id)", kind: .paymentMethod, name: account.name, tag: nil, ink: nil,
             isReal: true, isIncomplete: false, commitments: 0, charges: 0, addedOn: nil,
             balance: nil, balanceDate: nil, balanceCurrency: money,
             owner: account.person.map { (id: "", name: $0, ink: Int?.none) }, accountCount: 0, next: nil, window: []
@@ -1407,9 +1404,9 @@ struct StatementImportView: View {
     }
 
     /// A line the owner cannot tick: already in the book, dated after today, or refused for
-    /// another reason. An own movement stays open: kept, it is written as a transfer.
+    /// another reason.
     private func isLocked(_ candidate: StatementCandidate) -> Bool {
-        candidate.skipReason != nil && !candidate.isOpenTransfer
+        candidate.skipReason != nil
     }
 
     private func keepBinding(_ index: Int) -> Binding<Bool> {
@@ -1907,8 +1904,13 @@ struct StatementImportView: View {
         var seenMembers: [StatementCloud.Member] = []
         var said: [String] = []
         for index in files.indices {
-            guard let prepared = files[index].prepared else { continue }
-            var mine = prepared.candidates(among: model.commitmentTagNames) + files[index].filled
+            guard var prepared = files[index].prepared else { continue }
+            // The holder is called as the book calls them, so they are never a second person.
+            if let holder = prepared.holder {
+                prepared = prepared.calling(holder: StatementHolder.resolve(holder, among: model.memberNames))
+                files[index].prepared = prepared
+            }
+            var mine = prepared.candidates(among: model.commitmentTagNames, book: model.statementBook) + files[index].filled
             for i in mine.indices { mine[i].file = files[index].id }
             found += mine
             for repeated in prepared.repeats where !seenRepeats.contains(where: { $0.name.caseInsensitiveCompare(repeated.name) == .orderedSame }) {
@@ -1942,7 +1944,8 @@ struct StatementImportView: View {
         var others = StatementCounterparts.Found()
         for read in files {
             guard let prepared = read.prepared else { continue }
-            let more = prepared.counterparts(knownAccounts: model.accountNames + files.map(\.account) + others.accountNames,
+            let more = prepared.counterparts(knownAccounts: model.statementBook.accounts + files.map { StatementBook.Account(name: $0.account, owner: $0.prepared?.holder) }
+                                                + others.accounts.map { StatementBook.Account(name: $0.name, owner: $0.person) },
                                              knownPeople: model.memberNames + seenMembers.map(\.name) + others.people)
             others.accounts += more.accounts
             others.people += more.people
@@ -1952,7 +1955,7 @@ struct StatementImportView: View {
         foundAccounts = others.accounts
         // With the switch off, a person or an account is added only when ticked here.
         chosenMembers = StatementFinds.on ? Set(members.map(\.name)) : []
-        chosenAccounts = StatementFinds.on ? Set(foundAccounts.map(\.name)) : []
+        chosenAccounts = StatementFinds.on ? Set(foundAccounts.map(\.id)) : []
         ownAccountsTicked = StatementFinds.on ? Set(files.filter { $0.prepared != nil }.map(\.id)) : []
         notes = said.joined(separator: " ")
         // The reading is done; the review opens when the reader is ready for it, not
@@ -1976,6 +1979,8 @@ struct StatementImportView: View {
                 chosen.append(named)
             }
         }
+        // Each statement's holder is a person and Self, whatever is ticked.
+        for holder in files.compactMap({ $0.prepared?.holder }) where !chosen.contains(holder) { chosen.append(holder) }
         for index in rows.indices {
             if let member = rows[index].member, !chosen.contains(member),
                !model.memberNames.contains(where: { nameKey($0) == nameKey(member) }) {
@@ -2011,7 +2016,7 @@ struct StatementImportView: View {
             reviewed.append(StatementImport.ReviewFile(
                 rows: ownRows, attached: attached, account: read.account.trimmingCharacters(in: .whitespaces),
                 addsAccount: ownAccountsTicked.contains(read.id), source: nil,
-                balance: read.balance, balanceDate: read.balanceDate))
+                balance: read.balance, balanceDate: read.balanceDate, owner: read.prepared?.holder))
             statements.append(read.url)
         }
         // A repeat ticked becomes one recurring commitment over the lines it names, planned
@@ -2021,9 +2026,8 @@ struct StatementImportView: View {
             (repeated: $0, placeholder: CommitmentPlaceholder(name: $0.name, group: $0.dates.isEmpty ? "Named" : cycleWord($0).capitalized,
                                                                 tag: $0.category ?? ""))
         }
-        let chosenFound = foundAccounts.filter { chosenAccounts.contains($0.name) }
-        let owners = Dictionary(chosenFound.compactMap { account in account.person.map { (account.name, $0) } }, uniquingKeysWith: { first, _ in first })
-        let review = StatementImport.Review(members: chosen, accounts: chosenFound.map(\.name), accountOwners: owners,
+        let chosenFound = foundAccounts.filter { chosenAccounts.contains($0.id) }
+        let review = StatementImport.Review(members: chosen, accounts: chosenFound,
                                             files: reviewed, currency: money, repeats: ticked, waiting: model.placeholders)
         adding = true
         let before = Set(model.commitmentIdNames.map { $0.id })
@@ -2031,6 +2035,7 @@ struct StatementImportView: View {
             defer { adding = false }
             do {
                 let written = try await model.importReview(review, statements: statements)
+                model.recordImports(files.compactMap { read in read.report.map { ImportRecord(file: read.name, date: LB.toISO(LB.todayMid()), report: $0) } })
                 countImport(ok: true, charges: written.charges)
                 countCompleteness(written.vault, before: before)
                 // History shows it as one change, already kept.

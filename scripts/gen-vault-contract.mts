@@ -16,7 +16,7 @@ import { STATEMENT_RULE_GROUPS } from '../packages/core/src/statement-rules'
 // Source of truth. REFUND_DAYS must match StoreClient.refundDays in the app; PRICE_USD and
 // CLOUD_USD are prose only (App Store Connect owns the real prices) — all are named here so a change is one grep away.
 const DATA_FORMAT_VERSION = 3
-const CONTRACT_REVISION = 47 // the tag library holds food & groceries and shopping. 46: statement rules are one source; a charge's note carries its statement line; a guessed commitment is named so; people as printed; the other side's bank is an account. 45: the Changes screen is called Proposals; setup's people and accounts are hints[]; a person or an account may be starred. 44: read before writing: read_guide hands out a guide_key, every write passes it back, and a write without one is warned. 43: pay upfront: a 7-day refund replaces the trial, and a purchase includes 12 months of Cloud. 42: pictures: accounts, commitments and tags may carry a photo too, all under images/. 41:people: the tools are people, spending_by_person, add_person and update_person; a person may carry a photo; a tag's icon is one of the library's. 40:the weekly page prompt; 39: every prompt names "my longbook"; the trial is three days; a
+const CONTRACT_REVISION = 48 // a charge is a transfer only between two accounts of people tagged self; the statement reader names its holder; payments to a person are named Payment to/from; the tag library gains self. 47: the tag library holds food & groceries and shopping. 46: statement rules are one source; a charge's note carries its statement line; a guessed commitment is named so; people as printed; the other side's bank is an account. 45: the Changes screen is called Proposals; setup's people and accounts are hints[]; a person or an account may be starred. 44: read before writing: read_guide hands out a guide_key, every write passes it back, and a write without one is warned. 43: pay upfront: a 7-day refund replaces the trial, and a purchase includes 12 months of Cloud. 42: pictures: accounts, commitments and tags may carry a photo too, all under images/. 41:people: the tools are people, spending_by_person, add_person and update_person; a person may carry a photo; a tag's icon is one of the library's. 40:the weekly page prompt; 39: every prompt names "my longbook"; the trial is three days; a
 const REFUND_DAYS = 7
 const PRICE_USD = 38
 const CLOUD_USD = 4
@@ -155,7 +155,7 @@ function schema(): object {
             direction: {
               type: ['string', 'null'],
               enum: ['in', 'out', 'transfer', null],
-              description: '"in" for money that arrives — salary, a refund, interest, a dividend. "transfer" for a movement between the owner\'s own accounts they still want to see — a credit card bill due on the 5th, a standing move to savings. Absent or "out" is a charge. Money in and transfers are remembered beside what goes out: shown on the timeline, never added into any spending total, and a transfer never into money in.',
+              description: '"in" for money that arrives — salary, a refund, interest, a dividend. "transfer" for money moved between two accounts that belong to people whose relationship is Self; longbook sets it by itself, and a card bill, an ATM withdrawal or a wallet load is never one. Absent or "out" is a charge. Money in and transfers are remembered beside what goes out: shown on the timeline, never added into any spending total, and a transfer never into money in.',
             },
             created_at: { type: 'string' },
             updated_at: { type: 'string' },
@@ -607,9 +607,9 @@ amount, the date, the account and the currency as printed, and never guess them;
 name, the category and which commitment a line belongs to, write them, and show them in the
 table. A person a line names is a member, as printed; a role for them is a question, their
 place is not. Money in — salary, a refund, interest — is
-written too, as a one-time row with \`direction: "in"\`; it never counts as spending. Skip
-movements between the owner's own accounts; one the owner wants remembered is a row with
-\`direction: "transfer"\`. The method and the worked lines are in \`Importing statements\` below.
+written too, as a one-time row with \`direction: "in"\`; it never counts as spending. Every
+other line is a row, an ATM withdrawal and a card bill payment included; a line is a
+\`direction: "transfer"\` only by the Transfers rule. The method and the worked lines are in \`Importing statements\` below.
 
 **3. Set what comes round.** A payee the statements show at least three times, a steady
 month, quarter or year apart, repeats: \`promote_to_recurring\` it now. So does one the bank's
@@ -735,9 +735,10 @@ This is the whole flow:
 
 1. \`list_documents\` → \`read_document\` each (long files page through \`next_offset\`; keep
    asking until it is null). Credit-card statements hold the card's real charges; the bank
-   statement's "card bill payment" line is a transfer, not a spend — skip it, or you count
-   everything twice — unless the memory holds that bill as a transfer row: then the line
-   settles it, \`add_charges\` on that row, paid, basis "statement".
+   statement's "card bill payment" line is a line like any other, not a transfer. It is
+   written as the statement prints it, and a charge of the card is written from the card's
+   own statement: if both statements are imported, say so in your report, because the
+   same money then shows on the bank and on the card.
 2. \`commitments\` with status "all", so what is already there is known — a line that
    belongs to a commitment that exists is \`add_charges\` on it, paid, basis "statement",
    not a twin.
@@ -750,13 +751,12 @@ ${statementRulesList()}
 
    What each kind becomes: spend, fee and for_member are one-time rows, a for_member row
    with \`member\` the person as printed; income is the same row with \`direction: "in"\`, kept
-   beside spending and never added to it; own_transfer and card_bill are skipped — money
-   moved, nothing was bought — unless the memory holds that bill as a transfer row (the
-   daily email round writes one, "Coral card bill, October 2026"): then the line is
-   \`add_charges\` on it, paid, basis "statement", at the row's own date with \`paid_on\` the
-   day the money moved; \`search\` the card's name before you skip. A movement the owner
-   wants remembered — "keep my transfers to savings" — is written with \`direction:
-   "transfer"\`: shown on the timeline, never in spending, never in money in. If the owner
+   beside spending and never added to it. No line is skipped for being the owner's own
+   money moving: an ATM withdrawal, a wallet load and a card bill payment are one-time rows
+   like the rest. A line is written with \`direction: "transfer"\` only by the Transfers
+   rule: both its account and the other side's account owned by a person tagged self. Then
+   it is shown on the timeline, never in spending, never in money in. longbook applies the
+   rule itself once the people and the owners are set. If the owner
    said "only the commitments" or "skip food delivery", honour that; otherwise every line
    is a fact, however small.
 4. Model honestly, the way the ledger works (see "The past is stored"): every line paid,
@@ -839,10 +839,10 @@ SPOTIFY 119.00 on the 12th, Sept 2025 through April 2026, then nothing
   storage; say which you chose. Seen twice, a month apart: promoted monthly as a guess,
   "Apple (Guessed)", notes "Guessed: Seen twice, a month apart; the same rhythm assumed".
 
-28/06/2026  CREDIT CARD PAYMENT        42,310.00   → skip (the memory holds no bill row for it;
-                                                     the card statement has the charges)
+28/06/2026  CREDIT CARD PAYMENT        42,310.00   → one row, a charge like any other (not a transfer:
+                                                     the card is no Self account)
 30/06/2026  SALARY CREDIT             1,50,000.00  → one row, direction "in" (money in, kept apart)
-14/06/2026  ATM WDL                   10,000.00    → skip (a movement)
+14/06/2026  ATM WDL                   10,000.00    → one row, a charge
 \`\`\`
 
 The questions to the owner after the facts are written, in shape — one message, nothing
@@ -863,8 +863,8 @@ The summary to the owner once the answers are in, in shape:
 > Amazon Prime, Claude, and the two premiums, those two as guesses named so — each planned
 > 24 months ahead; Spotify
 > stopped in April and is on record that way. Twelve salary credits are in as money in,
-> kept apart from spending. Skipped: two card bill payments — the memory held no bill row
-> for either — and three ATM withdrawals. HDFC savings now stands at ₹1,23,456 as of
+> kept apart from spending. Two card bill payments and three ATM withdrawals are in as
+> ordinary rows, none of them a transfer. HDFC savings now stands at ₹1,23,456 as of
 > 30 June, the statement's closing balance. Review it in the Proposals screen — keep or undo
 > it there.
 

@@ -84,20 +84,21 @@ public struct StatementCandidate: Identifiable, Equatable, Sendable {
     /// The account on the line's other side, as Accounts names it ("Axis savings ••1234"):
     /// the other side itself, or the bank account printed beside a person.
     public var counterpartAccount: String?
+    /// Who owns that account, when the line names the person beside it.
+    public var counterpartOwner: String?
+    /// Which way the line printed the money, "in" or "out", whatever the rule says of it;
+    /// nil when the line has no counterpart account.
+    public var lineDirection: String?
     /// Read from the file on the device, because the server's reading left the line out.
     public var readLocally: Bool
 
     public var isIncome: Bool { direction == "in" }
-    /// Written as a transfer, never as spending.
+    /// Written as a transfer, never as spending: the Transfers rule's verdict.
     public var isTransfer: Bool { direction == "transfer" }
-    /// A transfer the owner may tick or untick: marked as an own movement and nothing else.
-    /// One already in the book, or dated after today, stays refused.
-    public var isOpenTransfer: Bool {
-        isTransfer && (skipReason == StatementTriage.ownMovement || skipReason == StatementTriage.cardBill)
-    }
 
     public init(id: String = UUID().uuidString, line: StatementLine, name: String, tag: String?, keep: Bool, skipReason: String?,
-                file: String = "", member: String? = nil, direction: String? = nil, counterpartAccount: String? = nil, readLocally: Bool = false) {
+                file: String = "", member: String? = nil, direction: String? = nil, counterpartAccount: String? = nil,
+                counterpartOwner: String? = nil, lineDirection: String? = nil, readLocally: Bool = false) {
         self.id = id
         self.line = line
         self.name = name
@@ -108,6 +109,8 @@ public struct StatementCandidate: Identifiable, Equatable, Sendable {
         self.member = member
         self.direction = direction
         self.counterpartAccount = counterpartAccount
+        self.counterpartOwner = counterpartOwner
+        self.lineDirection = lineDirection
         self.readLocally = readLocally
     }
 }
@@ -636,12 +639,6 @@ enum CSV {
 public enum StatementTriage {
     public enum Verdict: Equatable { case keep, skip(String) }
 
-    /// The words that mark the owner's own money moving rather than a spend.
-    static let ownMovements = [
-        "ATM", "ATW", "CASH WDL", "CASH WITHDRAWAL", "CREDIT CARD PAYMENT", "CARD PAYMENT", "CC PAYMENT",
-        "CARD BILL", "WALLET TOPUP", "WALLET TOP UP", "ADD MONEY", "SELF TRANSFER", "OWN ACCOUNT", "TO SELF",
-    ]
-
     /// What money in says of itself, for a statement whose columns cannot be told apart by
     /// position. Said plainly, because one word is not enough: a salary paid to a cook is
     /// money out, and only "salary credit" is money in.
@@ -651,22 +648,15 @@ public enum StatementTriage {
         "INTEREST CAPITALISED", "NEFT-CR", "IMPS-CR", "UPI-CR",
     ]
 
-    /// Money in is skipped, and so is money moved between the owner's own places. Every
-    /// other debit is a fact and stays.
+    /// Money in is skipped; every other debit is a fact and stays, the owner's own money
+    /// moving included: whether a line is a transfer is the Transfers rule's to say.
     public static func verdict(_ line: StatementLine) -> Verdict {
         if line.direction == .credit { return .skip("money in") }
         let upper = " \(line.payee.uppercased()) "
         if moneyIn.contains(where: { upper.contains($0) }) { return .skip("money in") }
-        if ownMovements.contains(where: { upper.contains(" \($0) ") || upper.contains($0) }) {
-            return .skip(ownMovement)
-        }
         return .keep
     }
 
-    /// Why a line between the owner's own places is left unticked.
-    public static let ownMovement = "your own money moved"
-    /// The same for a card's bill paid from another account, as the server names it.
-    public static let cardBill = "a card bill — its charges are on the card's statement"
     /// Why a line dated ahead of today is refused, whatever kind it is.
     public static let afterToday = "dated after today — a statement proves the past"
 }
@@ -707,6 +697,27 @@ public enum StatementNaming {
             if words.count == 5 { break }
         }
         return words.isEmpty ? "Unnamed charge" : words.joined(separator: " ")
+    }
+
+    /// "Payment to X" for money out, "Payment from X" for money in.
+    public static func payment(to person: String, incoming: Bool) -> String {
+        (incoming ? "Payment from " : "Payment to ") + person
+    }
+
+    /// A charge's name, cleaned; when it is the person's own name it is the payment's name.
+    public static func charged(_ name: String, person: String?, incoming: Bool) -> String {
+        let cleaned = clean(name)
+        guard let person, !person.isEmpty, !cleaned.isEmpty,
+              nameKey(cleaned) == nameKey(person) || StatementHolder.same(cleaned, person) else { return cleaned }
+        return payment(to: person, incoming: incoming)
+    }
+
+    /// A name that carries a person, called by another of that person's names.
+    static func swapPerson(_ name: String, from old: String, to new: String) -> String {
+        for prefix in ["Payment to ", "Payment from "] where name.hasPrefix(prefix) {
+            return StatementHolder.same(String(name.dropFirst(prefix.count)), old) ? prefix + new : name
+        }
+        return StatementHolder.same(name, old) ? new : name
     }
 
     /// The marker a guessed commitment's name ends with; the owner's edit of the name removes it.
@@ -804,9 +815,7 @@ public enum StatementImport {
             case .keep:
                 return StatementCandidate(line: line, name: name, tag: tag, keep: true, skipReason: nil, file: file)
             case .skip(let why):
-                // A movement the owner ticks back in is remembered as a transfer, never as spending.
-                return StatementCandidate(line: line, name: name, tag: tag, keep: false, skipReason: why, file: file,
-                                          direction: why == StatementTriage.ownMovement ? "transfer" : nil)
+                return StatementCandidate(line: line, name: name, tag: tag, keep: false, skipReason: why, file: file)
             }
         }
     }
@@ -819,11 +828,10 @@ public enum StatementImport {
 
     /// Lines the book already holds, or that another picked file already carried, are left
     /// unticked: a statement read twice writes nothing twice. The same line twice in one
-    /// file stays; two identical charges on one day do happen. A transfer arrives unticked
-    /// and is checked too.
+    /// file stays; two identical charges on one day do happen.
     public static func markAlreadyPresent(_ candidates: inout [StatementCandidate], in existing: Set<String>) {
         var carriedBy: [String: String] = [:]
-        for index in candidates.indices where candidates[index].keep || candidates[index].isTransfer {
+        for index in candidates.indices where candidates[index].keep {
             let candidate = candidates[index]
             let key = key(date: candidate.line.date, amount: candidate.line.amount, narration: candidate.line.payee)
             if existing.contains(key) {
@@ -881,16 +889,24 @@ public enum StatementImport {
     /// the review fills with that account's id once it exists.
     public static let counterpartAccountKey = "counterpart_account"
     public static let counterpartAccountIdKey = "counterpart_account_id"
+    /// Which way the line printed the money, "in" or "out": what a charge returns to when it
+    /// stops being a transfer.
+    public static let lineDirectionKey = "line_direction"
+    /// Who owns the counterpart account; it only carries the owner to the write that links the
+    /// account, and is gone from the file once it has.
+    static let counterpartOwnerKey = "counterpart_owner"
 
     /// One add_commitments proposal of the kept lines: each a one-time row, paid, basis
     /// statement, on the account the statement is, signed as the import so Changes says so.
-    public static func proposal(_ candidates: [StatementCandidate], account: String, currency: String, source: String) -> PendingWrite {
-        proposal(candidates, accounts: ["": account], currency: currency, source: source)
+    public static func proposal(_ candidates: [StatementCandidate], account: String, currency: String, source: String,
+                                accountOwner: String? = nil) -> PendingWrite {
+        proposal(candidates, accounts: ["": account], currency: currency, source: source, accountOwner: accountOwner)
     }
 
     /// The same, with each file's lines on that file's own account. With no map at all, a
     /// candidate's `file` is already the account's name.
-    public static func proposal(_ candidates: [StatementCandidate], accounts: [String: String], currency: String, source: String) -> PendingWrite {
+    public static func proposal(_ candidates: [StatementCandidate], accounts: [String: String], currency: String, source: String,
+                                accountOwner: String? = nil) -> PendingWrite {
         let rows: [[String: Any]] = candidates.filter(\.keep).map { candidate in
             var row: [String: Any] = [
                 "name": candidate.name,
@@ -902,6 +918,7 @@ public enum StatementImport {
                 "basis": "statement",
                 "account": accounts[candidate.file] ?? accounts[""] ?? (accounts.isEmpty ? candidate.file : ""),
             ]
+            if let owner = accountOwner?.trimmingCharacters(in: .whitespaces), !owner.isEmpty { row["account_owner"] = owner }
             if let tag = candidate.tag, !tag.isEmpty { row["tag"] = tag }
             if let direction = VaultPatch.storedDirection(candidate.direction) { row["direction"] = direction }
             if let member = candidate.member?.trimmingCharacters(in: .whitespaces), !member.isEmpty { row["member"] = member }
@@ -913,6 +930,10 @@ public enum StatementImport {
             }
             if let other = candidate.counterpartAccount?.trimmingCharacters(in: .whitespaces), !other.isEmpty {
                 details[counterpartAccountKey] = other
+                if let owner = candidate.counterpartOwner?.trimmingCharacters(in: .whitespaces), !owner.isEmpty {
+                    details[counterpartOwnerKey] = owner
+                }
+                details[lineDirectionKey] = candidate.lineDirection ?? (candidate.direction == "in" ? "in" : "out")
             }
             if !details.isEmpty { row["details"] = details }
             return row

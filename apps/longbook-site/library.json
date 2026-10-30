@@ -1,5 +1,5 @@
 {
-  "contract_revision": 47,
+  "contract_revision": 48,
   "tags": [
     {
       "kind": "commitment",
@@ -178,59 +178,66 @@
     },
     {
       "kind": "member",
+      "name": "self",
+      "name_key": "self",
+      "icon": "person.crop.circle",
+      "sort": 0
+    },
+    {
+      "kind": "member",
       "name": "family",
       "name_key": "family",
       "icon": "person.2",
-      "sort": 0
+      "sort": 1
     },
     {
       "kind": "member",
       "name": "household help",
       "name_key": "household help",
       "icon": "person.badge.clock",
-      "sort": 1
+      "sort": 2
     },
     {
       "kind": "member",
       "name": "team",
       "name_key": "team",
       "icon": "briefcase",
-      "sort": 2
+      "sort": 3
     },
     {
       "kind": "member",
       "name": "vendor",
       "name_key": "vendor",
       "icon": "shippingbox",
-      "sort": 3
+      "sort": 4
     },
     {
       "kind": "member",
       "name": "professional",
       "name_key": "professional",
       "icon": "person.text.rectangle",
-      "sort": 4
+      "sort": 5
     },
     {
       "kind": "member",
       "name": "landlord",
       "name_key": "landlord",
       "icon": "building.2",
-      "sort": 5
+      "sort": 6
     },
     {
       "kind": "member",
       "name": "tenant",
       "name_key": "tenant",
       "icon": "key",
-      "sort": 6
+      "sort": 7
     },
     {
       "kind": "member",
       "name": "friend",
       "name_key": "friend",
       "icon": "hand.wave",
-      "sort": 7
+      "sort": 8
     },
     {
       "kind": "account",

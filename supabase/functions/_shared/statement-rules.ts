@@ -34,8 +34,22 @@ export const STATEMENT_RULE_GROUPS: StatementRuleGroup[] = [
     "title": "The kinds",
     "rules": [
       {
-        "id": "six",
-        "text": "Every line is one kind. spend: money that bought something. fee: a bank charge, tax or interest paid. for_member: money paid for or to a person in the owner's life, naming the person. own_transfer: money moved between the owner's own accounts, to the owner's own name, an ATM withdrawal, a wallet load. card_bill: a payment of a credit card bill, through CRED, Cheq or a bank's own \"CC payment\" line. income: salary, a refund, cashback, interest received, anything credited."
+        "id": "four",
+        "text": "Every line is one kind. spend: money that bought something, or money moved out. fee: a bank charge, tax or interest paid. for_member: money paid for or to a person in the owner's life, naming the person. income: salary, a refund, cashback, interest received, anything credited. Whether a line is a transfer is never a kind: the Transfers rule decides it."
+      }
+    ]
+  },
+  {
+    "id": "transfers",
+    "title": "Transfers",
+    "rules": [
+      {
+        "id": "only_self",
+        "text": "A charge is a transfer only when both its account and the other side's account belong to a person whose relationship is Self. Nothing else is a transfer: not an ATM withdrawal, a wallet load, a payment through CRED or of a card bill, and not words in the line."
+      },
+      {
+        "id": "automatic",
+        "text": "longbook applies this by itself. Setting a person to Self, or an account's owner, makes the matching charges transfers; clearing it returns them to money out or money in as the statement printed them. Write direction \"transfer\" only for a line that meets the rule; any other line is out (no direction) or \"in\"."
       }
     ]
   },
@@ -46,6 +60,10 @@ export const STATEMENT_RULE_GROUPS: StatementRuleGroup[] = [
       {
         "id": "as_printed",
         "text": "A person's name is written exactly as the line prints it, title-cased, even when the bank cut it short: \"HOORNAPRIYA AMBA FUE\" stays \"Hoornapriya Amba Fue\". It is never completed, never shortened further, and never guessed from an amount or a role."
+      },
+      {
+        "id": "holder",
+        "text": "The account holder is the person the statement belongs to, named in its header: written exactly as printed, in holder, and null when the header prints none. The holder is a person in the longbook with the relationship Self, and the statement's own account is theirs. A line's person who shares at least two words with the holder, in any order, is the holder, never a second person; a bank account printed beside that person is the holder's account."
       },
       {
         "id": "every_person",
@@ -63,7 +81,7 @@ export const STATEMENT_RULE_GROUPS: StatementRuleGroup[] = [
     "rules": [
       {
         "id": "when_printed",
-        "text": "The other side of a transfer, a card bill or a payment is named only when the line prints it; otherwise there is none, never a guess."
+        "text": "The other side of a line is named only when the line prints it; otherwise there is none, never a guess."
       },
       {
         "id": "ifsc",
@@ -75,7 +93,7 @@ export const STATEMENT_RULE_GROUPS: StatementRuleGroup[] = [
       },
       {
         "id": "own_other",
-        "text": "The owner's own other account, on a transfer to their own savings, card or wallet or on a card bill payment, is the other side too, named the same way; it is never left out for being the owner's or for being seen once."
+        "text": "The owner's own other account, on a payment to their own savings, card or wallet or on a card bill payment, is the other side too, named the same way; it is never left out for being the owner's or for being seen once."
       },
       {
         "id": "never_merchant_or_own",
@@ -98,6 +116,10 @@ export const STATEMENT_RULE_GROUPS: StatementRuleGroup[] = [
       {
         "id": "person_charge",
         "text": "A person's charge is named by the person, as printed."
+      },
+      {
+        "id": "payment_names",
+        "text": "When a charge's name is the person's name, it is \"Payment to X\" for money out and \"Payment from X\" for money in, X being the person. Every repeat naming that person takes the same name."
       }
     ]
   },
@@ -159,7 +181,11 @@ export const STATEMENT_RULE_GROUPS: StatementRuleGroup[] = [
     "rules": [
       {
         "id": "own",
-        "text": "The statement's own account is an account in the longbook, named from its header (bank, kind, last four digits), with its closing balance and the day it was true."
+        "text": "The statement's own account is an account in the longbook, named from its header (bank, kind, last four digits), owned by the holder, with its closing balance and the day it was true."
+      },
+      {
+        "id": "no_person_in_name",
+        "text": "An account's name never carries a person's name: \"HDFC Bank\", with the person as its owner. Two accounts at one bank that print no digits are told apart by their owner, not by their name."
       },
       {
         "id": "other_side",

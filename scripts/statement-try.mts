@@ -109,9 +109,10 @@ const guessed = repeats.filter((r) => r.guessed === true).length
 const onLines = new Set(charges.flatMap((c) => [c.counterpart_kind === 'person' ? c.counterpart ?? '' : '', c.member ?? '']).map((n) => n.trim().toLowerCase()).filter(Boolean))
 const listed = new Set(members.map((m) => m.name.trim().toLowerCase()))
 const covered = [...onLines].filter((n) => listed.has(n)).length
-const kinds = Object.fromEntries(['spend', 'for_member', 'fee', 'own_transfer', 'card_bill', 'income'].map((k) => [k, charges.filter((c) => c.kind === k).length]))
+const kinds = Object.fromEntries(['spend', 'for_member', 'fee', 'income'].map((k) => [k, charges.filter((c) => c.kind === k).length]))
 
 console.log(`account found: ${account ? 'yes' : 'NO'}`)
+console.log(`holder found: ${typeof read.holder === 'string' && read.holder.trim() ? 'yes' : 'no'}`)
 console.log(`balance found: ${read.closing_balance != null ? 'yes' : 'no'}`)
 console.log(`charges: ${charges.length} (${Object.entries(kinds).map(([k, n]) => `${k} ${n}`).join(', ')})`)
 if (expect !== undefined) {

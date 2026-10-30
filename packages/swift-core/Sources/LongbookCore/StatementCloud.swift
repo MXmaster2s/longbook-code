@@ -94,6 +94,24 @@ public enum StatementCloud {
             counterpartBank = try c.decodeIfPresent(String.self, forKey: .counterpartBank)
         }
 
+        /// The same line with its people as the statement's holder is called.
+        func replacingPeople(member: String?, counterpart: String?) -> Charge {
+            Charge(date: date, amount: amount, name: name, narration: narration, account: account, category: category, kind: kind,
+                   member: member, counterpart: counterpart, counterpartKind: counterpartKind, counterpartBank: counterpartBank)
+        }
+
+        /// The person a line names, whichever way the money went: the reader's member or the
+        /// person on its other side.
+        var namedPerson: String? {
+            let said = member?.trimmingCharacters(in: .whitespaces)
+            if let said, !said.isEmpty { return said }
+            if counterpartKind == "person", let other = counterpart?.trimmingCharacters(in: .whitespaces), !other.isEmpty { return other }
+            return nil
+        }
+
+        /// Whether the money came in on this line.
+        var isMoneyIn: Bool { kind == "income" || amount < 0 }
+
         /// The same line under another name.
         func renamed(_ name: String) -> Charge {
             Charge(date: date, amount: amount, name: name, narration: narration, account: account, category: category, kind: kind,
@@ -104,6 +122,8 @@ public enum StatementCloud {
     /// The charges task's answer for one piece.
     public struct ChargesAnswer: Decodable, Equatable, Sendable {
         public var account: String
+        /// The account holder's name as the statement's header prints it; nil when it prints none.
+        public var holder: String?
         public var charges: [Charge]
         public var notes: String
         /// The balance the piece prints at its end, and the day — when it prints one.
@@ -113,7 +133,7 @@ public enum StatementCloud {
         public var currency: String?
 
         enum CodingKeys: String, CodingKey {
-            case account, charges, notes, currency
+            case account, holder, charges, notes, currency
             case closingBalance = "closing_balance"
             case closingBalanceDate = "closing_balance_date"
         }
@@ -210,10 +230,14 @@ public enum StatementCloud {
         public var balanceDate: String?
         /// The currency most pieces say they print, as an ISO code.
         public var currency: String?
+        /// The person the statement belongs to, from its header; the statement's own account is
+        /// theirs and they are Self. Nil when the header prints none.
+        public var holder: String?
 
         public init(account: String, charges: [Charge], repeats: [Repeat], members: [Member], notes: String,
-                    balance: Double? = nil, balanceDate: String? = nil, currency: String? = nil) {
+                    balance: Double? = nil, balanceDate: String? = nil, currency: String? = nil, holder: String? = nil) {
             self.currency = currency
+            self.holder = holder
             self.account = account
             self.charges = charges
             self.repeats = repeats
@@ -238,12 +262,45 @@ public enum StatementCloud {
             let codes = answers.compactMap { $0.currency?.trimmingCharacters(in: .whitespaces).uppercased() }
                 .filter { $0.count == 3 && $0.allSatisfy(\.isLetter) }
             let currency = Dictionary(codes.map { ($0, 1) }, uniquingKeysWith: +).max { $0.value < $1.value }?.key
+            let holder = answers.lazy.compactMap { StatementHolder.clean($0.holder) }.first
             // Names arrive cleaned on both sides, so a repeat still names the charges it groups.
-            let charges = mendDates(answers.flatMap(\.charges), today: today).map { $0.renamed(StatementNaming.clean($0.name)) }
-            let repeats = review.repeats.map { $0.renamed(StatementNaming.clean($0.name)) }
+            let memberNames = review.members.map(\.name)
+            let charges = mendDates(answers.flatMap(\.charges), today: today).map { charge -> Charge in
+                var charge = charge
+                if let holder {
+                    let member = charge.member.map { StatementHolder.same($0, holder) ? holder : $0 }
+                    let other = charge.counterpartKind == "person" ? charge.counterpart.map { StatementHolder.same($0, holder) ? holder : $0 } : charge.counterpart
+                    charge = charge.replacingPeople(member: member, counterpart: other)
+                }
+                return charge.renamed(StatementNaming.charged(charge.name, person: charge.namedPerson ?? memberNames.first { StatementHolder.same($0, charge.name) }, incoming: charge.isMoneyIn))
+            }
+            let people = Dictionary(charges.compactMap { charge in charge.namedPerson.map { (nameKey($0), $0) } }, uniquingKeysWith: { first, _ in first })
+            let repeats = review.repeats.map { repeated -> Repeat in
+                let name = StatementNaming.clean(repeated.name)
+                guard let person = people[nameKey(name)] ?? memberNames.first(where: { nameKey($0) == nameKey(name) }) else { return repeated.renamed(name) }
+                let incoming = charges.first { $0.namedPerson == person && repeated.dates.contains($0.date) }?.isMoneyIn ?? false
+                return repeated.renamed(StatementNaming.payment(to: person, incoming: incoming))
+            }
+            var listed = review.members.filter { member in holder.map { !StatementHolder.same(member.name, $0) } ?? true }
+            if let holder { listed.insert(Member(name: holder, role: "", reason: "The account holder"), at: 0) }
             return Prepared(account: account, charges: charges, repeats: repeats,
-                            members: review.members, notes: notes.joined(separator: " "),
-                            balance: balance?.0, balanceDate: balance?.1, currency: currency)
+                            members: listed, notes: notes.joined(separator: " "),
+                            balance: balance?.0, balanceDate: balance?.1, currency: currency, holder: holder)
+        }
+
+        /// The same reading with the holder called as the book calls them.
+        public func calling(holder name: String) -> Prepared {
+            guard let old = holder, old != name else { return self }
+            var out = self
+            out.holder = name
+            func swap(_ person: String?) -> String? { person.map { StatementHolder.same($0, old) ? name : $0 } }
+            out.charges = charges.map {
+                $0.replacingPeople(member: swap($0.member), counterpart: $0.counterpartKind == "person" ? swap($0.counterpart) : $0.counterpart)
+                    .renamed(StatementNaming.swapPerson($0.name, from: old, to: name))
+            }
+            out.members = members.map { Member(name: swap($0.name) ?? $0.name, role: $0.role, reason: $0.reason) }
+            out.repeats = repeats.map { $0.renamed(StatementNaming.swapPerson($0.name, from: old, to: name)) }
+            return out
         }
 
         /// A model reads "05/10/2026" as the fifth of October now and then; the statement
@@ -279,36 +336,30 @@ public enum StatementCloud {
             return out
         }
 
-        /// The charges as candidates, every line ticked: money in marked as such, the owner's own
-        /// movements marked as transfers with the reason, never counted as spending. `file` carries the account.
-        public func candidates(among tags: [String], today: String = LB.toISO(LB.todayMid())) -> [StatementCandidate] {
+        /// The charges as candidates, every line ticked. Which way the money went comes from
+        /// the line; a line is a transfer only by the Transfers rule, judged against the
+        /// `book` and this statement's holder, who is Self. `file` carries the account.
+        public func candidates(among tags: [String], today: String = LB.toISO(LB.todayMid()),
+                               book: StatementBook = StatementBook()) -> [StatementCandidate] {
             charges.compactMap { charge in
                 // A negative amount is a line printed as money back: a reversal, kept as money in.
-                let back = charge.amount < 0
                 guard LB.parseDate(charge.date) != nil, charge.amount != 0 else { return nil }
                 let line = StatementLine(date: charge.date, payee: charge.narration, amount: abs(charge.amount),
-                                         direction: charge.kind == "income" || back ? .credit : .debit)
-                // A day ahead of today is refused first, whatever the kind: an own movement
-                // dated tomorrow is no more proven than a charge is, and must not be kept.
-                let skip: String?
-                if charge.date > today {
-                    skip = StatementTriage.afterToday
-                } else {
-                    switch charge.kind {
-                    case "own_transfer": skip = StatementTriage.ownMovement
-                    case "card_bill": skip = StatementTriage.cardBill
-                    default: skip = nil
-                    }
-                }
+                                         direction: charge.isMoneyIn ? .credit : .debit)
+                // A day ahead of today is refused, whatever the line: a statement proves the past.
+                let skip = charge.date > today ? StatementTriage.afterToday : nil
                 let tag = charge.category.flatMap { named in tags.first { $0.caseInsensitiveCompare(named) == .orderedSame } }
                 let name = StatementNaming.clean(charge.name)
                 let account = charge.account.trimmingCharacters(in: .whitespaces).isEmpty ? self.account : charge.account
+                let other = StatementCounterparts.account(on: charge)
+                let said = charge.isMoneyIn ? "in" : nil
+                let moved = StatementTransfers.isTransfer(fileAccount: account, fileOwner: holder, counterpart: other?.name,
+                                                          counterpartOwner: other?.person, holder: holder, book: book)
                 return StatementCandidate(
                     line: line, name: name.isEmpty ? StatementNaming.plainName(charge.narration) : name,
                     tag: tag, keep: charge.date <= today, skipReason: skip, file: account,
-                    member: person(on: charge),
-                    direction: back && charge.kind != "own_transfer" && charge.kind != "card_bill" ? "in" : direction(of: charge.kind),
-                    counterpartAccount: StatementCounterparts.account(on: charge)?.name
+                    member: person(on: charge), direction: moved ? "transfer" : said,
+                    counterpartAccount: other?.name, counterpartOwner: other?.person, lineDirection: other == nil ? nil : (said ?? "out")
                 )
             }
         }
@@ -316,20 +367,9 @@ public enum StatementCloud {
         /// The person a line names, whichever way the money went: the reader's member, the
         /// person on its other side, or a listed person the charge is named after.
         private func person(on charge: Charge) -> String? {
-            let said = charge.member?.trimmingCharacters(in: .whitespaces)
-            if let said, !said.isEmpty { return said }
-            if charge.counterpartKind == "person", let other = charge.counterpart?.trimmingCharacters(in: .whitespaces), !other.isEmpty { return other }
+            if let named = charge.namedPerson { return named }
             let name = charge.name.trimmingCharacters(in: .whitespaces)
             return members.first { $0.name.caseInsensitiveCompare(name) == .orderedSame }?.name
-        }
-
-        /// Money in, the owner's own money moving (a transfer), or a charge.
-        private func direction(of kind: String) -> String? {
-            switch kind {
-            case "income": return "in"
-            case "own_transfer", "card_bill": return "transfer"
-            default: return nil
-            }
         }
 
         /// The charges as the review task reads them: one a line.

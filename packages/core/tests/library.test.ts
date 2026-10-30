@@ -6,7 +6,7 @@ import { LIBRARY_JSON, LIBRARY_TAGS, libraryTag } from '../src/index'
 
 test('no tag of any kind carries a template, in the source or the file', () => {
   assert.ok(LIBRARY_TAGS.filter((t) => t.kind === 'commitment').length > 20, 'the commitment tags are all still there')
-  assert.equal(LIBRARY_TAGS.filter((t) => t.kind === 'member').length, 8, 'and the member tags')
+  assert.equal(LIBRARY_TAGS.filter((t) => t.kind === 'member').length, 9, 'and the member tags')
   assert.equal(LIBRARY_TAGS.filter((t) => t.kind === 'account').length, 8, 'and the account tags')
   assert.deepEqual(LIBRARY_TAGS.filter((t) => 'template' in t).map((t) => t.name), [])
   const file = JSON.parse(LIBRARY_JSON) as { tags: Record<string, unknown>[] }

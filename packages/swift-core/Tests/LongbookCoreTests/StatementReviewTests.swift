@@ -44,7 +44,7 @@ final class StatementReviewTests: XCTestCase {
         } ?? []
         let file = StatementImport.ReviewFile(rows: rows, attached: attached, account: "HDFC savings 4417", addsAccount: true,
                                               source: "documents/hdfc.pdf", balance: 52_000, balanceDate: "2025-12-31")
-        return StatementImport.Review(members: ["Anil", "Meera"], accounts: ["Axis card 4402"], files: [file], currency: "INR",
+        return StatementImport.Review(members: ["Anil", "Meera"], accounts: [.init(name: "Axis card 4402")], files: [file], currency: "INR",
                                       repeats: [repeated("Cult gym", gymDates, 1500), repeated("Piano lessons", [], 2500)],
                                       waiting: [])
     }
@@ -98,8 +98,7 @@ final class StatementReviewTests: XCTestCase {
                                             dates: ["2025-01-12", "2025-07-12"], category: "insurance", endsOn: nil,
                                             guessed: true, reason: "Seen twice, half a year apart; the insurer's name says it comes round.")
         review.repeats.append((premium, CommitmentPlaceholder(name: "Star Health", group: "Custom", tag: "insurance")))
-        review.accounts = ["Axis savings ••1234"]
-        review.accountOwners = ["Axis savings ••1234": "Anil"]
+        review.accounts = [.init(name: "Axis savings ••1234", person: "Anil")]
 
         let result = try StatementImport.write(review, to: raw, now: now, schema: VaultContract.bundledSchema())
         let next = result.vault
@@ -201,7 +200,7 @@ final class StatementReviewTests: XCTestCase {
         }
         let start = Date()
         for name in review.members { try commit { try VaultPatch.ensureEntity(.familyMember, named: name, in: $0, now: self.now).vault } }
-        for name in review.accounts { try commit { try VaultPatch.ensureEntity(.paymentMethod, named: name, in: $0, now: self.now).vault } }
+        for name in review.accounts.map(\.name) { try commit { try VaultPatch.ensureEntity(.paymentMethod, named: name, in: $0, now: self.now).vault } }
         let one = review.files[0]
         try commit { try VaultPatch.ensureEntity(.paymentMethod, named: one.account, in: $0, now: self.now).vault }
         try imported(StatementImport.proposal(one.rows, accounts: ["": one.account], currency: "INR", source: "documents/hdfc.pdf"))

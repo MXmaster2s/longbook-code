@@ -1,4 +1,4 @@
-longbook llms.txt — contract revision 47.
+longbook llms.txt — contract revision 48.
 Hello. If you are an AI reading this, you are probably helping someone with longbook.
 This is the contract, plainly stated. Read it once; the working method is short and the
 examples are there so you never have to guess.
@@ -179,9 +179,9 @@ amount, the date, the account and the currency as printed, and never guess them;
 name, the category and which commitment a line belongs to, write them, and show them in the
 table. A person a line names is a member, as printed; a role for them is a question, their
 place is not. Money in — salary, a refund, interest — is
-written too, as a one-time row with `direction: "in"`; it never counts as spending. Skip
-movements between the owner's own accounts; one the owner wants remembered is a row with
-`direction: "transfer"`. The method and the worked lines are in `Importing statements` below.
+written too, as a one-time row with `direction: "in"`; it never counts as spending. Every
+other line is a row, an ATM withdrawal and a card bill payment included; a line is a
+`direction: "transfer"` only by the Transfers rule. The method and the worked lines are in `Importing statements` below.
 
 **3. Set what comes round.** A payee the statements show at least three times, a steady
 month, quarter or year apart, repeats: `promote_to_recurring` it now. So does one the bank's
@@ -435,9 +435,10 @@ This is the whole flow:
 
 1. `list_documents` → `read_document` each (long files page through `next_offset`; keep
    asking until it is null). Credit-card statements hold the card's real charges; the bank
-   statement's "card bill payment" line is a transfer, not a spend — skip it, or you count
-   everything twice — unless the memory holds that bill as a transfer row: then the line
-   settles it, `add_charges` on that row, paid, basis "statement".
+   statement's "card bill payment" line is a line like any other, not a transfer. It is
+   written as the statement prints it, and a charge of the card is written from the card's
+   own statement: if both statements are imported, say so in your report, because the
+   same money then shows on the bank and on the card.
 2. `commitments` with status "all", so what is already there is known — a line that
    belongs to a commitment that exists is `add_charges` on it, paid, basis "statement",
    not a twin.
@@ -462,18 +463,33 @@ This is the whole flow:
 
    **The kinds.**
 
-   - Every line is one kind. spend: money that bought something. fee: a bank charge, tax or
-     interest paid. for_member: money paid for or to a person in the owner's life, naming the
-     person. own_transfer: money moved between the owner's own accounts, to the owner's own
-     name, an ATM withdrawal, a wallet load. card_bill: a payment of a credit card bill,
-     through CRED, Cheq or a bank's own "CC payment" line. income: salary, a refund, cashback,
-     interest received, anything credited.
+   - Every line is one kind. spend: money that bought something, or money moved out. fee: a
+     bank charge, tax or interest paid. for_member: money paid for or to a person in the
+     owner's life, naming the person. income: salary, a refund, cashback, interest received,
+     anything credited. Whether a line is a transfer is never a kind: the Transfers rule
+     decides it.
+
+   **Transfers.**
+
+   - A charge is a transfer only when both its account and the other side's account belong to a
+     person whose relationship is Self. Nothing else is a transfer: not an ATM withdrawal, a
+     wallet load, a payment through CRED or of a card bill, and not words in the line.
+   - longbook applies this by itself. Setting a person to Self, or an account's owner, makes
+     the matching charges transfers; clearing it returns them to money out or money in as the
+     statement printed them. Write direction "transfer" only for a line that meets the rule;
+     any other line is out (no direction) or "in".
 
    **People.**
 
    - A person's name is written exactly as the line prints it, title-cased, even when the bank
      cut it short: "HOORNAPRIYA AMBA FUE" stays "Hoornapriya Amba Fue". It is never completed,
      never shortened further, and never guessed from an amount or a role.
+   - The account holder is the person the statement belongs to, named in its header: written
+     exactly as printed, in holder, and null when the header prints none. The holder is a
+     person in the longbook with the relationship Self, and the statement's own account is
+     theirs. A line's person who shares at least two words with the holder, in any order, is
+     the holder, never a second person; a bank account printed beside that person is the
+     holder's account.
    - Every person a line names is a member, once, however often seen, whether the money went
      out or came in.
    - A merchant, a shop or a company is never a person; a line that names no person names no
@@ -481,8 +497,8 @@ This is the whole flow:
 
    **The other side.**
 
-   - The other side of a transfer, a card bill or a payment is named only when the line prints
-     it; otherwise there is none, never a guess.
+   - The other side of a line is named only when the line prints it; otherwise there is none,
+     never a guess.
    - A bank's IFSC code printed on the line names that bank: UTIB is Axis Bank, BARB Bank of
      Baroda, HDFC HDFC Bank, ICIC ICICI Bank, SBIN State Bank of India, KKBK Kotak, SURY
      Suryoday Small Finance Bank, and so on. An account is written as its bank, its kind when
@@ -490,7 +506,7 @@ This is the whole flow:
      "Paytm wallet"); never a UPI id, a phone number or a full number.
    - When a line prints both a person and that person's bank account, the person is the other
      side and the account is kept beside them as the person's bank account.
-   - The owner's own other account, on a transfer to their own savings, card or wallet or on a
+   - The owner's own other account, on a payment to their own savings, card or wallet or on a
      card bill payment, is the other side too, named the same way; it is never left out for
      being the owner's or for being seen once.
    - A merchant or a shop is never the other side, and neither is the statement's own account.
@@ -502,6 +518,9 @@ This is the whole flow:
    - A name never carries an amount, a currency sign, a cycle, a card or app name in brackets,
      or anything in brackets at all.
    - A person's charge is named by the person, as printed.
+   - When a charge's name is the person's name, it is "Payment to X" for money out and "Payment
+     from X" for money in, X being the person. Every repeat naming that person takes the same
+     name.
 
    **What comes round.**
 
@@ -534,19 +553,22 @@ This is the whole flow:
    **Accounts.**
 
    - The statement's own account is an account in the longbook, named from its header (bank,
-     kind, last four digits), with its closing balance and the day it was true.
+     kind, last four digits), owned by the holder, with its closing balance and the day it was
+     true.
+   - An account's name never carries a person's name: "HDFC Bank", with the person as its
+     owner. Two accounts at one bank that print no digits are told apart by their owner, not by
+     their name.
    - Every account printed on another side of a line, the other side itself or a person's bank
      account, is an account in the longbook too, owned by the person when the line names one.
 
    What each kind becomes: spend, fee and for_member are one-time rows, a for_member row
    with `member` the person as printed; income is the same row with `direction: "in"`, kept
-   beside spending and never added to it; own_transfer and card_bill are skipped — money
-   moved, nothing was bought — unless the memory holds that bill as a transfer row (the
-   daily email round writes one, "Coral card bill, October 2026"): then the line is
-   `add_charges` on it, paid, basis "statement", at the row's own date with `paid_on` the
-   day the money moved; `search` the card's name before you skip. A movement the owner
-   wants remembered — "keep my transfers to savings" — is written with `direction:
-   "transfer"`: shown on the timeline, never in spending, never in money in. If the owner
+   beside spending and never added to it. No line is skipped for being the owner's own
+   money moving: an ATM withdrawal, a wallet load and a card bill payment are one-time rows
+   like the rest. A line is written with `direction: "transfer"` only by the Transfers
+   rule: both its account and the other side's account owned by a person tagged self. Then
+   it is shown on the timeline, never in spending, never in money in. longbook applies the
+   rule itself once the people and the owners are set. If the owner
    said "only the commitments" or "skip food delivery", honour that; otherwise every line
    is a fact, however small.
 4. Model honestly, the way the ledger works (see "The past is stored"): every line paid,
@@ -629,10 +651,10 @@ SPOTIFY 119.00 on the 12th, Sept 2025 through April 2026, then nothing
   storage; say which you chose. Seen twice, a month apart: promoted monthly as a guess,
   "Apple (Guessed)", notes "Guessed: Seen twice, a month apart; the same rhythm assumed".
 
-28/06/2026  CREDIT CARD PAYMENT        42,310.00   → skip (the memory holds no bill row for it;
-                                                     the card statement has the charges)
+28/06/2026  CREDIT CARD PAYMENT        42,310.00   → one row, a charge like any other (not a transfer:
+                                                     the card is no Self account)
 30/06/2026  SALARY CREDIT             1,50,000.00  → one row, direction "in" (money in, kept apart)
-14/06/2026  ATM WDL                   10,000.00    → skip (a movement)
+14/06/2026  ATM WDL                   10,000.00    → one row, a charge
 ```
 
 The questions to the owner after the facts are written, in shape — one message, nothing
@@ -653,8 +675,8 @@ The summary to the owner once the answers are in, in shape:
 > Amazon Prime, Claude, and the two premiums, those two as guesses named so — each planned
 > 24 months ahead; Spotify
 > stopped in April and is on record that way. Twelve salary credits are in as money in,
-> kept apart from spending. Skipped: two card bill payments — the memory held no bill row
-> for either — and three ATM withdrawals. HDFC savings now stands at ₹1,23,456 as of
+> kept apart from spending. Two card bill payments and three ATM withdrawals are in as
+> ordinary rows, none of them a transfer. HDFC savings now stands at ₹1,23,456 as of
 > 30 June, the statement's closing balance. Review it in the Proposals screen — keep or undo
 > it there.
 
@@ -770,6 +792,7 @@ commitment tags:
 - tax [percent]
 
 member tags:
+- self [person.crop.circle]
 - family [person.2]
 - household help [person.badge.clock]
 - team [briefcase]

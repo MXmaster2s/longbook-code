@@ -32,6 +32,7 @@ export const LIBRARY_TAGS: LibraryTag[] = [
   { kind: 'commitment', name: 'warranty & amc', icon: 'checkmark.shield' },
   { kind: 'commitment', name: 'tax', icon: 'percent' },
   // -- members -----------------------------------------------------------------------------
+  { kind: 'member', name: 'self', icon: 'person.crop.circle' },
   { kind: 'member', name: 'family', icon: 'person.2' },
   { kind: 'member', name: 'household help', icon: 'person.badge.clock' },
   { kind: 'member', name: 'team', icon: 'briefcase' },

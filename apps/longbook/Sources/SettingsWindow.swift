@@ -204,7 +204,7 @@ struct SettingsWindowContent: View {
         case .ai:
             stack(pane) { nav in AISettingsPane(model: model, auth: auth, open: nav.open) }
         case .statements:
-            stack(pane) { _ in StatementsSettingsPane(toMainWindow: toMainWindow) }
+            stack(pane) { _ in StatementsSettingsPane(model: model, toMainWindow: toMainWindow) }
         case .privacy:
             stack(pane, header: header(.privacy)) { nav in DataPrivacyView(model: model, openPage: nav.open) }
         case .tutorials:
@@ -1298,6 +1298,7 @@ struct AISettingsPane: View {
 // MARK: Statements
 
 struct StatementsSettingsPane: View {
+    let model: DashboardModel
     let toMainWindow: (Notification.Name) -> Void
     @AppStorage("longbook.statements.addFound") private var addsFound = true
 
@@ -1325,6 +1326,9 @@ struct StatementsSettingsPane: View {
                         toMainWindow(.longbookImport)
                     }
                 }
+            }
+            SettingsGroup(heading: "Past Imports") {
+                PastImportsList(records: model.pastImports())
             }
         }
     }
