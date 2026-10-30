@@ -2116,10 +2116,11 @@ final class DashboardModel {
 
     // MARK: statements read by the server
 
-    /// A statement review written whole, signed "statement import": statements with a kept line
-    /// filed in documents, the vault built off the main actor, one write, one re-read, then
-    /// the month reports. The rows land kept. A refusal writes nothing and removes the copies.
-    func importReview(_ review: StatementImport.Review, statements: [URL]) async throws -> Int {
+    /// A statement review written whole, signed "statement import": kept statements filed in
+    /// documents, the vault built off the main actor, one write, one re-read, then the month
+    /// reports. Rows land kept. A refusal writes nothing and removes the copies. What was
+    /// written comes back whole.
+    func importReview(_ review: StatementImport.Review, statements: [URL]) async throws -> StatementImport.Written {
         guard !readOnly else {
             throw WriteError.invalid("This account has no licence. Buy longbook to keep editing. Everything you have stays visible and exportable.")
         }
@@ -2149,7 +2150,7 @@ final class DashboardModel {
             refreshStructures()
             // Every month the new rows confirm gets its report, drawn from what was written.
             drawMonthlyReports()
-            return written.charges
+            return written
         } catch {
             Telemetry.shared.failed(.fileSave, error)
             let scoped = folder.startAccessingSecurityScopedResource()
