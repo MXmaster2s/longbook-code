@@ -2116,26 +2116,47 @@ final class DashboardModel {
 
     // MARK: statements read by the server
 
-    /// A statement's rows, applied through the outside door like a cloud proposal and signed
-    /// "statement import". The import screen already asked keep or discard, so the rows land
-    /// kept: in History, never asked about again in Changes. Both gates answer in the owner's words.
-    func importStatement(_ write: PendingWrite) throws {
+    /// A statement review written whole, signed "statement import": statements with a kept line
+    /// filed in documents, the vault built off the main actor, one write, one re-read, then
+    /// the month reports. The rows land kept. A refusal writes nothing and removes the copies.
+    func importReview(_ review: StatementImport.Review, statements: [URL]) async throws -> Int {
         guard !readOnly else {
             throw WriteError.invalid("This account has no licence. Buy longbook to keep editing. Everything you have stays visible and exportable.")
         }
         guard let folder = vaultFolder, let file = loadedFile else {
             throw WriteError.invalid("No folder is open, so there’s nowhere to save.")
         }
-        guard case .vault(let applied) = try PendingApply.apply(write, to: file.raw, now: Date(), schema: schema) else { return }
-        // Marked as a Keep marks them, so the owner's other device adopts them too.
-        let ids = vaultDiff(from: file.raw, to: applied).filter { $0.kind != "tags" }
-            .flatMap { $0.added.map(\.id) + $0.changed.map(\.id) + $0.removed.map(\.id) }
-        let next = VaultPatch.markReviewed(ids: ids, in: applied, now: Date())
-        try VaultDisk.write(next, to: folder, expecting: file.bytes)
-        expectingOwnChange = true
-        load()
-        refreshHostedCopy()
-        refreshStructures()
+        var review = review
+        var filed: [String] = []
+        do {
+            for index in review.files.indices where review.files[index].keepsALine && statements.indices.contains(index) {
+                let source = try fileStatement(statements[index])
+                review.files[index].source = source
+                filed.append(source)
+            }
+            let raw = file.raw
+            let schema = schema
+            let ready = review
+            let written = try await Task.detached(priority: .userInitiated) {
+                try StatementImport.write(ready, to: raw, now: Date(), schema: schema)
+            }.value
+            // The file is compared with the bytes the build started from: a write landing
+            // meanwhile refuses this one.
+            try VaultDisk.write(written.vault, to: folder, expecting: file.bytes)
+            expectingOwnChange = true
+            load()
+            refreshHostedCopy()
+            refreshStructures()
+            // Every month the new rows confirm gets its report, drawn from what was written.
+            drawMonthlyReports()
+            return written.charges
+        } catch {
+            Telemetry.shared.failed(.fileSave, error)
+            let scoped = folder.startAccessingSecurityScopedResource()
+            for source in filed { try? FileManager.default.removeItem(at: folder.appendingPathComponent(source)) }
+            if scoped { folder.stopAccessingSecurityScopedResource() }
+            throw error
+        }
     }
 
     /// The file's own bytes as text, for the server that reorganises it. Nil when none is open.
@@ -2174,39 +2195,6 @@ final class DashboardModel {
         refreshHostedCopy()
         refreshStructures()
         return (applied, skipped)
-    }
-
-    /// The prepared review written: every kept charge as a one-time row in one change.
-    /// Returns how many charges were written.
-    func importPrepared(_ candidates: [StatementCandidate], accounts: [String: String], currency: String, source: String) throws -> Int {
-        let write = StatementImport.proposal(candidates, accounts: accounts, currency: currency, source: source)
-        try importStatement(write)
-        return candidates.filter(\.keep).count
-    }
-
-    /// Each repeat promoted over the one-time rows it names among those written since
-    /// `before`: one recurring commitment, planned ahead, each promotion its own change.
-    /// Returns the names that became commitments; the rest stay as they were, once each.
-    func promoteRepeats(_ repeats: [StatementCloud.Repeat], madeSince before: Set<String>, source: String) -> Set<String> {
-        var made: Set<String> = []
-        for repeated in repeats {
-            guard let vault else { break }
-            let dates = Set(repeated.dates)
-            let ids = vault.subscriptions.filter { sub in
-                !before.contains(sub.id) && sub.billingCycle == .once
-                    && sub.name.caseInsensitiveCompare(repeated.name) == .orderedSame
-                    && vault.charges.contains { $0.commitmentId == sub.id && dates.contains($0.date) }
-            }.map(\.id)
-            guard !ids.isEmpty else { continue }
-            var payload: [String: Any] = ["ids": ids, "billing_cycle": repeated.cycle, "plan_months": 24]
-            if let days = repeated.customDays { payload["custom_cycle_days"] = days }
-            if let endsOn = repeated.endsOn { payload["ends_on"] = endsOn }
-            if let tag = repeated.category { payload["tag"] = tag }
-            let promote = PendingWrite(id: UUID(), kind: "promote_to_recurring", payload: payload,
-                                       sourceRef: source, keyName: "statement import", origin: "statement")
-            if (try? importStatement(promote)) != nil { made.insert(repeated.name) }
-        }
-        return made
     }
 
     /// The picked file copied into the vault's documents folder, returned as the relative
@@ -2642,15 +2630,6 @@ final class DashboardModel {
     @discardableResult
     func setTagPhoto(kind: String, name: String, photo: String?) -> Bool {
         commit { try VaultPatch.setTagPhoto(kind: kind, named: name, photo: photo, in: $0, now: Date()) }
-    }
-
-    /// Whether a balance dated `day` is as new as the one the account holds. An undated
-    /// balance counts as older than a dated one, and anything beats no balance at all.
-    func balanceIsNewer(_ day: String?, forAccount id: String) -> Bool {
-        guard let method = vault?.paymentMethods.first(where: { $0.id == id }), method.balance != nil else { return true }
-        guard let held = method.balanceDate else { return true }
-        guard let day else { return false }
-        return day >= held
     }
 
     /// Doubly-optional arguments, as the writer takes them: nil leaves a field alone,

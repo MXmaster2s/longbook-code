@@ -117,6 +117,8 @@ struct StatementImportView: View {
     /// The other way in, opened on request: the owner's own AI.
     @State private var ownAI = false
     @State private var confirmingClose = false
+    /// The review is being written; the button says so and nothing else closes the sheet.
+    @State private var adding = false
     /// How far the reading has come, as a share; it creeps while a piece is being read
     /// and lands on the mark when the piece comes back.
     @State private var progress = 0.0
@@ -544,6 +546,7 @@ struct StatementImportView: View {
                         .contentShape(Rectangle())
                 }
                 .lbButtonStyle()
+                .disabled(adding)
                 Spacer()
             }
             .padding(.horizontal, LBSpacing.s4)
@@ -717,7 +720,8 @@ struct StatementImportView: View {
 
     /// What the button adds: every ticked item, whatever it is.
     private var addTitle: String {
-        tickedCount > 0 ? "Add \(tickedCount) \(tickedCount == 1 ? "item" : "items")" : "Nothing to add"
+        if adding { return "Adding…" }
+        return tickedCount > 0 ? "Add \(tickedCount) \(tickedCount == 1 ? "item" : "items")" : "Nothing to add"
     }
 
     private var money: String { currency.trimmingCharacters(in: .whitespaces).uppercased() }
@@ -1168,7 +1172,7 @@ struct StatementImportView: View {
     /// The phone: how many are ticked over the one primary button. The Mac: Discard and the
     /// count on the left, the primary button on the right.
     private var reviewFooter: some View {
-        let ready = tickedCount > 0 && accountsNamed
+        let ready = tickedCount > 0 && accountsNamed && !adding
         let add = Button { Measure.used("checkmark_circle_fill"); add() } label: {
             Text(addTitle)
                 #if os(iOS)
@@ -1211,6 +1215,7 @@ struct StatementImportView: View {
             }
             .lbButtonStyle()
             .keyboardShortcut(.cancelAction)
+            .disabled(adding)
             count
             Spacer(minLength: LBSpacing.s2)
             add.keyboardShortcut(.defaultAction)
@@ -1322,6 +1327,7 @@ struct StatementImportView: View {
                         .background(LBColor.chrome.color, in: Circle())
                 }
                 .lbButtonStyle()
+                .disabled(adding)
                 .accessibilityLabel("Close")
             }
         }
@@ -1876,103 +1882,79 @@ struct StatementImportView: View {
     }
 
     private func add() {
+        guard !adding else { return }
         problem = nil
-        do {
-            var rows = candidates
-            // A member ticked is a person in the book, whatever the lines say; the lines
-            // that name them carry them. One unticked stays a name on the line. A name the
-            // writer refuses stops the add here, its refusal on the review.
-            var chosen = Array(chosenMembers)
-            // With the switch on, a person a kept line names is added too, matched loosely.
-            if StatementFinds.on {
-                for row in rows where row.keep {
-                    guard let named = row.member?.trimmingCharacters(in: .whitespacesAndNewlines), !named.isEmpty,
-                          !(chosen + model.memberNames).contains(where: { nameKey($0) == nameKey(named) }) else { continue }
-                    chosen.append(named)
+        var rows = candidates
+        // A member ticked is a person in the book, whatever the lines say; the lines
+        // that name them carry them. One unticked stays a name on the line. A name the
+        // writer refuses stops the add here, its refusal on the review.
+        var chosen = Array(chosenMembers)
+        // With the switch on, a person a kept line names is added too, matched loosely.
+        if StatementFinds.on {
+            for row in rows where row.keep {
+                guard let named = row.member?.trimmingCharacters(in: .whitespacesAndNewlines), !named.isEmpty,
+                      !(chosen + model.memberNames).contains(where: { nameKey($0) == nameKey(named) }) else { continue }
+                chosen.append(named)
+            }
+        }
+        for index in rows.indices {
+            if let member = rows[index].member, !chosen.contains(member),
+               !model.memberNames.contains(where: { nameKey($0) == nameKey(member) }) {
+                rows[index].member = nil
+            } else if rows[index].member == nil, rows[index].keep,
+                      let carried = chosen.first(where: { Self.names($0, in: rows[index]) }) {
+                rows[index].member = carried
+            }
+        }
+        // A line that belongs to a recurring commitment the book already holds is that
+        // commitment's charge, never a twin: those rows go on as charges, the rest as
+        // one-time rows. It must move the same way: a transfer never joins a spend.
+        let recurring = model.commitmentIdNames.filter { $0.cycle != .once }
+        var reviewed: [StatementImport.ReviewFile] = []
+        var statements: [URL] = []
+        // Each file lands on its own account, from its own copy in documents.
+        for read in files where read.prepared != nil {
+            var attached: [(id: String, charges: [[String: Any]])] = []
+            var ownRows: [StatementCandidate] = []
+            for row in rows where row.file == read.id {
+                if row.keep, let home = recurring.first(where: {
+                    $0.name.caseInsensitiveCompare(row.name) == .orderedSame
+                        && VaultPatch.storedDirection(model.subscription(id: $0.id)?.direction) == VaultPatch.storedDirection(row.direction)
+                }) {
+                    let charge: [String: Any] = ["date": row.line.date, "amount": row.line.amount, "paid": true, "basis": "statement"]
+                    if let at = attached.firstIndex(where: { $0.id == home.id }) { attached[at].charges.append(charge) } else { attached.append((home.id, [charge])) }
+                } else {
+                    ownRows.append(row)
                 }
             }
-            for name in chosen {
-                guard model.addEntity(.familyMember, named: name) != nil else {
-                    throw WriteError.invalid(model.saveError ?? "That didn’t save.")
-                }
+            reviewed.append(StatementImport.ReviewFile(
+                rows: ownRows, attached: attached, account: read.account.trimmingCharacters(in: .whitespaces),
+                addsAccount: ownAccountsTicked.contains(read.id), source: nil,
+                balance: read.balance, balanceDate: read.balanceDate))
+            statements.append(read.url)
+        }
+        // A repeat ticked becomes one recurring commitment over the lines it names, planned
+        // ahead. One with no lines to carry — typed in, or renamed away from them — waits
+        // on the timeline with the ones setup named, for its amount and day.
+        let ticked = repeats.filter { chosenRepeats.contains($0.name) }.map {
+            (repeated: $0, placeholder: CommitmentPlaceholder(name: $0.name, group: $0.dates.isEmpty ? "Named" : cycleWord($0).capitalized,
+                                                                tag: $0.category ?? ""))
+        }
+        let review = StatementImport.Review(members: chosen, accounts: foundAccounts.filter { chosenAccounts.contains($0) },
+                                            files: reviewed, currency: money, repeats: ticked, waiting: model.placeholders)
+        adding = true
+        Task {
+            defer { adding = false }
+            do {
+                let written = try await model.importReview(review, statements: statements)
+                countImport(ok: true, charges: written)
+                // History shows it as one change, already kept.
+                onDone()
+            } catch {
+                Telemetry.shared.failed(.statementImport, error)
+                problem = error.friendlyDescription
+                countImport(outcome: "add_failed")
             }
-            for name in foundAccounts where chosenAccounts.contains(name) {
-                guard model.addEntity(.paymentMethod, named: name) != nil else {
-                    throw WriteError.invalid(model.saveError ?? "That didn’t save.")
-                }
-            }
-            for index in rows.indices {
-                if let member = rows[index].member, !chosen.contains(member),
-                   !model.memberNames.contains(where: { nameKey($0) == nameKey(member) }) {
-                    rows[index].member = nil
-                } else if rows[index].member == nil, rows[index].keep,
-                          let carried = chosen.first(where: { Self.names($0, in: rows[index]) }) {
-                    rows[index].member = carried
-                }
-            }
-            // A line that belongs to a recurring commitment the book already holds is that
-            // commitment's charge, never a twin: those rows go on as charges, the rest as
-            // one-time rows. It must move the same way: a transfer never joins a spend.
-            let recurring = model.commitmentIdNames.filter { $0.cycle != .once }
-            let money = currency.trimmingCharacters(in: .whitespaces).uppercased()
-            var written = 0
-            let before = Set(model.commitmentIdNames.map(\.id))
-            var firstSource: String?
-            // Each file lands on its own account, from its own copy in documents.
-            for read in files where read.prepared != nil {
-                let mine = rows.filter { $0.file == read.id }
-                let named = read.account.trimmingCharacters(in: .whitespaces)
-                // Ticked, the statement's own account is added even when no line is kept.
-                if ownAccountsTicked.contains(read.id), !named.isEmpty, model.addEntity(.paymentMethod, named: named) == nil {
-                    throw WriteError.invalid(model.saveError ?? "That didn’t save.")
-                }
-                guard mine.contains(where: \.keep) else { continue }
-                let source = try model.fileStatement(read.url)
-                firstSource = firstSource ?? source
-                var attached: [String: [[String: Any]]] = [:]
-                var ownRows: [StatementCandidate] = []
-                for row in mine {
-                    if row.keep, let home = recurring.first(where: {
-                        $0.name.caseInsensitiveCompare(row.name) == .orderedSame
-                            && VaultPatch.storedDirection(model.subscription(id: $0.id)?.direction) == VaultPatch.storedDirection(row.direction)
-                    }) {
-                        attached[home.id, default: []].append(["date": row.line.date, "amount": row.line.amount, "paid": true, "basis": "statement"])
-                    } else {
-                        ownRows.append(row)
-                    }
-                }
-                written += try model.importPrepared(ownRows, accounts: [read.id: named], currency: money, source: source)
-                for (id, charges) in attached {
-                    try model.importStatement(PendingWrite(id: UUID(), kind: "add_charges", payload: ["id": id, "charges": charges],
-                                                           sourceRef: source, keyName: "statement import", origin: "statement"))
-                    written += charges.count
-                }
-                // The statement's last line is the account's balance, dated — unless the account
-                // already holds a later one: an old statement never rewinds the balance.
-                if let balance = read.balance, let id = model.addEntity(.paymentMethod, named: named),
-                   model.balanceIsNewer(read.balanceDate, forAccount: id) {
-                    model.setEntityDetails(.paymentMethod, id: id, balance: .some(balance), balanceDate: .some(read.balanceDate))
-                }
-            }
-            // A repeat ticked becomes one recurring commitment over the lines it names, planned
-            // ahead. One with no lines to carry — typed in, or renamed away from them — waits
-            // on the timeline with the ones setup named, for its amount and day.
-            let ticked = repeats.filter { chosenRepeats.contains($0.name) }
-            let promoted = firstSource.map { model.promoteRepeats(ticked, madeSince: before, source: $0) } ?? []
-            let waiting = model.placeholders
-            let taken = Set(waiting.map { $0.name.lowercased() })
-            let fresh = ticked.filter { !promoted.contains($0.name) && !taken.contains($0.name.lowercased()) && !model.hasCommitment(named: $0.name) }
-                .map { CommitmentPlaceholder(name: $0.name, group: $0.dates.isEmpty ? "Named" : cycleWord($0).capitalized, tag: $0.category ?? "") }
-            if !fresh.isEmpty { model.setPlaceholders(waiting + fresh) }
-            // Every month the new rows confirm gets its report, drawn from what was written.
-            model.drawMonthlyReports()
-            countImport(ok: true, charges: written)
-            // The Proposals strip on the Dashboard says where to keep or undo it.
-            onDone()
-        } catch {
-            Telemetry.shared.failed(.statementImport, error)
-            problem = error.friendlyDescription
-            countImport(outcome: "add_failed")
         }
     }
 
