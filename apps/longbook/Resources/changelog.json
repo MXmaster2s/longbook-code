@@ -34,7 +34,8 @@
       "A new longbook's Dashboard shows one place to start: import a statement, add a commitment by hand, or use your own AI. On the Mac, drop a statement on it to import it.",
       "On the Mac, longbook no longer quits at launch while it reads a crash report from an earlier session.",
       "Setting up longbook in iCloud waits for a longbook already there to arrive, so your folder no longer gets copies named with a 2.",
-      "Adding a reviewed statement is quick and saves as one change, so the Dashboard no longer asks you to keep what you just added."
+      "Adding a reviewed statement is quick and saves as one change, so the Dashboard no longer asks you to keep what you just added.",
+      "Upcoming lists each commitment once, at its next charge, and Edit there edits the commitment."
     ]
   },
   {

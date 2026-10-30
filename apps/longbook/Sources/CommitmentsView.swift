@@ -2,9 +2,9 @@ import DesignSystem
 import LongbookCore
 import SwiftUI
 
-/// Both directions of the ledger, one row per stored charge: ahead, what each commitment
-/// will charge, then what has no date ahead; behind, what landed, newest first. A plain
-/// list on the phone, a sortable table with an inspector on the Mac; one Filter control.
+/// Both directions of the ledger: ahead, each commitment once at its next charge, then what
+/// has no date ahead; behind, every charge that landed, newest first. A day, months or a
+/// Date window list charges. A list on the phone, cards with an inspector on the Mac.
 struct CommitmentsView: View {
     /// What the form sheet is editing — its own type so add and edit share one sheet.
     private enum FormTarget: Identifiable {
@@ -69,8 +69,6 @@ struct CommitmentsView: View {
     @State private var editingCharge: Charge?
     /// The to-fill-in name whose Remove is awaiting confirmation.
     @State private var removingPlaceholder: CommitmentPlaceholder?
-    /// True once the reader asked for the months past the cap.
-    @State private var showsLaterMonths = false
     /// The Mac list's chosen cards.
     @State private var selection: Set<String> = []
     /// The last card clicked and when, for telling a second click from a first.
@@ -78,10 +76,6 @@ struct CommitmentsView: View {
 
     /// The filter's word for rows that wear no category, as the panels and reports say it.
     static let noCategory = "No category"
-
-    /// The unfiltered list ahead stops at this many calendar months. A plan written two
-    /// years out would otherwise bury what is near under what is far.
-    private static let monthsShown = 12
 
     private static let cycleOptions: [(String, String)] = [
         ("monthly", "Monthly"), ("yearly", "Yearly"), ("custom", "Custom"), ("once", "One-time"),
@@ -300,11 +294,18 @@ struct CommitmentsView: View {
         rows(in: when)
     }
 
-    /// What has no date ahead, narrowed as the rows are — by what it is, since it has no day.
-    private func visibleUnscheduled(_ data: DashboardData) -> [DashboardData.CommitmentItem] {
+    /// Ahead with no day, months or Date window, the list is each commitment once rather
+    /// than every charge its plan has written.
+    private func listsCommitments(_ scope: ListScope) -> Bool {
+        scope == .upcoming && day == nil && months.isEmpty && !hasRange
+    }
+
+    /// The commitments with a next charge, soonest first, or those with none, narrowed as the
+    /// rows are — by what each is.
+    private func visibleCommitments(_ data: DashboardData, scheduled: Bool) -> [DashboardData.CommitmentItem] {
         let needle = search.lowercased()
         return data.commitments.filter { item in
-            guard item.monthLabel == nil else { return false }
+            guard (item.monthLabel != nil) == scheduled else { return false }
             if !matchesCategory(item.category) { return false }
             if !matchesMethod(item.methodId) { return false }
             if !matchesMember(item.memberId) { return false }
@@ -341,23 +342,19 @@ struct CommitmentsView: View {
         return id == memberId
     }
 
-    /// Whether the list ahead stops at the cap: only the whole, unnarrowed list does.
-    private var capsMonths: Bool {
-        when == .upcoming && !showsLaterMonths && !anyFilter && search.isEmpty && day == nil && months.isEmpty && !hasRange
-    }
-
-    /// The three parts of the list as the narrowing leaves them, and whether the cap hid any.
+    /// The parts of the list as the narrowing leaves them, both platforms' one source: the
+    /// charges, or ahead each commitment once; then what has no date, and what needs details.
     private func parts(_ data: DashboardData) -> (
-        rows: [DashboardModel.ChargeItem], capped: Bool,
+        rows: [DashboardModel.ChargeItem], upcoming: [DashboardData.CommitmentItem],
         unscheduled: [DashboardData.CommitmentItem], toFill: [CommitmentPlaceholder]
     ) {
-        let all = visibleRows()
-        let edge = LB.toISO(LB.addMonths(LB.firstOfMonth(LB.todayMid()), Self.monthsShown))
-        let rows = underCap(all, before: edge, capped: capsMonths, dateISO: \.dateISO)
+        let commitments = listsCommitments(when)
+        let rows = commitments ? [] : visibleRows()
+        let upcoming = commitments ? visibleCommitments(data, scheduled: true) : []
         // Under a day, months or a Date window the unscheduled have nothing to be inside of.
-        let unscheduled = when == .upcoming && day == nil && months.isEmpty && !hasRange ? visibleUnscheduled(data) : []
+        let unscheduled = commitments ? visibleCommitments(data, scheduled: false) : []
         let toFill = when == .upcoming ? visiblePlaceholders() : []
-        return (rows, rows.count < all.count, unscheduled, toFill)
+        return (rows, upcoming, unscheduled, toFill)
     }
 
     // MARK: filters
@@ -517,15 +514,17 @@ struct CommitmentsView: View {
 
     /// A search answers from both sides: when this side shows matches, the other side's
     /// count is offered too, so a one-time charge already behind today is never missed.
-    private var alsoMatching: (scope: ListScope, count: Int)? {
+    private func alsoMatching(_ data: DashboardData) -> (scope: ListScope, count: Int, commitments: Bool)? {
         guard !search.isEmpty else { return nil }
         let other: ListScope = when == .past ? .upcoming : .past
-        let count = rows(in: other).count
-        return count > 0 ? (other, count) : nil
+        let commitments = listsCommitments(other)
+        let count = commitments ? visibleCommitments(data, scheduled: true).count : rows(in: other).count
+        return count > 0 ? (other, count, commitments) : nil
     }
 
-    private func alsoMatchingWords(_ also: (scope: ListScope, count: Int)) -> String {
-        let noun = also.count == 1 ? "charge" : "charges"
+    private func alsoMatchingWords(_ also: (scope: ListScope, count: Int, commitments: Bool)) -> String {
+        let noun = also.commitments ? (also.count == 1 ? "commitment" : "commitments")
+            : (also.count == 1 ? "charge" : "charges")
         return "\(also.count) \(also.scope == .past ? "past" : "upcoming") \(noun) also match"
     }
 
@@ -585,14 +584,15 @@ struct CommitmentsView: View {
                         image: model.commitmentPhotoURL(id: item.id))
     }
 
-    /// A card that is also a door, without the list's own chevron drawn over it.
+    /// A card that is also a door, without the list's own chevron drawn over it. The list
+    /// row opens the hidden link, so the row carries no tap gesture: even a simultaneous
+    /// one keeps the row from opening.
     private func cardLink<Card: View>(_ destination: Destination, @ViewBuilder card: () -> Card) -> some View {
         ZStack {
             NavigationLink(value: destination) { EmptyView() }
                 .opacity(0)
             card()
         }
-        .lbTapHaptic()
     }
 
     // MARK: actions shared by both platforms
@@ -604,6 +604,13 @@ struct CommitmentsView: View {
     private func togglePaid(_ charge: DashboardModel.ChargeItem) {
         LBHaptics.tap()
         model.setPaid(subscriptionId: charge.subId, dateISO: charge.dateISO, paid: !charge.isPaid)
+    }
+
+    /// A commitment's Mark Paid acts on its next charge.
+    private func togglePaid(_ item: DashboardData.CommitmentItem) {
+        guard let due = item.dueISO else { return }
+        LBHaptics.tap()
+        model.setPaid(subscriptionId: item.id, dateISO: due, paid: !item.isPaid)
     }
 
     /// A per-machine preference in the sidecar, so an outside AI editing the vault can never
@@ -695,7 +702,7 @@ struct CommitmentsView: View {
     @ViewBuilder
     private func phoneSections(_ data: DashboardData) -> some View {
         let parts = parts(data)
-        if parts.rows.isEmpty, parts.unscheduled.isEmpty, parts.toFill.isEmpty {
+        if parts.rows.isEmpty, parts.upcoming.isEmpty, parts.unscheduled.isEmpty, parts.toFill.isEmpty {
             Section {
                 Text(emptyWords)
                     .lbText(.footnote)
@@ -717,7 +724,7 @@ struct CommitmentsView: View {
                 LBSectionHeader("Needs details")
             }
         }
-        let first = parts.rows.first?.id
+        let first = parts.rows.first?.id ?? parts.upcoming.first?.id
         ForEach(grouped(parts.rows, by: \.monthLabel), id: \.label) { group in
             Section {
                 ForEach(group.items) { phoneRow($0).tutorialTarget($0.id == first ? .commitmentsFirst : nil) }
@@ -725,11 +732,11 @@ struct CommitmentsView: View {
                 LBSectionHeader(monthHeading(group.label))
             }
         }
-        if parts.capped {
+        ForEach(grouped(parts.upcoming, by: \.monthLabel), id: \.label) { group in
             Section {
-                Button("Show Later Months") { Measure.used("show_later_months"); showsLaterMonths = true }
-                    .foregroundStyle(LBColor.brandText.color)
-                    .lbListRowBackground()
+                ForEach(group.items) { phoneRow($0).tutorialTarget($0.id == first ? .commitmentsFirst : nil) }
+            } header: {
+                LBSectionHeader(monthHeading(group.label))
             }
         }
         if !parts.unscheduled.isEmpty {
@@ -739,7 +746,7 @@ struct CommitmentsView: View {
                 LBSectionHeader(unscheduledHeading)
             }
         }
-        if !parts.rows.isEmpty || !parts.unscheduled.isEmpty, let also = alsoMatching {
+        if !parts.rows.isEmpty || !parts.upcoming.isEmpty || !parts.unscheduled.isEmpty, let also = alsoMatching(data) {
             Section {
                 Button(alsoMatchingWords(also)) { Measure.used("show_also_matching"); when = also.scope }
                     .foregroundStyle(LBColor.brandText.color)
@@ -756,12 +763,18 @@ struct CommitmentsView: View {
             .lbRowActions(leading: leadingActions(charge), trailing: trailingActions(charge))
     }
 
+    /// One commitment, opening on itself. Mark Paid, while it has a next charge, and Bookmark
+    /// lead; Edit and Delete act on the whole commitment.
     private func phoneRow(_ item: DashboardData.CommitmentItem) -> some View {
         let bookmark = bookmarkWord(item.id)
+        let paid = item.dueISO == nil ? [] : [
+            LBRowAction(item.isPaid ? "Mark Unpaid" : "Mark Paid",
+                        systemImage: item.isPaid ? LBGlyph.unpaid : LBGlyph.paid) { togglePaid(item) },
+        ]
         return cardLink(.commitment(id: item.id)) { commitmentCard(item) }
         .lbCardRow()
         .lbRowActions(
-            leading: [LBRowAction(bookmark.title, systemImage: bookmark.symbol, tint: LBColor.textSecondary) { toggleBookmark(item.id) }],
+            leading: paid + [LBRowAction(bookmark.title, systemImage: bookmark.symbol, tint: LBColor.textSecondary) { toggleBookmark(item.id) }],
             trailing: [
                 LBRowAction("Edit", systemImage: "pencil", tint: LBColor.textSecondary) { formTarget = .edit(item.id) },
                 .destructive("Delete") { deletingItem = CommitmentRef(id: item.id, name: item.name) },
@@ -833,8 +846,8 @@ struct CommitmentsView: View {
 
     // MARK: - Mac
 
-    /// One row of the Mac table: a charge, a commitment with no date ahead, or a name still
-    /// to fill in, with every column's value read once.
+    /// One row of the Mac list: a charge, a commitment, or a name still to fill in, with
+    /// every column's value read once.
     struct LedgerRow: Identifiable {
         enum Kind {
             case charge(DashboardModel.ChargeItem)
@@ -888,15 +901,15 @@ struct CommitmentsView: View {
                       person: charge.memberId.flatMap { members[$0] } ?? "—",
                       amountText: charge.amountText, amount: LedgerRow.figure(charge.amountText))
         }
-        let unscheduled = parts.unscheduled.map { item in
-            LedgerRow(id: "s:" + item.id, kind: .commitment(item), name: item.name, dateKey: "9999",
-                      dateText: unscheduledHeading,
+        let commitments = (parts.upcoming + parts.unscheduled).map { item in
+            LedgerRow(id: "s:" + item.id, kind: .commitment(item), name: item.name, dateKey: item.dueISO ?? "9999",
+                      dateText: item.dueISO.flatMap(LB.parseDate).map(LB.longDate) ?? unscheduledHeading,
                       category: item.category.map(categoryWord) ?? "—",
                       account: item.methodId.flatMap { methods[$0] } ?? "—",
                       person: item.memberId.flatMap { members[$0] } ?? "—",
                       amountText: item.amountText, amount: LedgerRow.figure(item.amountText))
         }
-        return toFill + charges + unscheduled
+        return toFill + charges + commitments
     }
 
     private var macBody: some View {
@@ -939,10 +952,7 @@ struct CommitmentsView: View {
     /// drawn in the page — then search, the side, and the one Filter menu.
     private func macHeader(_ data: DashboardData, rows: [LedgerRow]) -> some View {
         let chosen = selected(rows)
-        let charges: [DashboardModel.ChargeItem] = chosen.compactMap {
-            if case .charge(let charge) = $0.kind, !charge.isPast { return charge }
-            return nil
-        }
+        let charges = chosen.compactMap(markable)
         let ids = Array(Set(chosen.compactMap(\.subId)))
         let allPaid = !charges.isEmpty && charges.allSatisfy(\.isPaid)
         let allSaved = !ids.isEmpty && ids.allSatisfy { model.bookmarks.contains($0) }
@@ -1042,6 +1052,7 @@ struct CommitmentsView: View {
     /// picks one, a double click edits it, and a right click offers what the card can do.
     private func macCards(_ data: DashboardData, rows: [LedgerRow]) -> some View {
         let parts = parts(data)
+        let first = parts.rows.first.map { "c:" + $0.id } ?? parts.upcoming.first.map { "s:" + $0.id }
         return VStack(spacing: 0) {
             if rows.isEmpty {
                 VStack(alignment: .leading, spacing: LBSpacing.s3) {
@@ -1069,17 +1080,22 @@ struct CommitmentsView: View {
                         Section {
                             ForEach(group.items) { charge in
                                 pickable("c:" + charge.id, rows: rows, chargeCard(charge, selected: selection.contains("c:" + charge.id)))
-                                    .tutorialTarget(charge.id == parts.rows.first?.id ? .commitmentsFirst : nil)
+                                    .tutorialTarget("c:" + charge.id == first ? .commitmentsFirst : nil)
                                     .lbCardRow()
                             }
                         } header: {
                             LBSectionHeader(monthHeading(group.label))
                         }
                     }
-                    if parts.capped {
+                    ForEach(grouped(parts.upcoming, by: \.monthLabel), id: \.label) { group in
                         Section {
-                            Button("Show Later Months") { Measure.used("show_later_months"); showsLaterMonths = true }
-                                .lbCardRow()
+                            ForEach(group.items) { item in
+                                pickable("s:" + item.id, rows: rows, commitmentCard(item, selected: selection.contains("s:" + item.id)))
+                                    .tutorialTarget("s:" + item.id == first ? .commitmentsFirst : nil)
+                                    .lbCardRow()
+                            }
+                        } header: {
+                            LBSectionHeader(monthHeading(group.label))
                         }
                     }
                     if !parts.unscheduled.isEmpty {
@@ -1092,7 +1108,7 @@ struct CommitmentsView: View {
                             LBSectionHeader(unscheduledHeading)
                         }
                     }
-                    if let also = alsoMatching {
+                    if let also = alsoMatching(data) {
                         Section {
                             Button(alsoMatchingWords(also)) { Measure.used("show_also_matching"); when = also.scope }
                                 .lbCardRow()
@@ -1136,6 +1152,15 @@ struct CommitmentsView: View {
             .contextMenu { if let row { menu([row]) } }
     }
 
+    /// What Mark Paid acts on for a row: a charge ahead, or a commitment's next charge.
+    private func markable(_ row: LedgerRow) -> (subId: String, dateISO: String, isPaid: Bool)? {
+        switch row.kind {
+        case .charge(let charge): charge.isPast ? nil : (charge.subId, charge.dateISO, charge.isPaid)
+        case .commitment(let item): item.dueISO.map { (item.id, $0, item.isPaid) }
+        case .placeholder: nil
+        }
+    }
+
     /// Double click and Edit: a charge opens on itself, a commitment on itself, a name to
     /// fill in on the form.
     private func edit(_ row: LedgerRow) {
@@ -1165,6 +1190,9 @@ struct CommitmentsView: View {
                     deletingItem = CommitmentRef(id: charge.subId, name: charge.name)
                 }
             case .commitment(let item):
+                if item.dueISO != nil {
+                    Button(item.isPaid ? "Mark Unpaid" : "Mark Paid") { Measure.used("mark_unpaid"); togglePaid(item) }
+                }
                 Button(bookmarkWord(item.id).title) { Measure.used("toggle_bookmark"); toggleBookmark(item.id) }
                 Button("Edit") { Measure.used("edit"); formTarget = .edit(item.id) }
                 Divider()
@@ -1178,10 +1206,7 @@ struct CommitmentsView: View {
                 Button("Remove", role: .destructive) { Measure.used("remove"); removingPlaceholder = placeholder }
             }
         } else if !rows.isEmpty {
-            let charges: [DashboardModel.ChargeItem] = rows.compactMap {
-                if case .charge(let charge) = $0.kind, !charge.isPast { return charge }
-                return nil
-            }
+            let charges = rows.compactMap(markable)
             if !charges.isEmpty {
                 Button("Mark \(charges.count) Paid") {
                     Measure.used("mark_paid")
