@@ -27,6 +27,8 @@ public enum LBGlyph {
     /// the cycle fact on a card keeps its own arrows, so the two never read alike.
     public static let commitment = "repeat"
     public static let charge = "banknote"
+    /// A charge's note, a statement line among them.
+    public static let note = "text.alignleft"
     public static let change = "tray.full"
 }
 

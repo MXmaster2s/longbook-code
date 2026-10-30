@@ -37,6 +37,17 @@ struct ChangesView: View {
     @State private var selection: Pick?
     /// The kind of row in front; nil, or a kind with nothing left, follows the first tab.
     @State private var pickedKind: String?
+    /// The review folded once per diff, read by every body pass until the file or its base
+    /// changes. A plain class: filling it never redraws the screen.
+    @State private var cache = ReviewCache()
+    /// How many lines each kind shows, by kind; absent is the first page, `Int.max` every line.
+    @State private var shownLimits: [String: Int] = [:]
+
+    @MainActor private final class ReviewCache {
+        var key: String?
+        var review: Review?
+        var groups: [LineGroup] = []
+    }
 
     private struct RowRefusal {
         let hash: String
@@ -52,9 +63,8 @@ struct ChangesView: View {
     private static let historyAnchor = "history"
 
     var body: some View {
-        // Folded once per pass: the subtitle, the sections and the rows read the same diff.
-        let review = model.outsideChangeFrom == nil ? nil : pendingReview()
-        let groups = review.map(lineGroups) ?? []
+        // Folded once per diff: the subtitle, the sections and the rows read the same lines.
+        let (review, groups) = folded()
         ScrollViewReader { proxy in
             #if os(macOS)
             macBody(review, groups: groups, proxy: proxy)
@@ -129,6 +139,64 @@ struct ChangesView: View {
             let hidden = await model.bookkeepingOnlyVersions()
             shown = versions.filter { !hidden.contains($0.hash) }
         }
+    }
+
+    /// The review and its lines for the file as it stands, folded once per base, file and
+    /// writer list. Every body pass between two reads is answered from the cache.
+    private func folded() -> (Review?, [LineGroup]) {
+        let key = "\(model.reviewKey)|\(log.first?.hash ?? "")"
+        if cache.key == key { return (cache.review, cache.groups) }
+        let review = model.outsideChangeFrom == nil ? nil : pendingReview()
+        let groups = review.map(lineGroups) ?? []
+        cache.key = key
+        cache.review = review
+        cache.groups = groups
+        return (review, groups)
+    }
+
+    /// The lines a kind shows: the first page, or as many as "Show more" opened.
+    private func pageLimit(_ kind: String) -> Int? {
+        let limit = shownLimits[kind] ?? ReviewPaging.pageSize
+        return limit == Int.max ? nil : limit
+    }
+
+    private func shownLines(_ group: LineGroup) -> ArraySlice<Line> {
+        group.lines.prefix(ReviewPaging.shownCount(total: group.lines.count, limit: pageLimit(group.kind)))
+    }
+
+    /// "Show 100 more" and "Show all" at the foot of a page with lines still folded away.
+    @ViewBuilder
+    private func pageFooter(_ group: LineGroup) -> some View {
+        if let more = ReviewPaging.moreWords(total: group.lines.count, limit: pageLimit(group.kind)) {
+            LBReflowStack(spacing: LBSpacing.s2) {
+                Button {
+                    Measure.used("show_more")
+                    shownLimits[group.kind] = ReviewPaging.next(limit: pageLimit(group.kind), total: group.lines.count) ?? Int.max
+                } label: {
+                    pageWords(more)
+                }
+                .lbButtonStyle()
+                .accessibilityHint("Shows the next page of \(group.title.lowercased()).")
+                Button {
+                    Measure.used("show_all")
+                    shownLimits[group.kind] = Int.max
+                } label: {
+                    pageWords("Show all \(group.lines.count)")
+                }
+                .lbButtonStyle()
+                .accessibilityHint("Shows every \(Self.kindNoun(group.kind, count: 1)) at once.")
+            }
+            .padding(.vertical, LBSpacing.s1)
+            .lbListRowBackground()
+        }
+    }
+
+    private func pageWords(_ title: String) -> some View {
+        Text(title)
+            .lbText(.label)
+            .foregroundStyle(LBColor.brandText.color)
+            .frame(minHeight: 32)
+            .contentShape(Rectangle())
     }
 
     private func loadDiff(_ entry: HistoryEntry) {
@@ -216,7 +284,7 @@ struct ChangesView: View {
                     LBSectionHeader("How it works")
                 }
             }
-            if groups.count > 1 {
+            if !groups.isEmpty {
                 SwiftUI.Section {
                     kindTabs(groups)
                         .tutorialTarget(.changesKinds)
@@ -227,10 +295,11 @@ struct ChangesView: View {
             let first = shownGroups(groups).first?.lines.first?.id
             ForEach(shownGroups(groups)) { group in
                 SwiftUI.Section {
-                    ForEach(group.lines) { line in
+                    ForEach(shownLines(group)) { line in
                         phoneRow(line)
                             .tutorialTarget(line.id == first ? .changesFirst : nil)
                     }
+                    pageFooter(group)
                 } header: {
                     LBSectionHeader(group.title)
                 }
@@ -243,8 +312,8 @@ struct ChangesView: View {
         .refreshable { await refreshAll() }
     }
 
-    /// One tab per kind with a line waiting, so hundreds of charges never bury one changed
-    /// account. A row that does not fit scrolls sideways.
+    /// One tab per kind with a line waiting, each counting its lines, so hundreds of charges
+    /// never bury one changed account. A row that does not fit scrolls sideways.
     private func kindTabs(_ groups: [LineGroup]) -> some View {
         let shown = shownGroups(groups).first?.kind
         return ScrollView(.horizontal, showsIndicators: false) {
@@ -401,7 +470,7 @@ struct ChangesView: View {
 
     private func macList(_ groups: [LineGroup]) -> some View {
         List {
-            if groups.count > 1 {
+            if !groups.isEmpty {
                 SwiftUI.Section {
                     kindTabs(groups)
                         .tutorialTarget(.changesKinds)
@@ -412,7 +481,7 @@ struct ChangesView: View {
             let first = shownGroups(groups).first?.lines.first?.id
             ForEach(shownGroups(groups)) { group in
                 SwiftUI.Section {
-                    ForEach(group.lines) { line in
+                    ForEach(shownLines(group)) { line in
                         lineRow(line, selected: selection == .line(line.id))
                             .tutorialTarget(line.id == first ? .changesFirst : nil)
                             .lbHoverWash(Self.isCard(line) ? .label : .rounded(LBRadius.xs))
@@ -424,6 +493,7 @@ struct ChangesView: View {
                             .modifier(LineRowChrome(card: Self.isCard(line)))
                             .lbRowActions(trailing: rowActions(line))
                     }
+                    pageFooter(group)
                 } header: {
                     LBSectionHeader(group.title)
                 }
@@ -491,12 +561,19 @@ struct ChangesView: View {
                     }
                 }
                 if !line.facts.isEmpty { LBMetaFacts(line.facts) }
-                if let note = line.note {
-                    Text(note)
-                        .lbText(.body)
-                        .foregroundStyle(LBColor.textSecondary.color)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .textSelection(.enabled)
+                if let note = ChargeNote.labelled(line.note) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        if note.label != "Note" {
+                            Text(note.label)
+                                .lbText(.footnote)
+                                .foregroundStyle(LBColor.textTertiary.color)
+                        }
+                        Text(note.value)
+                            .lbText(.body)
+                            .foregroundStyle(LBColor.textSecondary.color)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .textSelection(.enabled)
+                    }
                 }
                 if !line.lines.isEmpty {
                     LBCard {
@@ -758,6 +835,18 @@ struct ChangesView: View {
         var commitments = next["commitments"] as? [[String: Any]] ?? []
         var charges = next["charges"] as? [[String: Any]] ?? []
         var provenance = next["_provenance"] as? [String: Any] ?? [:]
+        // LONGBOOK_SNAPSHOT_REVIEW=scale: a statement's worth of rows, about a thousand
+        // commitments and fifteen hundred charges, so the review is tried at size.
+        if mode == "scale" {
+            let made = Self.scaleRows(currency: currency, now: now, accounts: next["accounts"] as? [[String: Any]] ?? [])
+            next["commitments"] = commitments + made.commitments
+            next["charges"] = charges + made.charges
+            next["_provenance"] = provenance.merging(made.provenance) { _, new in new }
+            try? VaultDisk.write(next, to: folder, expecting: bytes)
+            model.load()
+            refresh()
+            return
+        }
         // One-time charges as a morning's mail gives them, then a plan, an account, a person.
         let spends: [(String, Double, String, String, String?)] = [
             ("City Marathon", usd ? 85 : 2500, "health & fitness", "2026-09-18", "Entry fee"),
@@ -810,6 +899,54 @@ struct ChangesView: View {
             _ = model.deleteCommitment(id: firstSpend)
             refresh()
         }
+    }
+
+    /// Seven hundred one-time charges and three hundred plans, every one signed "Claude"
+    /// and noted with its statement line; a few move money to the book's first account.
+    private static func scaleRows(currency: String, now: String, accounts: [[String: Any]])
+        -> (commitments: [[String: Any]], charges: [[String: Any]], provenance: [String: Any]) {
+        var commitments: [[String: Any]] = []
+        var charges: [[String: Any]] = []
+        var provenance: [String: Any] = [:]
+        let names = ["Corner Grocery", "City Cab", "Blue Tokai", "Pharmacy", "Fuel stop", "Bookshop", "Hardware store", "Bakery"]
+        let tags = ["food & dining", "travel", "health & fitness", "home", "shopping"]
+        let counterpart = accounts.first.flatMap { $0["id"] as? String }
+        let counterpartName = accounts.first.flatMap { $0["name"] as? String }
+        for i in 0..<700 {
+            let id = "scale-once-\(i)"
+            let day = LB.toISO(LB.addDays(LB.todayMid(), -(i % 365)))
+            let amount = Double(120 + (i * 37) % 4000)
+            var row: [String: Any] = [
+                "id": id, "name": "\(names[i % names.count]) \(i)", "amount": amount, "currency": currency,
+                "billing_cycle": "once", "tag": tags[i % tags.count], "status": "active", "created_at": now, "updated_at": now,
+            ]
+            if i % 50 == 0, let counterpart, let counterpartName {
+                row["direction"] = "transfer"
+                row["details"] = ["counterpart_account_id": counterpart, "counterpart_account": counterpartName]
+            }
+            commitments.append(row)
+            charges.append([
+                "commitment_id": id, "date": day, "amount": amount, "currency": currency, "paid": true, "paid_on": day,
+                "basis": "statement", "note": "Statement line: \(day) \(names[i % names.count].uppercased()) \(i) \(amount)",
+                "written_at": now,
+            ])
+            provenance[id] = ["edited_by": "Claude", "edited_at": now]
+        }
+        for i in 0..<300 {
+            let id = "scale-plan-\(i)"
+            let amount = Double(99 + (i * 53) % 2000)
+            commitments.append([
+                "id": id, "name": "Plan \(i)", "amount": amount, "currency": currency, "billing_cycle": "monthly",
+                "tag": tags[i % tags.count], "status": "active", "created_at": now, "updated_at": now,
+            ])
+            for k in 0..<(i % 3 + 2) {
+                let day = LB.toISO(LB.addMonths(LB.addDays(LB.todayMid(), -(i % 28)), k - 1))
+                charges.append(["commitment_id": id, "date": day, "amount": amount, "currency": currency,
+                                "paid": k == 0, "basis": k == 0 ? "statement" : "plan", "written_at": now])
+            }
+            provenance[id] = ["edited_by": "Claude", "edited_at": now]
+        }
+        return (commitments, charges, provenance)
     }
     #endif
 
@@ -1139,23 +1276,34 @@ struct ChangesView: View {
     /// The review in full — no truncation here, unlike the banner: a section per kind, added
     /// lines first, then changed, then removed.
     private func lineGroups(_ review: Review) -> [LineGroup] {
-        review.sections.map { section in
-            let lines = section.added.map { rowLine($0, kind: section.kind, verb: .added) }
-                + Self.foldedChanges(section.changed, kind: section.kind).map { changeLine($0, kind: section.kind) }
-                + section.removed.map { rowLine($0, kind: section.kind, verb: .removed) }
+        // Each commitment's next day as the list says it, read once for every line.
+        var days: [String: LBMetaFact] = [:]
+        if case .loaded(let data) = model.state {
+            for item in data.commitments {
+                if let day = item.facts.first(where: { $0.symbol == LBGlyph.date }) { days[item.id] = day }
+            }
+        }
+        return review.sections.map { section in
+            let lines = section.added.map { rowLine($0, kind: section.kind, verb: .added, days: days) }
+                + Self.foldedChanges(section.changed, kind: section.kind).map { changeLine($0, kind: section.kind, days: days) }
+                + section.removed.map { rowLine($0, kind: section.kind, verb: .removed, days: days) }
             return LineGroup(kind: section.kind, title: Self.kindWord(section.kind), lines: lines)
         }
     }
 
     /// An added or removed line. Only an added one can be edited or dropped: a removed
     /// row is no longer in the file to write to.
-    private func rowLine(_ group: RowGroup, kind: String, verb: Verb) -> Line {
+    private func rowLine(_ group: RowGroup, kind: String, verb: Verb, days: [String: LBMetaFact]) -> Line {
         let added = verb == .added
         let money = group.amount.map { fmtMoney($0, group.currency ?? "") }
         let about: (detail: String?, facts: [LBMetaFact]) = added
-            ? context(kind: kind, id: group.id, firstId: group.firstId, count: group.count)
+            ? context(kind: kind, id: group.id, firstId: group.firstId, count: group.count, days: days)
             : (nil, [])
-        let facts = Self.strip(group.facts, about.facts)
+        // One charge's card carries its statement line, so a reviewer reads it without opening it.
+        let noted = kind == "charges" && group.count == 1 && added
+            ? ChargeNote.value(about.detail).map { [LBMetaFact(symbol: LBGlyph.note, text: $0)] } ?? []
+            : []
+        let facts = Self.strip(group.facts + noted, about.facts)
         return Line(
             id: "\(kind)/\(verb.word)/\(group.id)", kind: kind, verb: verb, firstId: group.firstId, name: group.name,
             amount: money, count: group.count,
@@ -1168,10 +1316,10 @@ struct ChangesView: View {
 
     /// A changed line: each field as before → after. It opens the same editor; taking
     /// one row's change back is a write the model does not offer.
-    private func changeLine(_ group: ChangeGroup, kind: String) -> Line {
+    private func changeLine(_ group: ChangeGroup, kind: String, days: [String: LBMetaFact]) -> Line {
         let span = group.span.map { [LBMetaFact(symbol: LBGlyph.date, text: $0)] } ?? []
         // The changed row is still in the file, so its detail wears the same strip as an added one.
-        let about = context(kind: kind, id: group.id, firstId: group.firstId, count: group.count)
+        let about = context(kind: kind, id: group.id, firstId: group.firstId, count: group.count, days: days)
         let counted = group.count > 1 ? ["\(group.count) charges"] + (group.span.map { [$0] } ?? []) : []
         return Line(
             id: "\(kind)/changed/\(group.id)", kind: kind, verb: .changed, firstId: group.firstId, name: group.name,
@@ -1213,7 +1361,9 @@ struct ChangesView: View {
     /// What the file says about a row beyond the diff: its note, then the strip every list
     /// wears (day, category, member, account, placeholders where empty); an account's type;
     /// a member's address. A removed row is gone from the file and gets nothing here.
-    private func context(kind: String, id: String, firstId: String, count: Int) -> (detail: String?, facts: [LBMetaFact]) {
+    private func context(
+        kind: String, id: String, firstId: String, count: Int, days: [String: LBMetaFact]
+    ) -> (detail: String?, facts: [LBMetaFact]) {
         switch kind {
         case "commitments", "charges":
             let key = Self.commitmentKey(id)
@@ -1229,8 +1379,7 @@ struct ChangesView: View {
             var facts = model.linkFacts(sub).filter { !$0.placeholder }
             // A standing commitment says when it next comes round, as the list does; a
             // charge's day is already in the diff.
-            if kind == "commitments", case .loaded(let data) = model.state,
-               let day = data.commitments.first(where: { $0.id == key })?.facts.first(where: { $0.symbol == LBGlyph.date }) {
+            if kind == "commitments", let day = days[key] {
                 facts.insert(day, at: 0)
             }
             return (note.flatMap { $0.isEmpty ? nil : $0 }, facts)
