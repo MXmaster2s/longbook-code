@@ -1352,7 +1352,8 @@ public enum VaultPatch {
         vault["commitments"] = subs
         // The entity's own entry stays as a tombstone, so the other device adopts the delete.
         vault["_provenance"] = stamped(vault["_provenance"], id: id, at: stamp)
-        return vault
+        // A Self person or an account gone can end a transfer.
+        return StatementTransfers.apply(vault, now: now)
     }
 
     /// A picture is a file name inside the longbook folder, never a path out of it.

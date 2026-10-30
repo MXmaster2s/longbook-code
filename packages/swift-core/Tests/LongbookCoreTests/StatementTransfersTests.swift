@@ -53,6 +53,13 @@ final class StatementTransfersTests: XCTestCase {
         XCTAssertEqual(direction(incoming, "x"), "in", "money in returns to money in")
     }
 
+    func testDeletingASelfPersonEndsTheirTransfers() throws {
+        let applied = StatementTransfers.apply(book(), now: now)
+        XCTAssertEqual(direction(applied, "t1"), "transfer")
+        let next = try VaultPatch.deleteEntity(.familyMember, id: "m1", in: applied, now: now)
+        XCTAssertNil(direction(next, "t1"))
+    }
+
     func testAChangedRowIsSignedAsTheApps() {
         let next = StatementTransfers.apply(book(sunilTag: "self"), now: now)
         XCTAssertNotNil((next["_provenance"] as? [String: Any])?["t2"])
