@@ -259,11 +259,22 @@ public enum StatementCompleteness {
         guard let expected else { return prepared }
         var directions: [String: [StatementLine.Direction]] = [:]
         for line in expected.lines { directions[key(line.date, line.amount), default: []].append(line.direction) }
+        // Only a file whose own lines add up to its printed balance can overrule the reader.
+        var closes = false
+        if let opening = expected.opening, let closing = expected.closing {
+            let net = expected.lines.reduce(0.0) { $0 + ($1.direction == .credit ? $1.amount : -$1.amount) }
+            closes = abs(opening + net - closing) < 0.005
+        }
         var out = prepared
-        out.charges = prepared.charges.map { charge in
+        var leftOut = 0
+        out.charges = prepared.charges.compactMap { charge in
             let exact = key(charge.date, charge.amount)
             let at = directions[exact]?.isEmpty == false ? exact : swapped(charge.date).map { key($0, charge.amount) } ?? exact
-            guard let direction = directions[at]?.first else { return charge }
+            guard let direction = directions[at]?.first else {
+                // A charge is a fact: a line the file does not print is never written.
+                if closes { leftOut += 1; return nil }
+                return charge
+            }
             directions[at]?.removeFirst()
             let kind: String
             switch (direction, charge.kind) {
@@ -274,6 +285,10 @@ public enum StatementCompleteness {
             return StatementCloud.Charge(date: charge.date, amount: charge.amount, name: charge.name, narration: charge.narration,
                                          account: charge.account, category: charge.category, kind: kind, member: charge.member,
                                          counterpart: charge.counterpart, counterpartKind: charge.counterpartKind, counterpartBank: charge.counterpartBank)
+        }
+        if leftOut > 0 {
+            let said = "Left out \(leftOut) line\(leftOut == 1 ? "" : "s") the statement does not print."
+            out.notes = out.notes.isEmpty ? said : said + " " + out.notes
         }
         return out
     }

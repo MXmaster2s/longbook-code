@@ -80,7 +80,7 @@ public func detailLabel(_ key: String) -> String {
 
 /// Details longbook keeps for itself: the statement's line, and the id behind an account's
 /// name. Neither reads as a line of a note.
-public let ownDetailKeys: Set<String> = ["statement_line", "counterpart_account_id"]
+public let ownDetailKeys: Set<String> = ["statement_line", "counterpart_account", "counterpart_account_id", "counterpart_owner", "line_direction"]
 
 /// A commitment's details as lines of a note, "Label: value", in key order. longbook's own
 /// keys are never one; a detail with no words is none either.

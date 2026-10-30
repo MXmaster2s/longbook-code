@@ -99,6 +99,18 @@ final class StatementCompletenessTests: XCTestCase {
                        "months with money spent only: no transfer, no plan row")
     }
 
+    func testALineTheFileDoesNotPrintIsLeftOut() {
+        let closing = StatementCompleteness.Expected(lines: [line("2026-07-01", 100)], opening: 1000, closing: 900)
+        let read = prepared([charge("2026-07-01", 100), charge("2026-07-02", 576, kind: "income")])
+        let mended = StatementCompleteness.mended(read, expected: closing)
+        XCTAssertEqual(mended.charges.map(\.amount), [100])
+        XCTAssertEqual(StatementCompleteness.compare(prepared: mended, expected: closing).balance, .matches)
+        XCTAssertTrue(mended.notes.contains("Left out 1 line"))
+        // A file that does not add up cannot overrule the reader.
+        let open = StatementCompleteness.Expected(lines: [line("2026-07-01", 100)], opening: 1000, closing: 800)
+        XCTAssertEqual(StatementCompleteness.mended(read, expected: open).charges.count, 2)
+    }
+
     func testTheBalanceSaysByHowMuchItIsOff() {
         let expected = StatementCompleteness.Expected(lines: [line("2026-07-01", 100), line("2026-07-02", 47.49, "REVERSAL", .credit)],
                                                       opening: 1000, closing: 947.49)
