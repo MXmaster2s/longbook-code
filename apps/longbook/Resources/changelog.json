@@ -54,7 +54,9 @@
       "A charge's preview shows its Counterpart account, right under Account.",
       "On the Mac, double-click, Edit and the right-click menu open the same Edit form that the preview's Edit opens.",
       "Starring a person or an account no longer moves its row. The starred ones lead the next time you open the list.",
-      "People, Accounts and the sidebar open faster, and starring a person or an account no longer makes the whole book think again."
+      "People, Accounts and the sidebar open faster, and starring a person or an account no longer makes the whole book think again.",
+      "Counterpart account on a charge is a menu: pick an account, or None. A charge that names no account, such as a CRED bill, can become a Transfer.",
+      "Before a change turns charges into Transfers or back, longbook says how many and asks first. This covers a person's Relationship, an account's Owner and the Counterpart account."
     ]
   },
   {

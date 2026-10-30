@@ -30,6 +30,8 @@ struct CommitmentDetailView: View {
         var symbol: String?
         var mark: MoneyMark?
         var stacked = false
+        /// The value is a menu that sets the row's counterpart account.
+        var counterpart = false
     }
 
     var body: some View {
@@ -159,8 +161,10 @@ struct CommitmentDetailView: View {
         if let method = names.method {
             rows.append(DetailRow(label: "Account", value: method, symbol: LBGlyph.account))
         }
-        if let other = counterpartName(sub) {
-            rows.append(DetailRow(label: "Counterpart account", value: other, symbol: LBGlyph.account))
+        // A one-time row or a transfer can name the account on its other side, set or not yet.
+        if sub.billingCycle == .once || sub.isTransfer {
+            rows.append(DetailRow(label: "Counterpart account", value: counterpartName(sub) ?? "None",
+                                  symbol: LBGlyph.account, counterpart: true))
         }
         if let member = names.member {
             rows.append(DetailRow(label: "Person", value: member, symbol: LBGlyph.member))
@@ -337,13 +341,17 @@ struct CommitmentDetailView: View {
                     .foregroundStyle(LBColor.textTertiary.color)
                     .accessibilityHidden(true)
             }
-            Text(row.value)
-                .lbText(.body)
-                .foregroundStyle(LBColor.textPrimary.color)
-                .multilineTextAlignment(stacked ? .leading : .trailing)
-                .lineLimit(Self.clamps(row) && !notesOpen ? 2 : nil)
-                .fixedSize(horizontal: false, vertical: true)
-                .textSelection(.enabled)
+            if row.counterpart {
+                CounterpartAccountMenu(model: model, id: id)
+            } else {
+                Text(row.value)
+                    .lbText(.body)
+                    .foregroundStyle(LBColor.textPrimary.color)
+                    .multilineTextAlignment(stacked ? .leading : .trailing)
+                    .lineLimit(Self.clamps(row) && !notesOpen ? 2 : nil)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .textSelection(.enabled)
+            }
         }
         return Group {
             if stacked {
