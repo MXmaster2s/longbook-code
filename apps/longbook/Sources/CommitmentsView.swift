@@ -584,14 +584,15 @@ struct CommitmentsView: View {
                         image: model.commitmentPhotoURL(id: item.id))
     }
 
-    /// A card that is also a door, without the list's own chevron drawn over it.
+    /// A card that is also a door, without the list's own chevron drawn over it. The list
+    /// row opens the hidden link, so the row carries no tap gesture: even a simultaneous
+    /// one keeps the row from opening.
     private func cardLink<Card: View>(_ destination: Destination, @ViewBuilder card: () -> Card) -> some View {
         ZStack {
             NavigationLink(value: destination) { EmptyView() }
                 .opacity(0)
             card()
         }
-        .lbTapHaptic()
     }
 
     // MARK: actions shared by both platforms
