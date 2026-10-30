@@ -341,6 +341,8 @@ final class DashboardModel {
     }
 
     private var refreshQueued = false
+    /// Whether the next load picks the month the Dashboard opens on.
+    private var opensOnLatestMonth = true
 
     func load() {
         // Offsets count from this month, so a new one would slide every chosen month along.
@@ -410,6 +412,14 @@ final class DashboardModel {
             vault = loaded.vault
             vaultFolder = folder
             loadedFile = loaded
+            // The first load after opening, and after an import: this month may hold nothing yet.
+            if opensOnLatestMonth {
+                opensOnLatestMonth = false
+                if let latest = MonthSelection.latestSpending(in: loaded.raw, today: LB.todayMid()), latest != selectedMonths {
+                    // After this load ends: its own-change flag must be read first.
+                    DispatchQueue.main.async { [weak self] in self?.selectedMonths = latest }
+                }
+            }
             loadedStamp = stamp
             awaitedICloud = false
             // Contract files are longbook's own: an older vault takes the bundle's newer
@@ -2187,6 +2197,7 @@ final class DashboardModel {
             // meanwhile refuses this one.
             try VaultDisk.write(written.vault, to: folder, expecting: file.bytes)
             expectingOwnChange = true
+            opensOnLatestMonth = true
             load()
             refreshHostedCopy()
             refreshStructures()

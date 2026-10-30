@@ -77,6 +77,18 @@ final class StatementCompletenessTests: XCTestCase {
         XCTAssertEqual(extra.extra, 1)
     }
 
+    func testTheDashboardOpensOnTheLatestMonthWithSpending() throws {
+        let today = try XCTUnwrap(LB.parseDate("2026-10-30"))
+        let raw: [String: Any] = [
+            "commitments": [["id": "a"], ["id": "b", "direction": "in"]],
+            "charges": [["commitment_id": "a", "date": "2026-09-12", "paid": true, "basis": "statement"],
+                        ["commitment_id": "b", "date": "2026-10-01", "paid": true, "basis": "statement"],
+                        ["commitment_id": "a", "date": "2026-11-12", "paid": false, "basis": "plan"]],
+        ]
+        XCTAssertEqual(MonthSelection.latestSpending(in: raw, today: today), MonthSelection(-1))
+        XCTAssertNil(MonthSelection.latestSpending(in: ["charges": []], today: today))
+    }
+
     func testTheBalanceSaysByHowMuchItIsOff() {
         let expected = StatementCompleteness.Expected(lines: [line("2026-07-01", 100), line("2026-07-02", 47.49, "REVERSAL", .credit)],
                                                       opening: 1000, closing: 947.49)

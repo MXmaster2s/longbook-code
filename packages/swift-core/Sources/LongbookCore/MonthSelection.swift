@@ -169,3 +169,22 @@ private struct MonthNames {
         return formatter
     }
 }
+
+extension MonthSelection {
+    /// The month a Dashboard opens on: the latest with money spent, up to today. Money in and
+    /// transfers never count. Nil when the book has no such charge, or this month has one.
+    public static func latestSpending(in raw: [String: Any], today: Date) -> MonthSelection? {
+        let moved = Set((raw["commitments"] as? [[String: Any]] ?? []).compactMap { row -> String? in
+            guard let way = row["direction"] as? String, way == "in" || way == "transfer" else { return nil }
+            return row["id"] as? String
+        })
+        let days = (raw["charges"] as? [[String: Any]] ?? []).compactMap { row -> Date? in
+            guard row["paid"] as? Bool == true, row["basis"] as? String != "plan",
+                  let id = row["commitment_id"] as? String, !moved.contains(id),
+                  let day = (row["date"] as? String).flatMap(LB.parseDate), day <= today else { return nil }
+            return day
+        }
+        guard let latest = days.max(), let months = MonthSelection(days: [latest], anchor: today), months != MonthSelection() else { return nil }
+        return months
+    }
+}
