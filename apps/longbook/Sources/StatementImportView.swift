@@ -46,6 +46,12 @@ struct StatementImportView: View {
         var account = ""
         var balance: Double?
         var balanceDate: String?
+        /// The password that opened it, kept for the device's own reading of the file.
+        var password: String?
+        /// The server's reading against the file's own lines, once every piece is back.
+        var report: StatementCompleteness.Report?
+        /// Lines the server left out, read from the file instead.
+        var filled: [StatementCandidate] = []
         var name: String { url.lastPathComponent }
     }
 
@@ -203,6 +209,13 @@ struct StatementImportView: View {
                 if ProcessInfo.processInfo.environment["LONGBOOK_SNAPSHOT_READY"] == nil { stage = .review }
                 if let line = ProcessInfo.processInfo.environment["LONGBOOK_SNAPSHOT_LINE"].flatMap(Int.init),
                    candidates.indices.contains(line) { openLine = OpenLine(id: line) }
+            }
+            // Files named here (paths separated by |) are read as if dropped, without the open panel.
+            if let paths = ProcessInfo.processInfo.environment["LONGBOOK_SNAPSHOT_PICK"], stage == .pick {
+                let picked = paths.split(separator: "|").map { URL(fileURLWithPath: String($0)) }
+                if !picked.isEmpty {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) { withConsent { start(picked) } }
+                }
             }
             if ProcessInfo.processInfo.environment["LONGBOOK_SNAPSHOT_OWN_AI"] != nil { ownAI = true }
             if ProcessInfo.processInfo.environment["LONGBOOK_SNAPSHOT_CONSENT"] != nil { askingConsent = true }
@@ -663,6 +676,12 @@ struct StatementImportView: View {
                 #endif
                 .foregroundStyle(LBColor.textSecondary.color)
                 .fixedSize(horizontal: false, vertical: true)
+            ForEach(completenessLines, id: \.self) { line in
+                Text(line)
+                    .lbText(.footnote)
+                    .foregroundStyle(LBColor.textTertiary.color)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             if !accountsNamed {
                 Text("Name the account this statement belongs to, under Accounts, before adding.")
                     .lbText(.footnote)
@@ -675,6 +694,15 @@ struct StatementImportView: View {
                     .foregroundStyle(LBColor.urgent.color)
                     .fixedSize(horizontal: false, vertical: true)
             }
+        }
+    }
+
+    /// Each file's reading against the file: "134 of 134 lines · balance matches", named
+    /// by file when more than one was read.
+    private var completenessLines: [String] {
+        let read = files.filter { $0.report != nil }
+        return read.compactMap { file in
+            file.report.map { read.count > 1 ? "\(file.name): \($0.summary(currency: money))" : $0.summary(currency: money) }
         }
     }
 
@@ -962,10 +990,11 @@ struct StatementImportView: View {
             : candidate.tag.map { LBMetaFact(symbol: LBGlyph.category, text: categoryWord($0)) } ?? DashboardModel.addCategoryFact
         let paid = candidate.isIncome || candidate.isTransfer ? [] : [LBMetaFact(symbol: LBGlyph.paid, text: "Paid")]
         let why = candidate.skipReason.map { [LBMetaFact(symbol: "", text: $0)] } ?? []
+        let local = candidate.readLocally ? [LBMetaFact(symbol: "doc.text", text: "Read from the file")] : []
         let person = candidate.member.map { LBMetaFact(symbol: LBGlyph.member, text: $0) } ?? DashboardModel.addMemberFact
         let named = files.first { $0.id == candidate.file }?.account.trimmingCharacters(in: .whitespaces) ?? ""
         let account = named.isEmpty ? DashboardModel.addAccountFact : LBMetaFact(symbol: LBGlyph.account, text: named)
-        return [day, kind] + paid + why + [person, account]
+        return [day, kind] + paid + why + local + [person, account]
     }
 
     private func amountText(_ candidate: StatementCandidate) -> String {
@@ -1061,17 +1090,33 @@ struct StatementImportView: View {
                 }
             } else {
                 // Carrying kept lines, it is added with them: its tick stays on until they go.
-                entityTile(ownAccountCard(read), ticked: ownAccountTicked(read), locked: carriesLines(read)) {
-                    if ownAccountsTicked.contains(read.id) { ownAccountsTicked.remove(read.id) } else { ownAccountsTicked.insert(read.id) }
-                }
-                .contextMenu {
-                    Button("Rename") {
-                        Measure.used("rename", .contextMenu)
-                        renamedAccount = read.account
-                        renamingAccount = read.id
+                VStack(alignment: .leading, spacing: LBSpacing.s1) {
+                    entityTile(ownAccountCard(read), ticked: ownAccountTicked(read), locked: carriesLines(read)) {
+                        if ownAccountsTicked.contains(read.id) { ownAccountsTicked.remove(read.id) } else { ownAccountsTicked.insert(read.id) }
                     }
+                    .contextMenu {
+                        Button("Rename") {
+                            Measure.used("rename", .contextMenu)
+                            renamedAccount = read.account
+                            renamingAccount = read.id
+                        }
+                    }
+                    Text(balanceVerdict(read))
+                        .lbText(.footnote)
+                        .foregroundStyle(LBColor.textTertiary.color)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
+        }
+    }
+
+    /// The statement's closing balance against its opening one and every line: "Balance
+    /// matches the statement", "Balance off by ₹47.49 against the statement".
+    private func balanceVerdict(_ read: FileRead) -> String {
+        switch read.report?.balance {
+        case .matches?: return "Balance matches the statement"
+        case .off(let by)?: return "Balance off by \(fmtMoneyExact(abs(by), money)) against the statement"
+        case .unknown?, nil: return "Balance not checked against the statement"
         }
     }
 
@@ -1651,6 +1696,7 @@ struct StatementImportView: View {
         for index in files.indices where files[index].pieces.isEmpty && files[index].problem == nil {
             do {
                 let pieces = try StatementCloud.pieces(for: files[index].url, password: password.isEmpty ? nil : password)
+                files[index].password = password.isEmpty ? nil : password
                 password = ""
                 if pieces.isEmpty {
                     files[index].problem = "Nothing was read from \(files[index].name)."
@@ -1777,12 +1823,38 @@ struct StatementImportView: View {
             advance(by: batch.count)
             first += batch.count
         }
-        let read = answers.compactMap { $0 }
-        guard !read.isEmpty else {
+        guard answers.contains(where: { $0 != nil }) else {
             files[index].problem = "\(files[index].name): " + files[index].unread.joined(separator: "; ")
             files[index].unread = []
             return
         }
+        // The file's own reading, off the main actor, against what came back. A piece that
+        // left lines out is asked once more, told which lines.
+        files[index].word = "Checking every line"
+        let url = files[index].url
+        let opened = files[index].password
+        let expected = await Task.detached(priority: .userInitiated) { StatementCompleteness.expected(for: url, password: opened) }.value
+        let firstLook = StatementCompleteness.compare(prepared: .assemble(answers.compactMap { $0 }, review: .empty), expected: expected)
+        if !firstLook.missing.isEmpty {
+            let again = StatementCompleteness.piecesToAskAgain(missing: firstLook.missing, pieces: pieces.count)
+            files[index].word = "Reading " + (again.count == 1 ? again.keys.first.map { pieces[$0].label } ?? "" : "\(again.count) pieces") + " again"
+            await withTaskGroup(of: (Int, StatementCloud.ChargesAnswer?).self) { group in
+                for (piece, lines) in again {
+                    group.addTask {
+                        let answer = try? await StatementCloud.charges(
+                            of: pieces[piece], importId: id, accountHint: hint, categories: tags, members: known.members,
+                            accounts: known.accounts, currency: money, token: token, hint: StatementCompleteness.hint(for: lines)
+                        )
+                        return (piece, answer)
+                    }
+                }
+                for await (piece, answer) in group {
+                    guard let answer else { continue }
+                    answers[piece] = answers[piece].map { StatementCompleteness.merge($0, with: answer, missing: again[piece] ?? []) } ?? answer
+                }
+            }
+        }
+        let read = answers.compactMap { $0 }
         files[index].word = "Looking the year over"
         var prepared = StatementCloud.Prepared.assemble(read, review: .empty)
         let looked = (try? await StatementCloud.review(prepared, importId: id, categories: tags,
@@ -1790,6 +1862,10 @@ struct StatementImportView: View {
         prepared = StatementCloud.Prepared.assemble(read, review: looked)
         let unread = files[index].unread
         if !unread.isEmpty { prepared.notes = (["Not read: " + unread.joined(separator: "; ") + "."] + [prepared.notes]).joined(separator: " ") }
+        // Lines still missing are read from the file itself, ticked and marked so.
+        let report = StatementCompleteness.compare(prepared: prepared, expected: expected)
+        files[index].report = report
+        files[index].filled = StatementCompleteness.fill(missing: report.missing, among: tags)
         files[index].prepared = prepared
         // The currency the statement prints, unless the reader set one: a pound statement
         // read with a rupee guess was written in rupees.
@@ -1831,7 +1907,7 @@ struct StatementImportView: View {
         var said: [String] = []
         for index in files.indices {
             guard let prepared = files[index].prepared else { continue }
-            var mine = prepared.candidates(among: model.commitmentTagNames)
+            var mine = prepared.candidates(among: model.commitmentTagNames) + files[index].filled
             for i in mine.indices { mine[i].file = files[index].id }
             found += mine
             for repeated in prepared.repeats where !seenRepeats.contains(where: { $0.name.caseInsensitiveCompare(repeated.name) == .orderedSame }) {
@@ -1949,11 +2025,13 @@ struct StatementImportView: View {
         let review = StatementImport.Review(members: chosen, accounts: chosenFound.map(\.name), accountOwners: owners,
                                             files: reviewed, currency: money, repeats: ticked, waiting: model.placeholders)
         adding = true
+        let before = Set(model.commitmentIdNames.map { $0.id })
         Task {
             defer { adding = false }
             do {
                 let written = try await model.importReview(review, statements: statements)
-                countImport(ok: true, charges: written)
+                countImport(ok: true, charges: written.charges)
+                countCompleteness(written.vault, before: before)
                 // History shows it as one change, already kept.
                 onDone()
             } catch {
@@ -1979,6 +2057,27 @@ struct StatementImportView: View {
             "pdf_count": files.filter { StatementText.kind(of: $0.url) == .pdf }.count,
             "kb_total": Int((Double(bytes) / 1024 / 50).rounded()) * 50,
         ])
+    }
+
+    /// Usage count for what the reading proved: lines read against the file's own count,
+    /// lines filled from the file, the balance verdicts, and the written vault's findings
+    /// by kind. Counts only.
+    private func countCompleteness(_ vault: [String: Any], before: Set<String>) {
+        let reports = files.compactMap(\.report)
+        let ids = Set((vault["commitments"] as? [[String: Any]] ?? []).compactMap { $0["id"] as? String }).subtracting(before)
+        var props: [String: Any] = [
+            "file_count": files.filter { $0.prepared != nil }.count,
+            "read": reports.reduce(0) { $0 + $1.read },
+            "expected": reports.compactMap(\.expectedCount).reduce(0, +),
+            "unchecked_count": reports.filter { $0.expectedCount == nil }.count,
+            "filled": reports.reduce(0) { $0 + $1.missing.count },
+            "extra": reports.reduce(0) { $0 + $1.extra },
+            "balance_matches": reports.filter { $0.balance == .matches }.count,
+            "balance_off": reports.filter { if case .off = $0.balance { return true } else { return false } }.count,
+            "balance_unknown": reports.filter { $0.balance == .unknown }.count,
+        ]
+        for finding in StatementCompleteness.check(vault: vault, importedIds: ids) { props["finding_" + finding.kind] = finding.count }
+        Telemetry.shared.send("app.statement_completeness", props)
     }
 
     /// Whether a line names this person — as a whole word in what it is called or what

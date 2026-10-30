@@ -38,6 +38,8 @@ const MAX_REVIEW_CHARS = 150_000
 const MAX_OUTPUT_TOKENS = 60_000
 /** What the gate looks at: the piece, or the head of a long run of rows. */
 const GATE_TEXT_CHARS = 8_000
+/** The most a second reading may be told about the first. */
+const MAX_HINT_CHARS = 2_000
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -65,6 +67,8 @@ interface Request_ {
   file?: Upload
   /** For "charges": what earlier pieces of the same file said the account is. */
   account_hint?: string
+  /** For "charges" asked again: what the first reading of this piece left out. */
+  hint?: string
   /** For "review": the year's charges, one a line: date | amount | name | narration | kind. */
   charges?: string
   categories: string[]
@@ -277,6 +281,7 @@ Deno.serve(async (req: Request) => {
   body.accounts = words(body.accounts)
   body.currency = typeof body.currency === 'string' && body.currency ? body.currency.slice(0, 3) : 'INR'
   if (typeof body.account_hint === 'string') body.account_hint = body.account_hint.slice(0, 80)
+  if (typeof body.hint === 'string') body.hint = body.hint.slice(0, MAX_HINT_CHARS)
 
   // What this call carries, checked before anything is spent on it.
   let content: Content[]
@@ -304,6 +309,7 @@ Deno.serve(async (req: Request) => {
       content = [{ kind: 'text', text: `Statement file "${filename}", as rows of cells:\n${file.data}` }]
     }
     content.push({ kind: 'text', text: 'Read the piece above and answer in the shape with every charge in it.' })
+    if (body.hint) content.push({ kind: 'text', text: body.hint })
     instructions = chargesInstructions(body)
     shape = CHARGES_SHAPE
     name = 'statement_charges'

@@ -1,7 +1,7 @@
 #!/usr/bin/env -S npx tsx
-// One real statement through the reader's own questions, from this Mac: the gate, the
-// charges, the review, the tidy. Only counts are printed, never a line of the file or the
-// answer. Run: ANTHROPIC_API_KEY=$(security find-generic-password -s 'Claude API Key' -w) npm run statement:try -- <pdf>
+// One real statement through the reader's own questions; counts only, never a line.
+// --expect N sets the count read against a hand count; --opening X starts the balance there.
+// Run: ANTHROPIC_API_KEY=$(security find-generic-password -s 'Claude API Key' -w) npm run statement:try -- <pdf>
 import { readFileSync } from 'node:fs'
 import { basename } from 'node:path'
 import { tidyCounterparts } from '../supabase/functions/_shared/statement-counterpart.ts'
@@ -9,9 +9,23 @@ import {
   CHARGES_SHAPE, GATE_INSTRUCTIONS, GATE_SHAPE, REVIEW_SHAPE, chargesInstructions, reviewInstructions,
 } from '../supabase/functions/_shared/statement-prompts.ts'
 
-const file = process.argv[2]
+const args = process.argv.slice(2)
+const flag = (name: string): number | undefined => {
+  const at = args.indexOf(name)
+  if (at < 0) return undefined
+  const value = Number(args[at + 1])
+  if (!Number.isFinite(value)) {
+    console.error(`${name} needs a number`)
+    process.exit(2)
+  }
+  args.splice(at, 2)
+  return value
+}
+const expect = flag('--expect')
+const openingGiven = flag('--opening')
+const file = args[0]
 if (!file) {
-  console.error('usage: npm run statement:try -- <statement.pdf>')
+  console.error('usage: npm run statement:try -- <statement.pdf> [--expect N] [--opening X]')
   process.exit(2)
 }
 const key = process.env.ANTHROPIC_API_KEY ?? ''
@@ -72,7 +86,7 @@ if (gate.statement !== true) process.exit(1)
 
 const read = tidyCounterparts(await ask('charges', MODEL, chargesInstructions(inputs),
   [pdf, { type: 'text', text: 'Read the piece above and answer in the shape with every charge in it.' }], CHARGES_SHAPE, 250_000))
-type Charge = { date: string; amount: number; name: string; narration: string; kind: string; member: string | null; counterpart: string | null; counterpart_kind: string | null; counterpart_bank: string | null }
+type Charge = { date: string; amount: number; name: string; narration: string; kind: string; member: string | null; counterpart: string | null; counterpart_kind: string | null; counterpart_bank: string | null; running_balance?: number | null }
 const charges = (read.charges as Charge[]) ?? []
 const account = String(read.account ?? '').trim()
 
@@ -100,6 +114,26 @@ const kinds = Object.fromEntries(['spend', 'for_member', 'fee', 'own_transfer', 
 console.log(`account found: ${account ? 'yes' : 'NO'}`)
 console.log(`balance found: ${read.closing_balance != null ? 'yes' : 'no'}`)
 console.log(`charges: ${charges.length} (${Object.entries(kinds).map(([k, n]) => `${k} ${n}`).join(', ')})`)
+if (expect !== undefined) {
+  const short = expect - charges.length
+  console.log(`read ${charges.length} of ${expect} lines${short > 0 ? `, ${short} LEFT OUT` : short < 0 ? `, ${-short} extra` : ''}`)
+}
+// Opening + credits − debits against the printed closing balance. Without --opening, the
+// first charge's running balance less its own movement stands in, when the answer has one.
+const signed = (c: Charge) => (c.kind === 'income' ? c.amount : -c.amount)
+const first = charges[0]
+const opening = openingGiven ?? (first?.running_balance != null ? first.running_balance - signed(first) : undefined)
+const closing = typeof read.closing_balance === 'number' ? read.closing_balance : undefined
+const net = charges.reduce((sum, c) => sum + signed(c), 0)
+const credits = charges.filter((c) => c.kind === 'income').reduce((sum, c) => sum + c.amount, 0)
+const debits = charges.filter((c) => c.kind !== 'income').reduce((sum, c) => sum + c.amount, 0)
+const paise = (n: number) => Math.round(n * 100) / 100
+if (opening !== undefined && closing !== undefined) {
+  const off = paise(opening + net - closing)
+  console.log(`balance: opening + ${paise(credits)} in − ${paise(debits)} out ${off === 0 ? 'matches the closing balance' : `is off by ${off}`}`)
+} else {
+  console.log(`balance: not checked (${opening === undefined ? 'no opening balance; pass --opening X' : 'the answer prints no closing balance'})`)
+}
 console.log(`people: ${people} (review ${members.length}; ${covered} of ${onLines.size} names on lines listed)`)
 console.log(`accounts: ${accounts} (other side of lines), ${banks} (banks printed beside a person or the owner's own)`)
 console.log(`repeats: ${repeats.length} (${guessed} guessed, ${repeats.length - guessed} not)`)
