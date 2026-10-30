@@ -283,9 +283,11 @@ public enum StatementCloud {
         /// movements marked as transfers with the reason, never counted as spending. `file` carries the account.
         public func candidates(among tags: [String], today: String = LB.toISO(LB.todayMid())) -> [StatementCandidate] {
             charges.compactMap { charge in
-                guard LB.parseDate(charge.date) != nil, charge.amount > 0 else { return nil }
-                let line = StatementLine(date: charge.date, payee: charge.narration, amount: charge.amount,
-                                         direction: charge.kind == "income" ? .credit : .debit)
+                // A negative amount is a line printed as money back: a reversal, kept as money in.
+                let back = charge.amount < 0
+                guard LB.parseDate(charge.date) != nil, charge.amount != 0 else { return nil }
+                let line = StatementLine(date: charge.date, payee: charge.narration, amount: abs(charge.amount),
+                                         direction: charge.kind == "income" || back ? .credit : .debit)
                 // A day ahead of today is refused first, whatever the kind: an own movement
                 // dated tomorrow is no more proven than a charge is, and must not be kept.
                 let skip: String?
@@ -305,7 +307,7 @@ public enum StatementCloud {
                     line: line, name: name.isEmpty ? StatementNaming.plainName(charge.narration) : name,
                     tag: tag, keep: charge.date <= today, skipReason: skip, file: account,
                     member: person(on: charge),
-                    direction: direction(of: charge.kind),
+                    direction: back && charge.kind != "own_transfer" && charge.kind != "card_bill" ? "in" : direction(of: charge.kind),
                     counterpartAccount: StatementCounterparts.account(on: charge)?.name
                 )
             }

@@ -90,6 +90,10 @@ final class StatementCompletenessTests: XCTestCase {
         let wrong = StatementCompleteness.compare(prepared: misread, expected: short)
         XCTAssertEqual(wrong.balance, .off(by: 47.49))
         XCTAssertEqual(wrong.summary(currency: "INR"), "2 of 2 lines · balance off by ₹47.49")
+        // A reversal the server answers as a negative amount stays a line, as money in.
+        let reversal = prepared([charge("2026-07-02", -47.49)]).candidates(among: [], today: "2026-10-30")
+        XCTAssertEqual(reversal.map(\.line.amount), [47.49])
+        XCTAssertEqual(reversal.map(\.direction), ["in"])
         // A negative debit from the server counts as money back in.
         let signed = StatementCompleteness.compare(prepared: prepared([charge("2026-07-01", 100), charge("2026-07-02", -47.49)]), expected: expected)
         XCTAssertEqual(signed.balance, .matches)
