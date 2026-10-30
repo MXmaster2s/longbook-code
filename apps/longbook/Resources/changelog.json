@@ -42,7 +42,13 @@
       "On the Mac, longbook no longer quits at launch while it reads a crash report from an earlier session.",
       "Setting up longbook in iCloud waits for a longbook already there to arrive, so your folder no longer gets copies named with a 2.",
       "On the Mac, the statement import opened from setup is as wide as the one opened later, so the review is no longer cut off at the sides.",
-      "On the Mac, signing out or deleting the account closes the Settings window, instead of leaving it open over the sign-in screen."
+      "On the Mac, signing out or deleting the account closes the Settings window, instead of leaving it open over the sign-in screen.",
+      "Charges, Earnings and Transfers are screens of their own under Commitments in the sidebar, and under Settings on iPhone. Earnings adds up the money in. Transfers are never counted.",
+      "Commitments looks ahead only. A day, a month or a Show Past Charges link opens what has already landed under Charges.",
+      "A charge's preview shows its Counterpart account, right under Account.",
+      "On the Mac, double-click, Edit and the right-click menu open the same Edit form that the preview's Edit opens.",
+      "Starring a person or an account no longer moves its row. The starred ones lead the next time you open the list.",
+      "People, Accounts and the sidebar open faster, and starring a person or an account no longer makes the whole book think again."
     ]
   },
   {

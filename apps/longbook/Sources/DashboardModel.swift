@@ -635,14 +635,27 @@ final class DashboardModel {
     /// Account colours: the accounts commitments use keep the inks, so a vault with more
     /// accounts than inks never greys out one that is charged.
     static func accountPalette(_ vault: Vault) -> Palette {
-        VaultPalette.entities(vault.paymentMethods.map { (id: $0.id, createdAt: $0.createdAt) },
-                              inUse: Set(vault.subscriptions.compactMap(\.paymentMethodId)))
+        entityPalette("accounts", vault.paymentMethods.map { (id: $0.id, createdAt: $0.createdAt) },
+                      inUse: Set(vault.subscriptions.compactMap(\.paymentMethodId)))
     }
 
     /// Member colours, by the same rule.
     static func memberPalette(_ vault: Vault) -> Palette {
-        VaultPalette.entities(vault.familyMembers.map { (id: $0.id, createdAt: $0.createdAt) },
-                              inUse: Set(vault.subscriptions.compactMap(\.familyMemberId)))
+        entityPalette("members", vault.familyMembers.map { (id: $0.id, createdAt: $0.createdAt) },
+                      inUse: Set(vault.subscriptions.compactMap(\.familyMemberId)))
+    }
+
+    /// The last palette built for each kind, with what it was built from. Ranking parses a
+    /// date inside every comparison, so a screen asking again for an unchanged book (a star,
+    /// a bookmark, a reload) reuses the answer instead of paying for it again.
+    private static var paletteMemo: [String: (from: [String], inUse: Set<String>, palette: Palette)] = [:]
+
+    private static func entityPalette(_ kind: String, _ rows: [(id: String, createdAt: String?)], inUse: Set<String>) -> Palette {
+        let from = rows.map { "\($0.id)|\($0.createdAt ?? "")" }
+        if let held = paletteMemo[kind], held.from == from, held.inUse == inUse { return held.palette }
+        let made = VaultPalette.entities(rows, inUse: inUse)
+        paletteMemo[kind] = (from, inUse, made)
+        return made
     }
 
     // MARK: usage count of who changed the file
@@ -1598,7 +1611,7 @@ final class DashboardModel {
             var perSubOthers: [String: [String: Double]] = [:]
             var subNames: [String: String] = [:]
             let windowCharges = vault.map {
-                chargesInRange($0, of: group.subs, from: from, to: to).filter { Self.falls($0.date, in: windows) }
+                lookups($0).charges.chargesInRange(of: group.subs, from: from, to: to).filter { Self.falls($0.date, in: windows) }
             } ?? []
             for charge in windowCharges {
                 subNames[charge.sub.id] = charge.sub.name
@@ -1654,6 +1667,8 @@ final class DashboardModel {
         let subId: String
         let name: String
         let amountText: String
+        /// The figure `amountText` shows, for adding rows up; its currency is `currency`.
+        let amount: Double
         let facts: [LBMetaFact]
         let searchText: String
         let category: String?
@@ -1753,6 +1768,7 @@ final class DashboardModel {
                 subId: sub.id,
                 name: sub.name,
                 amountText: (income ? "+" : "") + amountText,
+                amount: charge.amount,
                 facts: facts,
                 searchText: Self.searchWords(sub, category: category, member: member, method: method, badge: badge,
                                              status: displayStatus(sub, today),

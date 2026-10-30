@@ -2,9 +2,9 @@ import DesignSystem
 import LongbookCore
 import SwiftUI
 
-/// Both directions of the ledger: ahead, each commitment once at its next charge, then what
-/// has no date ahead; behind, every charge that landed, newest first. A day, months or a
-/// Date window list charges. A list on the phone, cards with an inspector on the Mac.
+/// The ledger in four screens. Commitments looks ahead: each commitment once at its next
+/// charge, then those with no date. Charges, Earnings and Transfers look behind, newest
+/// first. A list on the phone, cards with an inspector on the Mac.
 struct CommitmentsView: View {
     /// What the form sheet is editing — its own type so add and edit share one sheet.
     private enum FormTarget: Identifiable {
@@ -38,6 +38,9 @@ struct CommitmentsView: View {
     }
 
     let model: DashboardModel
+    /// Which of the landed rows this screen lists: money out, money in, or transfers. Nil
+    /// lists them all, as a day or a month door does.
+    private let kind: ListFilter.Kind?
 
     @State private var search = ""
     @State private var pickedCategory: String?
@@ -66,7 +69,10 @@ struct CommitmentsView: View {
     /// The commitment whose delete is awaiting confirmation — the whole plan, every row.
     @State private var deletingItem: CommitmentRef?
     @State private var deletingCharge: DashboardModel.ChargeItem?
+    #if os(iOS)
+    /// The phone's swipe Edit opens one charge's own form; the Mac edits through the commitment.
     @State private var editingCharge: Charge?
+    #endif
     /// The to-fill-in name whose Remove is awaiting confirmation.
     @State private var removingPlaceholder: CommitmentPlaceholder?
     /// The Mac list's chosen cards.
@@ -103,6 +109,7 @@ struct CommitmentsView: View {
     init(model: DashboardModel, filter: ListFilter, focus: String? = nil) {
         self.model = model
         self.focus = focus
+        self.kind = filter.kind
         _day = State(initialValue: filter.day)
         _months = State(initialValue: filter.months)
         _from = State(initialValue: LB.parseDate(filter.from))
@@ -116,7 +123,7 @@ struct CommitmentsView: View {
         var opens: ListScope = switch filter.scope {
         case .past: .past
         case .upcoming: .upcoming
-        case nil: listScope(day: filter.day, months: filter.months, from: filter.from, to: filter.to)
+        case nil: filter.kind != nil ? .past : listScope(day: filter.day, months: filter.months, from: filter.from, to: filter.to)
         }
         // A named commitment with nothing ahead — a paid one-time, a stopped one — is only
         // on the Past side, so that is where the door opens.
@@ -194,11 +201,13 @@ struct CommitmentsView: View {
                     }
                 }
             }
+            #if os(iOS)
             .measured("commitments_editing_charge", .sheet, when: editingCharge != nil)
             .sheet(item: $editingCharge) { charge in
                 RenewalFormView(model: model, editingId: charge.sub.id, chargeISO: charge.row.date) { editingCharge = nil }
                     .lbThreeQuarterSheet()
             }
+            #endif
             .measured("commitments_deleting_item", .alert, when: deletingItem != nil)
             .alert("Delete \(deletingItem?.name ?? "this commitment")?",
                    isPresented: Binding(get: { deletingItem != nil }, set: { if !$0 { deletingItem = nil } }),
@@ -275,6 +284,7 @@ struct CommitmentsView: View {
         let needle = search.lowercased()
         let rows = model.chargeItems().filter { charge in
             if charge.isPast != (scope == .past) { return false }
+            if scope == .past, !matchesKind(charge) { return false }
             if let day, charge.dateISO != day { return false }
             if !monthKeys.isEmpty, !monthKeys.contains(charge.dateISO.prefix(7)) { return false }
             if hasRange, !inDayRange(charge.dateISO, from: fromISO, to: toISO) { return false }
@@ -288,6 +298,16 @@ struct CommitmentsView: View {
             return needle.isEmpty || charge.searchText.contains(needle)
         }
         return scope == .past ? Array(rows.reversed()) : rows
+    }
+
+    /// Money out, money in or a transfer, as the screen lists; every kind when none is named.
+    private func matchesKind(_ charge: DashboardModel.ChargeItem) -> Bool {
+        switch kind {
+        case .charges: !charge.isIncome && !charge.isTransfer
+        case .earnings: charge.isIncome
+        case .transfers: charge.isTransfer
+        case nil: true
+        }
     }
 
     private func visibleRows() -> [DashboardModel.ChargeItem] {
@@ -459,6 +479,28 @@ struct CommitmentsView: View {
         }
     }
 
+    /// Under the title: Earnings adds up what it lists; Transfers says they are left out of every
+    /// total. Nothing for the other screens.
+    @ViewBuilder
+    private func ledgerNote(_ rows: [DashboardModel.ChargeItem]) -> some View {
+        if when == .past, kind == .earnings, !rows.isEmpty {
+            Text("Total money in · \(fmtMoneyTotals(totals(of: rows)))")
+                .lbText(.footnote)
+                .foregroundStyle(LBColor.textSecondary.color)
+        } else if when == .past, kind == .transfers {
+            Text("Not counted in spending or earnings.")
+                .lbText(.footnote)
+                .foregroundStyle(LBColor.textTertiary.color)
+        }
+    }
+
+    /// One amount per currency, biggest first: never blended.
+    private func totals(of rows: [DashboardModel.ChargeItem]) -> [CurrencyAmount] {
+        var sums: [String: Double] = [:]
+        for row in rows { sums[row.currency, default: 0] += row.amount }
+        return sums.map { CurrencyAmount(currency: $0.key, amount: $0.value) }.sorted { $0.amount > $1.amount }
+    }
+
     private func pill(_ words: String, clear: @escaping () -> Void) -> some View {
         Button(action: { Measure.used("clear_filter_chip"); clear() }) {
             HStack(spacing: LBSpacing.s1) {
@@ -476,7 +518,23 @@ struct CommitmentsView: View {
 
     // MARK: words
 
-    private var screenTitle: String { when == .past ? "Charges" : "Commitments" }
+    private var screenTitle: String {
+        if when == .upcoming { return "Commitments" }
+        return switch kind {
+        case .earnings: "Earnings"
+        case .transfers: "Transfers"
+        case .charges, nil: "Charges"
+        }
+    }
+
+    /// The landed rows' noun, for the sentences that count them.
+    private var landedNoun: (one: String, many: String) {
+        switch kind {
+        case .earnings: ("earning", "earnings")
+        case .transfers: ("transfer", "transfers")
+        case .charges, nil: ("charge", "charges")
+        }
+    }
 
     /// A month heading as a sentence: "October 2026".
     private func monthHeading(_ label: String) -> String {
@@ -488,11 +546,14 @@ struct CommitmentsView: View {
     /// Why the list is empty, in the side's own words.
     private var emptyWords: String {
         if when == .past {
-            return hasRange ? "No charges between these dates."
-                : !search.isEmpty || anyFilter ? "No past charges match. Clear the search or a filter."
-                : day != nil ? "No charges on this day."
-                : months.count > 1 ? "No charges in these months."
-                : !months.isEmpty ? "No charges in this month."
+            let noun = landedNoun.many
+            return hasRange ? "No \(noun) between these dates."
+                : !search.isEmpty || anyFilter ? "No past \(noun) match. Clear the search or a filter."
+                : day != nil ? "No \(noun) on this day."
+                : months.count > 1 ? "No \(noun) in these months."
+                : !months.isEmpty ? "No \(noun) in this month."
+                : kind == .earnings ? "No money in yet. longbook lists each deposit here once it lands."
+                : kind == .transfers ? "No transfers yet. Moves between your own accounts are listed here."
                 : "Nothing has charged yet. longbook remembers each payment the day it lands. This fills in as your commitments come due."
         }
         if onlyBookmarked, model.bookmarks.isEmpty {
@@ -512,10 +573,10 @@ struct CommitmentsView: View {
         return rows(in: other).isEmpty ? nil : other
     }
 
-    /// A search answers from both sides: when this side shows matches, the other side's
-    /// count is offered too, so a one-time charge already behind today is never missed.
+    /// A search or a narrowing answers from both sides: when this side shows matches, the other
+    /// side's count is offered too, so a charge already behind today is never missed.
     private func alsoMatching(_ data: DashboardData) -> (scope: ListScope, count: Int, commitments: Bool)? {
-        guard !search.isEmpty else { return nil }
+        guard !search.isEmpty || day != nil || !months.isEmpty || anyFilter else { return nil }
         let other: ListScope = when == .past ? .upcoming : .past
         let commitments = listsCommitments(other)
         let count = commitments ? visibleCommitments(data, scheduled: true).count : rows(in: other).count
@@ -524,7 +585,7 @@ struct CommitmentsView: View {
 
     private func alsoMatchingWords(_ also: (scope: ListScope, count: Int, commitments: Bool)) -> String {
         let noun = also.commitments ? (also.count == 1 ? "commitment" : "commitments")
-            : (also.count == 1 ? "charge" : "charges")
+            : (also.count == 1 ? landedNoun.one : landedNoun.many)
         return "\(also.count) \(also.scope == .past ? "past" : "upcoming") \(noun) also match"
     }
 
@@ -597,9 +658,11 @@ struct CommitmentsView: View {
 
     // MARK: actions shared by both platforms
 
+    #if os(iOS)
     private func editCharge(_ charge: DashboardModel.ChargeItem) {
         editingCharge = model.charges(of: charge.subId).first { $0.id == charge.id }
     }
+    #endif
 
     private func togglePaid(_ charge: DashboardModel.ChargeItem) {
         LBHaptics.tap()
@@ -638,6 +701,7 @@ struct CommitmentsView: View {
         return actions
     }
 
+#if os(iOS)
     /// Edit opens this charge, with the way on to its commitment; Delete removes this charge.
     private func trailingActions(_ charge: DashboardModel.ChargeItem) -> [LBRowAction] {
         [
@@ -645,6 +709,7 @@ struct CommitmentsView: View {
             .destructive("Delete") { deletingCharge = charge },
         ]
     }
+#endif
 
     // MARK: - iPhone
 
@@ -681,17 +746,15 @@ struct CommitmentsView: View {
         }
     }
 
-    /// Upcoming or Past, and what narrows the list, above the rows.
+    /// What narrows the list, above the rows.
     private func phoneTop(_ data: DashboardData) -> some View {
         // A section header, not a row: a grouped row clips to its rounded cell, which cut
         // the left edge of the control and of a filter pill sitting in the cell's corners.
         Section {
         } header: {
             VStack(alignment: .leading, spacing: LBSpacing.s3) {
-                LBSegmented(selection: $when, choices: [(ListScope.upcoming, "Upcoming"), (ListScope.past, "Past")])
-                    .accessibilityLabel("Show")
-                    .tutorialTarget(.commitmentsScope)
                 narrowedLine(data)
+                ledgerNote(parts(data).rows)
             }
             .textCase(nil)
             .listRowInsets(EdgeInsets())
@@ -846,8 +909,7 @@ struct CommitmentsView: View {
 
     // MARK: - Mac
 
-    /// One row of the Mac list: a charge, a commitment, or a name still to fill in, with
-    /// every column's value read once.
+    /// One row of the Mac list: a charge, a commitment, or a name still to fill in.
     struct LedgerRow: Identifiable {
         enum Kind {
             case charge(DashboardModel.ChargeItem)
@@ -857,16 +919,6 @@ struct CommitmentsView: View {
 
         let id: String
         let kind: Kind
-        let name: String
-        /// The ISO day, or a key that sorts the dateless after every day.
-        let dateKey: String
-        let dateText: String
-        let category: String
-        let account: String
-        let person: String
-        let amountText: String
-        /// For sorting only: the figure the amount's words show, read back.
-        let amount: Double
 
         var subId: String? {
             switch kind {
@@ -875,49 +927,29 @@ struct CommitmentsView: View {
             case .placeholder: nil
             }
         }
-
-        static func figure(_ text: String) -> Double {
-            let kept = text.filter { $0.isNumber || $0 == "." }
-            return Double(kept) ?? 0
-        }
     }
 
     #if os(macOS)
-    private func ledgerRows(_ data: DashboardData) -> [LedgerRow] {
-        let parts = parts(data)
-        let methods = Dictionary(model.editChoices.methods.map { ($0.id, $0.name) }, uniquingKeysWith: { a, _ in a })
-        let members = Dictionary(model.editChoices.members.map { ($0.id, $0.name) }, uniquingKeysWith: { a, _ in a })
-        let toFill = parts.toFill.map { placeholder in
-            LedgerRow(id: "p:" + placeholder.id, kind: .placeholder(placeholder), name: placeholder.name,
-                      dateKey: "", dateText: "—",
-                      category: placeholder.tag.isEmpty ? placeholder.group : categoryWord(placeholder.tag),
-                      account: "—", person: "—", amountText: "", amount: -1)
-        }
-        let charges = parts.rows.map { charge in
-            LedgerRow(id: "c:" + charge.id, kind: .charge(charge), name: charge.name, dateKey: charge.dateISO,
-                      dateText: LB.parseDate(charge.dateISO).map(LB.longDate) ?? charge.dateISO,
-                      category: kindWord(category: charge.category, income: charge.isIncome, transfer: charge.isTransfer) ?? "—",
-                      account: charge.methodId.flatMap { methods[$0] } ?? "—",
-                      person: charge.memberId.flatMap { members[$0] } ?? "—",
-                      amountText: charge.amountText, amount: LedgerRow.figure(charge.amountText))
-        }
-        let commitments = (parts.upcoming + parts.unscheduled).map { item in
-            LedgerRow(id: "s:" + item.id, kind: .commitment(item), name: item.name, dateKey: item.dueISO ?? "9999",
-                      dateText: item.dueISO.flatMap(LB.parseDate).map(LB.longDate) ?? unscheduledHeading,
-                      category: item.category.map(categoryWord) ?? "—",
-                      account: item.methodId.flatMap { methods[$0] } ?? "—",
-                      person: item.memberId.flatMap { members[$0] } ?? "—",
-                      amountText: item.amountText, amount: LedgerRow.figure(item.amountText))
-        }
-        return toFill + charges + commitments
+    private typealias Parts = (
+        rows: [DashboardModel.ChargeItem], upcoming: [DashboardData.CommitmentItem],
+        unscheduled: [DashboardData.CommitmentItem], toFill: [CommitmentPlaceholder]
+    )
+
+    private func ledgerRows(_ parts: Parts) -> [LedgerRow] {
+        parts.toFill.map { LedgerRow(id: "p:" + $0.id, kind: .placeholder($0)) }
+            + parts.rows.map { LedgerRow(id: "c:" + $0.id, kind: .charge($0)) }
+            + (parts.upcoming + parts.unscheduled).map { LedgerRow(id: "s:" + $0.id, kind: .commitment($0)) }
     }
 
     private var macBody: some View {
         VStack(spacing: 0) {
             if case .loaded(let data) = model.state {
-                let rows = ledgerRows(data)
-                macHeader(data, rows: rows)
-                macCards(data, rows: rows)
+                // Read once per pass: the header, the cards and the lookup all take these.
+                let parts = parts(data)
+                let rows = ledgerRows(parts)
+                let byId = Dictionary(rows.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+                macHeader(data, parts: parts, rows: rows)
+                macCards(data, parts: parts, rows: rows, byId: byId)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .lbInspector(isPresented: inspectorShown, width: 360) {
                         inspector(rows)
@@ -950,7 +982,7 @@ struct CommitmentsView: View {
 
     /// The page's title and the selection's actions on one line — the window's toolbar,
     /// drawn in the page — then search, the side, and the one Filter menu.
-    private func macHeader(_ data: DashboardData, rows: [LedgerRow]) -> some View {
+    private func macHeader(_ data: DashboardData, parts: Parts, rows: [LedgerRow]) -> some View {
         let chosen = selected(rows)
         let charges = chosen.compactMap(markable)
         let ids = Array(Set(chosen.compactMap(\.subId)))
@@ -989,13 +1021,10 @@ struct CommitmentsView: View {
             HStack(spacing: LBSpacing.s2) {
                 searchField
                     .tutorialTarget(.commitmentsSearch)
-                LBSegmented(selection: $when, choices: [(ListScope.upcoming, "Upcoming"), (ListScope.past, "Past")])
-                    .frame(width: 180)
-                    .accessibilityLabel("Show")
-                    .tutorialTarget(.commitmentsScope)
                 filterMenu(data)
             }
             narrowedLine(data)
+            ledgerNote(parts.rows)
         }
         .padding(.horizontal, LBSpacing.s4)
         .padding(.top, LBSpacing.s6)
@@ -1050,8 +1079,7 @@ struct CommitmentsView: View {
 
     /// The same cards the phone lists, under their months, beside the inspector: a click
     /// picks one, a double click edits it, and a right click offers what the card can do.
-    private func macCards(_ data: DashboardData, rows: [LedgerRow]) -> some View {
-        let parts = parts(data)
+    private func macCards(_ data: DashboardData, parts: Parts, rows: [LedgerRow], byId: [String: LedgerRow]) -> some View {
         let first = parts.rows.first.map { "c:" + $0.id } ?? parts.upcoming.first.map { "s:" + $0.id }
         return VStack(spacing: 0) {
             if rows.isEmpty {
@@ -1079,7 +1107,7 @@ struct CommitmentsView: View {
                     ForEach(grouped(parts.rows, by: \.monthLabel), id: \.label) { group in
                         Section {
                             ForEach(group.items) { charge in
-                                pickable("c:" + charge.id, rows: rows, chargeCard(charge, selected: selection.contains("c:" + charge.id)))
+                                pickable("c:" + charge.id, byId: byId, chargeCard(charge, selected: selection.contains("c:" + charge.id)))
                                     .tutorialTarget("c:" + charge.id == first ? .commitmentsFirst : nil)
                                     .lbCardRow()
                             }
@@ -1090,7 +1118,7 @@ struct CommitmentsView: View {
                     ForEach(grouped(parts.upcoming, by: \.monthLabel), id: \.label) { group in
                         Section {
                             ForEach(group.items) { item in
-                                pickable("s:" + item.id, rows: rows, commitmentCard(item, selected: selection.contains("s:" + item.id)))
+                                pickable("s:" + item.id, byId: byId, commitmentCard(item, selected: selection.contains("s:" + item.id)))
                                     .tutorialTarget("s:" + item.id == first ? .commitmentsFirst : nil)
                                     .lbCardRow()
                             }
@@ -1101,7 +1129,7 @@ struct CommitmentsView: View {
                     if !parts.unscheduled.isEmpty {
                         Section {
                             ForEach(parts.unscheduled) { item in
-                                pickable("s:" + item.id, rows: rows, commitmentCard(item, selected: selection.contains("s:" + item.id)))
+                                pickable("s:" + item.id, byId: byId, commitmentCard(item, selected: selection.contains("s:" + item.id)))
                                     .lbCardRow()
                             }
                         } header: {
@@ -1131,8 +1159,8 @@ struct CommitmentsView: View {
     /// A click chooses the card at once, a second click within a moment opens it, a right
     /// click shows its menu. Timed by hand: a double-click recognizer would hold every
     /// single click back while it waited for the second.
-    private func pickable<V: View>(_ id: String, rows: [LedgerRow], _ content: V) -> some View {
-        let row = rows.first { $0.id == id }
+    private func pickable<V: View>(_ id: String, byId: [String: LedgerRow], _ content: V) -> some View {
+        let row = byId[id]
         // A click only chooses, so the card hovers but has no pressed look. Tab reaches it;
         // Return or Space chooses it as a click does.
         return content
@@ -1161,11 +1189,11 @@ struct CommitmentsView: View {
         }
     }
 
-    /// Double click and Edit: a charge opens on itself, a commitment on itself, a name to
-    /// fill in on the form.
+    /// Double click, Edit and the menu's Edit open one form: the one the inspector's Edit
+    /// opens, on the charge's commitment. A name to fill in opens the fill-in form.
     private func edit(_ row: LedgerRow) {
         switch row.kind {
-        case .charge(let charge): editCharge(charge)
+        case .charge(let charge): formTarget = .edit(charge.subId)
         case .commitment(let item): formTarget = .edit(item.id)
         case .placeholder(let placeholder): formTarget = .fill(placeholder)
         }
@@ -1181,8 +1209,7 @@ struct CommitmentsView: View {
                 }
                 Button(bookmarkWord(charge.subId).title) { Measure.used("toggle_bookmark"); toggleBookmark(charge.subId) }
                 Divider()
-                Button("Edit Charge") { Measure.used("edit_charge"); editCharge(charge) }
-                Button("Edit Commitment") { Measure.used("edit_commitment"); formTarget = .edit(charge.subId) }
+                Button("Edit") { Measure.used("edit"); formTarget = .edit(charge.subId) }
                 Divider()
                 Button("Delete Charge", role: .destructive) { Measure.used("delete_charge"); deletingCharge = charge }
                 Button("Delete Commitment", role: .destructive) {

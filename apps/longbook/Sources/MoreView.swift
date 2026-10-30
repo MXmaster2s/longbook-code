@@ -30,6 +30,9 @@ struct MoreView: View {
                     Row(LBGlyph.change, 5, "Proposals", "", .opens(.changes)),
                     Row("lightbulb", 6, "Insights", "", .opens(.insights)),
                     Row("bookmark", 3, "Bookmarks", "", .opens(.commitments(ListFilter(bookmarked: true)))),
+                    Row(LBGlyph.charge, 2, "Charges", "", .opens(.commitments(ListFilter(scope: .past, kind: .charges)))),
+                    Row(LBGlyph.income, 8, "Earnings", "", .opens(.commitments(ListFilter(scope: .past, kind: .earnings)))),
+                    Row(LBGlyph.transfer, 10, "Transfers", "", .opens(.commitments(ListFilter(scope: .past, kind: .transfers)))),
                     Row(LBGlyph.account, 4, "Accounts", "", .opens(.accounts)),
                     Row("person.2", 9, "People", "", .opens(.members)),
                 ])

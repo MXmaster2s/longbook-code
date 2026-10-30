@@ -110,6 +110,12 @@ struct LongbookCommands: Commands {
             Button("Calendar") { Measure.used("calendar", .menuItem); go([.calendar]) }.keyboardShortcut("3", modifiers: .command).disabled(!menu.shellReady)
             Button("Commitments") { Measure.used("commitments", .menuItem); go([.commitments(ListFilter())]) }
                 .keyboardShortcut("4", modifiers: .command).disabled(!menu.shellReady)
+            Button("Charges") { Measure.used("charges", .menuItem); go([.commitments(ListFilter(scope: .past, kind: .charges))]) }
+                .disabled(!menu.shellReady)
+            Button("Earnings") { Measure.used("earnings", .menuItem); go([.commitments(ListFilter(scope: .past, kind: .earnings))]) }
+                .disabled(!menu.shellReady)
+            Button("Transfers") { Measure.used("transfers", .menuItem); go([.commitments(ListFilter(scope: .past, kind: .transfers))]) }
+                .disabled(!menu.shellReady)
             Button("Insights") { Measure.used("insights", .menuItem); go([.insights]) }.keyboardShortcut("5", modifiers: .command).disabled(!menu.shellReady)
             Button("Proposals") { Measure.used("changes", .menuItem); go([.changes]) }.keyboardShortcut("6", modifiers: .command).disabled(!menu.shellReady)
             Button("Trips") { Measure.used("trips", .menuItem); go([.trips]) }.keyboardShortcut("7", modifiers: .command).disabled(!menu.shellReady)

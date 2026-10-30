@@ -21,6 +21,10 @@ struct EntityListView: View {
     /// The search, and the one type or relationship shown; nil shows every one.
     @State private var search = ""
     @State private var tagFilter: String?
+    /// The rows in the order, and with the stars, the screen opened with. A star updates its
+    /// own row at once but never moves it; the lead changes the next time the screen opens.
+    @State private var opened: [String: Bool]?
+    @State private var openedOrder: [String] = []
 
     private var isAccount: Bool { kind == .paymentMethod }
     private var word: String { EntityCopy.word(kind) }
@@ -44,9 +48,11 @@ struct EntityListView: View {
     }
 
     var body: some View {
-        let cards = model.entityCards(kind)
+        let cards = held(model.entityCards(kind))
         return content(cards)
             .screenTutorial(isAccount ? .accounts : .people)
+            .onAppear { if opened == nil { holdOrder() } }
+            .onChange(of: kind) { _, _ in holdOrder() }
             .measured("entity_list_editing", .sheet, when: editing != nil)
             .sheet(item: $editing) { target in
                 EntityEditView(model: model, kind: kind, id: target.id, currentName: target.name) {
@@ -99,6 +105,28 @@ struct EntityListView: View {
         #else
         phoneBody(cards)
         #endif
+    }
+
+    // MARK: - Order held while open
+
+    /// Notes the order and the stars as they stand now.
+    private func holdOrder() {
+        let cards = model.entityCards(kind)
+        openedOrder = cards.map(\.id)
+        opened = Dictionary(cards.map { ($0.id, $0.starred) }, uniquingKeysWith: { first, _ in first })
+    }
+
+    /// The cards in the order the screen opened with. A row added since stands after them,
+    /// ahead of the bucket naming nobody; a row removed is simply gone.
+    private func held(_ cards: [DashboardModel.EntityCard]) -> [DashboardModel.EntityCard] {
+        guard opened != nil else { return cards }
+        var place: [String: Int] = [:]
+        for (index, id) in openedOrder.enumerated() where place[id] == nil { place[id] = index }
+        func key(_ offset: Int, _ card: DashboardModel.EntityCard) -> (Int, Int) {
+            if let at = place[card.id] { return (0, at) }
+            return (card.isReal ? 1 : 2, offset)
+        }
+        return cards.enumerated().sorted { key($0.offset, $0.element) < key($1.offset, $1.element) }.map(\.element)
     }
 
     // MARK: - Search and filter
@@ -324,8 +352,10 @@ struct EntityListView: View {
             )
         }
         let sorted = sortOrder.isEmpty ? rows : rows.sorted(using: sortOrder)
-        // A column's order sorts within each side; the starred side stays on top.
-        return sorted.filter(\.starred) + sorted.filter { !$0.starred }
+        // A column's order sorts within each side; the side starred when the screen opened
+        // stays on top, so a star pressed now does not move its row.
+        func leads(_ row: EntityRow) -> Bool { opened?[row.id] ?? row.starred }
+        return sorted.filter(leads) + sorted.filter { !leads($0) }
     }
 
     private func macBody(_ all: [DashboardModel.EntityCard]) -> some View {

@@ -565,7 +565,28 @@ struct RenewalFormView: View {
             }
             footnote("Set on the commitment, for every charge.")
         }
+        if let other = counterpartName {
+            FormRow {
+                FormQuestion("Counterpart account")
+            } content: {
+                FormField {
+                    Text(other)
+                        .lbText(.body)
+                        .foregroundStyle(LBColor.textSecondary.color)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                footnote("Set on the commitment, for every charge.")
+            }
+        }
         if showsChargeNote { chargeNoteField }
+    }
+
+    /// The account on the other side of the commitment, when it names one: by id, else by the
+    /// name a statement gave.
+    private var counterpartName: String? {
+        guard let editingId, let sub = model.subscription(id: editingId) else { return nil }
+        let named = CounterpartAccounts.counterpart(of: sub)
+        return named.id.flatMap { model.entityNames(memberId: nil, methodId: $0).method } ?? named.name
     }
 
     /// The essentials first — name, how often, amount, date — and the filing under More Details.

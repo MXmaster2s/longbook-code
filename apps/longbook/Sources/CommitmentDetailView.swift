@@ -159,6 +159,9 @@ struct CommitmentDetailView: View {
         if let method = names.method {
             rows.append(DetailRow(label: "Account", value: method, symbol: LBGlyph.account))
         }
+        if let other = counterpartName(sub) {
+            rows.append(DetailRow(label: "Counterpart account", value: other, symbol: LBGlyph.account))
+        }
         if let member = names.member {
             rows.append(DetailRow(label: "Person", value: member, symbol: LBGlyph.member))
         }
@@ -179,6 +182,13 @@ struct CommitmentDetailView: View {
             rows.append(DetailRow(label: "Details", value: stored.joined(separator: "\n"), stacked: true))
         }
         return rows
+    }
+
+    /// The account on the other side of the row: the one `counterpart_account_id` names, else
+    /// the name the statement gave. Nil when the row names none.
+    private func counterpartName(_ sub: Subscription) -> String? {
+        let named = CounterpartAccounts.counterpart(of: sub)
+        return named.id.flatMap { model.entityNames(memberId: nil, methodId: $0).method } ?? named.name
     }
 
     /// A one-time commitment's day; a recurring one's next charge, and how far its plan

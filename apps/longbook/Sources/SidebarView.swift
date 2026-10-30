@@ -31,9 +31,14 @@ struct SidebarView: View {
 
     /// The bookmarks door is its own row's light, not this one's.
     private var isCommitments: Bool {
-        if case .commitments(let filter) = shown { return !filter.bookmarked }
+        if case .commitments(let filter) = shown { return !filter.bookmarked && filter.kind == nil }
         return false
     }
+
+    /// Charges, Earnings and Transfers: the landed rows by kind, each its own screen.
+    private static let charges = Destination.commitments(ListFilter(scope: .past, kind: .charges))
+    private static let earnings = Destination.commitments(ListFilter(scope: .past, kind: .earnings))
+    private static let transfers = Destination.commitments(ListFilter(scope: .past, kind: .transfers))
 
     private static let bookmarks = Destination.commitments(ListFilter(bookmarked: true))
 
@@ -73,6 +78,9 @@ struct SidebarView: View {
                     navRow("chart.bar", "Reports", active: isReports) { path = [.reports] }
                     navRow(LBGlyph.date, "Calendar", active: shown == .calendar) { path = [.calendar] }
                     navRow(LBGlyph.commitment, "Commitments", active: isCommitments) { path = [.commitments(ListFilter())] }
+                    navRow(LBGlyph.charge, "Charges", active: shown == Self.charges) { path = [Self.charges] }
+                    navRow(LBGlyph.income, "Earnings", active: shown == Self.earnings) { path = [Self.earnings] }
+                    navRow(LBGlyph.transfer, "Transfers", active: shown == Self.transfers) { path = [Self.transfers] }
                     navRow("lightbulb", "Insights", active: shown == .insights) { path = [.insights] }
                     navRow(
                         LBGlyph.change, "Proposals", active: shown == .changes,
