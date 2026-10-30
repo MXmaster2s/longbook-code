@@ -12,6 +12,7 @@ struct MoreView: View {
     /// The demo longbook over the book, from the same group as Optimize your data.
     var onDemo: (() -> Void)? = nil
     @State private var importing = false
+    @State private var showingPastImports = false
     /// Whether a statement adds the accounts and people it finds; read by the importer.
     @AppStorage(StatementFinds.key) private var addFound = true
     @Environment(\.openURL) private var openURL
@@ -72,6 +73,13 @@ struct MoreView: View {
         .sheet(isPresented: $importing) {
             StatementImportView(model: model, auth: auth) { importing = false }
         }
+        .sheet(isPresented: $showingPastImports) {
+            NavigationStack {
+                ScrollView { PastImportsList(records: model.pastImports()) }
+                    .background(LBColor.canvas.color)
+                    .navigationTitle("Past imports")
+            }
+        }
         .lbScreenTitle(Self.screenTitle)
     }
 
@@ -79,7 +87,8 @@ struct MoreView: View {
     private var importSwitches: [Row] {
         #if os(iOS)
         [Row("person.crop.rectangle.stack", 4, "Add accounts and people found in statements", "",
-             .switches($addFound, detail: addFound ? StatementFinds.onDetail : StatementFinds.offDetail))]
+             .switches($addFound, detail: addFound ? StatementFinds.onDetail : StatementFinds.offDetail)),
+         Row("clock.arrow.circlepath", 4, "Past imports", "", .does { showingPastImports = true })]
         #else
         []
         #endif

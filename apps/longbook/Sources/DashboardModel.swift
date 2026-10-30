@@ -415,7 +415,7 @@ final class DashboardModel {
             // The first load after opening, and after an import: this month may hold nothing yet.
             if opensOnLatestMonth {
                 opensOnLatestMonth = false
-                if let latest = MonthSelection.latestSpending(in: loaded.raw, today: LB.todayMid()), latest != selectedMonths {
+                if let latest = MonthSelection.importedSpending(in: loaded.raw, today: LB.todayMid()), latest != selectedMonths {
                     // After this load ends: its own-change flag must be read first.
                     DispatchQueue.main.async { [weak self] in self?.selectedMonths = latest }
                 }
@@ -2293,6 +2293,20 @@ final class DashboardModel {
     /// rather than inventing twins.
     var memberNames: [String] { vault?.familyMembers.map(\.name) ?? [] }
     var accountNames: [String] { vault?.paymentMethods.map(\.name) ?? [] }
+    /// The people and accounts as the Transfers rule reads them.
+    var statementBook: StatementBook { loadedFile.map { StatementBook(raw: $0.raw) } ?? StatementBook() }
+
+    /// The statements imported so far, newest first. Counts only.
+    func pastImports() -> [ImportRecord] {
+        guard let folder = vaultFolder else { return [] }
+        return WorkspaceStore.read(in: folder).imports.reversed()
+    }
+
+    /// Keeps the Add's counts in the workspace, so both devices list them.
+    func recordImports(_ records: [ImportRecord]) {
+        guard let folder = vaultFolder, !records.isEmpty else { return }
+        _ = try? WorkspaceStore.update(in: folder) { $0.imports += records }
+    }
 
     /// Every commitment category the vault or the library knows, for the on-device namer.
     var commitmentTagNames: [String] {
@@ -2683,6 +2697,35 @@ final class DashboardModel {
     @discardableResult
     func setTagPhoto(kind: String, name: String, photo: String?) -> Bool {
         commit { try VaultPatch.setTagPhoto(kind: kind, named: name, photo: photo, in: $0, now: Date()) }
+    }
+
+    // MARK: transfers
+
+    /// How many rows would change side if this person's Relationship were set to `tag`
+    /// (nil clears it). Built in memory; nothing is written.
+    func transferFlips(settingRelationship tag: String?, onPerson id: String) -> (intoTransfers: Int, intoCharges: Int) {
+        flips { try VaultPatch.setEntityDetails(.familyMember, id: id, in: $0, now: Date(), memberTag: .some(tag)) }
+    }
+
+    /// The same for setting an account's owner (nil clears it).
+    func transferFlips(settingOwner personId: String?, onAccount id: String) -> (intoTransfers: Int, intoCharges: Int) {
+        flips { try VaultPatch.setEntityDetails(.paymentMethod, id: id, in: $0, now: Date(), ownerMemberId: .some(personId)) }
+    }
+
+    /// The same for setting the counterpart account of one row (nil clears it).
+    func transferFlips(settingCounterpart accountId: String?, onCommitment id: String) -> (intoTransfers: Int, intoCharges: Int) {
+        flips { try VaultPatch.setCounterpartAccount(commitmentId: id, accountId: accountId, in: $0, now: Date()) }
+    }
+
+    /// Sets or clears a row's counterpart account; the Transfers rule then decides its direction.
+    @discardableResult
+    func setCounterpartAccount(_ accountId: String?, onCommitment id: String) -> Bool {
+        commit { try VaultPatch.setCounterpartAccount(commitmentId: id, accountId: accountId, in: $0, now: Date()) }
+    }
+
+    private func flips(_ patch: ([String: Any]) throws -> [String: Any]) -> (intoTransfers: Int, intoCharges: Int) {
+        guard let raw = loadedFile?.raw, let next = try? patch(raw) else { return (0, 0) }
+        return StatementTransfers.flips(from: raw, to: next)
     }
 
     /// Doubly-optional arguments, as the writer takes them: nil leaves a field alone,

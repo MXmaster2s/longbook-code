@@ -147,7 +147,9 @@ public enum PendingApply {
         }
         if row.keys.contains("account") {
             if let account = (row["account"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines), !account.isEmpty {
-                let made = try VaultPatch.ensureEntity(.paymentMethod, named: account, in: vault, now: now)
+                // A statement's account is told apart by its owner when it prints no digits.
+                let owner = takingDetails ? (row["account_owner"] as? String) : nil
+                let made = try VaultPatch.ensureAccount(named: account, ownerName: owner, in: vault, now: now)
                 vault = made.vault
                 edit.paymentMethodId = made.id
             } else {

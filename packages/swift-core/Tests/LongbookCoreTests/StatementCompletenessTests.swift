@@ -43,7 +43,7 @@ final class StatementCompletenessTests: XCTestCase {
         XCTAssertEqual(filled[0].tag, "salary")
     }
 
-    func testAFilledCreditIsMoneyInAndAFilledOwnMovementStaysUnticked() {
+    func testAFilledCreditIsMoneyInAndAFilledAtmLineIsAnOrdinaryTickedCharge() {
         let filled = StatementCompleteness.fill(missing: [
             line("2026-07-05", 150_000, "SALARY JUL 2026", .credit),
             line("2026-07-06", 2000, "ATM WDL 4521"),
@@ -51,9 +51,9 @@ final class StatementCompletenessTests: XCTestCase {
         ], among: [], today: "2026-10-30")
         XCTAssertEqual(filled[0].direction, "in")
         XCTAssertTrue(filled[0].keep)
-        XCTAssertEqual(filled[1].direction, "transfer")
+        XCTAssertNil(filled[1].direction, "only the Transfers rule makes a transfer")
         XCTAssertTrue(filled[1].keep)
-        XCTAssertEqual(filled[1].skipReason, StatementTriage.ownMovement)
+        XCTAssertNil(filled[1].skipReason)
         XCTAssertEqual(filled[2].skipReason, StatementTriage.afterToday)
         XCTAssertTrue(filled.allSatisfy(\.readLocally))
     }
@@ -77,7 +77,7 @@ final class StatementCompletenessTests: XCTestCase {
         XCTAssertEqual(extra.extra, 1)
     }
 
-    func testTheDashboardOpensOnTheLatestMonthWithSpending() throws {
+    func testTheDashboardOpensOnEveryMonthTheImportedStatementsSpentIn() throws {
         let today = try XCTUnwrap(LB.parseDate("2026-10-30"))
         let raw: [String: Any] = [
             "commitments": [["id": "a"], ["id": "b", "direction": "in"]],
@@ -85,8 +85,18 @@ final class StatementCompletenessTests: XCTestCase {
                         ["commitment_id": "b", "date": "2026-10-01", "paid": true, "basis": "statement"],
                         ["commitment_id": "a", "date": "2026-11-12", "paid": false, "basis": "plan"]],
         ]
-        XCTAssertEqual(MonthSelection.latestSpending(in: raw, today: today), MonthSelection(-1))
-        XCTAssertNil(MonthSelection.latestSpending(in: ["charges": []], today: today))
+        XCTAssertEqual(MonthSelection.importedSpending(in: raw, today: today), MonthSelection(-1))
+        XCTAssertNil(MonthSelection.importedSpending(in: ["charges": []], today: today))
+        let year: [String: Any] = [
+            "commitments": [["id": "a"], ["id": "t", "direction": "transfer"], ["id": "p"]],
+            "charges": [["commitment_id": "a", "date": "2026-04-03", "paid": true, "basis": "statement"],
+                        ["commitment_id": "a", "date": "2026-06-10", "paid": true, "basis": "statement"],
+                        ["commitment_id": "a", "date": "2026-09-30", "paid": true, "basis": "statement"],
+                        ["commitment_id": "t", "date": "2026-05-02", "paid": true, "basis": "statement"],
+                        ["commitment_id": "p", "date": "2026-07-01", "paid": true, "basis": "plan"]],
+        ]
+        XCTAssertEqual(MonthSelection.importedSpending(in: year, today: today), MonthSelection(offsets: [-6, -4, -1]),
+                       "months with money spent only: no transfer, no plan row")
     }
 
     func testTheBalanceSaysByHowMuchItIsOff() {

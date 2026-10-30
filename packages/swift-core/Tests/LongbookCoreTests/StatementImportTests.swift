@@ -124,14 +124,14 @@ final class StatementImportTests: XCTestCase {
         XCTAssertEqual(verdict("REFUND AMAZON"), .skip("money in"))
     }
 
-    func testCreditsAndOwnMovementsAreSkippedWithAReason() {
+    func testOnlyCreditsAreSkippedAndOwnMovementsStay() {
         func verdict(_ payee: String, _ direction: StatementLine.Direction = .debit) -> StatementTriage.Verdict {
             StatementTriage.verdict(StatementLine(date: "2026-07-01", payee: payee, amount: 100, direction: direction))
         }
         XCTAssertEqual(verdict("SALARY", .credit), .skip("money in"))
-        XCTAssertEqual(verdict("ATM WDL 4521"), .skip("your own money moved"))
-        XCTAssertEqual(verdict("CREDIT CARD PAYMENT HDFC"), .skip("your own money moved"))
-        XCTAssertEqual(verdict("PAYTM WALLET TOPUP"), .skip("your own money moved"))
+        XCTAssertEqual(verdict("ATM WDL 4521"), .keep)
+        XCTAssertEqual(verdict("CREDIT CARD PAYMENT HDFC"), .keep)
+        XCTAssertEqual(verdict("PAYTM WALLET TOPUP"), .keep)
         XCTAssertEqual(verdict("NETFLIX.COM"), .keep)
         XCTAssertEqual(verdict("UPI-RAMESH K-cook"), .keep)
     }
@@ -290,43 +290,39 @@ final class StatementImportTests: XCTestCase {
         XCTAssertNil(candidates[1].skipReason, "two identical charges on one day in one statement are two charges")
     }
 
-    func testATransferKeptOnceIsNotOfferedAgain() {
+    func testACardBillAndAnAtmLineAreOrdinaryTickedLinesAndAreNotOfferedAgain() {
         let bill = StatementLine(date: "2026-07-20", payee: "CREDIT CARD PAYMENT CORAL 5521", amount: 31250, direction: .debit)
         let cash = StatementLine(date: "2026-07-15", payee: "ATM WDL SELF", amount: 10000, direction: .debit)
         var first = StatementImport.candidates(from: [bill, cash], file: "july.pdf")
         StatementImport.markAlreadyPresent(&first, in: [])
-        XCTAssertEqual(first.map(\.isOpenTransfer), [true, true], "unticked, and the owner's to keep")
+        XCTAssertEqual(first.map(\.keep), [true, true])
+        XCTAssertEqual(first.map(\.isTransfer), [false, false], "the words of a line never make a transfer")
 
         // The owner kept the card bill; the book now holds it under the statement's own line.
         let inTheBook = Set([StatementImport.key(date: bill.date, amount: bill.amount, narration: StatementNaming.scrubbed(bill.payee))])
         var again = StatementImport.candidates(from: [bill, cash], file: "july.pdf")
             + StatementImport.candidates(from: [cash], file: "july-again.pdf")
         StatementImport.markAlreadyPresent(&again, in: inTheBook)
-        XCTAssertEqual(again.map(\.keep), [false, false, false])
-        XCTAssertEqual(again.map(\.skipReason), ["already in your longbook", "your own money moved", "already in july.pdf"])
-        XCTAssertEqual(again.map(\.isTransfer), [true, true, true], "still marked as what it is")
-        XCTAssertEqual(again.map(\.isOpenTransfer), [false, true, false], "only the one never kept can be ticked in")
+        XCTAssertEqual(again.map(\.keep), [false, true, false])
+        XCTAssertEqual(again.map(\.skipReason), ["already in your longbook", nil, "already in july.pdf"])
     }
 
-    func testAnOwnMovementDatedAfterTodayIsRefusedLikeAnyOtherLine() {
+    func testALineDatedAfterTodayIsRefusedWhateverItIs() {
         func charge(_ date: String, _ name: String, _ kind: String) -> StatementCloud.Charge {
             .init(date: date, amount: 5000, name: name, narration: name, account: "Meridian savings", category: nil, kind: kind, member: nil)
         }
         // Days past the twelfth, so no date can be read the other way round and mended.
         let prepared = StatementCloud.Prepared.assemble([.init(account: "Meridian savings", charges: [
-            charge("2026-07-20", "To savings", "own_transfer"),
-            charge("2026-07-22", "To savings", "own_transfer"),
-            charge("2026-07-22", "Coral card bill", "card_bill"),
+            charge("2026-07-20", "To savings", "spend"),
+            charge("2026-07-22", "To savings", "spend"),
             charge("2026-07-22", "Gym", "spend"),
             charge("2026-07-22", "Bonus", "income"),
         ], notes: "")], review: .empty, today: "2026-07-21")
         let candidates = prepared.candidates(among: [], today: "2026-07-21")
         let refused = "dated after today — a statement proves the past"
-        XCTAssertEqual(candidates.map(\.skipReason), ["your own money moved", refused, refused, refused, refused])
-        XCTAssertEqual(candidates.map(\.keep), [true, false, false, false, false])
-        XCTAssertEqual(candidates.map(\.isTransfer), [true, true, true, false, false])
-        XCTAssertEqual(candidates.map(\.isOpenTransfer), [true, false, false, false, false],
-                       "a movement dated tomorrow proves nothing, so it cannot be ticked in")
+        XCTAssertEqual(candidates.map(\.skipReason), [nil, refused, refused, refused])
+        XCTAssertEqual(candidates.map(\.keep), [true, false, false, false])
+        XCTAssertEqual(candidates.map(\.isTransfer), [false, false, false, false])
     }
 
     func testEachFileLandsOnItsOwnAccount() throws {
@@ -369,7 +365,7 @@ final class StatementImportTests: XCTestCase {
         let candidates = prepared.candidates(among: ["streaming", "salary"])
         XCTAssertEqual(candidates.count, 5, "a line with no real date is dropped, never written")
         XCTAssertEqual(candidates.map(\.keep), [true, true, true, true, true], "every line of the statement comes in; transfers are never counted")
-        XCTAssertEqual(candidates.map(\.skipReason), [nil, nil, nil, "a card bill — its charges are on the card's statement", "your own money moved"])
+        XCTAssertEqual(candidates.map(\.skipReason), [nil, nil, nil, nil, nil])
         XCTAssertEqual(candidates.map(\.isIncome), [false, false, true, false, false], "money in is kept, and marked as such")
         XCTAssertEqual(candidates[1].member, "Sunita")
         XCTAssertEqual(candidates[0].tag, "streaming")
@@ -384,18 +380,15 @@ final class StatementImportTests: XCTestCase {
         XCTAssertEqual(rows[2]["direction"] as? String, "in", "money in is written as such")
         XCTAssertNil(rows[0]["direction"])
 
-        // The owner's own movements stay unticked; one ticked back in is a transfer, never spending.
-        XCTAssertEqual(candidates.map(\.isTransfer), [false, false, false, true, true])
-        var remembered = candidates
-        remembered[3].keep = true
-        let kept = try XCTUnwrap(StatementImport.proposal(remembered, accounts: [:], currency: "INR", source: "documents/hdfc-july.pdf").payload["rows"] as? [[String: Any]])
-        XCTAssertEqual(kept.first { $0["name"] as? String == "Axis card bill" }?["direction"] as? String, "transfer")
+        // A card bill and a cash withdrawal are ordinary charges: no transfer without two Self accounts.
+        XCTAssertEqual(candidates.map(\.isTransfer), [false, false, false, false, false])
+        XCTAssertNil(rows[3]["direction"])
         let local = StatementImport.candidates(from: [
             StatementLine(date: "2026-07-15", payee: "ATM WDL SELF", amount: 10000, direction: .debit),
             StatementLine(date: "2026-07-05", payee: "SALARY CREDIT VERTEX LABS", amount: 214000, direction: .credit),
         ])
-        XCTAssertEqual(local.map(\.keep), [false, false])
-        XCTAssertEqual(local.map(\.direction), ["transfer", nil], "read on the device, a movement is marked the same way")
+        XCTAssertEqual(local.map(\.keep), [true, false])
+        XCTAssertEqual(local.map(\.direction), [nil, nil], "read on the device, a movement is an ordinary charge too")
     }
 
     func testTheOtherSideOfATransferBecomesAnAccountOrAPerson() throws {
@@ -418,7 +411,7 @@ final class StatementImportTests: XCTestCase {
         let prepared = StatementCloud.Prepared.assemble([answer], review: .empty)
         XCTAssertEqual(prepared.charges[2].counterpart, "UPI/RAMESH K", "the fields survive the date mending")
 
-        let found = prepared.counterparts(knownAccounts: ["Paytm wallet"], knownPeople: ["sunita d"])
+        let found = prepared.counterparts(knownAccounts: [.init(name: "Paytm wallet")], knownPeople: ["sunita d"])
         XCTAssertEqual(found.accountNames, ["HDFC savings ••4417", "Axis card ••1234"],
                        "named as the owner says them; the statement's own account and a second spelling of one are left out")
         XCTAssertEqual(found.people, ["Ramesh K"], "a person the book holds, matched loosely, is not added twice")
@@ -627,7 +620,6 @@ final class StatementImportTests: XCTestCase {
         let candidates = StatementImport.candidates(from: fromCSV)
         XCTAssertTrue(candidates.contains { $0.keep }, "a year of statements proves charges")
         XCTAssertTrue(candidates.contains { $0.skipReason == "money in" }, "the salary is not a spend")
-        XCTAssertTrue(candidates.contains { $0.skipReason == "your own money moved" }, "the card bill is not a spend")
         let repeats = StatementImport.repeats(in: candidates)
         XCTAssertTrue(repeats.contains { $0.cycle == .monthly }, "a monthly rhythm is there to be found")
         XCTAssertTrue(repeats.contains { $0.name.contains("Netflix") }, "the subscription among them is named plainly")

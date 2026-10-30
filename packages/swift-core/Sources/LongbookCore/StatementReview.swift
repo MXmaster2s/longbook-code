@@ -17,9 +17,12 @@ extension StatementImport {
         public var source: String?
         public var balance: Double?
         public var balanceDate: String?
+        /// The statement's holder, who owns its account and is Self; nil when it prints none.
+        public var owner: String?
 
         public init(rows: [StatementCandidate], attached: [(id: String, charges: [[String: Any]])] = [], account: String,
-                    addsAccount: Bool, source: String?, balance: Double? = nil, balanceDate: String? = nil) {
+                    addsAccount: Bool, source: String?, balance: Double? = nil, balanceDate: String? = nil, owner: String? = nil) {
+            self.owner = owner
             self.rows = rows
             self.attached = attached
             self.account = account
@@ -36,9 +39,8 @@ extension StatementImport {
     /// Everything one Add writes.
     public struct Review: @unchecked Sendable {
         public var members: [String]
-        public var accounts: [String]
-        /// Who each found account belongs to, by account name, when a line printed the person.
-        public var accountOwners: [String: String]
+        /// The accounts to add, each with its owner when a line printed the person.
+        public var accounts: [StatementCounterparts.Account]
         public var files: [ReviewFile]
         public var currency: String
         /// The ticked repeats, each with the placeholder it waits as when no lines carry it.
@@ -46,11 +48,10 @@ extension StatementImport {
         /// What already waits on the timeline.
         public var waiting: [CommitmentPlaceholder]
 
-        public init(members: [String], accounts: [String], accountOwners: [String: String] = [:], files: [ReviewFile], currency: String,
+        public init(members: [String], accounts: [StatementCounterparts.Account], files: [ReviewFile], currency: String,
                     repeats: [(repeated: StatementCloud.Repeat, placeholder: CommitmentPlaceholder)], waiting: [CommitmentPlaceholder]) {
             self.members = members
             self.accounts = accounts
-            self.accountOwners = accountOwners
             self.files = files
             self.currency = currency
             self.repeats = repeats
@@ -70,14 +71,20 @@ extension StatementImport {
     /// Throws the first refusal; nothing is half applied.
     public static func write(_ review: Review, to raw: [String: Any], now: Date, schema: [String: Any]?) throws -> Written {
         var vault = raw
+        // The holder of each statement is a person, and Self, before anything refers to them.
+        for file in review.files {
+            if let holder = file.owner?.trimmingCharacters(in: .whitespaces), !holder.isEmpty {
+                vault = try ensureHolder(holder, in: vault, now: now)
+            }
+        }
         for name in review.members {
             vault = try VaultPatch.ensureEntity(.familyMember, named: name, in: vault, now: now).vault
         }
-        for name in review.accounts {
-            let made = try VaultPatch.ensureEntity(.paymentMethod, named: name, in: vault, now: now)
+        for account in review.accounts {
+            let made = try VaultPatch.ensureAccount(named: account.name, ownerName: account.person, in: vault, now: now)
             vault = made.vault
             // An account a line printed beside a person belongs to that person, once both exist.
-            if let person = review.accountOwners[name], let owner = memberId(named: person, in: vault) {
+            if let person = account.person, let owner = memberId(named: person, in: vault) {
                 vault = try VaultPatch.setEntityDetails(.paymentMethod, id: made.id, in: vault, now: now, ownerMemberId: .some(owner))
             }
         }
@@ -87,13 +94,17 @@ extension StatementImport {
         for file in review.files {
             let named = file.account.trimmingCharacters(in: .whitespaces)
             if file.addsAccount, !named.isEmpty {
-                vault = try VaultPatch.ensureEntity(.paymentMethod, named: named, in: vault, now: now).vault
+                let made = try VaultPatch.ensureAccount(named: named, ownerName: file.owner, in: vault, now: now)
+                vault = made.vault
+                if let holder = file.owner, let owner = memberId(named: holder, in: vault) {
+                    vault = try VaultPatch.setEntityDetails(.paymentMethod, id: made.id, in: vault, now: now, ownerMemberId: .some(owner))
+                }
             }
             guard file.keepsALine, let source = file.source else { continue }
             firstSource = firstSource ?? source
             let own = file.rows.filter(\.keep)
             if !own.isEmpty {
-                let write = proposal(file.rows, accounts: ["": named], currency: review.currency, source: source)
+                let write = proposal(file.rows, accounts: ["": named], currency: review.currency, source: source, accountOwner: file.owner)
                 vault = try applied(write, to: vault, now: now, schema: schema)
                 vault = linkCounterpartAccounts(in: vault, madeSince: before)
                 written += own.count
@@ -107,7 +118,7 @@ extension StatementImport {
             // The statement's last line is the account's balance, dated: an old statement never
             // rewinds a newer one.
             if let balance = file.balance, !named.isEmpty,
-               let made = try? VaultPatch.ensureEntity(.paymentMethod, named: named, in: vault, now: now),
+               let made = try? VaultPatch.ensureAccount(named: named, ownerName: file.owner, in: vault, now: now),
                balanceIsNewer(file.balanceDate, account: made.id, in: made.vault),
                let set = try? VaultPatch.setEntityDetails(.paymentMethod, id: made.id, in: made.vault, now: now,
                                                          balance: .some(balance), balanceDate: .some(file.balanceDate)) {
@@ -120,7 +131,8 @@ extension StatementImport {
         let fresh = review.repeats.filter {
             !promoted.contains($0.repeated.name) && !taken.contains($0.repeated.name.lowercased()) && !holdsRecurring(named: $0.repeated.name, in: vault)
         }.map(\.placeholder)
-        if !fresh.isEmpty { vault = VaultPatch.setToFillIn(review.waiting + fresh, in: vault) }
+        if !fresh.isEmpty { vault = VaultPatch.setToFillIn(review.waiting + fresh, in: vault, now: now) }
+        vault = StatementTransfers.apply(vault, now: now)
         let ids = vaultDiff(from: raw, to: vault).filter { $0.kind != "tags" }
             .flatMap { $0.added.map(\.id) + $0.changed.map(\.id) + $0.removed.map(\.id) }
         return Written(vault: VaultPatch.markReviewed(ids: ids, in: vault, now: now), charges: written, promoted: promoted)
@@ -134,19 +146,40 @@ extension StatementImport {
     /// The id of the person named, matched as names match; nil when the book holds none.
     static func memberId(named name: String, in raw: [String: Any]) -> String? {
         let key = nameKey(name)
-        return (raw[VaultPatch.EntityKind.familyMember.rawValue] as? [[String: Any]] ?? [])
-            .first { nameKey($0["name_key"] as? String ?? $0["name"] as? String ?? "") == key }?["id"] as? String
+        let people = raw[VaultPatch.EntityKind.familyMember.rawValue] as? [[String: Any]] ?? []
+        return (people.first { nameKey($0["name_key"] as? String ?? $0["name"] as? String ?? "") == key }
+            ?? people.first { StatementHolder.same($0["name"] as? String ?? "", name) })?["id"] as? String
     }
 
-    /// The id of the account an account name means, matched as Accounts match two names
-    /// for one account; nil when the book holds none.
-    static func accountId(named name: String, in raw: [String: Any]) -> String? {
-        (raw[VaultPatch.EntityKind.paymentMethod.rawValue] as? [[String: Any]] ?? [])
-            .first { StatementCounterparts.sameAccount($0["name"] as? String ?? "", name) }?["id"] as? String
+    /// The id of the account an account name and its owner mean, matched as Accounts match
+    /// two names for one account; one with no digits is also told apart by its owner. Nil
+    /// when the book holds none.
+    static func accountId(named name: String, owner: String? = nil, in raw: [String: Any]) -> String? {
+        let ownerId = owner.flatMap { memberId(named: $0, in: raw) }
+        return (raw[VaultPatch.EntityKind.paymentMethod.rawValue] as? [[String: Any]] ?? []).first { row in
+            guard StatementCounterparts.sameAccount(row["name"] as? String ?? "", name) else { return false }
+            if name.contains(where: \.isNumber) { return true }
+            return (row["member_id"] as? String) == ownerId
+        }?["id"] as? String
+    }
+
+    /// A person made Self: the member, the registry's "self" tag, and the tag on a person who
+    /// has none yet. A person the owner already gave another relationship keeps it.
+    static func ensureHolder(_ name: String, in raw: [String: Any], now: Date) throws -> [String: Any] {
+        let people = (raw[VaultPatch.EntityKind.familyMember.rawValue] as? [[String: Any]] ?? []).compactMap { $0["name"] as? String }
+        let said = StatementHolder.resolve(name, among: people)
+        var made = try VaultPatch.ensureEntity(.familyMember, named: said, in: raw, now: now)
+        made.vault = VaultPatch.ensureTag(kind: "member", named: StatementTransfers.selfTag, in: made.vault, now: now)
+        let row = (made.vault[VaultPatch.EntityKind.familyMember.rawValue] as? [[String: Any]] ?? []).first { $0["id"] as? String == made.id }
+        guard (row?["tag"] as? String)?.trimmingCharacters(in: .whitespaces).isEmpty ?? true else { return made.vault }
+        let tags = made.vault["tags"] as? [[String: Any]] ?? []
+        let spelled = tags.first { ($0["kind"] as? String) == "member" && nameKey($0["name_key"] as? String ?? $0["name"] as? String) == StatementTransfers.selfTag }?["name"] as? String
+        return try VaultPatch.setEntityDetails(.familyMember, id: made.id, in: made.vault, now: now, memberTag: .some(spelled ?? StatementTransfers.selfTag))
     }
 
     /// Every row written since `before` whose details name the other side's account gets
-    /// that account's id beside the name, when the book holds the account.
+    /// that account's id beside the name, when the book holds the account; the owner it was
+    /// resolved with is dropped from the details once it has.
     static func linkCounterpartAccounts(in raw: [String: Any], madeSince before: Set<String>) -> [String: Any] {
         var vault = raw
         var rows = vault["commitments"] as? [[String: Any]] ?? []
@@ -154,9 +187,11 @@ extension StatementImport {
         for index in rows.indices {
             guard let id = rows[index]["id"] as? String, !before.contains(id),
                   var details = rows[index]["details"] as? [String: Any],
-                  let name = details[counterpartAccountKey] as? String, details[counterpartAccountIdKey] == nil,
-                  let accountId = accountId(named: name, in: vault) else { continue }
-            details[counterpartAccountIdKey] = accountId
+                  let name = details[counterpartAccountKey] as? String else { continue }
+            let owner = details.removeValue(forKey: counterpartOwnerKey) as? String
+            if details[counterpartAccountIdKey] == nil, let accountId = accountId(named: name, owner: owner, in: vault) {
+                details[counterpartAccountIdKey] = accountId
+            }
             rows[index]["details"] = details
             changed = true
         }
