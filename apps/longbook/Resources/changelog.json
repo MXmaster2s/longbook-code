@@ -4,6 +4,13 @@
     "build": 62,
     "date": "2026-10-29",
     "changes": [
+      "A statement import proves it read everything: the review shows the lines read out of the lines in the file, and whether the balance matches. A line the first reading missed is read again.",
+      "Every line of a statement comes in, with its statement line on the charge. Transfers come in too and never count as spending.",
+      "A commitment longbook guessed says so in its name, with the reason in its notes.",
+      "Everyone a statement names becomes a person, as printed, and every bank account it names becomes an account, connected to its charges.",
+      "Proposals stay quick with hundreds of items, folded by kind and shown a hundred at a time.",
+      "The Dashboard opens on the latest month with spending.",
+      "New categories: food & groceries, and shopping.",
       "Getting started takes three steps: welcome and sign in, activate your longbook, then import a statement. Once a statement is kept, your longbook opens.",
       "The setup questions moved to Settings as Optimize your data, where your answers help longbook read your statements.",
       "On the Mac, Settings in the sidebar opens a menu, and Settings… opens the Settings window, with panes for General, Appearance, Account, AI, Statements, Data & privacy, Tutorials and About.",
