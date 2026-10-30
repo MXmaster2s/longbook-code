@@ -10,12 +10,13 @@ import { fileURLToPath } from 'node:url'
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 import { LIBRARY_TAGS } from '../packages/core/src/library'
 import { PROMPTS, PROMPT_GROUPS } from '../packages/core/src/prompts'
+import { STATEMENT_RULE_GROUPS } from '../packages/core/src/statement-rules'
 
 // ---------------------------------------------------------------------------------------------
 // Source of truth. REFUND_DAYS must match StoreClient.refundDays in the app; PRICE_USD and
 // CLOUD_USD are prose only (App Store Connect owns the real prices) — all are named here so a change is one grep away.
 const DATA_FORMAT_VERSION = 3
-const CONTRACT_REVISION = 45 // the Changes screen is called Proposals; setup's people and accounts are hints[]; a person or an account may be starred. 44: read before writing: read_guide hands out a guide_key, every write passes it back, and a write without one is warned. 43: pay upfront: a 7-day refund replaces the trial, and a purchase includes 12 months of Cloud. 42: pictures: accounts, commitments and tags may carry a photo too, all under images/. 41:people: the tools are people, spending_by_person, add_person and update_person; a person may carry a photo; a tag's icon is one of the library's. 40:the weekly page prompt; 39: every prompt names "my longbook"; the trial is three days; a
+const CONTRACT_REVISION = 46 // statement rules are one source; a charge's note carries its statement line; a guessed commitment is named so; people as printed; the other side's bank is an account. 45: the Changes screen is called Proposals; setup's people and accounts are hints[]; a person or an account may be starred. 44: read before writing: read_guide hands out a guide_key, every write passes it back, and a write without one is warned. 43: pay upfront: a 7-day refund replaces the trial, and a purchase includes 12 months of Cloud. 42: pictures: accounts, commitments and tags may carry a photo too, all under images/. 41:people: the tools are people, spending_by_person, add_person and update_person; a person may carry a photo; a tag's icon is one of the library's. 40:the weekly page prompt; 39: every prompt names "my longbook"; the trial is three days; a
 const REFUND_DAYS = 7
 const PRICE_USD = 38
 const CLOUD_USD = 4
@@ -414,6 +415,12 @@ Automations section of the app and the website, and copies the prompt from there
   return parts.join('\n\n') + '\n'
 }
 
+/** The statement rules, group by group, the same words the cloud reader is given. */
+function statementRulesList(): string {
+  return STATEMENT_RULE_GROUPS.map((group) =>
+    `   **${group.title}.**\n\n${group.rules.map((rule) => wrapped(`   - ${rule.text}`)).join('\n')}`).join('\n\n')
+}
+
 function promptsJSON(): object {
   return { contract_revision: CONTRACT_REVISION, groups: PROMPT_GROUPS, prompts: PROMPTS }
 }
@@ -598,20 +605,23 @@ a charge as a one-time commitment at its real date and amount, \`paid: true\`, \
 permission for a charge that already cleared. Guess by what a wrong guess would cost: copy the
 amount, the date, the account and the currency as printed, and never guess them; guess the
 name, the category and which commitment a line belongs to, write them, and show them in the
-table; ask before writing who a payment is for. Money in — salary, a refund, interest — is
+table. A person a line names is a member, as printed; a role for them is a question, their
+place is not. Money in — salary, a refund, interest — is
 written too, as a one-time row with \`direction: "in"\`; it never counts as spending. Skip
 movements between the owner's own accounts; one the owner wants remembered is a row with
 \`direction: "transfer"\`. The method and the worked lines are in \`Importing statements\` below.
 
-**3. Set what clearly repeats.** A payee the statements show at least three times, a steady
-month, quarter or year apart, and still going at their end, repeats: \`promote_to_recurring\`
-it now. It keeps every charge exactly as it was and plans ahead as far as the owner says, 24
-months if they do not. A repeat that stopped is promoted too, with \`ends_on\` at its last
-charge. List each one in the table, so the owner can undo it. Where writes are proposals —
-a sign-in or a key — the rows are not in the memory until the owner's app applies them, so
-there are no ids to promote yet: list these repeats as ones you will set, and promote them
-after the owner answers, once \`commitments\` shows the rows. A charge seen once or twice that
-may repeat — a yearly premium — is a question, never a promotion.
+**3. Set what comes round.** A payee the statements show at least three times, a steady
+month, quarter or year apart, repeats: \`promote_to_recurring\` it now. So does one the bank's
+own marker names (AUTOPAY, MANDATE, SI, NACH, EMI) or one that repeats by nature — a premium,
+an EMI, rent, a salary to a person — even seen once or twice: promoted as a guess, its
+\`name\` ending " (Guessed)" and its \`notes\` opening "Guessed: " and the reason, per
+\`Importing statements\`. A promotion keeps every charge exactly as it was and plans ahead as
+far as the owner says, 24 months if they do not. A repeat that stopped is promoted too, with
+\`ends_on\` at its last charge. List each one in the table, so the owner can undo it. Where
+writes are proposals — a sign-in or a key — the rows are not in the memory until the owner's
+app applies them, so there are no ids to promote yet: list these repeats as ones you will
+set, and promote them after the owner answers, once \`commitments\` shows the rows.
 
 **4. Ask about Members, and say what they are.** Most owners have never met the idea, so
 say it in a sentence: longbook can remember who a payment is for — a Member is a person in
@@ -671,9 +681,10 @@ noticed that they may want to change.
    a whole year of statements is one or two calls. Then say: "Review the change in the app's
    Proposals screen — keep it or undo it there." Do not re-read and rewrite to "check your
    work"; the owner reviews, not you.
-5. **Facts first, then what clearly repeats, then the question.** Write what the statement
+5. **Facts first, then what comes round, then the question.** Write what the statement
    proves; \`promote_to_recurring\` a payee it shows at least three times, a steady month,
-   quarter or year apart, still going, and show it; ask about the rest. Where writes are
+   quarter or year apart, and one the bank marks or that repeats by nature, as a guess named
+   so when fewer than three sightings back it; show each, and ask about the rest. Where writes are
    proposals, promote once \`commitments\` shows the rows the app applied. A promotion keeps
    every fact. What comes back unanswered stays \`once\`, and goes in the summary for the
    owner to promote later, in the app or through you.
@@ -707,14 +718,18 @@ reading, short enough to answer out loud, and write once. A good one names the e
 asks the unknown: "₹5,400 to a name I cannot place, twice since March — what is it, and is
 it for anyone in particular?"
 
-**Whether it repeats is the question that pays — settled by the evidence where it is clear.**
-Write the lines first, each as a one-time row; \`promote_to_recurring\` a payee the statement
-shows at least three times, a steady month, quarter or year apart, still going at its end, and
-show it in the table; ask about the rest, and promote each yes. Where writes are proposals,
-the rows reach the memory only when the owner's app applies them: list the clear repeats,
-and promote them with the yeses once \`commitments\` shows the rows. A promotion keeps every
-charge the statement proved, exactly as written, and plans ahead from the last of them. With nobody in the conversation to answer, do not wait:
-leave the rows \`once\` and propose the promotions in your note, per \`Unattended runs\`.
+**Whether it repeats is settled by three kinds of evidence, in order.** The bank's own
+marker in the narration; the same name at about the same amount three or more times at a
+steady rhythm; a payee that repeats by nature, seen once or twice. Write the lines first,
+each as a one-time row; \`promote_to_recurring\` each commitment the evidence makes and show
+it in the table — one backed by fewer than three sightings as a guess, its \`name\` ending
+" (Guessed)" and its \`notes\` opening "Guessed: " and the reason, so the owner sees it for
+what it is and renames it to keep it. Where writes are proposals, the rows reach the memory
+only when the owner's app applies them: list the repeats, and promote them once
+\`commitments\` shows the rows. A promotion keeps every charge the statement proved, exactly
+as written, and plans ahead from the last of them. With nobody in the conversation to
+answer, do not wait: leave the rows \`once\` and propose the promotions in your note, per
+\`Unattended runs\`.
 
 This is the whole flow:
 
@@ -726,71 +741,50 @@ This is the whole flow:
 2. \`commitments\` with status "all", so what is already there is known — a line that
    belongs to a commitment that exists is \`add_charges\` on it, paid, basis "statement",
    not a twin.
-3. Classify every line. Every line that survives the tree is written the same way — a
-   one-time row at its real date and amount, \`paid: true\`, \`basis: "statement"\` — and the
-   tree decides what you will say about it, and what you will promote afterwards:
+3. Read every line by the rules below. They are the same words longbook's own reader
+   follows, so a statement read by you and one read by the app agree. Every line is a
+   one-time row at its real date and amount, \`paid: true\`, \`basis: "statement"\`; its kind
+   decides what you say about it and what you promote afterwards.
 
-   - **A credit, refund, salary, interest, dividend, or cashback** → a one-time row with
-     \`direction: "in"\`, paid, basis "statement". Money in is remembered beside what goes
-     out and never added to it; a transfer in from the owner's own account is a movement.
-   - **A movement between the owner's own accounts** — ATM withdrawal, card bill payment,
-     transfer to their own savings, wallet top-up → skip. Money moved, nothing was bought,
-     and a ledger of what was bought has no use for it. A card bill payment is skipped
-     unless the memory holds that bill as a transfer row — the daily email round writes
-     one, "Coral card bill, October 2026" — and then the line is \`add_charges\` on it, paid,
-     basis "statement", at the row's own date with \`paid_on\` the day the money moved:
-     \`search\` the card's name before you skip. A movement the owner wants remembered —
-     "keep my transfers to savings" — is written with \`direction: "transfer"\`: shown on
-     the timeline, never in spending, never in money in.
-   - **The same payee at the same amount ~30 days apart, still going at the end of the
-     statement** → a monthly rhythm. Seen three times or more, promote it and show it; fewer,
-     ask: \`monthly\`, and the plan continues from the last charge seen. Streaming, phone plans, broadband, rent,
-     society maintenance, gym, SIP-like standing instructions, EMIs, a cook or cleaner paid
-     on the 1st, a cloud-storage plan.
-   - **The same payee at the same amount ~365 days apart, or one charge whose name says
-     "premium", "annual", "renewal", "yearly"** → a yearly rhythm: \`yearly\` on promotion.
-     Insurance premiums, domain renewals, annual memberships, software licences, school
-     annual fees, a streaming plan paid by the year.
-   - **A steady rhythm that is neither** → \`custom\` with \`custom_cycle_days\` on promotion:
-     a half-yearly premium (183), a quarterly fee (91), water cans every 10 days (10), a
-     domain bought for three years (1095), a two-year hosting plan (730).
-   - **A repeat that has stopped** (the charges run for months and then end before the
-     statement does) → promote it too, with \`ends_on\` at its last charge. One commitment,
-     its charges on record, nothing planned past the day it ended. The money stays in every
-     total because the rows do.
-   - **Everything else, and anything you are unsure of** → stays \`once\`. A flight, a hotel,
-     a gift, a repair, an annual-looking charge you have seen only once, a doctor's visit.
-     When the only doubt is whether it repeats, leave it and put the question in the batch,
-     with your guess: the answer decides the promotion.
-   - **Materiality is for the owner to decide, not you.** Default to recording every line that
-     is not a skip above; a small charge is still a fact. If the owner said "only the
-     commitments" or "skip food delivery", honour that. Never silently drop lines for being
-     small.
+${statementRulesList()}
 
+   What each kind becomes: spend, fee and for_member are one-time rows, a for_member row
+   with \`member\` the person as printed; income is the same row with \`direction: "in"\`, kept
+   beside spending and never added to it; own_transfer and card_bill are skipped — money
+   moved, nothing was bought — unless the memory holds that bill as a transfer row (the
+   daily email round writes one, "Coral card bill, October 2026"): then the line is
+   \`add_charges\` on it, paid, basis "statement", at the row's own date with \`paid_on\` the
+   day the money moved; \`search\` the card's name before you skip. A movement the owner
+   wants remembered — "keep my transfers to savings" — is written with \`direction:
+   "transfer"\`: shown on the timeline, never in spending, never in money in. If the owner
+   said "only the commitments" or "skip food delivery", honour that; otherwise every line
+   is a fact, however small.
 4. Model honestly, the way the ledger works (see "The past is stored"): every line paid,
    with \`basis: "statement"\`, at the date and amount on the paper; \`ends_on\` when the
    source shows an end; a plan only as far as the owner asked. Each row wears the name the
-   owner would say — "Netflix", not "UPI/4521/NETFLIX.COM"; what the line says that matters
-   — a lender, a policy number — goes in its notes.
+   Names rules give it — "Netflix", not "UPI/4521/NETFLIX.COM" — and its charge's \`note\`
+   is the statement line, per the Notes rules, with every reference, account and card
+   number removed.
 5. Tags from the library first (the icon then resolves in the app on its own); invent only
-   when nothing fits. Write each commitment's notes — its three details that matter, one per
-   line — as far as the source states them; \`Notes\` below lists them by category.
-6. People: name a member only when the owner named them ("my cook Ramesh" → member
-   "Ramesh", tag household help, and "Role: cook" in the salary's notes). A UPI handle on a
-   statement is not a name the owner gave you. Accounts: the statement is the account —
-   "HDFC savings" or "Amex 1007" (last four digits only); its closing balance and date go on
-   the account as \`balance\` and \`balance_date\`.
-7. Write, show, ask, correct, promote. One \`add_commitments\` call (or a few, back to
+   when nothing fits. A commitment's \`notes\` hold its three details that matter, one per
+   line, only as far as the statement states them — \`Notes\` below lists them by category;
+   a guessed commitment's notes open with the "Guessed: " line first.
+6. People and accounts, by the People and Accounts rules: \`add_person\` every person a line
+   names, as printed, once; \`add_account\` the statement's own account, and every account
+   printed on another side of a line — the other side itself, or the bank account printed
+   beside a person — with \`member\` the person when the line names one. The statement's
+   closing balance and date go on its account as \`balance\` and \`balance_date\`.
+7. Write, show, promote, ask, correct. One \`add_commitments\` call (or a few, back to
    back) with every line; then, when the statement prints a closing balance, one
    \`update_account\` on the statement's account — \`balance\` the closing figure,
    \`balance_date\` the statement's last day — so the account reads as the statement left
-   it; \`promote_to_recurring\` for each payee seen three times or more and still going;
-   the table of what you chose and guessed; one message carrying every question the reading
-   left open — what an unidentifiable charge was, who it was for, how often a charge seen
-   once or twice comes round; the corrections in one pass; \`promote_to_recurring\` for each
-   further yes. Then stop and report:
-   how many rows, what was promoted and how far it is planned, what you skipped and why,
-   and the balance you set with its day — or that the statement printed none.
+   it; \`promote_to_recurring\` for each commitment the three kinds of evidence make, the
+   guessed ones named so; the table of what you chose and guessed; one message carrying
+   every question the reading left open — what an unidentifiable charge was, who a person
+   is to the owner — and the corrections in one pass. Then stop and report: how many rows,
+   what was promoted, which of those were guesses and how far each is planned, what you
+   skipped and why, and the balance you set with its day — or that the statement printed
+   none.
 8. Finish the picture if asked: two or three \`leave_insight\` notes. The reports for the
    months the statements cover are longbook's to draw, and it draws them.
 
@@ -811,23 +805,27 @@ A bank statement, twelve months, the lines that matter and what each becomes:
   loan account number: the last four digits are the most that leaves the statement.
 
 15/03/2026  HDFC ERGO HEALTH PREMIUM   18,450.00  (once in twelve months)
-→ one row, paid, tag insurance. On the owner's yes: promoted yearly — the next charge
-  planned for 15/03/2027. Its notes — "Policy number: …", "Policy name: …", "Document:
-  documents/hdfc-ergo-health.pdf" — only as far as a policy document in documents/, or the
-  owner, states them.
+→ one row, paid, tag insurance. A premium repeats by nature: promoted yearly as a guess,
+  name "HDFC Ergo health (Guessed)", notes "Guessed: Seen once; yearly assumed from the
+  insurer's name" — the next charge planned for 15/03/2027. Its other notes — "Policy
+  number: …", "Policy name: …", "Document: documents/hdfc-ergo-health.pdf" — only as far
+  as a policy document in documents/, or the owner, states them.
 
 12/01/2026  STAR HEALTH PREMIUM        9,200.00  and 12/07/2026 STAR HEALTH PREMIUM 9,200.00
-→ two rows, paid, tag insurance. Seen twice, so a question: "half-yearly?" On the owner's
-  yes: promoted custom, custom_cycle_days 183.
+→ two rows, paid, tag insurance. Seen twice: promoted custom, custom_cycle_days 183, as a
+  guess — "Star Health (Guessed)", notes "Guessed: Seen twice, half a year apart; the same
+  rhythm assumed".
 
 01/07/2026  UPI-RAMESH K-cook           6,000.00  (every 1st)
-→ rows, then promoted monthly, tag salary, notes "Role: cook". member only if the owner
-  named Ramesh; otherwise leave member empty and say so in the summary.
+→ add_person "Ramesh K", as printed, never "Ramesh" or "the cook"; rows with member
+  "Ramesh K", then promoted monthly, tag salary, notes "Role: cook". Who he is to the
+  owner is the question, not whether he is in People.
 
 03/06/2026  GODADDY.COM                3,597.00  (once; the owner says it was a 3-year deal)
 → one row, promoted custom, custom_cycle_days 1095, tag domain & hosting, notes
-  "Registrar: GoDaddy". A 24-month plan writes nothing more: the next renewal is three
-  years out, and add_charges writes it the day the owner asks.
+  "Registrar: GoDaddy". The owner said so, so it is no guess. A 24-month plan writes
+  nothing more: the next renewal is three years out, and add_charges writes it the day the
+  owner asks.
 
 10/06/2026  IRCTC                      4,560.00
 → one row, tag travel. It stays once.
@@ -838,8 +836,8 @@ SPOTIFY 119.00 on the 12th, Sept 2025 through April 2026, then nothing
 
 02/07/2026  APPLE.COM/BILL             0.00   then 02/08/2026 APPLE.COM/BILL 99.00
 → two rows — the first is a charge of zero, which is what a trial is — tag subscription or
-  storage; say which you chose. Seen twice, so a question: "monthly from here?" On the
-  owner's yes: promoted monthly.
+  storage; say which you chose. Seen twice, a month apart: promoted monthly as a guess,
+  "Apple (Guessed)", notes "Guessed: Seen twice, a month apart; the same rhythm assumed".
 
 28/06/2026  CREDIT CARD PAYMENT        42,310.00   → skip (the memory holds no bill row for it;
                                                      the card statement has the charges)
@@ -851,17 +849,19 @@ The questions to the owner after the facts are written, in shape — one message
 about a charge the statement already settles:
 
 > The year is in. Three things and I can finish. (1) ₹5,400 to a name I cannot place, twice
-> since March — what is it, and who is it for? (2) ₹2,000 on the 7th of every month to a
-> person's name — who is that? (3) Netflix, rent, the cook, Airtel and the society dues come
-> round every month, so they are set to continue; say if any is not. HDFC Ergo appears once
-> and Star Health twice — yearly and half-yearly, I would guess? Say it out loud if that is
-> easier; rough answers are fine.
+> since March — what is it, and who is it for? (2) Hoornapriya Amba Fue is paid ₹2,000 on the
+> 7th of every month, so she is in People as printed and the payment is set to continue —
+> who is she to you? (3) Netflix, rent, the cook, Airtel and the society dues come round
+> every month, so they are set to continue; say if any is not. HDFC Ergo and Star Health are
+> set as guesses, yearly and half-yearly, with the reason in their notes: rename either to
+> keep it, or say if it is not one. Say it out loud if that is easier; rough answers are fine.
 
 The summary to the owner once the answers are in, in shape:
 
 > 87 charges from the statement, all recorded as paid. Thirteen of them turned out to be
 > nine commitments that repeat — Netflix, rent, the cook, Airtel, the society dues, Adobe,
-> Amazon Prime, Claude, and the two premiums — each planned 24 months ahead; Spotify
+> Amazon Prime, Claude, and the two premiums, those two as guesses named so — each planned
+> 24 months ahead; Spotify
 > stopped in April and is on record that way. Twelve salary credits are in as money in,
 > kept apart from spending. Skipped: two card bill payments — the memory held no bill row
 > for either — and three ATM withdrawals. HDFC savings now stands at ₹1,23,456 as of
