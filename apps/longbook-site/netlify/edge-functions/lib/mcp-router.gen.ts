@@ -3,7 +3,7 @@
 export const ROUTER = {
   "name": "longbook",
   "description": "The owner's financial memory, over MCP. Two doors: the server inside the longbook app, which reads and writes the folder on their own machine, and this hosted one, which reads the copy they chose to push and takes writes as proposals their app applies.",
-  "contract_revision": 46,
+  "contract_revision": 47,
   "endpoint": "https://longbook.app/mcp",
   "transport": "streamable-http",
   "doors": [

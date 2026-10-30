@@ -192,6 +192,8 @@ public enum StatementCompleteness {
         guard let expected else { return report }
         var pool: [String: Int] = [:]
         for charge in charges { pool[key(charge.date, charge.amount), default: 0] += 1 }
+        // The file's own columns sign every line it prints, whatever kind the reader gave it.
+        var net = 0.0
         for line in expected.lines {
             let exact = key(line.date, line.amount)
             if let left = pool[exact], left > 0 {
@@ -201,15 +203,46 @@ public enum StatementCompleteness {
             } else {
                 report.missing.append(line)
             }
+            net += line.direction == .credit ? line.amount : -line.amount
         }
         report.extra = pool.values.reduce(0, +)
+        // A charge the file does not print still counts against the balance.
+        for charge in charges {
+            let at = key(charge.date, charge.amount)
+            guard let left = pool[at], left > 0 else { continue }
+            pool[at] = left - 1
+            net += charge.kind == "income" ? charge.amount : -charge.amount
+        }
         if let opening = expected.opening, let closing = expected.closing {
-            let returned = charges.reduce(0.0) { $0 + ($1.kind == "income" ? $1.amount : -$1.amount) }
-            let filled = report.missing.reduce(0.0) { $0 + ($1.direction == .credit ? $1.amount : -$1.amount) }
-            let off = ((opening + returned + filled - closing) * 100).rounded() / 100
+            let off = ((opening + net - closing) * 100).rounded() / 100
             report.balance = abs(off) < 0.005 ? .matches : .off(by: off)
         }
         return report
+    }
+
+    /// The reading with each line's direction set by the file's own columns: money the file
+    /// prints as in is never a spend, nor money out an income. A transfer keeps its kind.
+    public static func mended(_ prepared: StatementCloud.Prepared, expected: Expected?) -> StatementCloud.Prepared {
+        guard let expected else { return prepared }
+        var directions: [String: [StatementLine.Direction]] = [:]
+        for line in expected.lines { directions[key(line.date, line.amount), default: []].append(line.direction) }
+        var out = prepared
+        out.charges = prepared.charges.map { charge in
+            let exact = key(charge.date, charge.amount)
+            let at = directions[exact]?.isEmpty == false ? exact : swapped(charge.date).map { key($0, charge.amount) } ?? exact
+            guard let direction = directions[at]?.first else { return charge }
+            directions[at]?.removeFirst()
+            let kind: String
+            switch (direction, charge.kind) {
+            case (.credit, "spend"), (.credit, "fee"), (.credit, "for_member"): kind = "income"
+            case (.debit, "income"): kind = "spend"
+            default: return charge
+            }
+            return StatementCloud.Charge(date: charge.date, amount: charge.amount, name: charge.name, narration: charge.narration,
+                                         account: charge.account, category: charge.category, kind: kind, member: charge.member,
+                                         counterpart: charge.counterpart, counterpartKind: charge.counterpartKind, counterpartBank: charge.counterpartBank)
+        }
+        return out
     }
 
     /// Each name once, however it is cased or spaced.

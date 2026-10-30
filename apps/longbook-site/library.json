@@ -1,166 +1,180 @@
 {
-  "contract_revision": 46,
+  "contract_revision": 47,
   "tags": [
+    {
+      "kind": "commitment",
+      "name": "food & groceries",
+      "name_key": "food & groceries",
+      "icon": "fork.knife",
+      "sort": 0
+    },
+    {
+      "kind": "commitment",
+      "name": "shopping",
+      "name_key": "shopping",
+      "icon": "bag",
+      "sort": 1
+    },
     {
       "kind": "commitment",
       "name": "subscription",
       "name_key": "subscription",
       "icon": "arrow.triangle.2.circlepath",
-      "sort": 0
+      "sort": 2
     },
     {
       "kind": "commitment",
       "name": "streaming",
       "name_key": "streaming",
       "icon": "play.tv",
-      "sort": 1
+      "sort": 3
     },
     {
       "kind": "commitment",
       "name": "software",
       "name_key": "software",
       "icon": "app.badge",
-      "sort": 2
+      "sort": 4
     },
     {
       "kind": "commitment",
       "name": "ai",
       "name_key": "ai",
       "icon": "sparkles",
-      "sort": 3
+      "sort": 5
     },
     {
       "kind": "commitment",
       "name": "social media",
       "name_key": "social media",
       "icon": "at",
-      "sort": 4
+      "sort": 6
     },
     {
       "kind": "commitment",
       "name": "telecom",
       "name_key": "telecom",
       "icon": "antenna.radiowaves.left.and.right",
-      "sort": 5
+      "sort": 7
     },
     {
       "kind": "commitment",
       "name": "insurance",
       "name_key": "insurance",
       "icon": "shield.checkered",
-      "sort": 6
+      "sort": 8
     },
     {
       "kind": "commitment",
       "name": "emi",
       "name_key": "emi",
       "icon": "building.columns",
-      "sort": 7
+      "sort": 9
     },
     {
       "kind": "commitment",
       "name": "rent",
       "name_key": "rent",
       "icon": "house",
-      "sort": 8
+      "sort": 10
     },
     {
       "kind": "commitment",
       "name": "utility",
       "name_key": "utility",
       "icon": "bolt",
-      "sort": 9
+      "sort": 11
     },
     {
       "kind": "commitment",
       "name": "salary",
       "name_key": "salary",
       "icon": "banknote",
-      "sort": 10
+      "sort": 12
     },
     {
       "kind": "commitment",
       "name": "education",
       "name_key": "education",
       "icon": "graduationcap",
-      "sort": 11
+      "sort": 13
     },
     {
       "kind": "commitment",
       "name": "fees",
       "name_key": "fees",
       "icon": "doc.text",
-      "sort": 12
+      "sort": 14
     },
     {
       "kind": "commitment",
       "name": "membership",
       "name_key": "membership",
       "icon": "checkmark.seal",
-      "sort": 13
+      "sort": 15
     },
     {
       "kind": "commitment",
       "name": "domain & hosting",
       "name_key": "domain & hosting",
       "icon": "globe",
-      "sort": 14
+      "sort": 16
     },
     {
       "kind": "commitment",
       "name": "travel",
       "name_key": "travel",
       "icon": "airplane",
-      "sort": 15
+      "sort": 17
     },
     {
       "kind": "commitment",
       "name": "health & fitness",
       "name_key": "health & fitness",
       "icon": "heart",
-      "sort": 16
+      "sort": 18
     },
     {
       "kind": "commitment",
       "name": "home",
       "name_key": "home",
       "icon": "wrench.and.screwdriver",
-      "sort": 17
+      "sort": 19
     },
     {
       "kind": "commitment",
       "name": "vehicle",
       "name_key": "vehicle",
       "icon": "car",
-      "sort": 18
+      "sort": 20
     },
     {
       "kind": "commitment",
       "name": "gift",
       "name_key": "gift",
       "icon": "gift",
-      "sort": 19
+      "sort": 21
     },
     {
       "kind": "commitment",
       "name": "donation",
       "name_key": "donation",
       "icon": "heart.circle",
-      "sort": 20
+      "sort": 22
     },
     {
       "kind": "commitment",
       "name": "warranty & amc",
       "name_key": "warranty & amc",
       "icon": "checkmark.shield",
-      "sort": 21
+      "sort": 23
     },
     {
       "kind": "commitment",
       "name": "tax",
       "name_key": "tax",
       "icon": "percent",
-      "sort": 22
+      "sort": 24
     },
     {
       "kind": "member",

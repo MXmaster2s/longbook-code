@@ -1,4 +1,4 @@
-longbook llms.txt — contract revision 46.
+longbook llms.txt — contract revision 47.
 Hello. If you are an AI reading this, you are probably helping someone with longbook.
 This is the contract, plainly stated. Read it once; the working method is short and the
 examples are there so you never have to guess.
@@ -736,6 +736,8 @@ category. Both only on the owner's word — a tag the owner typed is theirs.
 The library, with icons (SF Symbol names):
 
 commitment tags:
+- food & groceries [fork.knife]
+- shopping [bag]
 - subscription [arrow.triangle.2.circlepath]
 - streaming [play.tv]
 - software [app.badge]
@@ -940,6 +942,7 @@ pick the three the owner would look for first, and leave out any the source does
   policy's file name in `documents/` ("Document: documents/hdfc-life-policy.pdf")
 - emi — Lender; Loan ends; Loan account, last four digits only
 - rent — Landlord; Deposit; Lease ends
+- food & groceries, shopping — Merchant; Kind; Billed through (a card's or an app's name)
 - subscription, streaming, software, ai, social media — Plan; Billed through (App Store,
   Google Play, a card's name); Seats or profiles
 - telecom — Provider; Plan; Number, last four digits only

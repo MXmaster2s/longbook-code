@@ -38,6 +38,8 @@ public enum StatementCounterparts {
         }
         guard let bank = charge.counterpartBank, let name = accountName(bank) else { return nil }
         let person = charge.counterpartKind == "person" ? charge.counterpart.flatMap(personName) : nil
+        // With no digits printed, the person is what tells two accounts at one bank apart.
+        if let person, !name.contains("••") { return Account(name: "\(person), \(name)", person: person) }
         return Account(name: name, person: person)
     }
 
@@ -64,7 +66,7 @@ public enum StatementCounterparts {
     /// Words a bank prints around a transfer that are no part of the account's name.
     static let noise: Set<String> = [
         "trf", "transfer", "to", "from", "by", "via", "neft", "imps", "rtgs", "upi", "pymt", "payment", "pmt",
-        "bill", "cred", "fund", "funds", "ac", "acct", "account", "no", "p2a", "p2p", "bank",
+        "bill", "cred", "fund", "funds", "ac", "acct", "account", "no", "p2a", "p2p",
     ]
     /// A bank's word for the kind of account, as the owner says it.
     static let kinds: [String: String] = [
@@ -88,7 +90,7 @@ public enum StatementCounterparts {
         for token in words(raw) where !token.contains(where: \.isNumber) && !noise.contains(token.lowercased()) {
             if let said = kinds[token.lowercased()] {
                 if !kind.contains(said) { kind.append(said) }
-            } else if bank.count < 3 {
+            } else if bank.count < 4 {
                 bank.append(cased(token, keepingLetters: acronyms.contains(token.uppercased()) || token.count <= 3))
             }
         }

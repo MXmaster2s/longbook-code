@@ -304,11 +304,21 @@ public enum StatementCloud {
                 return StatementCandidate(
                     line: line, name: name.isEmpty ? StatementNaming.plainName(charge.narration) : name,
                     tag: tag, keep: charge.date <= today, skipReason: skip, file: account,
-                    member: charge.kind == "for_member" ? charge.member : nil,
+                    member: person(on: charge),
                     direction: direction(of: charge.kind),
                     counterpartAccount: StatementCounterparts.account(on: charge)?.name
                 )
             }
+        }
+
+        /// The person a line names, whichever way the money went: the reader's member, the
+        /// person on its other side, or a listed person the charge is named after.
+        private func person(on charge: Charge) -> String? {
+            let said = charge.member?.trimmingCharacters(in: .whitespaces)
+            if let said, !said.isEmpty { return said }
+            if charge.counterpartKind == "person", let other = charge.counterpart?.trimmingCharacters(in: .whitespaces), !other.isEmpty { return other }
+            let name = charge.name.trimmingCharacters(in: .whitespaces)
+            return members.first { $0.name.caseInsensitiveCompare(name) == .orderedSame }?.name
         }
 
         /// Money in, the owner's own money moving (a transfer), or a charge.

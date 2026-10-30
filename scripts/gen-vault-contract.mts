@@ -16,7 +16,7 @@ import { STATEMENT_RULE_GROUPS } from '../packages/core/src/statement-rules'
 // Source of truth. REFUND_DAYS must match StoreClient.refundDays in the app; PRICE_USD and
 // CLOUD_USD are prose only (App Store Connect owns the real prices) — all are named here so a change is one grep away.
 const DATA_FORMAT_VERSION = 3
-const CONTRACT_REVISION = 46 // statement rules are one source; a charge's note carries its statement line; a guessed commitment is named so; people as printed; the other side's bank is an account. 45: the Changes screen is called Proposals; setup's people and accounts are hints[]; a person or an account may be starred. 44: read before writing: read_guide hands out a guide_key, every write passes it back, and a write without one is warned. 43: pay upfront: a 7-day refund replaces the trial, and a purchase includes 12 months of Cloud. 42: pictures: accounts, commitments and tags may carry a photo too, all under images/. 41:people: the tools are people, spending_by_person, add_person and update_person; a person may carry a photo; a tag's icon is one of the library's. 40:the weekly page prompt; 39: every prompt names "my longbook"; the trial is three days; a
+const CONTRACT_REVISION = 47 // the tag library holds food & groceries and shopping. 46: statement rules are one source; a charge's note carries its statement line; a guessed commitment is named so; people as printed; the other side's bank is an account. 45: the Changes screen is called Proposals; setup's people and accounts are hints[]; a person or an account may be starred. 44: read before writing: read_guide hands out a guide_key, every write passes it back, and a write without one is warned. 43: pay upfront: a 7-day refund replaces the trial, and a purchase includes 12 months of Cloud. 42: pictures: accounts, commitments and tags may carry a photo too, all under images/. 41:people: the tools are people, spending_by_person, add_person and update_person; a person may carry a photo; a tag's icon is one of the library's. 40:the weekly page prompt; 39: every prompt names "my longbook"; the trial is three days; a
 const REFUND_DAYS = 7
 const PRICE_USD = 38
 const CLOUD_USD = 4
@@ -1114,6 +1114,7 @@ pick the three the owner would look for first, and leave out any the source does
   policy's file name in \`documents/\` ("Document: documents/hdfc-life-policy.pdf")
 - emi — Lender; Loan ends; Loan account, last four digits only
 - rent — Landlord; Deposit; Lease ends
+- food & groceries, shopping — Merchant; Kind; Billed through (a card's or an app's name)
 - subscription, streaming, software, ai, social media — Plan; Billed through (App Store,
   Google Play, a card's name); Seats or profiles
 - telecom — Provider; Plan; Number, last four digits only

@@ -82,10 +82,14 @@ final class StatementCompletenessTests: XCTestCase {
                                                       opening: 1000, closing: 947.49)
         let whole = StatementCompleteness.compare(prepared: prepared([charge("2026-07-01", 100), charge("2026-07-02", 47.49, kind: "income")]), expected: expected)
         XCTAssertEqual(whole.balance, .matches)
-        // The reversal read as a spend: the review holds it the wrong way, and the sum says so.
-        let wrong = StatementCompleteness.compare(prepared: prepared([charge("2026-07-01", 100), charge("2026-07-02", 47.49)]), expected: expected)
-        XCTAssertEqual(wrong.balance, .off(by: -94.98))
-        XCTAssertEqual(wrong.summary(currency: "INR"), "2 of 2 lines · balance off by ₹94.98")
+        // The reversal read as a spend: the file's own column puts it right.
+        let misread = prepared([charge("2026-07-01", 100), charge("2026-07-02", 47.49)])
+        XCTAssertEqual(StatementCompleteness.mended(misread, expected: expected).charges.map(\.kind), ["spend", "income"])
+        // Lines that do not add up to the printed closing balance are said so.
+        let short = StatementCompleteness.Expected(lines: expected.lines, opening: 1000, closing: 900)
+        let wrong = StatementCompleteness.compare(prepared: misread, expected: short)
+        XCTAssertEqual(wrong.balance, .off(by: 47.49))
+        XCTAssertEqual(wrong.summary(currency: "INR"), "2 of 2 lines · balance off by ₹47.49")
         // A negative debit from the server counts as money back in.
         let signed = StatementCompleteness.compare(prepared: prepared([charge("2026-07-01", 100), charge("2026-07-02", -47.49)]), expected: expected)
         XCTAssertEqual(signed.balance, .matches)

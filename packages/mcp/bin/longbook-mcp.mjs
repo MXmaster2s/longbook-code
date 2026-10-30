@@ -3917,11 +3917,11 @@ this.isConnected()&&this.server.sendToolListChanged()}sendPromptListChanged(){th
 function jee(t){let e=Yo(t);return e?Object.entries(e).map(([n,s])=>{let a=sE(s),r=aE(s);return{name:n,description:a,required:!r}}):[]}function ol(t){let n=Yo(t)?.method;if(!n)throw new Error("Schema is missing a method literal");let s=Th(n);if(typeof s=="string")return s;throw new Error("Schema method literal must be a string")}function xO(t){return{completion:{values:t.slice(0,100),total:t.length,hasMore:t.length>100}}}var Tf={completion:{values:[],hasMore:!1}};import AO from"node:process";var _ee=10*1024*1024,h0=class{constructor(e){this._maxBufferSize=e?.maxBufferSize??_ee}append(e){if((this._buffer?.length??0)+e.length>this._maxBufferSize)throw this.clear(),new Error(`ReadBuffer exceeded maximum size of ${this._maxBufferSize} bytes`);this._buffer=this._buffer?Buffer.concat([this._buffer,e]):e}readMessage(){if(!this._buffer)return null;let e=this._buffer.indexOf(`
 `);if(e===-1)return null;let n=this._buffer.toString("utf8",0,e).replace(/\r$/,"");return this._buffer=this._buffer.subarray(e+1),See(n)}clear(){this._buffer=void 0}};function See(t){return DE.parse(JSON.parse(t))}function SO(t){return JSON.stringify(t)+`
 `}var d0=class{constructor(e=AO.stdin,n=AO.stdout,s){this._stdin=e,this._stdout=n,this._started=!1,this._ondata=a=>{try{this._readBuffer.append(a),this.processReadBuffer()}catch(r){this.onerror?.(r),this.close().catch(()=>{})}},this._onerror=a=>{this.onerror?.(a)},this._readBuffer=new h0({maxBufferSize:s?.maxBufferSize})}async start(){if(this._started)throw new Error("StdioServerTransport already started! If using Server class, note that connect() calls start() automatically.");this._started=!0,this.
-_stdin.on("data",this._ondata),this._stdin.on("error",this._onerror)}processReadBuffer(){for(;;)try{let e=this._readBuffer.readMessage();if(e===null)break;this.onmessage?.(e)}catch(e){this.onerror?.(e)}}async close(){this._stdin.off("data",this._ondata),this._stdin.off("error",this._onerror),this._stdin.listenerCount("data")===0&&this._stdin.pause(),this._readBuffer.clear(),this.onclose?.()}send(e){return new Promise(n=>{let s=SO(e);this._stdout.write(s)?n():this._stdout.once("drain",n)})}};import{realpathSync as Cie}from"node:fs";import{pathToFileURL as Tie}from"node:url";var qO={INR:"\u20B9",USD:"$",EUR:"\u20AC",GBP:"\xA3",AED:"AED",SGD:"S$",AUD:"A$",CAD:"C$",JPY:"\xA5"};var u0=[{kind:"commitment",name:"subscription",icon:"arrow.triangle.2.circlepath"},{kind:"commitment",name:"streaming",icon:"play.tv"},{kind:"commitment",name:"software",icon:"app.badge"},{kind:"commitment",name:"ai",icon:"sparkles"},{kind:"commitment",name:"social media",icon:"at"},{kind:"commitment",name:"telecom",icon:"antenna.radiowaves.left.and.right"},{kind:"commitment",name:"insurance",icon:"shield.checkered"},{kind:"commitment",name:"emi",icon:"building.columns"},{kind:"commitment",name:"\
-rent",icon:"house"},{kind:"commitment",name:"utility",icon:"bolt"},{kind:"commitment",name:"salary",icon:"banknote"},{kind:"commitment",name:"education",icon:"graduationcap"},{kind:"commitment",name:"fees",icon:"doc.text"},{kind:"commitment",name:"membership",icon:"checkmark.seal"},{kind:"commitment",name:"domain & hosting",icon:"globe"},{kind:"commitment",name:"travel",icon:"airplane"},{kind:"commitment",name:"health & fitness",icon:"heart"},{kind:"commitment",name:"home",icon:"wrench.and.screw\
-driver"},{kind:"commitment",name:"vehicle",icon:"car"},{kind:"commitment",name:"gift",icon:"gift"},{kind:"commitment",name:"donation",icon:"heart.circle"},{kind:"commitment",name:"warranty & amc",icon:"checkmark.shield"},{kind:"commitment",name:"tax",icon:"percent"},{kind:"member",name:"family",icon:"person.2"},{kind:"member",name:"household help",icon:"person.badge.clock"},{kind:"member",name:"team",icon:"briefcase"},{kind:"member",name:"vendor",icon:"shippingbox"},{kind:"member",name:"professi\
-onal",icon:"person.text.rectangle"},{kind:"member",name:"landlord",icon:"building.2"},{kind:"member",name:"tenant",icon:"key"},{kind:"member",name:"friend",icon:"hand.wave"},{kind:"account",name:"credit card",icon:"creditcard.fill"},{kind:"account",name:"debit card",icon:"creditcard"},{kind:"account",name:"bank account",icon:"building.columns"},{kind:"account",name:"upi",icon:"qrcode"},{kind:"account",name:"wallet",icon:"wallet.pass"},{kind:"account",name:"cash",icon:"banknote"},{kind:"account",
-name:"brokerage",icon:"chart.line.uptrend.xyaxis"},{kind:"account",name:"loan account",icon:"doc.plaintext"}],CO=t=>t.trim().toLowerCase();function u4(t,e){let n=CO(e);return u0.find(s=>s.kind===t&&CO(s.name)===n)??null}var no=`longbook llms.txt \u2014 contract revision 46.
+_stdin.on("data",this._ondata),this._stdin.on("error",this._onerror)}processReadBuffer(){for(;;)try{let e=this._readBuffer.readMessage();if(e===null)break;this.onmessage?.(e)}catch(e){this.onerror?.(e)}}async close(){this._stdin.off("data",this._ondata),this._stdin.off("error",this._onerror),this._stdin.listenerCount("data")===0&&this._stdin.pause(),this._readBuffer.clear(),this.onclose?.()}send(e){return new Promise(n=>{let s=SO(e);this._stdout.write(s)?n():this._stdout.once("drain",n)})}};import{realpathSync as Cie}from"node:fs";import{pathToFileURL as Tie}from"node:url";var qO={INR:"\u20B9",USD:"$",EUR:"\u20AC",GBP:"\xA3",AED:"AED",SGD:"S$",AUD:"A$",CAD:"C$",JPY:"\xA5"};var u0=[{kind:"commitment",name:"food & groceries",icon:"fork.knife"},{kind:"commitment",name:"shopping",icon:"bag"},{kind:"commitment",name:"subscription",icon:"arrow.triangle.2.circlepath"},{kind:"commitment",name:"streaming",icon:"play.tv"},{kind:"commitment",name:"software",icon:"app.badge"},{kind:"commitment",name:"ai",icon:"sparkles"},{kind:"commitment",name:"social media",icon:"at"},{kind:"commitment",name:"telecom",icon:"antenna.radiowaves.left.and.right"},{kind:"commitment",name:"insura\
+nce",icon:"shield.checkered"},{kind:"commitment",name:"emi",icon:"building.columns"},{kind:"commitment",name:"rent",icon:"house"},{kind:"commitment",name:"utility",icon:"bolt"},{kind:"commitment",name:"salary",icon:"banknote"},{kind:"commitment",name:"education",icon:"graduationcap"},{kind:"commitment",name:"fees",icon:"doc.text"},{kind:"commitment",name:"membership",icon:"checkmark.seal"},{kind:"commitment",name:"domain & hosting",icon:"globe"},{kind:"commitment",name:"travel",icon:"airplane"},
+{kind:"commitment",name:"health & fitness",icon:"heart"},{kind:"commitment",name:"home",icon:"wrench.and.screwdriver"},{kind:"commitment",name:"vehicle",icon:"car"},{kind:"commitment",name:"gift",icon:"gift"},{kind:"commitment",name:"donation",icon:"heart.circle"},{kind:"commitment",name:"warranty & amc",icon:"checkmark.shield"},{kind:"commitment",name:"tax",icon:"percent"},{kind:"member",name:"family",icon:"person.2"},{kind:"member",name:"household help",icon:"person.badge.clock"},{kind:"member",
+name:"team",icon:"briefcase"},{kind:"member",name:"vendor",icon:"shippingbox"},{kind:"member",name:"professional",icon:"person.text.rectangle"},{kind:"member",name:"landlord",icon:"building.2"},{kind:"member",name:"tenant",icon:"key"},{kind:"member",name:"friend",icon:"hand.wave"},{kind:"account",name:"credit card",icon:"creditcard.fill"},{kind:"account",name:"debit card",icon:"creditcard"},{kind:"account",name:"bank account",icon:"building.columns"},{kind:"account",name:"upi",icon:"qrcode"},{kind:"\
+account",name:"wallet",icon:"wallet.pass"},{kind:"account",name:"cash",icon:"banknote"},{kind:"account",name:"brokerage",icon:"chart.line.uptrend.xyaxis"},{kind:"account",name:"loan account",icon:"doc.plaintext"}],CO=t=>t.trim().toLowerCase();function u4(t,e){let n=CO(e);return u0.find(s=>s.kind===t&&CO(s.name)===n)??null}var no=`longbook llms.txt \u2014 contract revision 47.
 Hello. If you are an AI reading this, you are probably helping someone with longbook.
 This is the contract, plainly stated. Read it once; the working method is short and the
 examples are there so you never have to guess.
@@ -4659,6 +4659,8 @@ category. Both only on the owner's word \u2014 a tag the owner typed is theirs.
 The library, with icons (SF Symbol names):
 
 commitment tags:
+- food & groceries [fork.knife]
+- shopping [bag]
 - subscription [arrow.triangle.2.circlepath]
 - streaming [play.tv]
 - software [app.badge]
@@ -4863,6 +4865,7 @@ pick the three the owner would look for first, and leave out any the source does
   policy's file name in \`documents/\` ("Document: documents/hdfc-life-policy.pdf")
 - emi \u2014 Lender; Loan ends; Loan account, last four digits only
 - rent \u2014 Landlord; Deposit; Lease ends
+- food & groceries, shopping \u2014 Merchant; Kind; Billed through (a card's or an app's name)
 - subscription, streaming, software, ai, social media \u2014 Plan; Billed through (App Store,
   Google Play, a card's name); Seats or profiles
 - telecom \u2014 Provider; Plan; Number, last four digits only
@@ -5435,7 +5438,7 @@ resources, and \`read_guide\` returns any chapter of this text by name. The owne
 `,f4=`{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://longbook.app/schema/longbook.schema.json",
-  "$comment": "longbook contract revision 46 \u2014 generated by scripts/gen-vault-contract.mts, never edited by hand.",
+  "$comment": "longbook contract revision 47 \u2014 generated by scripts/gen-vault-contract.mts, never edited by hand.",
   "title": "longbook financial memory",
   "description": "A longbook vault: every financial commitment the owner asked longbook to remember. Self-describing \u2014 any tool can read and safely edit it using this schema and llms.txt.",
   "type": "object",
@@ -6123,168 +6126,182 @@ second beside it. Optional; a vault without this array has nothing planned and n
   }
 }
 `,f0=`{
-  "contract_revision": 46,
+  "contract_revision": 47,
   "tags": [
+    {
+      "kind": "commitment",
+      "name": "food & groceries",
+      "name_key": "food & groceries",
+      "icon": "fork.knife",
+      "sort": 0
+    },
+    {
+      "kind": "commitment",
+      "name": "shopping",
+      "name_key": "shopping",
+      "icon": "bag",
+      "sort": 1
+    },
     {
       "kind": "commitment",
       "name": "subscription",
       "name_key": "subscription",
       "icon": "arrow.triangle.2.circlepath",
-      "sort": 0
+      "sort": 2
     },
     {
       "kind": "commitment",
       "name": "streaming",
       "name_key": "streaming",
       "icon": "play.tv",
-      "sort": 1
+      "sort": 3
     },
     {
       "kind": "commitment",
       "name": "software",
       "name_key": "software",
       "icon": "app.badge",
-      "sort": 2
+      "sort": 4
     },
     {
       "kind": "commitment",
       "name": "ai",
       "name_key": "ai",
       "icon": "sparkles",
-      "sort": 3
+      "sort": 5
     },
     {
       "kind": "commitment",
       "name": "social media",
       "name_key": "social media",
       "icon": "at",
-      "sort": 4
+      "sort": 6
     },
     {
       "kind": "commitment",
       "name": "telecom",
       "name_key": "telecom",
       "icon": "antenna.radiowaves.left.and.right",
-      "sort": 5
+      "sort": 7
     },
     {
       "kind": "commitment",
       "name": "insurance",
       "name_key": "insurance",
       "icon": "shield.checkered",
-      "sort": 6
+      "sort": 8
     },
     {
       "kind": "commitment",
       "name": "emi",
       "name_key": "emi",
       "icon": "building.columns",
-      "sort": 7
+      "sort": 9
     },
     {
       "kind": "commitment",
       "name": "rent",
       "name_key": "rent",
       "icon": "house",
-      "sort": 8
+      "sort": 10
     },
     {
       "kind": "commitment",
       "name": "utility",
       "name_key": "utility",
       "icon": "bolt",
-      "sort": 9
+      "sort": 11
     },
     {
       "kind": "commitment",
       "name": "salary",
       "name_key": "salary",
       "icon": "banknote",
-      "sort": 10
+      "sort": 12
     },
     {
       "kind": "commitment",
       "name": "education",
       "name_key": "education",
       "icon": "graduationcap",
-      "sort": 11
+      "sort": 13
     },
     {
       "kind": "commitment",
       "name": "fees",
       "name_key": "fees",
       "icon": "doc.text",
-      "sort": 12
+      "sort": 14
     },
     {
       "kind": "commitment",
       "name": "membership",
       "name_key": "membership",
       "icon": "checkmark.seal",
-      "sort": 13
+      "sort": 15
     },
     {
       "kind": "commitment",
       "name": "domain & hosting",
       "name_key": "domain & hosting",
       "icon": "globe",
-      "sort": 14
+      "sort": 16
     },
     {
       "kind": "commitment",
       "name": "travel",
       "name_key": "travel",
       "icon": "airplane",
-      "sort": 15
+      "sort": 17
     },
     {
       "kind": "commitment",
       "name": "health & fitness",
       "name_key": "health & fitness",
       "icon": "heart",
-      "sort": 16
+      "sort": 18
     },
     {
       "kind": "commitment",
       "name": "home",
       "name_key": "home",
       "icon": "wrench.and.screwdriver",
-      "sort": 17
+      "sort": 19
     },
     {
       "kind": "commitment",
       "name": "vehicle",
       "name_key": "vehicle",
       "icon": "car",
-      "sort": 18
+      "sort": 20
     },
     {
       "kind": "commitment",
       "name": "gift",
       "name_key": "gift",
       "icon": "gift",
-      "sort": 19
+      "sort": 21
     },
     {
       "kind": "commitment",
       "name": "donation",
       "name_key": "donation",
       "icon": "heart.circle",
-      "sort": 20
+      "sort": 22
     },
     {
       "kind": "commitment",
       "name": "warranty & amc",
       "name_key": "warranty & amc",
       "icon": "checkmark.shield",
-      "sort": 21
+      "sort": 23
     },
     {
       "kind": "commitment",
       "name": "tax",
       "name_key": "tax",
       "icon": "percent",
-      "sort": 22
+      "sort": 24
     },
     {
       "kind": "member",
@@ -6773,7 +6790,7 @@ title:"The tag vocabulary",description:"Every tag this vault already uses \u2014
 , whether a hosted copy exists and when it was last pushed, how many proposals are waiting for the owner's app, which ones it could not apply and why (failed_to_apply), and where the schemas live. One call, so it also shows whether the connection can read and write.",inputSchema:Of},{name:"read_guide",annotations:Da,title:"Read the guide",description:`Returns longbook's llms.txt \u2014 the contract and working method for an AI using longbook \u2014 whole, or one chapter by name. Chapters: ${Kee.
 join(", ")}. "importing-statements" covers importing, "reading-reports" report questions, "unattended-runs" scheduled runs, "daily-email-round" the morning look at the owner's mail. Given one of longbook's ${aa.length} prompts \u2014 by its name (${aa.map(t=>t.id).join(", ")}) or the owner's own words for it, a month's name and all ("${Gee}") \u2014 it returns that prompt's procedure, with the chapter it builds on. A partial name finds its chapter.`,inputSchema:{type:"object",properties:{section:{
 type:"string",description:"A chapter id or a word from its title; omit for the whole guide."}}}}];var dl={uri:"longbook://vault/library.json",name:"library",title:"Tag library",description:"The seeded tag library \u2014 names and icons for commitments, members and accounts.",mimeType:"application/json"},P4=["next-payment","upcoming","cashflow","commitments"].map(t=>({uri:`ui://longbook/${t}.html`,name:`card-${t}`,title:`${t.replace("-"," ")} card`,description:"A complete, self-contained HTML card over the memory as it stands.",mimeType:"text/html;profile=mcp-app"}));var M4='The month the owner means, by name, such as "October". Left out, the month in progress.',Zee={name:"month",description:M4,required:!1},Yee=t=>({name:t.id,title:t.title,description:t.result,...t.template?{arguments:[Zee]}:{}}),Nf=aa.map(Yee),Xee=/^(january|february|march|april|may|june|july|august|september|october|november|december)$/i,Jee=["January","February","March","April","May","June","July","August","September","October","November","December"],Qee=t=>Xee.test(t)?t[0].toUpperCase()+
-t.slice(1).toLowerCase():t;function q0(t,e,n=new Date,s=a=>a.getUTCMonth()){let a=aa.find(o=>o.id===t);if(!a)return null;let r=typeof e=="string"&&e.trim()?Qee(e.trim()):Jee[s(n)],i=[p4(a,r),"","longbook's procedure for this, to follow step by step with every rule in its guide:",...a.procedure];return a.chapter&&i.push("",`The method in full: read_guide("${a.chapter}")`),i.push("",`Pass guide_key "${Qh(a,46)}" with every write this procedure makes.`),{description:a.result,messages:[{role:"user",
+t.slice(1).toLowerCase():t;function q0(t,e,n=new Date,s=a=>a.getUTCMonth()){let a=aa.find(o=>o.id===t);if(!a)return null;let r=typeof e=="string"&&e.trim()?Qee(e.trim()):Jee[s(n)],i=[p4(a,r),"","longbook's procedure for this, to follow step by step with every rule in its guide:",...a.procedure];return a.chapter&&i.push("",`The method in full: read_guide("${a.chapter}")`),i.push("",`Pass guide_key "${Qh(a,47)}" with every write this procedure makes.`),{description:a.result,messages:[{role:"user",
 content:{type:"text",text:i.join(`
 `)}}]}}var ne=class extends Error{};var ete=new Set(["importing-statements","first-run","month-report","guide"]),C0={type:"string",maxLength:200,description:"The guide_key read_guide returned with the prompt or chapter this write follows."};function D4(t,e){let n=typeof e.guide_key=="string"?e.guide_key.trim():"",s=" From the next rulebook, a write without the right guide_key is refused.";if(!n)return"No guide_key: call read_guide with the owner's prompt or this task's chapter, follow it, and pass the guide_key it returns with eve\
 ry write."+s;let r=new Map([...p0(no),...p0(t)]).get(n);return r?!ete.has(r)&&JSON.stringify(e).includes('"basis":"statement"')?'Rows with basis "statement" follow read_guide("importing-statements") or a prompt built on it; this guide_key is from "'+r+'".'+s:null:`This guide_key is not from rulebook ${ji(t)??""}'s guide: read the chapter again with read_guide and pass the key it returns.`+s}var O4={title:"longbook",description:"Your longbook of bills, subscriptions and expenses, for your AI to read and to suggest changes to.",websiteUrl:"https://longbook.app",icons:[{src:"https://longbook.app/apple-touch-icon.png",mimeType:"image/png",sizes:["180x180"]}]};var T0=["add_commitments","update_commitment","mark_paid","add_charges","remove_charges","cancel_commitment","promote_to_recurring","leave_insight","update_account","update_person","update_charge","set_planned_count","add_person","add_account","rename_tag","delete_tag","delete_commitment","create_report"],tte={update_member:"update_person",add_member:"add_person",members:"people",spending_by_member:"spending_by_person"},KO=t=>tte[t]??t,nte=256*1024,Zr=1e15,Ff="the amount can't be more than 1,000\

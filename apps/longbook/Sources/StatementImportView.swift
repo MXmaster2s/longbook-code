@@ -869,7 +869,7 @@ struct StatementImportView: View {
         return HStack(alignment: .center, spacing: LBSpacing.s2) {
             tickButton(ticked, toggle: toggle)
             Button { Measure.used("tick_card"); toggle() } label: {
-                LBCommitmentRow(name: repeated.name, facts: repeatFacts(repeated),
+                LBCommitmentRow(name: repeated.writtenName, facts: repeatFacts(repeated),
                                 amount: repeated.amount > 0 ? fmtMoney(repeated.amount, money) : "",
                                 ink: ticked ? LBColor.brand : LBColor.textQuaternary)
                     .opacity(ticked ? 1 : 0.6)
@@ -1863,6 +1863,7 @@ struct StatementImportView: View {
         let unread = files[index].unread
         if !unread.isEmpty { prepared.notes = (["Not read: " + unread.joined(separator: "; ") + "."] + [prepared.notes]).joined(separator: " ") }
         // Lines still missing are read from the file itself, ticked and marked so.
+        prepared = StatementCompleteness.mended(prepared, expected: expected)
         let report = StatementCompleteness.compare(prepared: prepared, expected: expected)
         files[index].report = report
         files[index].filled = StatementCompleteness.fill(missing: report.missing, among: tags)

@@ -6,6 +6,8 @@ export type LibraryTag = { kind: string; name: string; icon: string }
 
 export const LIBRARY_TAGS: LibraryTag[] = [
   // -- commitments -------------------------------------------------------------------------
+  { kind: 'commitment', name: 'food & groceries', icon: 'fork.knife' },
+  { kind: 'commitment', name: 'shopping', icon: 'bag' },
   { kind: 'commitment', name: 'subscription', icon: 'arrow.triangle.2.circlepath' },
   { kind: 'commitment', name: 'streaming', icon: 'play.tv' },
   { kind: 'commitment', name: 'software', icon: 'app.badge' },
