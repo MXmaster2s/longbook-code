@@ -1088,7 +1088,25 @@ struct RenewalFormView: View {
     }
 
     /// On a form for one charge it is that form's only notes, so it is called Notes.
+    @ViewBuilder
     private var chargeNoteField: some View {
+        if ChargeNote.isStatementLine(note), let line = ChargeNote.labelled(note) {
+            // The bank's own words stay as read; the form shows them, it does not retype them.
+            FormRow {
+                FormQuestion(line.label)
+            } content: {
+                Text(line.value)
+                    .lbText(.body)
+                    .foregroundStyle(LBColor.textSecondary.color)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .textSelection(.enabled)
+            }
+        } else {
+            plainChargeNoteField
+        }
+    }
+
+    private var plainChargeNoteField: some View {
         FormRow {
             FormQuestion(onCharge ? "Notes" : "Charge note")
         } content: {

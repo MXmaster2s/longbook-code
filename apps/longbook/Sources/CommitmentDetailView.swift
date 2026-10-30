@@ -495,7 +495,7 @@ struct CommitmentHistoryView: View {
                         Button { Measure.used("editing"); editing = charge } label: {
                             LBListRow(
                                 LB.longDate(charge.date),
-                                secondary: charge.row.note,
+                                secondary: ChargeNote.labelled(charge.row.note).map { $0.label == "Note" ? $0.value : "\($0.label): \($0.value)" },
                                 amount: fmtMoney(charge.amount, charge.currency),
                                 chevron: true
                             )

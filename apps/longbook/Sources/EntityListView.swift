@@ -584,6 +584,11 @@ struct EntityListView: View {
                                       moments: summary.upcoming, total: summary.commitments, showAll: showAll(card)) {
                         viewing = EntityEditView.CommitmentRef(id: $0)
                     }
+                    if card.isReal {
+                        EntityRelatedPanels(model: model, kind: kind, id: card.id) {
+                            viewing = EntityEditView.CommitmentRef(id: $0)
+                        }
+                    }
                 }
                 .padding(LBSpacing.s4)
             }
@@ -628,6 +633,11 @@ struct EntityDetailView: View {
                     if kind == .paymentMethod, card.isReal {
                         let summary = model.entitySummary(kind, id: card.id)
                         EntityRecentPanel(moments: summary.recent, total: summary.charges) {
+                            viewing = EntityEditView.CommitmentRef(id: $0)
+                        }
+                    }
+                    if card.isReal {
+                        EntityRelatedPanels(model: model, kind: kind, id: card.id) {
                             viewing = EntityEditView.CommitmentRef(id: $0)
                         }
                     }

@@ -60,6 +60,39 @@ struct EntityRecentPanel: View {
     }
 }
 
+/// What moved money to an account from another, and the accounts a person holds: the
+/// rows an account or person page lists under its own commitments.
+struct EntityRelatedPanels: View {
+    let model: DashboardModel
+    let kind: VaultPatch.EntityKind
+    let id: String
+    let open: (String) -> Void
+
+    var body: some View {
+        if kind == .paymentMethod {
+            let summary = model.entitySummary(kind, id: id)
+            if summary.transferCount > 0 {
+                EntityRecentPanel(eyebrow: "Transfers to this account", moments: summary.transfers,
+                                  total: summary.transferCount, open: open)
+            }
+        } else {
+            let accounts = model.accounts(ofMember: id)
+            if !accounts.isEmpty {
+                LBPanel(eyebrow: "Accounts") {
+                    VStack(alignment: .leading, spacing: LBSpacing.s1) {
+                        ForEach(accounts, id: \.id) { account in
+                            Text(account.name)
+                                .lbText(.body)
+                                .foregroundStyle(LBColor.textPrimary.color)
+                                .frame(maxWidth: .infinity, minHeight: 32, alignment: .leading)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 /// Two things to do from the editor without leaving it: add a commitment, and see every
 /// commitment that names this account or person, listed in place.
 struct EntityQuickActions: View {
