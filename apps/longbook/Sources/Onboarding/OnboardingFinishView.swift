@@ -56,12 +56,11 @@ struct OnboardingFinishView: View {
         .onKeyPress(.upArrow) { onBack(); return .handled }
         .onKeyPress(.leftArrow) { onBack(); return .handled }
         // A statement kept opens the book: the reader never comes back to this step.
+        // The sheet takes the import's own size: a 560 pt frame here held it at that width on
+        // the Mac, and the review, laid out at 760, was cut off on both sides.
         .measured("onboarding_finish_importing", .sheet, when: importing)
         .sheet(isPresented: $importing, onDismiss: { if model.chargeCount > chargesBefore { onDone() } }) {
             StatementImportView(model: model, auth: auth, context: .setup, picksOnOpen: true, onDone: { importing = false })
-                #if os(macOS)
-                .frame(minWidth: 560, minHeight: 620)
-                #endif
         }
         .measured("onboarding_finish_showing_ai", .sheet, when: showingAI)
         .sheet(isPresented: $showingAI) { aiSheet }
