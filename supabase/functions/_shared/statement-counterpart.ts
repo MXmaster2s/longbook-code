@@ -1,6 +1,7 @@
 // The other side of a statement line: the account or person a transfer, a card bill or a
 // payment goes to or comes from. The shape the reader answers in, and the tidy every
 // answer passes through, so no full number ever leaves the server.
+import { statementRuleText } from './statement-rules.ts'
 
 /** Each charge's counterpart fields: required, so a reader that cannot tell answers null. */
 export const COUNTERPART_PROPERTIES = {
@@ -13,13 +14,18 @@ export const COUNTERPART_PROPERTIES = {
     anyOf: [{ type: 'string', enum: ['account', 'person'] }, { type: 'null' }],
     description: 'account for a bank account, card or wallet; person for a person; null when counterpart is null',
   },
+  counterpart_bank: {
+    type: ['string', 'null'],
+    description: 'The bank account printed beside a person on the other side, or the owner\'s own other account on an own_transfer or card_bill: bank, kind, last four digits after "••" ("Axis savings ••1234"); else null',
+  },
 } as const
 
-export const COUNTERPART_REQUIRED = ['counterpart', 'counterpart_kind'] as const
+export const COUNTERPART_REQUIRED = ['counterpart', 'counterpart_kind', 'counterpart_bank'] as const
 
-/** What the charges prompt says about the other side. */
+/** What the charges prompt says about the other side: the rules, then which field holds what. */
 export const COUNTERPART_INSTRUCTIONS =
-  'counterpart: the other side of a transfer, a card bill payment or a payment, only when the line itself prints it ("TRF TO HDFC SAV XX4417", "CRED CARD PYMT AXIS ••1234", "UPI/RAMESH K"); otherwise null, never guessed. Write an account the way the owner would say it, bank, kind and at most the last four digits after "••" ("HDFC savings ••4417", "Axis card ••1234", "Paytm wallet"), and a person by the name printed ("Ramesh K"), never a UPI id, a phone number or a full account or card number. counterpart_kind is "account" for a bank account, card or wallet, "person" for a person, null when counterpart is null. A merchant or a shop is never a counterpart, and neither is the statement\'s own account. The owner\'s other accounts are: a transfer to the owner\'s own savings, card or wallet prints that account, and it is the counterpart with kind "account", the line\'s kind (own_transfer, card_bill) saying it is the owner\'s. Never leave a counterpart out for being the owner\'s or for being seen once.'
+  statementRuleText('counterparts') +
+  ' counterpart holds the other side ("HDFC savings ••4417", "Ramesh K"), counterpart_kind "account" or "person", both null when the line prints none. counterpart_bank holds the bank account printed beside a person, or the owner\'s own other account when the kind is own_transfer or card_bill; else null.'
 
 const MAX_COUNTERPART_CHARS = 60
 
@@ -45,7 +51,7 @@ export function tidyCounterpart(value: unknown): string | null {
   return text.length > MAX_COUNTERPART_CHARS ? text.slice(0, MAX_COUNTERPART_CHARS).trim() : text
 }
 
-/** Every charge's counterpart tidied, and its kind kept only beside a counterpart. */
+/** Every charge's counterpart and bank tidied, the kind kept only beside a counterpart. */
 export function tidyCounterparts(result: Record<string, unknown>): Record<string, unknown> {
   const charges = Array.isArray(result.charges) ? result.charges : null
   if (!charges) return result
@@ -56,7 +62,7 @@ export function tidyCounterparts(result: Record<string, unknown>): Record<string
       const row = charge as Record<string, unknown>
       const counterpart = tidyCounterpart(row.counterpart)
       const kind = counterpart && (row.counterpart_kind === 'account' || row.counterpart_kind === 'person') ? row.counterpart_kind : null
-      return { ...row, counterpart: kind ? counterpart : null, counterpart_kind: kind }
+      return { ...row, counterpart: kind ? counterpart : null, counterpart_kind: kind, counterpart_bank: tidyCounterpart(row.counterpart_bank) }
     }),
   }
 }

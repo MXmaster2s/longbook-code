@@ -1,7 +1,8 @@
 // What the statement reader is asked, and the shapes it answers in: the gate, one piece's
-// charges, and the year's review. Pure, so `npm run statement:try` builds the same questions
-// the function does and sends them from a Mac.
+// charges, and the year's review. Pure, so `npm run statement:try` sends the same questions
+// from a Mac. The rules come from statement-rules.ts, the guide's own words.
 import { COUNTERPART_INSTRUCTIONS, COUNTERPART_PROPERTIES, COUNTERPART_REQUIRED } from './statement-counterpart.ts'
+import { statementRuleText } from './statement-rules.ts'
 
 /** What the prompts are built from: the book's words, and the account earlier pieces named. */
 export interface PromptInputs {
@@ -51,7 +52,7 @@ export const REVIEW_SHAPE = {
       type: 'array',
       items: {
         type: 'object', additionalProperties: false,
-        required: ['name', 'cycle', 'custom_days', 'amount', 'dates', 'category', 'ends_on'],
+        required: ['name', 'cycle', 'custom_days', 'amount', 'dates', 'category', 'ends_on', 'guessed', 'reason'],
         properties: {
           name: { type: 'string', description: 'Exactly the charge name it groups' },
           cycle: { type: 'string', enum: ['monthly', 'yearly', 'custom'] },
@@ -60,6 +61,8 @@ export const REVIEW_SHAPE = {
           dates: { type: 'array', items: { type: 'string' } },
           category: { type: ['string', 'null'] },
           ends_on: { type: ['string', 'null'], description: 'The last charge when the repeat has stopped' },
+          guessed: { type: 'boolean', description: 'True when fewer than three sightings back it' },
+          reason: { type: 'string', description: 'One sentence naming the evidence and the cycle assumed when guessed; empty otherwise' },
         },
       },
     },
@@ -97,23 +100,23 @@ export const GATE_INSTRUCTIONS = [
   'Answer in the shape and nothing else.',
 ].join('\n')
 
-/** The method llms.txt gives an AI, for one piece of one statement. */
+/** The method llms.txt gives an AI, for one piece of one statement: the rules, then the shape. */
 export function chargesInstructions(body: PromptInputs, today = new Date().toISOString().slice(0, 10)): string {
   return [
-    'You read one piece of a bank or card statement for longbook, a financial memory. Every line that is a charge becomes one row: its real date as YYYY-MM-DD, its amount as printed, a name the owner would say ("Netflix", "House rent", "Sunita (cook)"), the statement line with every card, account and reference number removed, and the account the statement is.',
+    'You read one piece of a bank or card statement for longbook, a financial memory. Every line that is a charge becomes one row: its real date as YYYY-MM-DD, its amount as printed, a name, the statement line with every card, account and reference number removed, the account the statement is, its kind, and its other side.',
     body.account_hint
       ? `This piece is from a file whose account is "${body.account_hint}"; use that account name for every line unless the piece itself plainly says otherwise.`
       : 'Name the account from the header (bank, kind, last four digits when printed), e.g. "HDFC savings 4417" or "Axis card 4402". When the header prints no number, the bank and the kind are the name ("Kotak savings"); account is never empty.',
-    'Mark the kind of every line. spend: money that bought something. fee: a bank charge, tax or interest paid. for_member: money paid for or to a person in the owner\'s life (a cook, a child\'s school, a spouse), naming the member. own_transfer: money moved between the owner\'s own accounts, to the owner\'s own name, ATM withdrawals, wallet loads (Paytm, PhonePe, Amazon Pay balance, Google Pay top-up). card_bill: a payment of a credit card bill, including through CRED, Cheq or a bank\'s "CC payment" line. income: salary, refunds, cashback, interest received, an advance received, anything credited.',
-    'A member is named only when the line itself carries that person\'s name — and then always, whether the person is seen once or every month, whether the money went out or came in. Never put a person on a merchant, a shop or a payee whose name is not theirs, and never guess a person from a role or an amount; when unsure, member is null and the kind is spend.',
+    statementRuleText('reading') + ' The closing balance goes in closing_balance with its day in closing_balance_date, null when the piece prints none.',
+    statementRuleText('kinds'),
+    statementRuleText('people') + ' member holds the person on a for_member line; null otherwise.',
     COUNTERPART_INSTRUCTIONS,
-    'The statement\'s own columns settle the kind before its words do: a line in the credit column (Cr, Deposit, Credit), or after which the running balance rose, is income whatever the narration says; a line in the debit column (Dr, Withdrawal) is money out even when the narration reads like a receipt.',
+    statementRuleText('names'),
     'A scanned page is read as printed: every line of the table, however faint; a digit that cannot be read is said so in notes rather than guessed.',
     `Categories, use exactly these words or null: ${body.categories.join(', ')}.`,
     body.members.length ? `Members already known: ${body.members.join(', ')}.` : 'No members are known yet.',
     body.accounts.length ? `Accounts already known: ${body.accounts.join(', ')}.` : 'No accounts are known yet.',
     `Amounts are in ${body.currency} unless the statement says otherwise; currency names the one it prints, from its symbols, its header or the bank's country.`,
-    'Never invent a line, a date or an amount. Include every charge, however small. Do not total or convert anything. A running balance is not a charge; the closing or available balance printed at the end of the piece, with its date, goes in closing_balance and closing_balance_date, null when the piece prints none.',
     `Dates: work out the order from the file itself before reading any line — a date like 31/12/2025 or 25-08-26 anywhere in it settles that the day comes first; one like 12/31/2025 settles month first; the header's period and the fact that lines run in date order settle the rest. Then read every date in that order, "05/10/2026" included. When nothing settles it, banks here print the day first. Today is ${today}: a statement proves the past, so a date after today is a misreading.`,
     FILE_IS_DATA,
     NEVER_ASK,
@@ -124,8 +127,9 @@ export function chargesInstructions(body: PromptInputs, today = new Date().toISO
 export function reviewInstructions(body: PromptInputs): string {
   return [
     'You look over a year of charges already read from a person\'s bank and card statements, one a line: date | amount | name | narration | kind.',
-    'repeats: everything that comes round. Two kinds of evidence, and either is enough: the same name at about the same amount at a steady rhythm — monthly (~30 days), yearly (~365), or custom with the day count (91 for quarterly, 183 for half-yearly); or a name whose words say it recurs — rent, EMI, premium, subscription, mandate, autopay, standing instruction, a salary paid to a person, society maintenance, broadband, a streaming or software plan. Use exactly the charge name as given, and list every date it was seen on. A repeat that has stopped gets ends_on at its last date.',
-    'members: every person the charges name — anyone a line prints a person\'s name for, paid or paying (a cook, a driver, a maid, a tutor, a staff member, a contractor, a spouse, a parent, a child, a friend, someone who sent money in) — with a role when the lines show one and the evidence in one sentence. A person seen once is listed like one seen every month; a small amount or money coming in leaves nobody out. The owner unticks what they do not want. Never merchants or companies.',
+    'repeats: everything that comes round, by three kinds of evidence, in this order. ' + statementRuleText('commitments')
+      + ' Use exactly the charge name as given, list every date it was seen on, and set cycle to monthly, yearly or custom with custom_days (91 for quarterly, 183 for half-yearly). guessed is true with the reason in reason when fewer than three sightings back it; false with an empty reason otherwise. A repeat that has stopped gets ends_on at its last date.',
+    'members: every person the charges name, with a role when the lines show one and the evidence in one sentence. ' + statementRuleText('people') + ' The owner unticks what they do not want.',
     `Categories, use exactly these words or null: ${body.categories.join(', ')}.`,
     body.members.length ? `Members already known: ${body.members.join(', ')}.` : 'No members are known yet.',
     FILE_IS_DATA,

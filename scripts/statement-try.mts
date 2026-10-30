@@ -72,14 +72,14 @@ if (gate.statement !== true) process.exit(1)
 
 const read = tidyCounterparts(await ask('charges', MODEL, chargesInstructions(inputs),
   [pdf, { type: 'text', text: 'Read the piece above and answer in the shape with every charge in it.' }], CHARGES_SHAPE, 250_000))
-type Charge = { date: string; amount: number; name: string; narration: string; kind: string; member: string | null; counterpart: string | null; counterpart_kind: string | null }
+type Charge = { date: string; amount: number; name: string; narration: string; kind: string; member: string | null; counterpart: string | null; counterpart_kind: string | null; counterpart_bank: string | null }
 const charges = (read.charges as Charge[]) ?? []
 const account = String(read.account ?? '').trim()
 
 const lines = charges.map((c) => `${c.date} | ${c.amount} | ${c.name} | ${c.narration} | ${c.kind}`).join('\n')
 const looked = await ask('review', MODEL, reviewInstructions(inputs), [{ type: 'text', text: lines }], REVIEW_SHAPE, 250_000)
 const members = (looked.members as { name: string }[]) ?? []
-const repeats = (looked.repeats as unknown[]) ?? []
+const repeats = (looked.repeats as { guessed?: boolean }[]) ?? []
 
 /** Each name once, however it is cased. */
 const distinct = (names: string[]) => new Set(names.map((n) => n.trim().toLowerCase()).filter(Boolean)).size
@@ -89,6 +89,8 @@ const people = distinct([
   ...charges.map((c) => c.member ?? ''),
 ])
 const accounts = distinct(charges.filter((c) => c.counterpart_kind === 'account').map((c) => c.counterpart ?? ''))
+const banks = distinct(charges.map((c) => c.counterpart_bank ?? ''))
+const guessed = repeats.filter((r) => r.guessed === true).length
 /** How many of the names the lines print the review listed: the owner wants all of them. */
 const onLines = new Set(charges.flatMap((c) => [c.counterpart_kind === 'person' ? c.counterpart ?? '' : '', c.member ?? '']).map((n) => n.trim().toLowerCase()).filter(Boolean))
 const listed = new Set(members.map((m) => m.name.trim().toLowerCase()))
@@ -99,5 +101,5 @@ console.log(`account found: ${account ? 'yes' : 'NO'}`)
 console.log(`balance found: ${read.closing_balance != null ? 'yes' : 'no'}`)
 console.log(`charges: ${charges.length} (${Object.entries(kinds).map(([k, n]) => `${k} ${n}`).join(', ')})`)
 console.log(`people: ${people} (review ${members.length}; ${covered} of ${onLines.size} names on lines listed)`)
-console.log(`accounts: ${accounts} (other side of lines)`)
-console.log(`repeats: ${repeats.length}`)
+console.log(`accounts: ${accounts} (other side of lines), ${banks} (banks printed beside a person or the owner's own)`)
+console.log(`repeats: ${repeats.length} (${guessed} guessed, ${repeats.length - guessed} not)`)
