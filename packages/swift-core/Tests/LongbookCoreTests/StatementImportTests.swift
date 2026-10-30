@@ -258,7 +258,7 @@ final class StatementImportTests: XCTestCase {
         XCTAssertEqual((rows[0]["details"] as? [String: Any])?["counterpart_account"] as? String, "Axis savings ••1234")
         XCTAssertEqual((rows[0]["details"] as? [String: Any])?["statement_line"] as? String, "UPI/SUNITA D")
         XCTAssertEqual(rows[0]["note"] as? String, "Statement line: UPI/SUNITA D")
-        XCTAssertNil((rows[2]["details"] as? [String: Any])?["counterpart_account"], "the money in is written without one")
+        XCTAssertNil((rows.first { $0["direction"] as? String == "in" }?["details"] as? [String: Any])?["counterpart_account"], "the money in is written without one")
     }
 
     func testAnOlderReviewAnswerReadsAsNotGuessed() throws {
@@ -323,7 +323,7 @@ final class StatementImportTests: XCTestCase {
         let candidates = prepared.candidates(among: [], today: "2026-07-21")
         let refused = "dated after today — a statement proves the past"
         XCTAssertEqual(candidates.map(\.skipReason), ["your own money moved", refused, refused, refused, refused])
-        XCTAssertEqual(candidates.map(\.keep), [false, false, false, false, false])
+        XCTAssertEqual(candidates.map(\.keep), [true, false, false, false, false])
         XCTAssertEqual(candidates.map(\.isTransfer), [true, true, true, false, false])
         XCTAssertEqual(candidates.map(\.isOpenTransfer), [true, false, false, false, false],
                        "a movement dated tomorrow proves nothing, so it cannot be ticked in")
@@ -368,7 +368,7 @@ final class StatementImportTests: XCTestCase {
 
         let candidates = prepared.candidates(among: ["streaming", "salary"])
         XCTAssertEqual(candidates.count, 5, "a line with no real date is dropped, never written")
-        XCTAssertEqual(candidates.map(\.keep), [true, true, true, false, false])
+        XCTAssertEqual(candidates.map(\.keep), [true, true, true, true, true], "every line of the statement comes in; transfers are never counted")
         XCTAssertEqual(candidates.map(\.skipReason), [nil, nil, nil, "a card bill — its charges are on the card's statement", "your own money moved"])
         XCTAssertEqual(candidates.map(\.isIncome), [false, false, true, false, false], "money in is kept, and marked as such")
         XCTAssertEqual(candidates[1].member, "Sunita")
@@ -377,7 +377,7 @@ final class StatementImportTests: XCTestCase {
 
         let write = StatementImport.proposal(candidates, accounts: [:], currency: "INR", source: "documents/hdfc-july.pdf")
         let rows = try XCTUnwrap(write.payload["rows"] as? [[String: Any]])
-        XCTAssertEqual(rows.count, 3, "the two charges and the money in")
+        XCTAssertEqual(rows.count, 5, "every line: two charges, the money in, two transfers")
         XCTAssertEqual(rows[0]["account"] as? String, "HDFC savings 4417")
         XCTAssertEqual(rows[1]["member"] as? String, "Sunita")
         XCTAssertEqual(rows[1]["tag"] as? String, "salary")

@@ -1537,7 +1537,7 @@ struct StatementImportView: View {
                     Toggle("Add this item", isOn: keepBinding(index).measured("add_this_item"))
                         .disabled(locked)
                 } footer: {
-                    if let reason = candidate.skipReason { Text("Skipped: \(reason)") }
+                    if !candidate.keep, let reason = candidate.skipReason { Text("Skipped: \(reason)") }
                 }
                 Section {
                     #if os(macOS)

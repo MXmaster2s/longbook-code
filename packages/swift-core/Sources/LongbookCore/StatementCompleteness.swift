@@ -286,7 +286,7 @@ public enum StatementCompleteness {
                 return StatementCandidate(line: line, name: name, tag: tag, keep: true, skipReason: nil, direction: "in", readLocally: true)
             }
             if case .skip(let why) = StatementTriage.verdict(line), why == StatementTriage.ownMovement {
-                return StatementCandidate(line: line, name: name, tag: tag, keep: false, skipReason: why, direction: "transfer", readLocally: true)
+                return StatementCandidate(line: line, name: name, tag: tag, keep: true, skipReason: why, direction: "transfer", readLocally: true)
             }
             return StatementCandidate(line: line, name: name, tag: tag, keep: true, skipReason: nil, readLocally: true)
         }

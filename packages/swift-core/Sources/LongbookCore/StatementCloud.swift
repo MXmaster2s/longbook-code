@@ -279,8 +279,8 @@ public enum StatementCloud {
             return out
         }
 
-        /// The charges as candidates: money out ticked, money in ticked and marked as such,
-        /// the owner's own movements unticked with the reason. `file` carries the account.
+        /// The charges as candidates, every line ticked: money in marked as such, the owner's own
+        /// movements marked as transfers with the reason, never counted as spending. `file` carries the account.
         public func candidates(among tags: [String], today: String = LB.toISO(LB.todayMid())) -> [StatementCandidate] {
             charges.compactMap { charge in
                 guard LB.parseDate(charge.date) != nil, charge.amount > 0 else { return nil }
@@ -303,7 +303,7 @@ public enum StatementCloud {
                 let account = charge.account.trimmingCharacters(in: .whitespaces).isEmpty ? self.account : charge.account
                 return StatementCandidate(
                     line: line, name: name.isEmpty ? StatementNaming.plainName(charge.narration) : name,
-                    tag: tag, keep: skip == nil, skipReason: skip, file: account,
+                    tag: tag, keep: charge.date <= today, skipReason: skip, file: account,
                     member: charge.kind == "for_member" ? charge.member : nil,
                     direction: direction(of: charge.kind),
                     counterpartAccount: StatementCounterparts.account(on: charge)?.name
@@ -311,7 +311,7 @@ public enum StatementCloud {
             }
         }
 
-        /// Money in, the owner's own money moving (left unticked, a transfer if kept), or a charge.
+        /// Money in, the owner's own money moving (a transfer), or a charge.
         private func direction(of kind: String) -> String? {
             switch kind {
             case "income": return "in"

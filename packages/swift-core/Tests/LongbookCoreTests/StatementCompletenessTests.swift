@@ -52,7 +52,7 @@ final class StatementCompletenessTests: XCTestCase {
         XCTAssertEqual(filled[0].direction, "in")
         XCTAssertTrue(filled[0].keep)
         XCTAssertEqual(filled[1].direction, "transfer")
-        XCTAssertFalse(filled[1].keep)
+        XCTAssertTrue(filled[1].keep)
         XCTAssertEqual(filled[1].skipReason, StatementTriage.ownMovement)
         XCTAssertEqual(filled[2].skipReason, StatementTriage.afterToday)
         XCTAssertTrue(filled.allSatisfy(\.readLocally))

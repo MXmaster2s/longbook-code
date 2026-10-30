@@ -88,10 +88,10 @@ public struct StatementCandidate: Identifiable, Equatable, Sendable {
     public var readLocally: Bool
 
     public var isIncome: Bool { direction == "in" }
-    /// Unticked by default; kept by the owner, it is written as a transfer, never as spending.
+    /// Written as a transfer, never as spending.
     public var isTransfer: Bool { direction == "transfer" }
-    /// A transfer the owner may still tick in: unticked for being an own movement and for
-    /// nothing else. One already in the book, or dated after today, stays refused.
+    /// A transfer the owner may tick or untick: marked as an own movement and nothing else.
+    /// One already in the book, or dated after today, stays refused.
     public var isOpenTransfer: Bool {
         isTransfer && (skipReason == StatementTriage.ownMovement || skipReason == StatementTriage.cardBill)
     }
