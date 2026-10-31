@@ -78,11 +78,15 @@ public func detailLabel(_ key: String) -> String {
     return "\(first.uppercased())\(words.dropFirst())"
 }
 
-/// A commitment's details as lines of a note, "Label: value", in key order. statement_line is
-/// longbook's own and is never one; a detail with no words is none either.
+/// Details longbook keeps for itself: the statement's line, and the id behind an account's
+/// name. Neither reads as a line of a note.
+public let ownDetailKeys: Set<String> = ["statement_line", "counterpart_account", "counterpart_account_id", "counterpart_owner", "line_direction"]
+
+/// A commitment's details as lines of a note, "Label: value", in key order. longbook's own
+/// keys are never one; a detail with no words is none either.
 public func detailLines(_ details: Details?) -> [String] {
     (details ?? [:]).keys.sorted().compactMap { key in
-        guard key != "statement_line" else { return nil }
+        guard !ownDetailKeys.contains(key) else { return nil }
         let label = detailLabel(key)
         let value = (details?[key]?.display ?? "").components(separatedBy: .newlines)
             .map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }.joined(separator: " ")

@@ -103,13 +103,15 @@ test("the owner's own words for an import find the importing chapter, and the cl
   assert.match(LLMS_TXT.replace(/\s+/g, ' '), /write it after importing any statement that prints one, dated the statement's last day, and never compute anything from it; `accounts` and `whoami` say when the balance held is older than the newest confirmed charge on that account, and `add_commitments` and `add_charges` answer with a `balance_note` when the rows just written outrun it\./)
 })
 
-test('a card bill payment is told one way in both chapters, and a bill row names its month', () => {
+test('a card bill payment is a line like any other in the importing chapter, and a bill row names its month', () => {
   const flat = (id: string) => guideSection(LLMS_TXT, id)!.text.replace(/\s+/g, ' ')
   const importing = flat('importing-statements')
-  // Skipped as a movement — unless the memory holds that bill as a transfer row to settle.
-  assert.equal((importing.match(/unless the memory holds that bill as a transfer row/g) ?? []).length, 2, 'step 1 and the tree')
-  assert.match(importing, /`add_charges` on it, paid, basis "statement"/)
-  assert.match(importing, /CREDIT CARD PAYMENT 42,310\.00 → skip \(the memory holds no bill row for it/)
+  // Only the Transfers rule makes a transfer: no skip advice for a card bill or an ATM line.
+  assert.doesNotMatch(importing, /unless the memory holds that bill as a transfer row/)
+  assert.match(importing, /"card bill payment" line is a line like any other, not a transfer/)
+  assert.match(importing, /CREDIT CARD PAYMENT 42,310\.00 → one row, a charge like any other/)
+  assert.match(importing, /ATM WDL 10,000\.00 → one row, a charge/)
+  assert.match(importing, /A charge is a transfer only when both its account and the other side's account belong to a person whose relationship is Self/)
   const round = flat('daily-email-round')
   assert.match(round, /"<Card> bill, <month> <year>"/)
   assert.match(round, /"Coral card bill, October 2026"/)

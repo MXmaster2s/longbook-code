@@ -103,8 +103,9 @@ enum ScreenTutorial: String, CaseIterable, Identifiable {
                 TutorialStep(Self.mac ? .commitmentsSearch : nil, "Find anything", Self.mac
                              ? "Search your commitments by name, category, person or account."
                              : "Use the search bar to find a commitment by name, category, person or account."),
-                TutorialStep(.commitmentsScope, "Upcoming and past",
-                             "Upcoming shows what you pay next. Past shows what you have already paid."),
+                TutorialStep(nil, "Ahead and behind", Self.mac
+                             ? "Commitments shows what you pay next. Charges, Earnings and Transfers in the sidebar show what has already landed."
+                             : "Commitments shows what you pay next. Charges, Earnings and Transfers, under Settings, show what has already landed."),
                 TutorialStep(.commitmentsFirst, "Your commitment", Self.mac
                              ? "Here you see when it is due, how much, and its category, person and account. Click it to open it; right-click it to mark it paid."
                              : "Here you see when it is due, how much, and its category, person and account. Tap it to open it; swipe it to mark it paid."),

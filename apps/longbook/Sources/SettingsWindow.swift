@@ -157,6 +157,7 @@ struct SettingsWindowView: View {
         SettingsWindowContent(model: model, auth: auth, entitlement: entitlement, picked: $picked, toMainWindow: toMainWindow)
             .frame(minWidth: 760, idealWidth: 820, minHeight: 540, idealHeight: 640)
             .background(CentersSheets())
+            .background(ClosesOnSignOut(signedIn: auth.isSignedIn))
             .preferredColorScheme((LBAppearance(rawValue: appearance) ?? .dark).colorScheme)
             .onAppear { model.loadIfNeeded() }
     }
@@ -203,7 +204,7 @@ struct SettingsWindowContent: View {
         case .ai:
             stack(pane) { nav in AISettingsPane(model: model, auth: auth, open: nav.open) }
         case .statements:
-            stack(pane) { _ in StatementsSettingsPane(toMainWindow: toMainWindow) }
+            stack(pane) { _ in StatementsSettingsPane(model: model, toMainWindow: toMainWindow) }
         case .privacy:
             stack(pane, header: header(.privacy)) { nav in DataPrivacyView(model: model, openPage: nav.open) }
         case .tutorials:
@@ -1297,6 +1298,7 @@ struct AISettingsPane: View {
 // MARK: Statements
 
 struct StatementsSettingsPane: View {
+    let model: DashboardModel
     let toMainWindow: (Notification.Name) -> Void
     @AppStorage("longbook.statements.addFound") private var addsFound = true
 
@@ -1324,6 +1326,9 @@ struct StatementsSettingsPane: View {
                         toMainWindow(.longbookImport)
                     }
                 }
+            }
+            SettingsGroup(heading: "Past Imports") {
+                PastImportsList(records: model.pastImports())
             }
         }
     }
@@ -1604,6 +1609,31 @@ private struct SettingsLinkOut: View {
             .lbLinkPointer()
             .foregroundStyle(LBColor.brandText.color)
         }
+    }
+}
+
+/// Closes the Settings window the moment the account signs out, from this window or from
+/// Delete Account: the main window is back at sign in, and Settings has no account to show.
+/// Only the change closes it; Settings opened while signed out stays open.
+struct ClosesOnSignOut: NSViewRepresentable {
+    let signedIn: Bool
+
+    func makeCoordinator() -> Coordinator { Coordinator(signedIn: signedIn) }
+    func makeNSView(context: Context) -> NSView { NSView() }
+
+    func updateNSView(_ view: NSView, context: Context) {
+        let was = context.coordinator.signedIn
+        context.coordinator.signedIn = signedIn
+        guard was, !signedIn, let window = view.window else { return }
+        DispatchQueue.main.async {
+            if let sheet = window.attachedSheet { window.endSheet(sheet) }
+            window.close()
+        }
+    }
+
+    final class Coordinator {
+        var signedIn: Bool
+        init(signedIn: Bool) { self.signedIn = signedIn }
     }
 }
 #endif

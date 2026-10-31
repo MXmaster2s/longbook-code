@@ -228,6 +228,33 @@ final class DashboardModel {
     private var chargeCache: (day: Date, rows: [ChargeItem])?
     private var reportsCache: (reports: [Report], unreadable: Int)?
     private var insightsCache: [String: Insight]?
+    /// The vault's charges by commitment and its rows by id, read once per load and day.
+    /// Every screen that walks the commitments asks here instead of scanning the charges.
+    @ObservationIgnored private var lookupCache: Lookups?
+
+    private struct Lookups {
+        let day: Date
+        let charges: ChargeIndex
+        let subs: [String: Subscription]
+        let members: [String: String]
+        let methods: [String: String]
+    }
+
+    private func lookups(_ vault: Vault) -> Lookups {
+        let today = LB.todayMid()
+        if let lookupCache, lookupCache.day == today { return lookupCache }
+        let made = Lookups(
+            day: today, charges: ChargeIndex(vault, today: today),
+            subs: Dictionary(vault.subscriptions.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a }),
+            members: Dictionary(vault.familyMembers.map { ($0.id, $0.name) }, uniquingKeysWith: { a, _ in a }),
+            methods: Dictionary(vault.paymentMethods.map { ($0.id, $0.name) }, uniquingKeysWith: { a, _ in a })
+        )
+        lookupCache = made
+        return made
+    }
+
+    /// The charges by commitment for the vault on screen; empty before one is read.
+    private var chargeIndex: ChargeIndex? { vault.map { lookups($0).charges } }
     /// Session-only override of the scope; the saved home currency is the default it
     /// overrides.
     var pickedScope: String? {
@@ -260,6 +287,11 @@ final class DashboardModel {
     /// An outside edit awaiting review: what the file said before, for the diff. The file
     /// is already the truth — review is for undoing, never for approving.
     private(set) var outsideChangeFrom: String?
+    /// The hash of the file as last read, so a screen can tell one read from the next.
+    private(set) var loadedHash: String?
+    /// One name for the review on screen: its base and the file it is read against. The
+    /// Proposals screen folds its lines once per key, not once per body pass.
+    var reviewKey: String { "\(outsideChangeFrom ?? "-")|\(loadedHash ?? "-")" }
     /// True between our commit and the reload that records it, so our own write is never
     /// presented back to the owner as an outside change.
     private var expectingOwnChange = false
@@ -309,6 +341,8 @@ final class DashboardModel {
     }
 
     private var refreshQueued = false
+    /// Whether the next load picks the month the Dashboard opens on.
+    private var opensOnLatestMonth = true
 
     func load() {
         // Offsets count from this month, so a new one would slide every chosen month along.
@@ -378,6 +412,14 @@ final class DashboardModel {
             vault = loaded.vault
             vaultFolder = folder
             loadedFile = loaded
+            // The first load after opening, and after an import: this month may hold nothing yet.
+            if opensOnLatestMonth {
+                opensOnLatestMonth = false
+                if let latest = MonthSelection.importedSpending(in: loaded.raw, today: LB.todayMid()), latest != selectedMonths {
+                    // After this load ends: its own-change flag must be read first.
+                    DispatchQueue.main.async { [weak self] in self?.selectedMonths = latest }
+                }
+            }
             loadedStamp = stamp
             awaitedICloud = false
             // Contract files are longbook's own: an older vault takes the bundle's newer
@@ -385,6 +427,7 @@ final class DashboardModel {
             healContract(in: folder)
             chargeCache = nil
             ledgerCache = nil
+            lookupCache = nil
             reportsCache = nil
             insightsCache = nil
             let home = homeCurrency(in: folder)
@@ -592,14 +635,27 @@ final class DashboardModel {
     /// Account colours: the accounts commitments use keep the inks, so a vault with more
     /// accounts than inks never greys out one that is charged.
     static func accountPalette(_ vault: Vault) -> Palette {
-        VaultPalette.entities(vault.paymentMethods.map { (id: $0.id, createdAt: $0.createdAt) },
-                              inUse: Set(vault.subscriptions.compactMap(\.paymentMethodId)))
+        entityPalette("accounts", vault.paymentMethods.map { (id: $0.id, createdAt: $0.createdAt) },
+                      inUse: Set(vault.subscriptions.compactMap(\.paymentMethodId)))
     }
 
     /// Member colours, by the same rule.
     static func memberPalette(_ vault: Vault) -> Palette {
-        VaultPalette.entities(vault.familyMembers.map { (id: $0.id, createdAt: $0.createdAt) },
-                              inUse: Set(vault.subscriptions.compactMap(\.familyMemberId)))
+        entityPalette("members", vault.familyMembers.map { (id: $0.id, createdAt: $0.createdAt) },
+                      inUse: Set(vault.subscriptions.compactMap(\.familyMemberId)))
+    }
+
+    /// The last palette built for each kind, with what it was built from. Ranking parses a
+    /// date inside every comparison, so a screen asking again for an unchanged book (a star,
+    /// a bookmark, a reload) reuses the answer instead of paying for it again.
+    private static var paletteMemo: [String: (from: [String], inUse: Set<String>, palette: Palette)] = [:]
+
+    private static func entityPalette(_ kind: String, _ rows: [(id: String, createdAt: String?)], inUse: Set<String>) -> Palette {
+        let from = rows.map { "\($0.id)|\($0.createdAt ?? "")" }
+        if let held = paletteMemo[kind], held.from == from, held.inUse == inUse { return held.palette }
+        let made = VaultPalette.entities(rows, inUse: inUse)
+        paletteMemo[kind] = (from, inUse, made)
+        return made
     }
 
     // MARK: usage count of who changed the file
@@ -640,6 +696,7 @@ final class DashboardModel {
         // was touched. A review opens, or re-opens, only on a version touching a row with
         // neither: a new outside change.
         let hash = VaultHistory.hash(bytes)
+        loadedHash = hash
         guard let seen = lastSeenHash(folder) else {
             // A folder this app has never opened is adopted as it stands. The first-run
             // gate adopts the import that opens it the same way, when it opens.
@@ -1087,10 +1144,11 @@ final class DashboardModel {
 
     private func derive(_ vault: Vault, home: String?, location: String) -> DashboardData {
         let today = LB.todayMid()
+        let index = lookups(vault).charges
         let active = vault.subscriptions.filter { isSpending($0) && isEffectivelyActive($0, today) }
         // What is counted as a commitment is what still lies ahead; a one-time line whose
         // charge is behind today is that charge, and its money still counts in the month.
-        let live = liveCommitments(vault, today)
+        let live = vault.subscriptions.filter { index.isLiveCommitment($0) }
 
         let choices = scopeChoices(vault, today)
         let scope = [pickedScope, home].compactMap { $0 }.first(where: { choices.contains($0) })
@@ -1105,7 +1163,7 @@ final class DashboardModel {
         let spending = vault.subscriptions.filter(isSpending)
 
         return DashboardData(
-            nextDay: nextDueDay(vault, today),
+            nextDay: index.nextDueDay(vault),
             activeCount: live.count,
             rail: rail(vault, today: today),
             month: summary,
@@ -1130,7 +1188,7 @@ final class DashboardModel {
                 )
             },
             vaultLocation: location,
-            commitments: commitmentItems(vault, today: today),
+            commitments: commitmentItems(vault, index: index),
             // Every commitment's, as the form offers them: a slice or a tile may name a paused or
             // cancelled one's category, and the list's chip must name what it filtered by.
             commitmentCategories: Array(Set(vault.subscriptions.compactMap { trimmedCategory($0) })).sorted()
@@ -1139,8 +1197,8 @@ final class DashboardModel {
 
     /// A one-time line whose charge is behind today or paid is that charge, and belongs on
     /// no commitments screen or count. Paused and cancelled rows are still commitments.
-    private func isSettledCharge(_ sub: Subscription, in vault: Vault, _ today: Date) -> Bool {
-        isEffectivelyActive(sub, today) && !isLiveCommitment(sub, in: vault, today)
+    private func isSettledCharge(_ sub: Subscription, _ index: ChargeIndex) -> Bool {
+        isEffectivelyActive(sub, index.today) && !index.isLiveCommitment(sub)
     }
 
     private func trimmedCategory(_ sub: Subscription) -> String? {
@@ -1179,7 +1237,8 @@ final class DashboardModel {
     /// The whole vault, each row exactly once: the scheduled ones soonest-due first
     /// under month headings, then everything not billing — derived by subtraction from
     /// `activeUpcoming`, so the two buckets can never disagree about a row.
-    private func commitmentItems(_ vault: Vault, today: Date) -> [DashboardData.CommitmentItem] {
+    private func commitmentItems(_ vault: Vault, index: ChargeIndex) -> [DashboardData.CommitmentItem] {
+        let today = index.today
         let palette = VaultPalette.categories(vault.subscriptions)
         let members = Dictionary(vault.familyMembers.map { ($0.id, $0.name) }, uniquingKeysWith: { a, _ in a })
         let methods = Dictionary(vault.paymentMethods.map { ($0.id, $0.name) }, uniquingKeysWith: { a, _ in a })
@@ -1201,7 +1260,7 @@ final class DashboardModel {
             let mark = badge(sub, in: vault, today)
             let search = Self.searchWords(sub, category: category, member: member, method: method, badge: mark,
                                           status: displayStatus(sub, today), more: [paid ? "paid" : nil])
-            let through = LongbookCore.plannedThrough(sub, in: vault)
+            let through = index.plannedThrough(sub)
             return DashboardData.CommitmentItem(
                 id: sub.id,
                 name: sub.name,
@@ -1224,13 +1283,13 @@ final class DashboardModel {
             )
         }
 
-        let upcoming = nextCharges(vault, today)
+        let upcoming = index.nextCharges(vault)
         let scheduled = Set(upcoming.map(\.sub.id))
         // A one-time line whose charge is behind today is that charge — it lives in the
         // past ledger, not down here. Locale collation, as the archived list sorted —
         // codepoint order files "iCloud" after "Zoom".
         let rest = vault.subscriptions
-            .filter { !scheduled.contains($0.id) && !isSettledCharge($0, in: vault, today) }
+            .filter { !scheduled.contains($0.id) && !isSettledCharge($0, index) }
             .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
         return upcoming.map { item($0.sub, due: $0) } + rest.map { item($0, due: nil) }
     }
@@ -1552,7 +1611,7 @@ final class DashboardModel {
             var perSubOthers: [String: [String: Double]] = [:]
             var subNames: [String: String] = [:]
             let windowCharges = vault.map {
-                chargesInRange($0, of: group.subs, from: from, to: to).filter { Self.falls($0.date, in: windows) }
+                lookups($0).charges.chargesInRange(of: group.subs, from: from, to: to).filter { Self.falls($0.date, in: windows) }
             } ?? []
             for charge in windowCharges {
                 subNames[charge.sub.id] = charge.sub.name
@@ -1608,6 +1667,8 @@ final class DashboardModel {
         let subId: String
         let name: String
         let amountText: String
+        /// The figure `amountText` shows, for adding rows up; its currency is `currency`.
+        let amount: Double
         let facts: [LBMetaFact]
         let searchText: String
         let category: String?
@@ -1627,6 +1688,8 @@ final class DashboardModel {
         let cycle: BillingCycle
         let status: SubStatus
         let currency: String
+        /// The row's own note; a statement import writes the line it read here.
+        let note: String?
     }
 
     /// Everything a search may match on a row: its names and notes, and the words the screen
@@ -1692,10 +1755,12 @@ final class DashboardModel {
             let badge = badges[sub.id]
             // The commitment row's strip, so a landed charge and one ahead read alike. A mark
             // set ahead of time is the pill's word, not the strip's.
+            // The note's words ride after the day, where the card's one line has room for them.
             let facts: [LBMetaFact] = [
                 LBMetaFact(symbol: LBGlyph.date,
                            text: past ? settledWord(charge.date) : LB.dayWord(LB.daysBetween(today, charge.date))),
                 income ? LBMetaFact(symbol: LBGlyph.income, text: "Money in") : (transfer ? Self.transferFact : nil),
+                ChargeNote.value(charge.row.note).map { LBMetaFact(symbol: LBGlyph.note, text: $0) },
             ].compactMap { $0 }
                 + Self.linkFacts(category: category, member: member, method: method, spend: !income && !transfer)
             return ChargeItem(
@@ -1703,10 +1768,11 @@ final class DashboardModel {
                 subId: sub.id,
                 name: sub.name,
                 amountText: (income ? "+" : "") + amountText,
+                amount: charge.amount,
                 facts: facts,
                 searchText: Self.searchWords(sub, category: category, member: member, method: method, badge: badge,
                                              status: displayStatus(sub, today),
-                                             more: [charge.paid ? "paid" : nil, amountText, monthLabel]),
+                                             more: [charge.paid ? "paid" : nil, amountText, monthLabel, charge.row.note]),
                 category: category,
                 ink: category.flatMap { palette.rank($0) },
                 badge: badge,
@@ -1720,7 +1786,8 @@ final class DashboardModel {
                 memberId: sub.familyMemberId,
                 cycle: sub.billingCycle,
                 status: displayStatus(sub, today),
-                currency: charge.currency
+                currency: charge.currency,
+                note: charge.row.note
             )
         }
         chargeCache = (day: today, rows: derived)
@@ -1749,6 +1816,7 @@ final class DashboardModel {
     func accountCards() -> [AccountCard] {
         guard let vault else { return [] }
         let today = LB.todayMid()
+        let index = lookups(vault).charges
         let balanceCurrency = figureCurrency(vault, today)
         let palette = Self.accountPalette(vault)
         let members = Dictionary(vault.familyMembers.map { ($0.id, $0.name) }, uniquingKeysWith: { a, _ in a })
@@ -1758,16 +1826,16 @@ final class DashboardModel {
         func card(id: String, name: String, owner: String?, ink: Int?, subs: [Subscription],
                   balance: (Double, String?)? = nil, real: Bool = true) -> AccountCard? {
             guard real || !subs.isEmpty else { return nil }
-            let coming = chargesInRange(vault, of: subs, from: window.from, to: window.to)
+            let coming = index.chargesInRange(of: subs, from: window.from, to: window.to)
             // The soonest charge still owed, whenever it is — including years out. A card
             // whose money all lands beyond the window still says what comes next.
-            let soonest = activeUpcoming(vault, of: subs, today).first
+            let soonest = index.activeUpcoming(of: subs).first
             return AccountCard(
                 id: id,
                 name: name,
                 owner: owner,
-                activeCount: subs.filter { isLiveCommitment($0, in: vault, today) }.count,
-                totalCount: subs.filter { !isSettledCharge($0, in: vault, today) }.count,
+                activeCount: subs.filter { index.isLiveCommitment($0) }.count,
+                totalCount: subs.filter { !isSettledCharge($0, index) }.count,
                 ink: ink,
                 window: sumByCurrency(coming),
                 next: soonest.map {
@@ -2116,26 +2184,49 @@ final class DashboardModel {
 
     // MARK: statements read by the server
 
-    /// A statement's rows, applied through the outside door like a cloud proposal and signed
-    /// "statement import". The import screen already asked keep or discard, so the rows land
-    /// kept: in History, never asked about again in Changes. Both gates answer in the owner's words.
-    func importStatement(_ write: PendingWrite) throws {
+    /// A statement review written whole, signed "statement import": kept statements filed in
+    /// documents, the vault built off the main actor, one write, one re-read, then the month
+    /// reports. Rows land kept. A refusal writes nothing and removes the copies. What was
+    /// written comes back whole.
+    func importReview(_ review: StatementImport.Review, statements: [URL]) async throws -> StatementImport.Written {
         guard !readOnly else {
             throw WriteError.invalid("This account has no licence. Buy longbook to keep editing. Everything you have stays visible and exportable.")
         }
         guard let folder = vaultFolder, let file = loadedFile else {
             throw WriteError.invalid("No folder is open, so there’s nowhere to save.")
         }
-        guard case .vault(let applied) = try PendingApply.apply(write, to: file.raw, now: Date(), schema: schema) else { return }
-        // Marked as a Keep marks them, so the owner's other device adopts them too.
-        let ids = vaultDiff(from: file.raw, to: applied).filter { $0.kind != "tags" }
-            .flatMap { $0.added.map(\.id) + $0.changed.map(\.id) + $0.removed.map(\.id) }
-        let next = VaultPatch.markReviewed(ids: ids, in: applied, now: Date())
-        try VaultDisk.write(next, to: folder, expecting: file.bytes)
-        expectingOwnChange = true
-        load()
-        refreshHostedCopy()
-        refreshStructures()
+        var review = review
+        var filed: [String] = []
+        do {
+            for index in review.files.indices where review.files[index].keepsALine && statements.indices.contains(index) {
+                let source = try fileStatement(statements[index])
+                review.files[index].source = source
+                filed.append(source)
+            }
+            let raw = file.raw
+            let schema = schema
+            let ready = review
+            let written = try await Task.detached(priority: .userInitiated) {
+                try StatementImport.write(ready, to: raw, now: Date(), schema: schema)
+            }.value
+            // The file is compared with the bytes the build started from: a write landing
+            // meanwhile refuses this one.
+            try VaultDisk.write(written.vault, to: folder, expecting: file.bytes)
+            expectingOwnChange = true
+            opensOnLatestMonth = true
+            load()
+            refreshHostedCopy()
+            refreshStructures()
+            // Every month the new rows confirm gets its report, drawn from what was written.
+            drawMonthlyReports()
+            return written
+        } catch {
+            Telemetry.shared.failed(.fileSave, error)
+            let scoped = folder.startAccessingSecurityScopedResource()
+            for source in filed { try? FileManager.default.removeItem(at: folder.appendingPathComponent(source)) }
+            if scoped { folder.stopAccessingSecurityScopedResource() }
+            throw error
+        }
     }
 
     /// The file's own bytes as text, for the server that reorganises it. Nil when none is open.
@@ -2174,39 +2265,6 @@ final class DashboardModel {
         refreshHostedCopy()
         refreshStructures()
         return (applied, skipped)
-    }
-
-    /// The prepared review written: every kept charge as a one-time row in one change.
-    /// Returns how many charges were written.
-    func importPrepared(_ candidates: [StatementCandidate], accounts: [String: String], currency: String, source: String) throws -> Int {
-        let write = StatementImport.proposal(candidates, accounts: accounts, currency: currency, source: source)
-        try importStatement(write)
-        return candidates.filter(\.keep).count
-    }
-
-    /// Each repeat promoted over the one-time rows it names among those written since
-    /// `before`: one recurring commitment, planned ahead, each promotion its own change.
-    /// Returns the names that became commitments; the rest stay as they were, once each.
-    func promoteRepeats(_ repeats: [StatementCloud.Repeat], madeSince before: Set<String>, source: String) -> Set<String> {
-        var made: Set<String> = []
-        for repeated in repeats {
-            guard let vault else { break }
-            let dates = Set(repeated.dates)
-            let ids = vault.subscriptions.filter { sub in
-                !before.contains(sub.id) && sub.billingCycle == .once
-                    && sub.name.caseInsensitiveCompare(repeated.name) == .orderedSame
-                    && vault.charges.contains { $0.commitmentId == sub.id && dates.contains($0.date) }
-            }.map(\.id)
-            guard !ids.isEmpty else { continue }
-            var payload: [String: Any] = ["ids": ids, "billing_cycle": repeated.cycle, "plan_months": 24]
-            if let days = repeated.customDays { payload["custom_cycle_days"] = days }
-            if let endsOn = repeated.endsOn { payload["ends_on"] = endsOn }
-            if let tag = repeated.category { payload["tag"] = tag }
-            let promote = PendingWrite(id: UUID(), kind: "promote_to_recurring", payload: payload,
-                                       sourceRef: source, keyName: "statement import", origin: "statement")
-            if (try? importStatement(promote)) != nil { made.insert(repeated.name) }
-        }
-        return made
     }
 
     /// The picked file copied into the vault's documents folder, returned as the relative
@@ -2251,6 +2309,20 @@ final class DashboardModel {
     /// rather than inventing twins.
     var memberNames: [String] { vault?.familyMembers.map(\.name) ?? [] }
     var accountNames: [String] { vault?.paymentMethods.map(\.name) ?? [] }
+    /// The people and accounts as the Transfers rule reads them.
+    var statementBook: StatementBook { loadedFile.map { StatementBook(raw: $0.raw) } ?? StatementBook() }
+
+    /// The statements imported so far, newest first. Counts only.
+    func pastImports() -> [ImportRecord] {
+        guard let folder = vaultFolder else { return [] }
+        return WorkspaceStore.read(in: folder).imports.reversed()
+    }
+
+    /// Keeps the Add's counts in the workspace, so both devices list them.
+    func recordImports(_ records: [ImportRecord]) {
+        guard let folder = vaultFolder, !records.isEmpty else { return }
+        _ = try? WorkspaceStore.update(in: folder) { $0.imports += records }
+    }
 
     /// Every commitment category the vault or the library knows, for the on-device namer.
     var commitmentTagNames: [String] {
@@ -2573,8 +2645,8 @@ final class DashboardModel {
     /// How many charges stand from today on, today's included — the count "Planned till" shows
     /// on an existing one, counted as the Save's planned count is set.
     func plannedCount(_ id: String) -> Int {
-        guard let vault, let sub = vault.subscriptions.first(where: { $0.id == id }) else { return 0 }
-        return LongbookCore.plannedAhead(sub, in: vault).count
+        guard let index = chargeIndex else { return 0 }
+        return index.charges(of: id).filter { $0.date >= index.today }.count
     }
 
     /// The day of an existing commitment's last charge were this Save to land: the Save run on
@@ -2590,8 +2662,7 @@ final class DashboardModel {
 
     /// Every charge of one commitment, date order, as the detail lists them.
     func charges(of id: String) -> [Charge] {
-        guard let vault, let sub = vault.subscriptions.first(where: { $0.id == id }) else { return [] }
-        return LongbookCore.charges(of: sub, in: vault)
+        chargeIndex?.charges(of: id) ?? []
     }
 
     /// Name an account or a member, and get the id back so a form can select what it just
@@ -2625,7 +2696,7 @@ final class DashboardModel {
     }
 
     func commitmentPhotoURL(id: String) -> URL? {
-        photoURL(vault?.subscriptions.first { $0.id == id }?.photo)
+        photoURL(subscription(id: id)?.photo)
     }
 
     func tagPhotoURL(kind: String, name: String?) -> URL? {
@@ -2644,13 +2715,33 @@ final class DashboardModel {
         commit { try VaultPatch.setTagPhoto(kind: kind, named: name, photo: photo, in: $0, now: Date()) }
     }
 
-    /// Whether a balance dated `day` is as new as the one the account holds. An undated
-    /// balance counts as older than a dated one, and anything beats no balance at all.
-    func balanceIsNewer(_ day: String?, forAccount id: String) -> Bool {
-        guard let method = vault?.paymentMethods.first(where: { $0.id == id }), method.balance != nil else { return true }
-        guard let held = method.balanceDate else { return true }
-        guard let day else { return false }
-        return day >= held
+    // MARK: transfers
+
+    /// How many rows would change side if this person's Relationship were set to `tag`
+    /// (nil clears it). Built in memory; nothing is written.
+    func transferFlips(settingRelationship tag: String?, onPerson id: String) -> (intoTransfers: Int, intoCharges: Int) {
+        flips { try VaultPatch.setEntityDetails(.familyMember, id: id, in: $0, now: Date(), memberTag: .some(tag)) }
+    }
+
+    /// The same for setting an account's owner (nil clears it).
+    func transferFlips(settingOwner personId: String?, onAccount id: String) -> (intoTransfers: Int, intoCharges: Int) {
+        flips { try VaultPatch.setEntityDetails(.paymentMethod, id: id, in: $0, now: Date(), ownerMemberId: .some(personId)) }
+    }
+
+    /// The same for setting the counterpart account of one row (nil clears it).
+    func transferFlips(settingCounterpart accountId: String?, onCommitment id: String) -> (intoTransfers: Int, intoCharges: Int) {
+        flips { try VaultPatch.setCounterpartAccount(commitmentId: id, accountId: accountId, in: $0, now: Date()) }
+    }
+
+    /// Sets or clears a row's counterpart account; the Transfers rule then decides its direction.
+    @discardableResult
+    func setCounterpartAccount(_ accountId: String?, onCommitment id: String) -> Bool {
+        commit { try VaultPatch.setCounterpartAccount(commitmentId: id, accountId: accountId, in: $0, now: Date()) }
+    }
+
+    private func flips(_ patch: ([String: Any]) throws -> [String: Any]) -> (intoTransfers: Int, intoCharges: Int) {
+        guard let raw = loadedFile?.raw, let next = try? patch(raw) else { return (0, 0) }
+        return StatementTransfers.flips(from: raw, to: next)
     }
 
     /// Doubly-optional arguments, as the writer takes them: nil leaves a field alone,
@@ -2876,9 +2967,10 @@ final class DashboardModel {
     /// landed, the next one owed, the latest landed, and the next twelve months. A nil id
     /// reads the commitments that name nobody.
     func entitySummary(_ kind: VaultPatch.EntityKind, id: String?, recentLimit: Int = 4) -> (
-        commitments: Int, charges: Int, next: EntityMoment?, recent: [EntityMoment], window: [CurrencyAmount], upcoming: [EntityMoment]
+        commitments: Int, charges: Int, next: EntityMoment?, recent: [EntityMoment], window: [CurrencyAmount],
+        upcoming: [EntityMoment], transfers: [EntityMoment], transferCount: Int
     ) {
-        guard let vault else { return (0, 0, nil, [], [], []) }
+        guard let vault else { return (0, 0, nil, [], [], [], [], 0) }
         return summary(kind, id: id, ledger: entityLedger(vault), recentLimit: recentLimit)
     }
 
@@ -2902,6 +2994,9 @@ final class DashboardModel {
         let subsByMember: [String?: [Subscription]]
         let landedByMethod: [String?: [ChargeItem]]
         let landedByMember: [String?: [ChargeItem]]
+        /// The landed rows moving money to each account, by the account they name as the
+        /// other side; a row paid from that same account is already among its own.
+        let transfersToAccount: [String: [ChargeItem]]
         let categories: Palette
         var cards: [String: [EntityCard]] = [:]
     }
@@ -2923,12 +3018,19 @@ final class DashboardModel {
         for id in bySub.keys { bySub[id]?.sort { $0.date < $1.date } }
         // Newest first: the rows "Show all" lists under Past, in the order it lists them.
         let landed = Array(chargeItems().filter(\.isPast).reversed())
+        let landedBySub = Dictionary(grouping: landed, by: \.subId)
+        var transfersToAccount: [String: [ChargeItem]] = [:]
+        for (accountId, subs) in CounterpartAccounts.transfers(in: vault) {
+            let rows = subs.flatMap { landedBySub[$0.id] ?? [] }.filter { $0.methodId != accountId }
+            if !rows.isEmpty { transfersToAccount[accountId] = rows.sorted { $0.dateISO > $1.dateISO } }
+        }
         let made = EntityLedger(
             day: today, bySub: bySub,
             subsByMethod: Dictionary(grouping: vault.subscriptions, by: \.paymentMethodId),
             subsByMember: Dictionary(grouping: vault.subscriptions, by: \.familyMemberId),
             landedByMethod: Dictionary(grouping: landed, by: \.methodId),
             landedByMember: Dictionary(grouping: landed, by: \.memberId),
+            transfersToAccount: transfersToAccount,
             categories: VaultPalette.categories(vault.subscriptions)
         )
         ledgerCache = made
@@ -2965,7 +3067,8 @@ final class DashboardModel {
     }
 
     private func summary(_ kind: VaultPatch.EntityKind, id: String?, ledger: EntityLedger, recentLimit: Int) -> (
-        commitments: Int, charges: Int, next: EntityMoment?, recent: [EntityMoment], window: [CurrencyAmount], upcoming: [EntityMoment]
+        commitments: Int, charges: Int, next: EntityMoment?, recent: [EntityMoment], window: [CurrencyAmount],
+        upcoming: [EntityMoment], transfers: [EntityMoment], transferCount: Int
     ) {
         let isAccount = kind == .paymentMethod
         let subs = (isAccount ? ledger.subsByMethod : ledger.subsByMember)[id] ?? []
@@ -2974,7 +3077,7 @@ final class DashboardModel {
         }
         // The cached backward ledger: the same rows "Show all" lists under Past.
         let landed = (isAccount ? ledger.landedByMethod : ledger.landedByMember)[id] ?? []
-        let recent = landed.prefix(recentLimit).compactMap { charge -> EntityMoment? in
+        func moment(_ charge: ChargeItem) -> EntityMoment? {
             guard let date = LB.parseDate(charge.dateISO) else { return nil }
             return EntityMoment(
                 id: charge.id, commitmentId: charge.subId, name: charge.name, date: date,
@@ -2982,6 +3085,11 @@ final class DashboardModel {
                 symbol: symbol(charge.category), ink: charge.ink
             )
         }
+        let recent = landed.prefix(recentLimit).compactMap(moment)
+        // What moved money to this account from elsewhere: counted with its charges, shown
+        // under them, and in no total, as every transfer is.
+        let moved = isAccount ? id.flatMap { ledger.transfersToAccount[$0] } ?? [] : []
+        let transfers = moved.prefix(recentLimit > 0 ? max(recentLimit, 25) : 0).compactMap(moment)
         // The soonest charge still owed, as core's upcoming list orders them.
         let due = subs.compactMap { sub -> Charge? in
             guard isOwed(sub), isEffectivelyActive(sub, ledger.day) else { return nil }
@@ -3020,7 +3128,7 @@ final class DashboardModel {
         }
         return (
             subs.filter { !isSettledOnce($0, ledger) }.count,
-            landed.count, next, Array(recent), sumByCurrency(coming), upcoming
+            landed.count + moved.count, next, Array(recent), sumByCurrency(coming), upcoming, Array(transfers), moved.count
         )
     }
 
@@ -3151,9 +3259,9 @@ final class DashboardModel {
     /// What this commitment has cost: its rows before today, as written. Silent under
     /// three charges. The span names the first charge counted.
     func rowMemory(id: String) -> String? {
-        guard let vault, let sub = vault.subscriptions.first(where: { $0.id == id }) else { return nil }
-        let today = LB.todayMid()
-        let charges = LongbookCore.charges(of: sub, in: vault, today).filter { $0.date < today }
+        guard let sub = subscription(id: id), let index = chargeIndex else { return nil }
+        let today = index.today
+        let charges = index.charges(of: sub).filter { $0.date < today }
         guard charges.count >= 3, let first = charges.first else { return nil }
         let total = charges.filter { $0.currency == sub.currency }.reduce(0) { $0 + $1.amount }
         // One commitment's own rows, said on its own screen: a transfer's are called transfers.
@@ -3164,15 +3272,19 @@ final class DashboardModel {
     /// Resolved display names for a commitment's links — ids are load-bearing, names
     /// are for reading.
     func entityNames(memberId: String?, methodId: String?) -> (member: String?, method: String?) {
-        (
-            memberId.flatMap { id in vault?.familyMembers.first { $0.id == id }?.name },
-            methodId.flatMap { id in vault?.paymentMethods.first { $0.id == id }?.name }
-        )
+        guard let vault else { return (nil, nil) }
+        let names = lookups(vault)
+        return (memberId.flatMap { names.members[$0] }, methodId.flatMap { names.methods[$0] })
+    }
+
+    /// The accounts a person holds, in the book's order.
+    func accounts(ofMember id: String) -> [(id: String, name: String)] {
+        (vault?.paymentMethods ?? []).filter { $0.familyMemberId == id }.map { ($0.id, $0.name) }
     }
 
     /// The decoded row behind a list item — what the edit form loads.
     func subscription(id: String) -> Subscription? {
-        vault?.subscriptions.first { $0.id == id }
+        vault.flatMap { lookups($0).subs[id] }
     }
 
     /// The choices the form offers, from the vault itself.
@@ -3297,13 +3409,14 @@ final class DashboardModel {
     func memberCards() -> [MemberCard] {
         guard let vault else { return [] }
         let today = LB.todayMid()
+        let index = lookups(vault).charges
         let palette = Self.memberPalette(vault)
         let window = (from: LB.firstOfMonth(today), to: LB.addDays(LB.addMonths(LB.firstOfMonth(today), 12), -1))
 
         // A real member is a card whatever they hold; only the unassigned bucket needs money in it.
         func card(id: String, name: String, ink: Int?, addedOn: String?, subs: [Subscription], accounts: Int, real: Bool = true) -> MemberCard? {
             guard real || !subs.isEmpty else { return nil }
-            let coming = chargesInRange(vault, of: subs, from: window.from, to: window.to)
+            let coming = index.chargesInRange(of: subs, from: window.from, to: window.to)
             let sums = sumByCurrency(coming)
             let primary = sums.first?.currency
 
@@ -3330,11 +3443,11 @@ final class DashboardModel {
                 name: name,
                 ink: ink,
                 accountCount: accounts,
-                renewalCount: subs.filter { !isSettledCharge($0, in: vault, today) }.count,
+                renewalCount: subs.filter { !isSettledCharge($0, index) }.count,
                 addedOn: addedOn.flatMap { LB.parseDate(String($0.prefix(10))) }.map { settledWord($0) },
                 window: sums,
                 breakdown: rows,
-                next: activeUpcoming(vault, of: subs, today).first.map {
+                next: index.activeUpcoming(of: subs).first.map {
                     (fmtMoney($0.charge.amount, $0.charge.currency), $0.sub.name, settledWord($0.date))
                 }
             )

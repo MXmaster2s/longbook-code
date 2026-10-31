@@ -169,3 +169,23 @@ private struct MonthNames {
         return formatter
     }
 }
+
+extension MonthSelection {
+    /// The months a Dashboard opens on: every month the imported statements have money spent
+    /// in, up to today. Plan rows, money in and transfers never count. Nil when the book has
+    /// no such month, or the only one is this month.
+    public static func importedSpending(in raw: [String: Any], today: Date) -> MonthSelection? {
+        let moved = Set((raw["commitments"] as? [[String: Any]] ?? []).compactMap { row -> String? in
+            guard let way = row["direction"] as? String, way == "in" || way == "transfer" else { return nil }
+            return row["id"] as? String
+        })
+        let days = (raw["charges"] as? [[String: Any]] ?? []).compactMap { row -> Date? in
+            guard row["paid"] as? Bool == true, row["basis"] as? String == "statement",
+                  let id = row["commitment_id"] as? String, !moved.contains(id),
+                  let day = (row["date"] as? String).flatMap(LB.parseDate), day <= today else { return nil }
+            return day
+        }
+        guard let months = MonthSelection(days: days, anchor: today), months != MonthSelection() else { return nil }
+        return months
+    }
+}

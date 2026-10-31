@@ -39,6 +39,44 @@ struct SettingsScreen<Content: View>: View {
     }
 }
 
+/// Settings › Statements › Past Imports: every statement added, newest first, each with its
+/// completeness line and the day. Counts only, kept in the workspace so both devices list them.
+struct PastImportsList: View {
+    let records: [ImportRecord]
+
+    var body: some View {
+        if records.isEmpty {
+            Text("No imports yet.")
+                .lbText(.body)
+                .foregroundStyle(LBColor.textTertiary.color)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(LBSpacing.s4)
+        } else {
+            VStack(spacing: 0) {
+                ForEach(Array(records.enumerated()), id: \.offset) { index, record in
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(record.line)
+                            .lbText(.body)
+                            .foregroundStyle(LBColor.textPrimary.color)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Text(Self.day(record.date))
+                            .lbText(.footnote)
+                            .foregroundStyle(LBColor.textTertiary.color)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(LBSpacing.s4)
+                    if index < records.count - 1 { Divider() }
+                }
+            }
+        }
+    }
+
+    private static func day(_ iso: String) -> String {
+        guard let date = LB.parseDate(iso) else { return iso }
+        return date.formatted(date: .abbreviated, time: .omitted)
+    }
+}
+
 /// A labelled fact. The label is the question, the value is longbook's whole answer.
 struct FactRow: View {
     let label: String

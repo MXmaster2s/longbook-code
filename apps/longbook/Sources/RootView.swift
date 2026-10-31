@@ -14,7 +14,13 @@ struct ListFilter: Hashable {
         case upcoming, past
     }
 
+    /// The landed rows a screen lists: Charges, Earnings or Transfers. Nil lists them all.
+    enum Kind: Hashable {
+        case charges, earnings, transfers
+    }
+
     var scope: Scope? = nil
+    var kind: Kind? = nil
     var day: String? = nil
     var months: [String] = []
     var methodId: String? = nil
@@ -104,8 +110,9 @@ enum Destination: Hashable {
         case .reports, .calendar, .insights, .changes, .accounts, .members:
             true
         case .commitments(let filter):
-            // An account's or a person's list is the sidebar's own row, so neither is a door.
-            filter.scope == nil && filter.day == nil && filter.months.isEmpty && filter.category == nil && !filter.bookmarked
+            // An account's or a person's list is the sidebar's own row, so neither is a door;
+            // nor are Charges, Earnings and Transfers, which name their kind.
+            (filter.scope == nil || filter.kind != nil) && filter.day == nil && filter.months.isEmpty && filter.category == nil && !filter.bookmarked
                 && filter.from == nil && filter.to == nil
         default:
             false
@@ -193,12 +200,14 @@ struct RootView: View {
         switch env["LONGBOOK_SNAPSHOT_SCREEN"] {
         case "commitments": return .commitments(ListFilter())
         // Past by name: the month pictured may be this one, which would otherwise open ahead.
-        case "charges": return .commitments(ListFilter(scope: .past, months: id.isEmpty ? [] : [id]))
+        case "charges": return .commitments(ListFilter(scope: .past, kind: id.isEmpty ? .charges : nil, months: id.isEmpty ? [] : [id]))
         // The dashboard's No account door for a month: the list decides its side.
         case "noaccount": return .commitments(ListFilter(months: id.isEmpty ? [] : [id], methodId: DashboardModel.unassignedMethodId))
         // The list under a Date window, its chip wearing the words.
         case "daterange": return .commitments(ListFilter.snapshotRange(id))
         case "commitment": return .commitment(id: id)
+        case "earnings": return .commitments(ListFilter(scope: .past, kind: .earnings))
+        case "transfers": return .commitments(ListFilter(scope: .past, kind: .transfers))
         case "calendar": return .calendar
         case "accounts": return .accounts
         case "members": return .members

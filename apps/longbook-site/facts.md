@@ -131,9 +131,9 @@ More: [All features](https://longbook.app/features.md), [Upcoming features](http
 ## Releases
 
 - **Current version:** 1.5.0
-- **Build:** 61
-- **Release date:** 29 October 2026
-- **MCP server and npm package version:** 1.45.0
+- **Build:** 64
+- **Release date:** 30 October 2026
+- **MCP server and npm package version:** 1.48.0
 - **Updates:** Every future update is free
 
 More: [Download longbook](https://longbook.app/download/), [Blog](https://longbook.app/blog.md)

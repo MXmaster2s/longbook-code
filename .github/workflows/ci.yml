@@ -34,6 +34,7 @@ jobs:
       - run: npm run telemetry:names
       - run: npm run telemetry:coverage
       - run: npm run vault:contract:check
+      - run: npm run statement:rules:check
       - run: npm run design:tokens:check
       - run: npm run hosted:engine:check
       - run: npm run local:server:check

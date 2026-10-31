@@ -46,10 +46,24 @@ public enum StatementText {
     /// The lines the file proves. Security scope is taken for the read, as a picked file
     /// outside the sandbox needs. A locked PDF throws `.locked` until a password comes.
     public static func lines(from url: URL, password: String? = nil) throws -> [StatementLine] {
+        try read(url, password: password).lines
+    }
+
+    /// What a file was read as: its lines, and the rows they came from. A PDF's rows are
+    /// its printed rows with their pages; a sheet's are its cells; plain text has none.
+    public struct Reading {
+        public var lines: [StatementLine]
+        public var rows: [StatementRow]
+        public var records: [[String]]
+    }
+
+    /// The lines with what they were read from, so a caller can look past them at the
+    /// file's own totals.
+    public static func read(_ url: URL, password: String? = nil) throws -> Reading {
         guard let kind = kind(of: url) else { throw ReadError.unsupported(url.pathExtension.lowercased()) }
         let scoped = url.startAccessingSecurityScopedResource()
         defer { if scoped { url.stopAccessingSecurityScopedResource() } }
-        let lines: [StatementLine]
+        var reading = Reading(lines: [], rows: [], records: [])
         let found: String
         switch kind {
         case .pdf:
@@ -57,34 +71,36 @@ public enum StatementText {
             // The table as the eye reads it first; the plain lines are the fallback for a
             // page whose geometry says nothing.
             let byColumn = StatementLines.fromColumns(rows)
-            lines = byColumn.isEmpty ? StatementLines.fromText(rows.map(\.line).joined(separator: "\n")) : byColumn
+            reading.lines = byColumn.isEmpty ? StatementLines.fromText(rows.map(\.line).joined(separator: "\n")) : byColumn
+            reading.rows = rows
             found = "The PDF has \(pages) page\(pages == 1 ? "" : "s") of text and \(rows.count) rows, but none carried a date and an amount."
         case .csv:
-            lines = StatementLines.fromCSV(try plainText(url))
+            reading.records = CSV.records(try plainText(url))
+            reading.lines = StatementLines.fromRecords(reading.records)
             found = "The CSV has no header row naming a date, a description and an amount."
         case .text:
             let text = try plainText(url)
-            let csv = StatementLines.fromCSV(text)
-            lines = csv.isEmpty ? StatementLines.fromText(text) : csv
+            reading.records = CSV.records(text)
+            let csv = StatementLines.fromRecords(reading.records)
+            reading.lines = csv.isEmpty ? StatementLines.fromText(text) : csv
             found = "The text has no line that begins with a date and ends with an amount."
         case .xlsx:
-            let records = try xlsxRecords(url)
-            lines = StatementLines.fromRecords(records)
-            found = "The sheet has \(records.count) rows, but no header row naming a date, a description and an amount."
+            reading.records = try xlsxRecords(url)
+            reading.lines = StatementLines.fromRecords(reading.records)
+            found = "The sheet has \(reading.records.count) rows, but no header row naming a date, a description and an amount."
         case .xls:
-            let records: [[String]]
             do {
-                records = try BIFFWorkbook.records(try Data(contentsOf: url))
+                reading.records = try BIFFWorkbook.records(try Data(contentsOf: url))
             } catch BIFFWorkbook.ReadError.notACompoundFile {
                 // Some banks name a web page or a text export ".xls"; read it for what it is.
                 let text = try plainText(url)
-                records = text.contains("<table") || text.contains("<TABLE") ? htmlRecords(text) : CSV.records(text.replacingOccurrences(of: "\t", with: ","))
+                reading.records = text.contains("<table") || text.contains("<TABLE") ? htmlRecords(text) : CSV.records(text.replacingOccurrences(of: "\t", with: ","))
             }
-            lines = StatementLines.fromRecords(records)
-            found = "The workbook has \(records.count) rows, but no header row naming a date, a description and an amount."
+            reading.lines = StatementLines.fromRecords(reading.records)
+            found = "The workbook has \(reading.records.count) rows, but no header row naming a date, a description and an amount."
         }
-        guard !lines.isEmpty else { throw ReadError.noLines(found) }
-        return lines
+        guard !reading.lines.isEmpty else { throw ReadError.noLines(found) }
+        return reading
     }
 
     // MARK: PDF
@@ -107,8 +123,8 @@ public enum StatementText {
             else { continue }
             pagesWithText += 1
             // An empty row marks the page's end: a narration never wraps across it.
-            if !rows.isEmpty { rows.append(StatementRow(words: [])) }
-            rows += rowsByPosition(on: page)
+            if !rows.isEmpty { rows.append(StatementRow(words: [], page: index + 1)) }
+            rows += rowsByPosition(on: page).map { StatementRow(words: $0.words, page: index + 1) }
         }
         guard pagesWithText > 0 else { throw ReadError.scanned }
         return (rows, pagesWithText)

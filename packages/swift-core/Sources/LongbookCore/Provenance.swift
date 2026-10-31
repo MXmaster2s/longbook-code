@@ -57,13 +57,15 @@ public enum OwnEdit {
     /// The names the app has ever signed with. "longbook-ios" is retired and kept.
     static let appNames: Set<String> = ["longbook-phone", "longbook-mac", "longbook-ios"]
 
-    /// True when every row added, changed or removed carries a fresh app signature, or a
-    /// fresh review mark from the other device's Keep: a charge under its own key first,
-    /// else its commitment's. Tag rows are never signed: ignored beside others,
-    /// disqualifying alone. An empty diff answers false.
+    /// True when every row added, changed or removed carries a fresh app signature or Keep
+    /// mark: a charge under its own key, else its commitment's. A tag is signed as
+    /// "tag:<name_key>", hints and the to-fill-in list under their names. An empty diff is false.
     public static func isOwn(from old: [String: Any], to new: [String: Any]) -> Bool {
-        let touched = vaultDiff(from: old, to: new).filter { $0.kind != "tags" }
-        guard !touched.isEmpty else { return false }
+        let diffs = vaultDiff(from: old, to: new)
+        let touched = diffs.filter { $0.kind != "tags" }
+        let tags = diffs.filter { $0.kind == "tags" }
+        let lists = ["hints", "to_fill_in"].filter { !same(old[$0], new[$0]) }
+        guard !touched.isEmpty || !tags.isEmpty || !lists.isEmpty else { return false }
         let before = ProvenanceReader.map(in: old)
         let after = ProvenanceReader.map(in: new)
         // Fresh means signed or marked by the app and not the entry the base already carried.
@@ -85,7 +87,30 @@ public enum OwnEdit {
                 if !vouched { return false }
             }
         }
+        if !lists.allSatisfy(fresh) { return false }
+        // Tags beside other rows are not held to a signature; alone, each must be signed.
+        if touched.isEmpty && lists.isEmpty {
+            for diff in tags {
+                let removed = Set(diff.removed.map(\.id))
+                for id in diff.added.map(\.id) + diff.changed.map(\.id) + diff.removed.map(\.id) {
+                    let row = tagRow(id, in: removed.contains(id) ? old : new)
+                    if !fresh("tag:" + nameKey(row?["name_key"] as? String ?? row?["name"] as? String ?? "")) { return false }
+                }
+            }
+        }
         return true
+    }
+
+    private static func same(_ a: Any?, _ b: Any?) -> Bool {
+        NSDictionary(dictionary: ["v": a ?? NSNull()]).isEqual(NSDictionary(dictionary: ["v": b ?? NSNull()]))
+    }
+
+    /// A tag row by its id, or by "<kind>/<name_key>" when an outside writer omitted the id.
+    private static func tagRow(_ id: String, in raw: [String: Any]) -> [String: Any]? {
+        (raw["tags"] as? [[String: Any]] ?? []).first { row in
+            if let own = row["id"] as? String { return own == id }
+            return "\(row["kind"] as? String ?? "")/\(row["name_key"] as? String ?? "")" == id
+        }
     }
 
     /// A charge diffs as "<commitment>@<date>"; with no entry of its own, its signature is

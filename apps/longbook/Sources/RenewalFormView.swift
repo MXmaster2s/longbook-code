@@ -565,6 +565,17 @@ struct RenewalFormView: View {
             }
             footnote("Set on the commitment, for every charge.")
         }
+        if let editingId, edit.billingCycle == .once || edit.direction == "transfer" {
+            FormRow {
+                FormQuestion("Counterpart account")
+            } content: {
+                FormField {
+                    CounterpartAccountMenu(model: model, id: editingId)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                footnote("Set on the commitment, for every charge.")
+            }
+        }
         if showsChargeNote { chargeNoteField }
     }
 
@@ -1088,7 +1099,25 @@ struct RenewalFormView: View {
     }
 
     /// On a form for one charge it is that form's only notes, so it is called Notes.
+    @ViewBuilder
     private var chargeNoteField: some View {
+        if ChargeNote.isStatementLine(note), let line = ChargeNote.labelled(note) {
+            // The bank's own words stay as read; the form shows them, it does not retype them.
+            FormRow {
+                FormQuestion(line.label)
+            } content: {
+                Text(line.value)
+                    .lbText(.body)
+                    .foregroundStyle(LBColor.textSecondary.color)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .textSelection(.enabled)
+            }
+        } else {
+            plainChargeNoteField
+        }
+    }
+
+    private var plainChargeNoteField: some View {
         FormRow {
             FormQuestion(onCharge ? "Notes" : "Charge note")
         } content: {

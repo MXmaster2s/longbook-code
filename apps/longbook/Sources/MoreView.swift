@@ -12,6 +12,7 @@ struct MoreView: View {
     /// The demo longbook over the book, from the same group as Optimize your data.
     var onDemo: (() -> Void)? = nil
     @State private var importing = false
+    @State private var showingPastImports = false
     /// Whether a statement adds the accounts and people it finds; read by the importer.
     @AppStorage(StatementFinds.key) private var addFound = true
     @Environment(\.openURL) private var openURL
@@ -30,6 +31,9 @@ struct MoreView: View {
                     Row(LBGlyph.change, 5, "Proposals", "", .opens(.changes)),
                     Row("lightbulb", 6, "Insights", "", .opens(.insights)),
                     Row("bookmark", 3, "Bookmarks", "", .opens(.commitments(ListFilter(bookmarked: true)))),
+                    Row(LBGlyph.charge, 2, "Charges", "", .opens(.commitments(ListFilter(scope: .past, kind: .charges)))),
+                    Row(LBGlyph.income, 8, "Earnings", "", .opens(.commitments(ListFilter(scope: .past, kind: .earnings)))),
+                    Row(LBGlyph.transfer, 10, "Transfers", "", .opens(.commitments(ListFilter(scope: .past, kind: .transfers)))),
                     Row(LBGlyph.account, 4, "Accounts", "", .opens(.accounts)),
                     Row("person.2", 9, "People", "", .opens(.members)),
                 ])
@@ -72,6 +76,14 @@ struct MoreView: View {
         .sheet(isPresented: $importing) {
             StatementImportView(model: model, auth: auth) { importing = false }
         }
+        .measured("more_past_imports", .sheet, when: showingPastImports)
+        .sheet(isPresented: $showingPastImports) {
+            NavigationStack {
+                ScrollView { PastImportsList(records: model.pastImports()) }
+                    .background(LBColor.canvas.color)
+                    .navigationTitle("Past imports")
+            }
+        }
         .lbScreenTitle(Self.screenTitle)
     }
 
@@ -79,7 +91,8 @@ struct MoreView: View {
     private var importSwitches: [Row] {
         #if os(iOS)
         [Row("person.crop.rectangle.stack", 4, "Add accounts and people found in statements", "",
-             .switches($addFound, detail: addFound ? StatementFinds.onDetail : StatementFinds.offDetail))]
+             .switches($addFound, detail: addFound ? StatementFinds.onDetail : StatementFinds.offDetail)),
+         Row("clock.arrow.circlepath", 4, "Past imports", "", .does { showingPastImports = true })]
         #else
         []
         #endif

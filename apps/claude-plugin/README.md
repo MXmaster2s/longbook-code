@@ -143,7 +143,7 @@ it reaches, it reaches through the two connectors it bundles:
 Statements and files you attach go to Claude in the conversation; what Claude records from them
 is sent to longbook as proposals. The plugin sends nothing anywhere else. Privacy:
 https://longbook.app/privacy-policy/. Generated from the longbook prompt catalogue (contract
-revision 45, version 1.45.0).
+revision 48, version 1.48.0).
 
 ## More about longbook
 

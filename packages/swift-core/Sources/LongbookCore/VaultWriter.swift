@@ -993,6 +993,11 @@ public enum VaultPatch {
                 live.insert(chargeKey(id, date))
             }
         }
+        for row in raw["tags"] as? [[String: Any]] ?? [] {
+            if let key = row["name_key"] as? String ?? (row["name"] as? String).map(nameKey) { live.insert("tag:" + key) }
+        }
+        live.insert("hints")
+        live.insert("to_fill_in")
         let formatter = ISO8601DateFormatter()
         let cutoff = now.addingTimeInterval(-Double(olderThanDays) * 86_400)
         var vault = raw
@@ -1040,8 +1045,75 @@ public enum VaultPatch {
             "is_incomplete": true, "created_at": iso8601(now),
         ])
         vault[kind.rawValue] = rows
+        vault["_provenance"] = stamped(vault["_provenance"], id: id, at: iso8601(now))
         return (vault, id)
     }
+
+    /// An account by name and owner. Two accounts at one bank that print no digits are told
+    /// apart by their owner, so their `name_key` is "<name>|<owner name key>"; an account with
+    /// digits, or with no owner, matches on its name alone. A new account takes the owner.
+    public static func ensureAccount(
+        named name: String, ownerName owner: String?, in raw: [String: Any], now: Date
+    ) throws -> (vault: [String: Any], id: String) {
+        let clean = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let who = owner?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !who.isEmpty, !clean.contains(where: \.isNumber) else {
+            return try ensureEntity(.paymentMethod, named: clean, in: raw, now: now)
+        }
+        guard !clean.isEmpty else { throw WriteError.invalid("Give it a name. That's what you'll recognise it by.") }
+        var (vault, ownerId) = (raw, "")
+        (vault, ownerId) = try ensureEntity(.familyMember, named: who, in: vault, now: now)
+        let key = nameKey(clean) + "|" + nameKey(who)
+        var rows = vault[EntityKind.paymentMethod.rawValue] as? [[String: Any]] ?? []
+        if let existing = rows.first(where: { nameKey($0["name_key"] as? String) == key }), let id = existing["id"] as? String {
+            return (vault, id)
+        }
+        try refuseSecrets(clean)
+        let id = UUID().uuidString.lowercased()
+        rows.append(["id": id, "name": clean, "name_key": key, "member_id": ownerId,
+                     "is_incomplete": true, "created_at": iso8601(now)])
+        vault[EntityKind.paymentMethod.rawValue] = rows
+        vault["_provenance"] = stamped(vault["_provenance"], id: id, at: iso8601(now))
+        return (vault, id)
+    }
+
+    /// The account on the other side of a one-time row, or none: writes `details.counterpart_account_id`
+    /// and `details.counterpart_account`, clears both on nil, applies the Transfers rule and
+    /// signs the row. An account id the vault does not hold is refused.
+    public static func setCounterpartAccount(
+        commitmentId: String, accountId: String?, in raw: [String: Any], now: Date
+    ) throws -> [String: Any] {
+        var vault = raw
+        var rows = vault["commitments"] as? [[String: Any]] ?? []
+        guard let index = rows.firstIndex(where: { $0["id"] as? String == commitmentId }) else { throw WriteError.notFound(commitmentId) }
+        var details = rows[index]["details"] as? [String: Any] ?? [:]
+        if let accountId {
+            let accounts = vault[EntityKind.paymentMethod.rawValue] as? [[String: Any]] ?? []
+            guard let account = accounts.first(where: { $0["id"] as? String == accountId }) else {
+                throw WriteError.invalid("That account isn't in the vault.")
+            }
+            details[StatementImport.counterpartAccountIdKey] = accountId
+            details[StatementImport.counterpartAccountKey] = account["name"] as? String ?? ""
+        } else {
+            details.removeValue(forKey: StatementImport.counterpartAccountIdKey)
+            details.removeValue(forKey: StatementImport.counterpartAccountKey)
+        }
+        if details.isEmpty { rows[index].removeValue(forKey: "details") } else { rows[index]["details"] = details }
+        rows[index]["updated_at"] = iso8601(now)
+        vault["commitments"] = rows
+        return StatementTransfers.apply(sign(ids: [commitmentId], in: vault, now: now), now: now)
+    }
+
+    /// Signs the named rows as the app's own, so the owner's other device adopts the write.
+    static func sign(ids: [String], in raw: [String: Any], now: Date) -> [String: Any] {
+        var vault = raw
+        let stamp = iso8601(now)
+        for id in ids { vault["_provenance"] = stamped(vault["_provenance"], id: id, at: stamp) }
+        return vault
+    }
+
+    /// A tag's key in `_provenance`: tags have no signed row of their own.
+    static func tagKey(_ name: String) -> String { "tag:" + nameKey(name) }
 
     /// Which subscription field points at this kind of entity.
     private static func foreignKey(_ kind: EntityKind) -> String {
@@ -1208,12 +1280,15 @@ public enum VaultPatch {
 
         vault[kind.rawValue] = rows
         vault["_provenance"] = stamped(vault["_provenance"], id: id, at: iso8601(now))
+        // A person set to Self, or an account's owner, decides which charges are transfers.
+        if memberTag != nil || ownerMemberId != nil { vault = StatementTransfers.apply(vault, now: now) }
         return vault
     }
 
     /// What setup named and nobody filled in, written whole; an empty list leaves no key.
-    public static func setToFillIn(_ list: [CommitmentPlaceholder], in raw: [String: Any]) -> [String: Any] {
-        var vault = raw
+    /// Signed under "to_fill_in", so the owner's other device adopts it.
+    public static func setToFillIn(_ list: [CommitmentPlaceholder], in raw: [String: Any], now: Date = Date()) -> [String: Any] {
+        var vault = sign(ids: ["to_fill_in"], in: raw, now: now)
         if list.isEmpty {
             vault.removeValue(forKey: "to_fill_in")
         } else {
@@ -1223,8 +1298,8 @@ public enum VaultPatch {
     }
 
     /// The people and accounts setup kept as hints, written whole; an empty list leaves no key.
-    public static func setHints(_ list: [SetupHint], in raw: [String: Any]) -> [String: Any] {
-        var vault = raw
+    public static func setHints(_ list: [SetupHint], in raw: [String: Any], now: Date = Date()) -> [String: Any] {
+        var vault = sign(ids: ["hints"], in: raw, now: now)
         if list.isEmpty {
             vault.removeValue(forKey: "hints")
         } else {
@@ -1277,7 +1352,8 @@ public enum VaultPatch {
         vault["commitments"] = subs
         // The entity's own entry stays as a tombstone, so the other device adopts the delete.
         vault["_provenance"] = stamped(vault["_provenance"], id: id, at: stamp)
-        return vault
+        // A Self person or an account gone can end a transfer.
+        return StatementTransfers.apply(vault, now: now)
     }
 
     /// A picture is a file name inside the longbook folder, never a path out of it.
@@ -1296,7 +1372,7 @@ public enum VaultPatch {
         setOrClear(&rows[index], "photo", photo)
         rows[index]["updated_at"] = iso8601(now)
         vault["commitments"] = rows
-        return vault
+        return sign(ids: [id], in: vault, now: now)
     }
 
     /// A tag's picture, on its registry row; a tag not yet registered is registered first.
@@ -1310,7 +1386,7 @@ public enum VaultPatch {
         }) else { return vault }
         setOrClear(&tags[index], "photo", photo)
         vault["tags"] = tags
-        return vault
+        return sign(ids: [tagKey(name)], in: vault, now: now)
     }
 
     /// Make sure a worn tag exists in the registry — copied from the library with its icon when
@@ -1342,7 +1418,7 @@ public enum VaultPatch {
         if let icon = library?.icon { entry["icon"] = icon }
         tags.append(entry)
         vault["tags"] = tags
-        return vault
+        return sign(ids: [tagKey(clean)], in: vault, now: now)
     }
 
     /// Deletes one tag from the registry and lifts it off every row wearing it. Returns
@@ -1362,6 +1438,7 @@ public enum VaultPatch {
         // No registry entry is not a refusal: an AI-written vault may wear a tag it
         // never registered, and the rows below still need carrying either way.
         if tags.count < before { vault["tags"] = tags }
+        vault = sign(ids: [tagKey(name)], in: vault, now: now)
 
         let collection = ["commitment": "commitments", "member": "members", "account": "accounts"][kind]
         guard let collection else { return (vault, 0) }
@@ -1377,6 +1454,7 @@ public enum VaultPatch {
             cleared += 1
         }
         vault[collection] = rows
+        if kind == "member" { vault = StatementTransfers.apply(vault, now: now) }
         return (vault, cleared)
     }
 
@@ -1418,6 +1496,7 @@ public enum VaultPatch {
             tags[index]["is_default"] = false
             vault["tags"] = tags
         }
+        vault = sign(ids: [tagKey(oldName), tagKey(clean)], in: vault, now: now)
 
         let collection = ["commitment": "commitments", "member": "members", "account": "accounts"][kind]
         guard let collection else { return (vault, 0) }
@@ -1433,6 +1512,7 @@ public enum VaultPatch {
             moved += 1
         }
         vault[collection] = rows
+        if kind == "member" { vault = StatementTransfers.apply(vault, now: now) }
 
         // A tag group holds normalised names, so it is carried in the same pass —
         // otherwise the owner's own grouping quietly drops the category it was built on.

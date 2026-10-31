@@ -14,12 +14,15 @@ public struct StatementLine: Equatable, Sendable {
     public let payee: String
     public let amount: Double
     public let direction: Direction
+    /// The page it was printed on, counted from 1, when the file is paged.
+    public let page: Int?
 
-    public init(date: String, payee: String, amount: Double, direction: Direction) {
+    public init(date: String, payee: String, amount: Double, direction: Direction, page: Int? = nil) {
         self.date = date
         self.payee = payee
         self.amount = amount
         self.direction = direction
+        self.page = page
     }
 }
 
@@ -53,7 +56,12 @@ public struct StatementWord: Equatable, Sendable {
 /// The words that share a printed line, left to right.
 public struct StatementRow: Equatable, Sendable {
     public var words: [StatementWord]
-    public init(words: [StatementWord]) { self.words = words }
+    /// The page the row sits on, counted from 1; 0 when the source has no pages.
+    public var page: Int
+    public init(words: [StatementWord], page: Int = 0) {
+        self.words = words
+        self.page = page
+    }
     /// The row as a person would read it aloud.
     public var line: String { words.map(\.text).joined(separator: " ") }
 }
@@ -73,18 +81,24 @@ public struct StatementCandidate: Identifiable, Equatable, Sendable {
     /// "in" for money that arrived on this line, "transfer" for the owner's own money
     /// moving; nil for a charge.
     public var direction: String?
+    /// The account on the line's other side, as Accounts names it ("Axis savings ••1234"):
+    /// the other side itself, or the bank account printed beside a person.
+    public var counterpartAccount: String?
+    /// Who owns that account, when the line names the person beside it.
+    public var counterpartOwner: String?
+    /// Which way the line printed the money, "in" or "out", whatever the rule says of it;
+    /// nil when the line has no counterpart account.
+    public var lineDirection: String?
+    /// Read from the file on the device, because the server's reading left the line out.
+    public var readLocally: Bool
 
     public var isIncome: Bool { direction == "in" }
-    /// Unticked by default; kept by the owner, it is written as a transfer, never as spending.
+    /// Written as a transfer, never as spending: the Transfers rule's verdict.
     public var isTransfer: Bool { direction == "transfer" }
-    /// A transfer the owner may still tick in: unticked for being an own movement and for
-    /// nothing else. One already in the book, or dated after today, stays refused.
-    public var isOpenTransfer: Bool {
-        isTransfer && (skipReason == StatementTriage.ownMovement || skipReason == StatementTriage.cardBill)
-    }
 
     public init(id: String = UUID().uuidString, line: StatementLine, name: String, tag: String?, keep: Bool, skipReason: String?,
-                file: String = "", member: String? = nil, direction: String? = nil) {
+                file: String = "", member: String? = nil, direction: String? = nil, counterpartAccount: String? = nil,
+                counterpartOwner: String? = nil, lineDirection: String? = nil, readLocally: Bool = false) {
         self.id = id
         self.line = line
         self.name = name
@@ -94,10 +108,15 @@ public struct StatementCandidate: Identifiable, Equatable, Sendable {
         self.file = file
         self.member = member
         self.direction = direction
+        self.counterpartAccount = counterpartAccount
+        self.counterpartOwner = counterpartOwner
+        self.lineDirection = lineDirection
+        self.readLocally = readLocally
     }
 }
 
 /// A rhythm spotted among the kept lines: the same name at the same amount, evenly apart.
+/// Two sightings are a guess, said so with the reason; three or more are not.
 public struct StatementRepeat: Equatable {
     public let name: String
     public let amount: Double
@@ -105,6 +124,8 @@ public struct StatementRepeat: Equatable {
     public let customDays: Int?
     public let dates: [String]
     public let candidateIds: [String]
+    public let guessed: Bool
+    public let reason: String
 }
 
 // MARK: - reading lines
@@ -162,7 +183,7 @@ public enum StatementLines {
         guard mended.count * 10 >= outside.count * 9 else { return lines }
         return lines.map { line in
             guard line.date < period.from || line.date > period.to, let day = swapped(line.date) else { return line }
-            return StatementLine(date: day, payee: line.payee, amount: line.amount, direction: line.direction)
+            return StatementLine(date: day, payee: line.payee, amount: line.amount, direction: line.direction, page: line.page)
         }
     }
 
@@ -176,18 +197,22 @@ public enum StatementLines {
             else { continue }
             var amount: Double?
             var direction: StatementLine.Direction = .debit
-            if let value = cell(record, columns.withdrawal).flatMap(parseAmount), value > 0 {
-                amount = value
-            } else if let value = cell(record, columns.deposit).flatMap(parseAmount), value > 0 {
-                amount = value
-                direction = .credit
+            // A reversal printed as a negative withdrawal is money back in; a negative
+            // deposit is money out.
+            if let value = cell(record, columns.withdrawal).flatMap(parseAmount), value != 0 {
+                amount = abs(value)
+                direction = value < 0 ? .credit : .debit
+            } else if let value = cell(record, columns.deposit).flatMap(parseAmount), value != 0 {
+                amount = abs(value)
+                direction = value < 0 ? .debit : .credit
             } else if let value = cell(record, columns.amount).flatMap(parseAmount), value != 0 {
                 amount = abs(value)
                 let type = cell(record, columns.type)?.uppercased() ?? ""
                 direction = (type.contains("CR") || value < 0) ? .credit : .debit
             }
             guard let amount else { continue }
-            out.append(StatementLine(date: date, payee: payee, amount: amount, direction: direction))
+            let page = cell(record, columns.page).flatMap { Int($0) }.flatMap { $0 > 0 ? $0 : nil }
+            out.append(StatementLine(date: date, payee: payee, amount: amount, direction: direction, page: page))
         }
         return out
     }
@@ -220,11 +245,12 @@ public enum StatementLines {
         edges = zip(edges, rowsAt).sorted { $0.0 < $1.0 }.map(\.0)
 
         let header = headerLabels(rows, dated: dated, columns: edges.count)
-        var records: [[String]] = [["Date", "Narration"] + header]
+        // The page comes first so a line can be traced to the piece that carried it.
+        var records: [[String]] = [["Page", "Date", "Narration"] + header]
         for block in blocks(rows) {
             let row = block.anchor
             guard let (dateToken, rest) = leadingDate(row.line), let date = parseDate(dateToken) else { continue }
-            var record = [date, ""]
+            var record = [String(row.page), date, ""]
             record += Array(repeating: "", count: edges.count)
             var payee: [String] = []
             var marker = ""
@@ -240,7 +266,7 @@ public enum StatementLines {
                 if currencyWords.contains(upper) { continue }
                 guard !isAmountToken(word.text) else {
                     let column = edges.enumerated().min { abs($0.element - word.maxX) < abs($1.element - word.maxX) }?.offset ?? 0
-                    if record[2 + column].isEmpty { record[2 + column] = word.text }
+                    if record[3 + column].isEmpty { record[3 + column] = word.text }
                     pastAmount = true
                     continue
                 }
@@ -248,7 +274,7 @@ public enum StatementLines {
             }
             // A narration wrapped onto the lines around its row reads as one.
             let around = block.above.map(\.line) + [payee.joined(separator: " ")] + block.below.map(\.line)
-            record[1] = around.filter { !$0.isEmpty }.joined(separator: " ")
+            record[2] = around.filter { !$0.isEmpty }.joined(separator: " ")
             // A marked row says its own direction; the columns say the rest.
             records.append(marker.isEmpty ? record : record + [marker])
         }
@@ -392,6 +418,8 @@ public enum StatementLines {
         var deposit: Int?
         var amount: Int?
         var type: Int?
+        /// The page column fromColumns writes; a bank's own sheet has none.
+        var page: Int?
     }
 
     /// The first record naming a date, a narration and some amount column.
@@ -407,7 +435,9 @@ public enum StatementLines {
                 ?? names.firstIndex { $0.contains("date") }
             for (i, name) in names.enumerated() {
                 if name.contains("date") { continue }
-                if ["narration", "description", "particulars", "remarks", "details"].contains(where: name.contains) {
+                if name == "page" {
+                    columns.page = columns.page ?? i
+                } else if ["narration", "description", "particulars", "remarks", "details"].contains(where: name.contains) {
                     columns.narration = columns.narration ?? i
                 } else if ["withdrawal", "debit"].contains(where: name.contains) || name == "dr" {
                     columns.withdrawal = columns.withdrawal ?? i
@@ -435,7 +465,7 @@ public enum StatementLines {
 
     /// The date a line starts with, and the rest. A row number printed before the date,
     /// as some banks do, is stepped over.
-    private static func leadingDate(_ line: String) -> (String, String)? {
+    static func leadingDate(_ line: String) -> (String, String)? {
         let patterns = [
             #"^(?:\d{1,4}\.?\s+)?(\d{1,2}[./-]\d{1,2}[./-]\d{2,4})\s+(.+)$"#,
             #"^(?:\d{1,4}\.?\s+)?(\d{4}-\d{2}-\d{2})\s+(.+)$"#,
@@ -454,7 +484,7 @@ public enum StatementLines {
 
     /// Statement amounts carry a decimal point or grouping commas; a bare integer at the
     /// end of a narration is a reference, not money.
-    private static func isAmountToken(_ token: String) -> Bool {
+    static func isAmountToken(_ token: String) -> Bool {
         let cleaned = token.replacingOccurrences(of: "₹", with: "").replacingOccurrences(of: "INR", with: "")
         return cleaned.range(of: #"^-?\d[\d,]*\.\d{1,2}$|^-?\d{1,3}(,\d{2,3})+$"#, options: .regularExpression) != nil
     }
@@ -609,12 +639,6 @@ enum CSV {
 public enum StatementTriage {
     public enum Verdict: Equatable { case keep, skip(String) }
 
-    /// The words that mark the owner's own money moving rather than a spend.
-    static let ownMovements = [
-        "ATM", "ATW", "CASH WDL", "CASH WITHDRAWAL", "CREDIT CARD PAYMENT", "CARD PAYMENT", "CC PAYMENT",
-        "CARD BILL", "WALLET TOPUP", "WALLET TOP UP", "ADD MONEY", "SELF TRANSFER", "OWN ACCOUNT", "TO SELF",
-    ]
-
     /// What money in says of itself, for a statement whose columns cannot be told apart by
     /// position. Said plainly, because one word is not enough: a salary paid to a cook is
     /// money out, and only "salary credit" is money in.
@@ -624,22 +648,15 @@ public enum StatementTriage {
         "INTEREST CAPITALISED", "NEFT-CR", "IMPS-CR", "UPI-CR",
     ]
 
-    /// Money in is skipped, and so is money moved between the owner's own places. Every
-    /// other debit is a fact and stays.
+    /// Money in is skipped; every other debit is a fact and stays, the owner's own money
+    /// moving included: whether a line is a transfer is the Transfers rule's to say.
     public static func verdict(_ line: StatementLine) -> Verdict {
         if line.direction == .credit { return .skip("money in") }
         let upper = " \(line.payee.uppercased()) "
         if moneyIn.contains(where: { upper.contains($0) }) { return .skip("money in") }
-        if ownMovements.contains(where: { upper.contains(" \($0) ") || upper.contains($0) }) {
-            return .skip(ownMovement)
-        }
         return .keep
     }
 
-    /// Why a line between the owner's own places is left unticked.
-    public static let ownMovement = "your own money moved"
-    /// The same for a card's bill paid from another account, as the server names it.
-    public static let cardBill = "a card bill — its charges are on the card's statement"
     /// Why a line dated ahead of today is refused, whatever kind it is.
     public static let afterToday = "dated after today — a statement proves the past"
 }
@@ -680,6 +697,51 @@ public enum StatementNaming {
             if words.count == 5 { break }
         }
         return words.isEmpty ? "Unnamed charge" : words.joined(separator: " ")
+    }
+
+    /// "Payment to X" for money out, "Payment from X" for money in.
+    public static func payment(to person: String, incoming: Bool) -> String {
+        (incoming ? "Payment from " : "Payment to ") + person
+    }
+
+    /// A charge's name, cleaned; when it is the person's own name it is the payment's name.
+    public static func charged(_ name: String, person: String?, incoming: Bool) -> String {
+        let cleaned = clean(name)
+        guard let person, !person.isEmpty, !cleaned.isEmpty,
+              nameKey(cleaned) == nameKey(person) || StatementHolder.same(cleaned, person) else { return cleaned }
+        return payment(to: person, incoming: incoming)
+    }
+
+    /// A name that carries a person, called by another of that person's names.
+    static func swapPerson(_ name: String, from old: String, to new: String) -> String {
+        for prefix in ["Payment to ", "Payment from "] where name.hasPrefix(prefix) {
+            return StatementHolder.same(String(name.dropFirst(prefix.count)), old) ? prefix + new : name
+        }
+        return StatementHolder.same(name, old) ? new : name
+    }
+
+    /// The marker a guessed commitment's name ends with; the owner's edit of the name removes it.
+    public static let guessedMark = " (Guessed)"
+
+    /// A name as the owner would say it: no currency sign or amount, nothing in brackets
+    /// (a trailing "(Guessed)" alone stays), no "paid via …" tail, two to four words kept
+    /// as the reader wrote them. Empty when nothing is left, so a caller can fall back.
+    public static func clean(_ name: String) -> String {
+        var text = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let guessed = text.hasSuffix(guessedMark)
+        if guessed { text = String(text.dropLast(guessedMark.count)) }
+        // Anything in brackets, with the brackets: "(₹649)", "[monthly]", "(via CRED)".
+        text = text.replacingOccurrences(of: #"\s*[\(\[\{][^\)\]\}]*[\)\]\}]"#, with: "", options: .regularExpression)
+        // "paid via UPI", "paid through CRED", "via Paytm" at the end.
+        text = text.replacingOccurrences(of: #"(?i)\s*\b(paid\s+(via|through|by)|via|through)\b.*$"#, with: "", options: .regularExpression)
+        // A currency sign or code with its amount, or an amount alone: "₹649", "Rs. 1,200", "INR 500", "649.00".
+        text = text.replacingOccurrences(of: #"(?i)(?:[₹$€£]|\b(?:rs\.?|inr|usd|eur|gbp))\s*\d[\d,]*(?:\.\d+)?"#, with: "", options: .regularExpression)
+        text = text.replacingOccurrences(of: #"(?<![\p{L}\d])\d[\d,]*\.\d+(?![\p{L}\d])"#, with: "", options: .regularExpression)
+        text = text.replacingOccurrences(of: #"[₹$€£]"#, with: "", options: .regularExpression)
+        text = text.replacingOccurrences(of: #"\s*[-–—:,]\s*$"#, with: "", options: .regularExpression)
+        text = text.replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression).trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return "" }
+        return guessed ? text + guessedMark : text
     }
 
     /// The narration with every long number gone, fit to sit in details without carrying a
@@ -753,9 +815,7 @@ public enum StatementImport {
             case .keep:
                 return StatementCandidate(line: line, name: name, tag: tag, keep: true, skipReason: nil, file: file)
             case .skip(let why):
-                // A movement the owner ticks back in is remembered as a transfer, never as spending.
-                return StatementCandidate(line: line, name: name, tag: tag, keep: false, skipReason: why, file: file,
-                                          direction: why == StatementTriage.ownMovement ? "transfer" : nil)
+                return StatementCandidate(line: line, name: name, tag: tag, keep: false, skipReason: why, file: file)
             }
         }
     }
@@ -768,11 +828,10 @@ public enum StatementImport {
 
     /// Lines the book already holds, or that another picked file already carried, are left
     /// unticked: a statement read twice writes nothing twice. The same line twice in one
-    /// file stays; two identical charges on one day do happen. A transfer arrives unticked
-    /// and is checked too.
+    /// file stays; two identical charges on one day do happen.
     public static func markAlreadyPresent(_ candidates: inout [StatementCandidate], in existing: Set<String>) {
         var carriedBy: [String: String] = [:]
-        for index in candidates.indices where candidates[index].keep || candidates[index].isTransfer {
+        for index in candidates.indices where candidates[index].keep {
             let candidate = candidates[index]
             let key = key(date: candidate.line.date, amount: candidate.line.amount, narration: candidate.line.payee)
             if existing.contains(key) {
@@ -788,7 +847,7 @@ public enum StatementImport {
     }
 
     /// The kept lines grouped by name and amount; a group evenly spaced is a rhythm worth
-    /// asking about. Order is first appearance.
+    /// asking about. Order is first appearance. Two sightings are a guess, said so.
     public static func repeats(in candidates: [StatementCandidate]) -> [StatementRepeat] {
         var order: [String] = []
         var groups: [String: [StatementCandidate]] = [:]
@@ -805,31 +864,49 @@ public enum StatementImport {
             let gaps = zip(days.dropFirst(), days).map { $0 - $1 }.sorted()
             guard !gaps.isEmpty else { continue }
             let median = gaps[gaps.count / 2]
-            let cycle: (BillingCycle, Int?)
+            let cycle: (BillingCycle, Int?, String)
             switch median {
-            case 26...35: cycle = (.monthly, nil)
-            case 350...380: cycle = (.yearly, nil)
-            case 85...96: cycle = (.custom, 91)
-            case 175...190: cycle = (.custom, 183)
+            case 26...35: cycle = (.monthly, nil, "a month")
+            case 350...380: cycle = (.yearly, nil, "a year")
+            case 85...96: cycle = (.custom, 91, "a quarter")
+            case 175...190: cycle = (.custom, 183, "half a year")
             default: continue
             }
+            let guessed = group.count < 3
             out.append(StatementRepeat(
                 name: group[0].name, amount: group[0].line.amount, cycle: cycle.0, customDays: cycle.1,
-                dates: group.map(\.line.date), candidateIds: group.map(\.id)
+                dates: group.map(\.line.date), candidateIds: group.map(\.id), guessed: guessed,
+                reason: guessed ? "Seen twice, \(cycle.2) apart; the same rhythm assumed." : ""
             ))
         }
         return out
     }
 
+    /// What a charge's note opens with; the rest is the statement line, its numbers gone.
+    public static let notePrefix = "Statement line: "
+
+    /// The key a one-time row's details name the other side's account under, and the key
+    /// the review fills with that account's id once it exists.
+    public static let counterpartAccountKey = "counterpart_account"
+    public static let counterpartAccountIdKey = "counterpart_account_id"
+    /// Which way the line printed the money, "in" or "out": what a charge returns to when it
+    /// stops being a transfer.
+    public static let lineDirectionKey = "line_direction"
+    /// Who owns the counterpart account; it only carries the owner to the write that links the
+    /// account, and is gone from the file once it has.
+    static let counterpartOwnerKey = "counterpart_owner"
+
     /// One add_commitments proposal of the kept lines: each a one-time row, paid, basis
     /// statement, on the account the statement is, signed as the import so Changes says so.
-    public static func proposal(_ candidates: [StatementCandidate], account: String, currency: String, source: String) -> PendingWrite {
-        proposal(candidates, accounts: ["": account], currency: currency, source: source)
+    public static func proposal(_ candidates: [StatementCandidate], account: String, currency: String, source: String,
+                                accountOwner: String? = nil) -> PendingWrite {
+        proposal(candidates, accounts: ["": account], currency: currency, source: source, accountOwner: accountOwner)
     }
 
     /// The same, with each file's lines on that file's own account. With no map at all, a
     /// candidate's `file` is already the account's name.
-    public static func proposal(_ candidates: [StatementCandidate], accounts: [String: String], currency: String, source: String) -> PendingWrite {
+    public static func proposal(_ candidates: [StatementCandidate], accounts: [String: String], currency: String, source: String,
+                                accountOwner: String? = nil) -> PendingWrite {
         let rows: [[String: Any]] = candidates.filter(\.keep).map { candidate in
             var row: [String: Any] = [
                 "name": candidate.name,
@@ -841,11 +918,24 @@ public enum StatementImport {
                 "basis": "statement",
                 "account": accounts[candidate.file] ?? accounts[""] ?? (accounts.isEmpty ? candidate.file : ""),
             ]
+            if let owner = accountOwner?.trimmingCharacters(in: .whitespaces), !owner.isEmpty { row["account_owner"] = owner }
             if let tag = candidate.tag, !tag.isEmpty { row["tag"] = tag }
             if let direction = VaultPatch.storedDirection(candidate.direction) { row["direction"] = direction }
             if let member = candidate.member?.trimmingCharacters(in: .whitespaces), !member.isEmpty { row["member"] = member }
             let line = StatementNaming.scrubbed(candidate.line.payee)
-            if !line.isEmpty { row["details"] = ["statement_line": line] }
+            var details: [String: Any] = [:]
+            if !line.isEmpty {
+                row["note"] = notePrefix + line
+                details["statement_line"] = line
+            }
+            if let other = candidate.counterpartAccount?.trimmingCharacters(in: .whitespaces), !other.isEmpty {
+                details[counterpartAccountKey] = other
+                if let owner = candidate.counterpartOwner?.trimmingCharacters(in: .whitespaces), !owner.isEmpty {
+                    details[counterpartOwnerKey] = owner
+                }
+                details[lineDirectionKey] = candidate.lineDirection ?? (candidate.direction == "in" ? "in" : "out")
+            }
+            if !details.isEmpty { row["details"] = details }
             return row
         }
         return PendingWrite(

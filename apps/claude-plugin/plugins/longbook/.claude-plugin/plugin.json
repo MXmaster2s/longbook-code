@@ -1,7 +1,7 @@
 {
   "name": "longbook",
   "displayName": "longbook",
-  "version": "1.45.0",
+  "version": "1.48.0",
   "description": "longbook's prompts for Claude: set up your longbook from your statements, keep it current from your email and files, ask what is due and what a month cost, and draw reports. Bundles the longbook connector and Gmail; sign in with your longbook account.",
   "author": {
     "name": "longbook",

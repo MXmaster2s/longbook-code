@@ -6,9 +6,10 @@ import { readFileSync } from 'node:fs'
 import { COUNTERPART_PROPERTIES, COUNTERPART_REQUIRED, tidyCounterpart, tidyCounterparts } from '../supabase/functions/_shared/statement-counterpart.ts'
 import { scanText } from '../packages/core/src/domain/dataPolicy'
 
-test('the counterpart is required and may be null, with its kind', () => {
-  assert.deepEqual([...COUNTERPART_REQUIRED], ['counterpart', 'counterpart_kind'])
+test('the counterpart is required and may be null, with its kind and the bank beside it', () => {
+  assert.deepEqual([...COUNTERPART_REQUIRED], ['counterpart', 'counterpart_kind', 'counterpart_bank'])
   assert.deepEqual(COUNTERPART_PROPERTIES.counterpart.type, ['string', 'null'])
+  assert.deepEqual(COUNTERPART_PROPERTIES.counterpart_bank.type, ['string', 'null'])
   assert.deepEqual(COUNTERPART_PROPERTIES.counterpart_kind.anyOf, [{ type: 'string', enum: ['account', 'person'] }, { type: 'null' }])
   // Anthropic refuses a schema whose enum holds a value its declared type does not.
   for (const field of Object.values(COUNTERPART_PROPERTIES) as { type?: unknown; enum?: unknown[] }[]) {
@@ -49,24 +50,24 @@ test('what is handed on passes the same scan the vault writer runs', () => {
   }
 })
 
-test('a kind without a counterpart, or an unknown kind, is dropped', () => {
+test('a kind without a counterpart, or an unknown kind, is dropped; the bank beside a person is tidied too', () => {
   const out = tidyCounterparts({
     account: 'Kotak savings 1020',
     charges: [
-      { name: 'Transfer', counterpart: 'TRF TO HDFC SAV XX4417', counterpart_kind: 'account' },
-      { name: 'Cook', counterpart: 'Ramesh K', counterpart_kind: 'person' },
-      { name: 'Netflix', counterpart: null, counterpart_kind: 'account' },
-      { name: 'Odd', counterpart: 'Shop', counterpart_kind: 'merchant' },
+      { name: 'Transfer', counterpart: 'TRF TO HDFC SAV XX4417', counterpart_kind: 'account', counterpart_bank: null },
+      { name: 'Cook', counterpart: 'Ramesh K', counterpart_kind: 'person', counterpart_bank: 'Axis savings 50100012341234' },
+      { name: 'Netflix', counterpart: null, counterpart_kind: 'account', counterpart_bank: 'ramesh.k@okaxis' },
+      { name: 'Odd', counterpart: 'Shop', counterpart_kind: 'merchant', counterpart_bank: 'SBI sav xx9876' },
       { name: 'Older answer' },
     ],
   })
   const charges = out.charges as Record<string, unknown>[]
-  assert.deepEqual(charges.map((c) => [c.counterpart, c.counterpart_kind]), [
-    ['TRF TO HDFC SAV ••4417', 'account'],
-    ['Ramesh K', 'person'],
-    [null, null],
-    [null, null],
-    [null, null],
+  assert.deepEqual(charges.map((c) => [c.counterpart, c.counterpart_kind, c.counterpart_bank]), [
+    ['TRF TO HDFC SAV ••4417', 'account', null],
+    ['Ramesh K', 'person', 'Axis savings ••1234'],
+    [null, null, null],
+    [null, null, 'SBI sav ••9876'],
+    [null, null, null],
   ])
   assert.equal(out.account, 'Kotak savings 1020')
 })

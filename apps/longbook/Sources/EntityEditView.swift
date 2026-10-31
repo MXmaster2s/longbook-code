@@ -95,6 +95,8 @@ struct EntityEditView: View {
     @State private var addingCommitment = false
     @State private var pickingAccount = false
     @State private var confirmingDelete = false
+    /// The charges a save would turn into Transfers or back, held while Change or Cancel is awaited.
+    @State private var flipping: TransferFlipWords.Flips?
     @State private var confirmingDiscard = false
     @State private var hoveringDelete = false
     /// The width the chip rails are read through, measured from the rail itself.
@@ -131,7 +133,7 @@ struct EntityEditView: View {
                             }
                     }
                     ToolbarItem(placement: .confirmationAction) {
-                        Button("Save") { Measure.used("save"); if saveNow() { onDone() } }
+                        Button("Save") { Measure.used("save"); save() }
                             .disabled(!ready)
                     }
                 }
@@ -246,6 +248,53 @@ struct EntityEditView: View {
         } message: {
             Text(EntityCopy.removalNote(kind, use: model.entityUse(kind, id: id)))
         }
+        .measured("entity_edit_confirming_flip", .alert, when: flipping != nil)
+        .alert("Change charges?", isPresented: Binding(get: { flipping != nil }, set: { if !$0 { flipping = nil } }),
+               presenting: flipping) { _ in
+            Button("Change") {
+                Measure.used("change")
+                if saveNow() { onDone() }
+            }
+            Button("Cancel", role: .cancel) { Measure.used("cancel") }
+        } message: { flips in
+            Text(TransferFlipWords.message(flips))
+        }
+    }
+
+    /// Save, after asking when it would turn charges into Transfers or back. Nothing to
+    /// change means no question.
+    private func save() {
+        refreshFacts()
+        let flips = flipsOnSave()
+        if TransferFlipWords.isZero(flips) {
+            if saveNow() { onDone() }
+        } else {
+            flipping = flips
+        }
+    }
+
+    /// The rows the edit would move across: a person's relationship, an account's owner, or
+    /// the accounts a person's editor linked or unlinked. Counted without writing.
+    private func flipsOnSave() -> TransferFlipWords.Flips {
+        guard ready, let loaded else { return (0, 0) }
+        let now = current
+        var total: TransferFlipWords.Flips = (0, 0)
+        func add(_ flips: TransferFlipWords.Flips) {
+            total.intoTransfers += flips.intoTransfers
+            total.intoCharges += flips.intoCharges
+        }
+        if isAccount {
+            if now.ownerId != loaded.ownerId { add(model.transferFlips(settingOwner: now.ownerId, onAccount: id)) }
+        } else {
+            if now.tag != loaded.tag { add(model.transferFlips(settingRelationship: now.tag, onPerson: id)) }
+            for account in now.accounts.subtracting(loaded.accounts) {
+                add(model.transferFlips(settingOwner: id, onAccount: account))
+            }
+            for account in loaded.accounts.subtracting(now.accounts) {
+                add(model.transferFlips(settingOwner: nil, onAccount: account))
+            }
+        }
+        return total
     }
 
     /// Half-typed work never dies to one tap: a changed form asks before it closes.
@@ -819,7 +868,7 @@ struct EntityEditView: View {
     private func saveButton(fills: Bool) -> some View {
         Button {
             Measure.used("save")
-            if saveNow() { onDone() }
+            save()
         } label: {
             decision("Save", ink: ready ? LBColor.onBrand : LBColor.textTertiary,
                      fill: ready ? LBColor.brand.color : LBColor.chrome.color, fills: fills)
