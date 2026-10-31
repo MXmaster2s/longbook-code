@@ -164,7 +164,7 @@ public enum StatementLinePass {
         let byLine = Dictionary(rows.map { ($0.n, $0) }, uniquingKeysWith: { first, _ in first })
         let tags = TagLibrary.entries(kind: "commitment").map(\.name)
         let charges = plan.expected.lines.enumerated().map { index, line -> StatementCloud.Charge in
-            let row = byLine[index + 1].map { bankedPerson(ownLine($0, printed: line.payee, holder: head.holder), printed: line.payee) }
+            let row = byLine[index + 1].map { bankedPerson(ownLine(realAccount($0), printed: line.payee, holder: head.holder), printed: line.payee) }
             let incoming = line.direction == .credit
             let plain = StatementNaming.plainName(separated(line.payee))
             let kind = incoming ? "income" : (row?.kind == "income" || row == nil ? "spend" : row?.kind ?? "spend")
@@ -179,6 +179,13 @@ public enum StatementLinePass {
             account: head.account, holder: head.holder, charges: charges, notes: notes,
             closingBalance: plan.expected.closing, closingBalanceDate: plan.expected.lines.map(\.date).max(), currency: head.currency
         )
+    }
+
+    /// An other side the model called an account when no account can be named from it, as
+    /// "CRED" or "UPI": the line has none. The charge stands, and nothing waits to be found.
+    static func realAccount(_ row: Row) -> Row {
+        guard row.counterpartKind == "account", let raw = row.counterpart, StatementCounterparts.accountName(raw) == nil else { return row }
+        return Row(n: row.n, name: row.name, kind: row.kind, category: row.category, member: row.member, counterpartBank: row.counterpartBank)
     }
 
     /// A line is the holder's only when it prints two words of their name, or all of a shorter
@@ -285,12 +292,16 @@ public enum StatementLinePass {
         }
     }
 
-    /// Everyone a line names, once, in line order.
+    /// Everyone a line names, once, in line order: the member and the person on the other
+    /// side, who need not be spelled alike.
     public static func members(in charges: [StatementCloud.Charge]) -> [StatementCloud.Member] {
         var seen: Set<String> = []
-        return charges.compactMap { charge in
-            guard let person = charge.namedPerson, seen.insert(nameKey(person)).inserted else { return nil }
-            return StatementCloud.Member(name: person, role: "", reason: "Named on a line")
+        return charges.flatMap { charge -> [String] in
+            [charge.member, charge.counterpartKind == "person" ? charge.counterpart : nil].compactMap { $0 }
+        }.compactMap { person in
+            let name = person.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !name.isEmpty, seen.insert(nameKey(name)).inserted else { return nil }
+            return StatementCloud.Member(name: name, role: "", reason: "Named on a line")
         }
     }
 

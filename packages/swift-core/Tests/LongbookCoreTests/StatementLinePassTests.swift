@@ -235,7 +235,8 @@ final class StatementLinePassTests: XCTestCase {
         func charge(_ member: String?, _ other: String? = nil) -> StatementCloud.Charge {
             StatementCloud.Charge(date: "2026-07-01", amount: 1, name: "X", narration: "", account: "A", category: nil, kind: "spend", member: member, counterpart: other, counterpartKind: other == nil ? nil : "person")
         }
-        XCTAssertEqual(StatementLinePass.members(in: [charge("Asha"), charge(nil), charge(nil, "ASHA"), charge(nil, "Ramesh K")]).map(\.name), ["Asha", "Ramesh K"])
+        XCTAssertEqual(StatementLinePass.members(in: [charge("Asha"), charge(nil), charge(nil, "ASHA"), charge(nil, "Ramesh K"), charge("Priya", "Priya S")]).map(\.name),
+                       ["Asha", "Ramesh K", "Priya", "Priya S"])
     }
 
     // MARK: reading
@@ -377,6 +378,98 @@ final class StatementLinePassTests: XCTestCase {
         XCTAssertEqual(ImportRecord(raw: record.raw), record)
         report.named = nil
         XCTAssertEqual(ImportRecord(file: "a.pdf", date: "2026-10-31", report: report).line, "Import Completeness Score: 100% · a.pdf: 3 of 3 lines · balance matches")
+    }
+
+    func testWheneverAPartLowersTheScoreTheSummaryNamesIt() {
+        func report(expected: Int? = 10, missing: Int = 0, balance: StatementCompleteness.Balance = .matches, people: (Int, Int) = (0, 0),
+                    accounts: (Int, Int) = (0, 0), named: Int? = nil) -> StatementCompleteness.Report {
+            var out = StatementCompleteness.Report(read: 10, expectedCount: expected, missing: Array(repeating: line("2026-07-01", 1), count: missing), extra: 0,
+                                                   balance: balance, peopleNamed: people.1, peopleListed: people.0, accountsNamed: accounts.1,
+                                                   peopleCovered: people.0, accountsFound: accounts.0)
+            out.named = named
+            return out
+        }
+        XCTAssertEqual(report(people: (9, 9), accounts: (1, 2)).score, 88)
+        XCTAssertEqual(report(people: (9, 9), accounts: (1, 2)).summary(currency: "INR"), "10 of 10 lines · balance matches · 1 of 2 accounts not found")
+        XCTAssertEqual(report(people: (6, 9)).summary(currency: "INR"), "10 of 10 lines · balance matches · 3 of 9 people not listed")
+        XCTAssertEqual(report(people: (0, 1), accounts: (0, 1)).summary(currency: "INR"), "10 of 10 lines · balance matches · 1 of 1 person not listed · 1 of 1 account not found")
+        XCTAssertEqual(report(expected: nil, balance: .unknown, accounts: (1, 2)).summary(currency: "INR"), "Read 10 lines · the file's own count could not be checked · 1 of 2 accounts not found")
+
+        // No report may fall below 100 with nothing in its words to say why.
+        for expected in [10, nil] as [Int?] {
+            for missing in [0, 2] {
+                for balance in [StatementCompleteness.Balance.matches, .off(by: 5), .unknown] {
+                    for people in [(3, 3), (1, 3)] {
+                        for accounts in [(2, 2), (1, 2)] {
+                            let it = report(expected: expected, missing: expected == nil ? 0 : missing, balance: balance, people: people, accounts: accounts)
+                            guard it.score < 100 else { continue }
+                            let said = it.summary(currency: "INR")
+                            XCTAssertTrue(said.contains("read from the file") || said.contains("balance off") || said.contains("not listed") || said.contains("not found"), said)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    func testReadOnTheDeviceThePeopleAndAccountsAreNoPartOfTheScore() {
+        func onDevice(named: Int) -> StatementCompleteness.Report {
+            var out = StatementCompleteness.Report(read: 10, expectedCount: 10, missing: [], extra: 0, balance: .matches, peopleNamed: 9, peopleListed: 6,
+                                                   accountsNamed: 2, peopleCovered: 6, accountsFound: 1)
+            out.named = named
+            return out
+        }
+        XCTAssertEqual(onDevice(named: 10).score, 100)
+        XCTAssertEqual(onDevice(named: 10).summary(currency: "INR"), "10 lines read on this device · balance matches · every line named")
+        XCTAssertEqual(onDevice(named: 8).score, 90, "what can fall here is lines named")
+        XCTAssertEqual(onDevice(named: 8).summary(currency: "INR"), "10 lines read on this device · balance matches · 8 named, 2 as printed")
+    }
+
+    func testAMaskedOrBareBankAccountIsAnAccountAndAWordWithNoAccountInItIsNot() {
+        for real in ["HDFC ••4417", "••••••••3456", "Axis Bank", "HDFC Bank", "Suryoday Small Finance Bank", "Axis savings ••1234", "A/C XX4417"] {
+            XCTAssertNotNil(StatementCounterparts.accountName(real), real)
+        }
+        for none in ["CRED", "UPI", "Bill Payment", "••12"] {
+            XCTAssertNil(StatementCounterparts.accountName(none), none)
+        }
+    }
+
+    func testAnOtherSideWithNoAccountInItLeavesTheRowAndAsksNothingOfTheReport() async throws {
+        let plan = plan()
+        let outcome = try await StatementLinePass.read(plan, asking: asking, transport: server { body in
+            switch body["task"] as? String {
+            case "head": return self.headAnswer
+            case "lines":
+                return ["rows": [
+                    ["n": 1, "name": "CRED bill", "kind": "spend", "counterpart": "CRED", "counterpart_kind": "account"],
+                    ["n": 2, "name": "Axis card bill", "kind": "spend", "counterpart": "Axis card ••4402", "counterpart_kind": "account"],
+                    ["n": 3, "name": "Payment from Ramesh", "kind": "income", "member": "Ramesh", "counterpart": "Ramesh K", "counterpart_kind": "person"],
+                ]]
+            default: return ["repeats": []]
+            }
+        })
+        XCTAssertNil(outcome.prepared.charges[0].counterpart)
+        XCTAssertEqual(outcome.prepared.charges[0].name, "CRED bill", "the charge stands")
+        XCTAssertEqual(outcome.report.accountsNamed, 1)
+        XCTAssertEqual(outcome.report.accountsFound, 1)
+        XCTAssertEqual(outcome.report.peopleNamed, 2, "a member and another side spelled apart")
+        XCTAssertEqual(outcome.report.peopleCovered, 2, "both are listed, as the review goes on to add both")
+        XCTAssertEqual(outcome.report.score, 100)
+        XCTAssertEqual(outcome.report.summary(currency: "INR"), "3 lines read on this device · balance matches · every line named")
+    }
+
+    func testAPastImportSaysWhatLoweredItsScore() throws {
+        var report = StatementCompleteness.Report(read: 3, expectedCount: 3, missing: [], extra: 0, balance: .matches, peopleNamed: 2, peopleListed: 2, accountsNamed: 2, peopleCovered: 2, accountsFound: 1)
+        var record = ImportRecord(file: "a.pdf", date: "2026-10-31", report: report)
+        XCTAssertEqual(record.line, "Import Completeness Score: 88% · a.pdf: 3 of 3 lines · balance matches · 1 of 2 accounts not found")
+        XCTAssertEqual(ImportRecord(raw: record.raw), record)
+        report.named = 2
+        record = ImportRecord(file: "a.pdf", date: "2026-10-31", report: report)
+        XCTAssertEqual(record.line, "Import Completeness Score: 83% · a.pdf: 3 lines read on this device · balance matches · 1 as printed")
+    }
+
+    func testNamesSpacedApartAreOnePersonInTheCount() {
+        XCTAssertEqual(StatementCompleteness.distinct(["Asha  Rao", "asha rao", " "]), 1)
     }
 
     func testABanksBareNameWithNoPersonStaysItsOwnAccount() {

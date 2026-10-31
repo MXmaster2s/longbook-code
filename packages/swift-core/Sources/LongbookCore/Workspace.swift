@@ -160,9 +160,12 @@ public struct ImportRecord: Equatable, Sendable {
     public var score: Int
     /// Lines the model named, when the device read the lines itself.
     public var named: Int?
+    /// What else lowered the score, in words.
+    public var gaps: [String]
 
-    public init(file: String, date: String, read: Int, expected: Int?, balance: String, score: Int, named: Int? = nil) {
+    public init(file: String, date: String, read: Int, expected: Int?, balance: String, score: Int, named: Int? = nil, gaps: [String] = []) {
         self.named = named
+        self.gaps = gaps
         self.file = file
         self.date = date
         self.read = read
@@ -180,20 +183,21 @@ public struct ImportRecord: Equatable, Sendable {
         case .unknown: word = "unknown"
         }
         self.init(file: file, date: date, read: report.expectedCount.map { $0 - report.missing.count } ?? report.read,
-                  expected: report.expectedCount, balance: word, score: report.score, named: report.named)
+                  expected: report.expectedCount, balance: word, score: report.score, named: report.named, gaps: report.gaps)
     }
 
     init?(raw: [String: Any]) {
         guard let file = raw["file"] as? String, let date = raw["date"] as? String,
               let read = (raw["read"] as? NSNumber)?.intValue, let score = (raw["score"] as? NSNumber)?.intValue else { return nil }
         self.init(file: file, date: date, read: read, expected: (raw["expected"] as? NSNumber)?.intValue,
-                  balance: raw["balance"] as? String ?? "unknown", score: score, named: (raw["named"] as? NSNumber)?.intValue)
+                  balance: raw["balance"] as? String ?? "unknown", score: score, named: (raw["named"] as? NSNumber)?.intValue, gaps: raw["gaps"] as? [String] ?? [])
     }
 
     var raw: [String: Any] {
         var out: [String: Any] = ["file": file, "date": date, "read": read, "balance": balance, "score": score]
         if let expected { out["expected"] = expected }
         if let named { out["named"] = named }
+        if !gaps.isEmpty { out["gaps"] = gaps }
         return out
     }
 
@@ -212,7 +216,8 @@ public struct ImportRecord: Equatable, Sendable {
         case "off": words += " · balance off"
         default: break
         }
-        return words
+        if let named, let expected, named < expected { words += " · \(expected - named) as printed" }
+        return ([words] + gaps).joined(separator: " · ")
     }
 }
 

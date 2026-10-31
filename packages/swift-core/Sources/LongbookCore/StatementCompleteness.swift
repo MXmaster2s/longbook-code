@@ -85,16 +85,30 @@ public enum StatementCompleteness {
                 return words + " · " + (named == expectedCount ? "every line named" : "\(named) named, \(expectedCount - named) as printed")
             }
             guard let expectedCount else {
-                return "Read \(read) line\(read == 1 ? "" : "s") · the file's own count could not be checked"
+                return (["Read \(read) line\(read == 1 ? "" : "s") · the file's own count could not be checked"]
+                        + [balanceWords(currency: currency)].compactMap { $0 } + gaps).joined(separator: " · ")
             }
             var words = "\(expectedCount - missing.count) of \(expectedCount) line\(expectedCount == 1 ? "" : "s")"
             if !missing.isEmpty { words += ", \(missing.count) read from the file" }
-            return words + balanceWords(currency: currency).map { " · " + $0 }.orEmpty
+            return ([words + balanceWords(currency: currency).map { " · " + $0 }.orEmpty] + gaps).joined(separator: " · ")
         }
 
-        /// The average percent of lines read (read on the device, of lines the model named), the
-        /// balance (100 matches, 0 off, unknown left out), people listed and accounts found.
-        /// A part with nothing to check is left out; none at all is 100.
+        /// The score's other parts, in words, whenever one lowers it. Read on the device they
+        /// are no part of the score: the people and accounts come from the same rows they
+        /// would be checked against.
+        public var gaps: [String] {
+            guard named == nil else { return [] }
+            var out: [String] = []
+            let people = peopleNamed - min(peopleCovered, peopleNamed)
+            if people > 0 { out.append("\(people) of \(peopleNamed) \(peopleNamed == 1 ? "person" : "people") not listed") }
+            let accounts = accountsNamed - min(accountsFound, accountsNamed)
+            if accounts > 0 { out.append("\(accounts) of \(accountsNamed) account\(accountsNamed == 1 ? "" : "s") not found") }
+            return out
+        }
+
+        /// The average percent of lines read, the balance (100 matches, 0 off, unknown left out),
+        /// people listed and accounts found. Read on the device, lines the model named and the
+        /// balance alone. A part with nothing to check is left out; none at all is 100.
         public var score: Int {
             var parts: [Double] = []
             if let expectedCount, expectedCount > 0 {
@@ -105,8 +119,8 @@ public enum StatementCompleteness {
             case .off: parts.append(0)
             case .unknown: break
             }
-            if peopleNamed > 0 { parts.append(Double(min(peopleCovered, peopleNamed)) / Double(peopleNamed)) }
-            if accountsNamed > 0 { parts.append(Double(min(accountsFound, accountsNamed)) / Double(accountsNamed)) }
+            if named == nil, peopleNamed > 0 { parts.append(Double(min(peopleCovered, peopleNamed)) / Double(peopleNamed)) }
+            if named == nil, accountsNamed > 0 { parts.append(Double(min(accountsFound, accountsNamed)) / Double(accountsNamed)) }
             guard !parts.isEmpty else { return 100 }
             return Int((parts.reduce(0, +) / Double(parts.count) * 100).rounded())
         }
@@ -326,9 +340,9 @@ public enum StatementCompleteness {
         return out
     }
 
-    /// Each name once, however it is cased or spaced.
+    /// Each name once, however it is cased or spaced, as names are matched.
     static func distinct(_ names: [String]) -> Int {
-        Set(names.map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }.filter { !$0.isEmpty }).count
+        Set(names.map(nameKey).filter { !$0.isEmpty }).count
     }
 
     // MARK: asking again
