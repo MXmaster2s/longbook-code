@@ -1,4 +1,4 @@
-longbook llms.txt — contract revision 49.
+longbook llms.txt — contract revision 50.
 Hello. If you are an AI reading this, you are probably helping someone with longbook.
 This is the contract, plainly stated. Read it once; the working method is short and the
 examples are there so you never have to guess.
