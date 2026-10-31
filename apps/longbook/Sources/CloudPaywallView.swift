@@ -8,7 +8,8 @@ import UIKit
 
 /// The door to longbook Cloud, opened wherever a server feature is asked for without it:
 /// what it costs, how long it runs, what it covers, and the ways to subscribe, manage or
-/// restore. The App Store sells it on both platforms, and the price is the store's own.
+/// restore. The App Store sells it, at the store's own price. The direct Mac build sells no
+/// subscription.
 struct CloudPaywallView: View {
     @ObservedObject var auth: AuthViewModel
     @EnvironmentObject private var entitlement: EntitlementStore
@@ -20,6 +21,8 @@ struct CloudPaywallView: View {
     private static let privacyURL = URL(string: "https://longbook.app/privacy-policy/")!
     /// Apple's own subscriptions page; the Mac has no in-app sheet for it.
     private static let subscriptionsURL = URL(string: "https://apps.apple.com/account/subscriptions")!
+    /// What the direct build says in place of the subscribe button.
+    static let directWords = "longbook Cloud is included for 12 months with your licence. Monthly Cloud on the Mac comes later."
 
     private var state: EntitlementState { entitlement.state }
 
@@ -55,7 +58,7 @@ struct CloudPaywallView: View {
         .frame(maxWidth: 520)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(LBColor.canvas.color)
-        .task { await store.load() }
+        .task { if Distribution.current == .appStore { await store.load() } }
         #if os(iOS)
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
@@ -70,8 +73,10 @@ struct CloudPaywallView: View {
     private var facts: some View {
         LBCard {
             VStack(alignment: .leading, spacing: LBSpacing.s2) {
-                FactRow(label: "Price", value: priceWords)
-                FactRow(label: "Term", value: "Renews \(store.cloudEveryWords) until cancelled")
+                if Distribution.current == .appStore {
+                    FactRow(label: "Price", value: priceWords)
+                    FactRow(label: "Term", value: "Renews \(store.cloudEveryWords) until cancelled")
+                }
                 if let words = cloudWords(state) {
                     FactRow(label: "Status", value: words.0, tone: words.1)
                 }
@@ -96,6 +101,21 @@ struct CloudPaywallView: View {
 
     @ViewBuilder
     private var actions: some View {
+        if Distribution.current == .direct {
+            VStack(alignment: .leading, spacing: LBSpacing.s2) {
+                Text(Self.directWords)
+                    .lbText(.bodySM)
+                    .foregroundStyle(LBColor.textPrimary.color)
+                    .fixedSize(horizontal: false, vertical: true)
+                quietButton("Done") { dismiss() }
+            }
+        } else {
+            appStoreActions
+        }
+    }
+
+    @ViewBuilder
+    private var appStoreActions: some View {
         VStack(alignment: .leading, spacing: LBSpacing.s2) {
             if subscribed {
                 brandButton("Manage Subscription", action: manage)
@@ -134,14 +154,22 @@ struct CloudPaywallView: View {
 
     private var legal: some View {
         VStack(alignment: .leading, spacing: LBSpacing.s2) {
-            Text("Payment is charged to your Apple Account when the purchase is confirmed. The subscription renews automatically unless it is cancelled at least 24 hours before the end of the current period. Cancel at any time in your Apple ID subscription settings. Apple keeps the invoice.")
-                .lbText(.footnote)
-                .foregroundStyle(LBColor.textTertiary.color)
-                .fixedSize(horizontal: false, vertical: true)
+            if Distribution.current == .appStore {
+                appleTerms
+            }
             HStack(spacing: LBSpacing.s4) {
                 link("Terms of service", Self.termsURL)
                 link("Privacy policy", Self.privacyURL)
             }
+        }
+    }
+
+    private var appleTerms: some View {
+        VStack(alignment: .leading, spacing: LBSpacing.s2) {
+            Text("Payment is charged to your Apple Account when the purchase is confirmed. The subscription renews automatically unless it is cancelled at least 24 hours before the end of the current period. Cancel at any time in your Apple ID subscription settings. Apple keeps the invoice.")
+                .lbText(.footnote)
+                .foregroundStyle(LBColor.textTertiary.color)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 

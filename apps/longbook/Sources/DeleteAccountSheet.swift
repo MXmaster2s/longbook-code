@@ -14,6 +14,12 @@ struct DeleteAccountSheet: View {
     @State private var error: String?
 
     private static let word = "DELETE"
+
+    /// Apple's confirmation is its native sheet, which a Developer ID build cannot show. Without
+    /// the code the server deletes the account and the Apple link stays for the reader to end.
+    private var confirmsWithApple: Bool { auth.signedInWithApple && Distribution.current == .appStore }
+    private var keepsAppleLink: Bool { auth.signedInWithApple && Distribution.current == .direct }
+
     private var memoryFile: URL? {
         VaultSource.resolve().map { $0.appendingPathComponent(VaultReader.dataFile) }
     }
@@ -31,14 +37,15 @@ struct DeleteAccountSheet: View {
                 }
                 facts("Removed for good", [
                     "Your sign-in and email address",
-                    auth.signedInWithApple ? "Your Sign in with Apple link to longbook" : nil,
+                    confirmsWithApple ? "Your Sign in with Apple link to longbook" : nil,
                     "The licence on this account",
                     "Your longbook Cloud copy and shared reports",
                 ].compactMap { $0 })
                 facts("Kept", [
                     "Your longbook folder in iCloud or on this device",
                     "A longbook Cloud subscription: cancel it in your Apple Account settings",
-                ])
+                    keepsAppleLink ? "Your Sign in with Apple link: remove longbook from it in your Apple Account settings" : nil,
+                ].compactMap { $0 })
                 if let memoryFile {
                     VStack(alignment: .leading, spacing: LBSpacing.s2) {
                         ShareLink(item: memoryFile) {
@@ -54,7 +61,7 @@ struct DeleteAccountSheet: View {
                             .foregroundStyle(LBColor.textTertiary.color)
                     }
                 }
-                if auth.signedInWithApple {
+                if confirmsWithApple {
                     Text("Apple asks you to confirm with Face ID first. Its sheet says Sign in with Apple; it only checks it’s you.")
                         .lbText(.footnote)
                         .foregroundStyle(LBColor.textTertiary.color)
@@ -83,7 +90,7 @@ struct DeleteAccountSheet: View {
                         // An Apple account confirms with Apple first, so the server can end that
                         // link. A closed sheet keeps the account.
                         var confirmation: String?
-                        if auth.signedInWithApple {
+                        if confirmsWithApple {
                             do {
                                 confirmation = try await auth.appleDeletionCode()
                             } catch {

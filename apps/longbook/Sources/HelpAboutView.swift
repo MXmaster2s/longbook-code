@@ -128,10 +128,16 @@ struct DataLeavingCard: View {
                 VStack(alignment: .leading, spacing: LBSpacing.s3) {
                     fact("Account", "Your email and account ID, to sign you in. With Google, also your name and the address of your picture.")
                     rule
-                    fact("Purchase", "Apple’s transaction ID, to unlock the licence.")
-                    #if os(macOS)
-                    fact("Update check", "With Check for updates automatically on, once a day the app asks Apple’s App Store which version of longbook is current. Nothing about you or your longbook is sent.")
-                    #endif
+                    switch Distribution.current {
+                    case .appStore:
+                        fact("Purchase", "Apple’s transaction ID, to unlock the licence.")
+                        #if os(macOS)
+                        fact("Update check", "With Check for updates automatically on, once a day the app asks Apple’s App Store which version of longbook is current. Nothing about you or your longbook is sent.")
+                        #endif
+                    case .direct:
+                        fact("Purchase", "The licence key you enter, to unlock the licence.")
+                        fact("Update check", "With Check for updates automatically on, once a day the app asks longbook.app which version of longbook is current, naming this app’s version. Nothing about you or your longbook is sent.")
+                    }
                     rule
                     fact(
                         "Hosted copy",
