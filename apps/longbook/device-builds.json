@@ -153,6 +153,7 @@
   "65": {
     "version": "1.5.0",
     "commit": "3a50d36a1d",
-    "installed": "2026-10-31"
+    "installed": "2026-10-31",
+    "testflight": "2026-10-31"
   }
 }
