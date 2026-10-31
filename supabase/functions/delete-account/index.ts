@@ -1,6 +1,6 @@
 // Deletes the caller's account and everything the server holds. The user id comes from the
-// verified JWT, never the request, so this can only delete the caller. Every table keyed
-// to a user cascades from auth.users; the memory is a folder on the reader's device.
+// verified JWT, never the request, so this can only delete the caller. Tables keyed to a user
+// cascade from auth.users; web orders stay, naming no one; the memory is on the reader's device.
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
@@ -21,6 +21,18 @@ const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
+
+// What deleting the account empties on its web orders: everything that names the buyer. The
+// order's figures stay for seats and tax, and claimed_at stays, which is how the polar
+// functions know the row was scrubbed.
+const SCRUBBED_ORDER = {
+  email: null,
+  external_customer_id: null,
+  polar_customer_id: null,
+  license_key_id: null,
+  claimed_by: null,
+  user_id: null,
 }
 
 const json = (data: unknown, status = 200) =>
@@ -92,12 +104,16 @@ Deno.serve(async (req: Request) => {
     if (refusal) return json({ error: refusal }, 502)
   }
 
-  // The service role is the only key that may delete a user, and it is used for exactly that
-  // one call, on an id that came from the token rather than the body.
+  // The service role is the only key that may delete a user. It is used for that one call and
+  // the orders before it, on an id that came from the token rather than the body.
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
+  const { error: scrubFailure } = await admin.from('web_orders').update(SCRUBBED_ORDER)
+    .or(`claimed_by.eq.${user.id},user_id.eq.${user.id}`)
+  if (scrubFailure) return json({ error: 'The account could not be deleted. Try again shortly.' }, 500)
   const { error: failure } = await admin.auth.admin.deleteUser(user.id)
   if (failure) {
-    // Nothing partial: the delete either takes the row and its cascades, or changes nothing.
+    // The delete either takes the row and its cascades, or changes nothing; the licence still
+    // stands on its entitlement if only the order's details went.
     return json({ error: 'The account could not be deleted. Try again shortly.' }, 500)
   }
 

@@ -43,6 +43,7 @@ async function orderPaid(facts: OrderFacts, delivery: string): Promise<Response>
   const service = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
   const stored = await recordOrder(service, order, ENVIRONMENT)
   if (stored.status === 'refunded') return reply({ ignored: 'refunded' })
+  if (stored.scrubbed) return reply({ ignored: 'account deleted' })
   if (ENVIRONMENT === 'production') {
     await after(runPriceStep(service, { asc: ASC_KEY, resend: RESEND_API_KEY }), 'price step')
   }

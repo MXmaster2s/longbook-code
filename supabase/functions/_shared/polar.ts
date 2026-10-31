@@ -257,6 +257,10 @@ export async function matchAccount(facts: OrderFacts, lookup: AccountLookup): Pr
 
 // ---- the licence --------------------------------------------------------------------------
 
+/** An order whose account is gone: claimed once, with no account on it now. */
+export const isScrubbed = (row: { claimed_at?: string | null; user_id?: string | null }): boolean =>
+  !!row.claimed_at && !row.user_id
+
 export interface HeldLicence {
   status: string
   source?: string | null

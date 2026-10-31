@@ -416,10 +416,12 @@ test('the migration, the guard, the deploy list and CI carry web orders', () => 
     "status text not null check (status in ('paid', 'refunded'))",
   ]) assert.ok(sql.includes(piece), `migration lacks: ${piece}`)
   assert.ok(!/\braw\b/.test(sql), 'the name and billing address are not kept')
+  assert.ok(/\n  email text,\n/.test(sql), 'email empties when the account is deleted')
   assert.ok(read('scripts/guard-rls.mts').includes("table_name='web_orders'"))
   const deploy = read('scripts/deploy-function.mts')
   for (const fn of ['polar-webhook', 'polar-checkout', 'polar-claim']) assert.ok(deploy.includes(`'${fn}'`), fn)
   const ci = read('.github/workflows/ci.yml')
   assert.ok(ci.includes('- run: npm run cloud:test\n      - run: npm run web:test\n'))
   assert.ok(read('supabase/functions/apple-purchase/index.ts').includes('runPriceStep(service'), 'one price step for both sellers')
+  assert.ok(!read('supabase/functions/delete-account/index.ts').includes('_shared'), 'account:deploy uploads the one file')
 })

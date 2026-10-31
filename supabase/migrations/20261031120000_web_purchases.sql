@@ -26,10 +26,12 @@ revoke select (source, polar_customer_id, polar_license_key_id) on table public.
 
 -- One row per Polar order for the licence, written only by the polar functions with the
 -- service role. amount is in minor units. environment keeps sandbox orders out of the seat count.
+-- Deleting the account empties every column that names the buyer, email included; the order's
+-- figures stay for seats and tax. claimed_at set with user_id null marks such a row.
 create table public.web_orders (
   order_id text primary key,
   user_id uuid references auth.users (id) on delete set null,
-  email text not null,
+  email text,
   polar_customer_id text,
   external_customer_id text,
   product_id text not null,

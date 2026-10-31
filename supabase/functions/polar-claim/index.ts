@@ -158,8 +158,10 @@ Deno.serve(async (req) => {
   if (found === null) return refuse('notLongbook', 409)
   if (found === 'refunded') return refuse('refunded', 409)
   if (typeof found === 'string') return refuse(found, 502)
-  const { data: order } = await service.from('web_orders').select('claimed_by').eq('order_id', found.order.order_id).maybeSingle()
-  if (order?.claimed_by && order.claimed_by !== user.id) return refuse('inUse', 409)
+  // A claimed order stays with its account. Once that account is deleted the row names no one,
+  // so it is refused here too: the licence ended with the account.
+  const { data: order } = await service.from('web_orders').select('claimed_at, claimed_by').eq('order_id', found.order.order_id).maybeSingle()
+  if (order?.claimed_at && order.claimed_by !== user.id) return refuse('inUse', 409)
 
   // A key whose benefit sets no activation limit cannot be activated; the claim on its order
   // above still holds it to one account.

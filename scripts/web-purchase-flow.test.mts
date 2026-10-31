@@ -57,6 +57,7 @@ async function load(path: string): Promise<Handler> {
 const webhook = await load('../supabase/functions/polar-webhook/index.ts')
 const checkout = await load('../supabase/functions/polar-checkout/index.ts')
 const claim = await load('../supabase/functions/polar-claim/index.ts')
+const deleteAccount = await load('../supabase/functions/delete-account/index.ts')
 
 // ---- the outside world over fetch ---------------------------------------------------------
 
@@ -506,6 +507,68 @@ test('after an email claim, another account is refused the key, found by key or 
   }
   assert.ok(!outside.polar.some((c) => c.path.endsWith('/activate')), 'the refusal comes before activating')
   assert.equal(db.rows('entitlements').filter((r) => r.user_id === sam.id).length, 0)
+})
+
+// ---- deleting the account -----------------------------------------------------------------
+
+test('deleting the account empties what names the buyer and keeps the figures', async () => {
+  const someoneElse = { order_id: 'other', claimed_by: 'someone', user_id: 'someone', email: 'other@example.com', status: 'paid' }
+  await webhook(delivery(orderPaid))
+  await webhook(delivery({ ...benefitGrantCreated, data: { ...benefitGrantCreated.data, created_at: new Date().toISOString() } }))
+  db.rows('web_orders').push({ ...someoneElse })
+  const res = await deleteAccount(signedIn({}))
+  assert.deepEqual(await res.json(), { ok: true, folder_untouched: true })
+  assert.equal(db.users.length, 0)
+  assert.equal(licence(), undefined)
+  const row = webOrder()!
+  for (const gone of ['email', 'external_customer_id', 'polar_customer_id', 'license_key_id', 'claimed_by', 'user_id']) {
+    assert.equal(row[gone], null, gone)
+  }
+  assert.deepEqual([row.order_id, row.amount, row.currency, row.country, row.status, row.paid_at],
+    [ORDER_ID, 3800, 'usd', 'IN', 'paid', PAID_AT])
+  assert.ok(row.claimed_at, 'claimed_at marks the row as scrubbed')
+  assert.deepEqual(db.rows('web_orders').find((r) => r.order_id === 'other'), someoneElse, 'only this account\'s orders')
+})
+
+test('a failure emptying the orders stops the deletion', async () => {
+  await webhook(delivery(orderPaid))
+  db.failing = ['web_orders']
+  const res = await deleteAccount(signedIn({}))
+  assert.equal(res.status, 500)
+  assert.deepEqual(await res.json(), { error: 'The account could not be deleted. Try again shortly.' })
+  assert.equal(db.users.length, 1)
+  assert.equal(licence()!.status, 'active')
+})
+
+test('after deletion, later events never write the buyer back, and the order stays claimed', async () => {
+  await webhook(delivery(orderPaid))
+  await deleteAccount(signedIn({}))
+  const after = () => ({ ...webOrder()! })
+
+  const fresh = { id: '9f9f9f9f-0000-4000-8000-000000000006', email: alex.email, email_confirmed_at: alex.email_confirmed_at }
+  db.users.push(fresh)
+  assert.deepEqual(await (await webhook(delivery(orderPaid))).json(), { ignored: 'account deleted' })
+  assert.equal(after().email, null, 'a repeated order.paid')
+  assert.equal(db.rows('entitlements').length, 0, 'a new account with the same address gets nothing')
+  assert.deepEqual(await (await byEmail({}, fresh.id)).json(), { ok: true, status: 'none' })
+
+  await webhook(delivery({ ...benefitGrantCreated, data: { ...benefitGrantCreated.data, created_at: new Date().toISOString() } }))
+  assert.equal(after().license_key_id, null, 'a late key grant')
+
+  polarKnowsKey()
+  const refused = await claim(signedIn({ key: KEY }, fresh.id))
+  assert.deepEqual(await refused.json(), { why: 'This licence key is already in use on another longbook account.' })
+  assert.equal(after().email, null, 'a key claim that found it through Polar')
+  assert.equal(after().claimed_by, null)
+
+  await webhook(delivery(orderRefunded))
+  const refunded = after()
+  assert.equal(refunded.status, 'refunded')
+  assert.equal(refunded.refunded_at, orderRefunded.timestamp)
+  for (const gone of ['email', 'external_customer_id', 'polar_customer_id', 'license_key_id', 'user_id', 'claimed_by']) {
+    assert.equal(refunded[gone], null, gone)
+  }
+  assert.equal(refunded.paid_at, PAID_AT)
 })
 
 test('a Polar outage reads as an outage, not as a bad key', async () => {

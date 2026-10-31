@@ -9,9 +9,11 @@ const made = {
   tables: {} as Record<string, Row[]>,
   users: [] as { id: string; email: string; email_confirmed_at?: string | null }[],
   keys: { entitlements: 'user_id', web_orders: 'order_id', cloud_grants: 'user_id', licence_price_steps: 'tier' } as Record<string, string>,
+  failing: [] as string[],
   reset() {
     this.tables = {}
     this.users = []
+    this.failing = []
   },
   rows(table: string): Row[] {
     return (this.tables[table] ??= [])
@@ -81,7 +83,13 @@ class Query {
     this.tests.push((r) => (r[column] ?? null) !== value)
     return this
   }
-  or(_filter: string): this {
+  or(filter: string): this {
+    const parts = filter.split(',').map((part) => {
+      const [column, op, ...value] = part.split('.')
+      return { column: column!, op, value: value.join('.') }
+    })
+    this.tests.push((r) => parts.some(({ column, op, value }) =>
+      op === 'is' ? (r[column] ?? null) === null : r[column] === value))
     return this
   }
   order(column: string, options: { ascending: boolean }): this {
@@ -98,6 +106,7 @@ class Query {
   }
 
   private run(): { data: unknown; error: { message: string } | null; count?: number } {
+    if (db.failing.includes(this.table)) return { data: null, error: { message: 'database unreachable' } }
     const rows = db.rows(this.table)
     const key = db.keys[this.table] ?? 'id'
     const matched = () => rows.filter((r) => this.tests.every((t) => t(r)))
@@ -145,6 +154,12 @@ export function createClient(_url: string, _key: string) {
         getUserById: async (id: string) => {
           const user = db.users.find((u) => u.id === id)
           return { data: { user: user ?? null }, error: user ? null : { message: 'not found' } }
+        },
+        deleteUser: async (id: string) => {
+          db.users = db.users.filter((u) => u.id !== id)
+          for (const table of ['entitlements', 'cloud_grants']) db.tables[table] = db.rows(table).filter((r) => r.user_id !== id)
+          for (const order of db.rows('web_orders')) if (order.user_id === id) order.user_id = null
+          return { error: null }
         },
       },
     },

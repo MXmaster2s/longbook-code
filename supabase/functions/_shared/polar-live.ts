@@ -6,6 +6,7 @@ import { confirmPurchase, entitlementSentMark } from './confirm-purchase.ts'
 import { grantLicenceCloud, revokeLicenceCloud } from './licence-cloud.ts'
 import {
   MAJOR_VERSION,
+  isScrubbed,
   licenceDecision,
   pickByEmail,
   polarEntitlement,
@@ -22,6 +23,8 @@ export interface StoredOrder {
   status: 'paid' | 'refunded'
   claimed_by: string | null
   license_key_id: string | null
+  /** The account is gone: nothing may name a buyer on this row again, or claim it. */
+  scrubbed: boolean
 }
 
 /** Accounts by id through the admin API, and by email through its user search: each page is
@@ -53,17 +56,27 @@ export function accountLookup(service: SupabaseClient, supabaseUrl: string, serv
 }
 
 /** Writes the order's row and answers with what it now holds. A refund is final: a late or
- *  repeated order.paid never makes a refunded order paid again, and the payment time is kept. */
+ *  repeated order.paid never makes a refunded order paid again, and the payment time is kept.
+ *  A scrubbed row takes its status and refund time alone. */
 export async function recordOrder(service: SupabaseClient, order: WebOrder, environment: PolarEnvironment): Promise<StoredOrder> {
   const { data: stored, error } = await service.from('web_orders')
-    .select('status, claimed_by, license_key_id').eq('order_id', order.order_id).maybeSingle()
+    .select('status, claimed_by, claimed_at, user_id, license_key_id').eq('order_id', order.order_id).maybeSingle()
   if (error) throw new Error(`could not read the order: ${error.message}`)
-  if (stored?.status === 'refunded' && order.status === 'paid') return stored as StoredOrder
+  const scrubbed = !!stored && isScrubbed(stored)
+  if (stored?.status === 'refunded' && order.status === 'paid') {
+    return { status: 'refunded', claimed_by: stored.claimed_by, license_key_id: stored.license_key_id, scrubbed }
+  }
+  if (scrubbed) {
+    const { error: writeError } = await service.from('web_orders')
+      .update({ status: order.status, refunded_at: order.refunded_at }).eq('order_id', order.order_id)
+    if (writeError) throw new Error(`could not record the order: ${writeError.message}`)
+    return { status: order.status, claimed_by: null, license_key_id: null, scrubbed }
+  }
   const { paid_at, ...rest } = order
   const row = { ...rest, environment, ...(stored ? {} : { paid_at }) }
   const { error: writeError } = await service.from('web_orders').upsert(row, { onConflict: 'order_id' })
   if (writeError) throw new Error(`could not record the order: ${writeError.message}`)
-  return { status: order.status, claimed_by: stored?.claimed_by ?? null, license_key_id: stored?.license_key_id ?? null }
+  return { status: order.status, claimed_by: stored?.claimed_by ?? null, license_key_id: stored?.license_key_id ?? null, scrubbed }
 }
 
 export interface Grant {
@@ -142,11 +155,13 @@ export async function revokePolarOrder(service: SupabaseClient, orderId: string)
 }
 
 /** A licence key Polar issued, stored on its order: by order id, else on the customer's
- *  earliest order still without one. Answers how many orders took it. */
+ *  earliest order still without one. A scrubbed order is answered as done and left empty.
+ *  Answers how many orders took it. */
 export async function linkLicenceKey(service: SupabaseClient, grant: LicenceKeyGrant): Promise<number> {
   let orderId = grant.orderId
   if (orderId) {
-    const { data } = await service.from('web_orders').select('order_id').eq('order_id', orderId).maybeSingle()
+    const { data } = await service.from('web_orders').select('order_id, claimed_at, user_id').eq('order_id', orderId).maybeSingle()
+    if (data && isScrubbed(data)) return 1
     if (!data) orderId = null
   }
   if (!orderId && grant.customerId) {
