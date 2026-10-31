@@ -53,7 +53,7 @@ create index web_orders_customer on public.web_orders (polar_customer_id)
 create index web_orders_license_key on public.web_orders (license_key_id)
   where license_key_id is not null;
 create index web_orders_seats on public.web_orders (paid_at)
-  where status = 'paid' and environment = 'production';
+  where status = 'paid' and environment = 'production' and amount > 0;
 
 alter table public.web_orders enable row level security;
 revoke all on table public.web_orders from public, anon, authenticated;

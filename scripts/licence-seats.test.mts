@@ -29,14 +29,15 @@ test('nonsense counts read as none sold', () => {
   assert.equal(seatsFor(-3).sold, 0)
 })
 
-test('a paid web order from launch pricing on is a seat; earlier, refunded or sandbox orders are not', () => {
-  const sale = { status: 'paid', environment: 'production', paid_at: '2026-10-31T10:00:00Z' }
+test('a charged web order from launch pricing on is a seat; earlier, refunded, sandbox or free orders are not', () => {
+  const sale = { status: 'paid', amount: 3800, environment: 'production', paid_at: '2026-10-31T10:00:00Z' }
   assert.equal(isWebSeat(sale), true)
   assert.equal(isWebSeat({ ...sale, paid_at: WEB_SEATS_FROM }), true, 'the first day counts')
   assert.equal(isWebSeat({ ...sale, paid_at: '2026-08-14T09:12:00Z' }), false, 'an August order')
   assert.equal(isWebSeat({ ...sale, paid_at: '2026-09-20T23:59:59Z' }), false)
   assert.equal(isWebSeat({ ...sale, status: 'refunded' }), false)
   assert.equal(isWebSeat({ ...sale, environment: 'sandbox' }), false)
+  assert.equal(isWebSeat({ ...sale, amount: 0 }), false, 'a free order is no sale')
 })
 
 test('App Store and web sales share the one count', () => {

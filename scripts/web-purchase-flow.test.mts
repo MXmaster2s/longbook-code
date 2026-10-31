@@ -269,6 +269,20 @@ test('the sale that fills a tier claims the step and emails contact@longbook.app
   assert.equal(outside.mail.filter((m) => m.to[0] === 'contact@longbook.app').length, 1)
 })
 
+test('a free order grants the licence and sends the email, and is no seat', async () => {
+  const free = { ...orderPaid.data, discount_amount: 3800, net_amount: 0, total_amount: 0, refundable_amount: 0 }
+  const res = await webhook(delivery({ ...orderPaid, data: free }))
+  assert.deepEqual(await res.json(), { recorded: ORDER_ID, claimed: true, licence: 'write' })
+  assert.equal(licence()!.status, 'active')
+  assert.equal(webOrder()!.amount, 0)
+  assert.equal(webOrder()!.status, 'paid')
+  assert.equal(db.rows('cloud_grants').length, 1)
+  assert.deepEqual(outside.mail.map((m) => m.subject), ['Your longbook license is now active'])
+  const { soldSeats } = await import('../supabase/functions/_shared/seat-count.ts')
+  const { createClient } = await import('./web-purchase-fakes.mts')
+  assert.equal(await soldSeats(createClient('', '') as any), 0)
+})
+
 test('an August order counts as no seat, and neither does a refunded one', async () => {
   const data = { ...orderPaid.data, id: 'aug-order', paid_at: '2026-08-14T09:12:00Z' }
   db.users.length = 0

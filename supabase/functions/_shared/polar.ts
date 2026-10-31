@@ -306,11 +306,14 @@ export function polarEntitlement(l: PolarLicence): Record<string, unknown> {
 }
 
 export function doublePurchaseNotice(order: WebOrder, source: string | null | undefined): { subject: string; text: string } {
-  const paid = `${(order.amount / 100).toFixed(2)} ${order.currency.toUpperCase()}`
+  const paid = order.amount > 0 ? `${(order.amount / 100).toFixed(2)} ${order.currency.toUpperCase()}` : 'no charge'
+  const next = order.amount > 0
+    ? 'Refund the order in the Polar dashboard if the buyer did not mean to buy twice.'
+    : 'Nothing was charged, so there is nothing to refund.'
   return {
     subject: 'longbook: a second licence was bought for one account',
-    text: `Polar order ${order.order_id} (${paid}) was paid by ${order.email}, whose longbook account already holds an active licence from ${source ?? 'another source'}.\n\n` +
-      'The order is recorded and claimed by that account; its licence is unchanged. Refund the order in the Polar dashboard if the buyer did not mean to buy twice.',
+    text: `Polar order ${order.order_id} (${paid}) was placed by ${order.email}, whose longbook account already holds an active licence from ${source ?? 'another source'}.\n\n` +
+      `The order is recorded and claimed by that account; its licence is unchanged. ${next}`,
   }
 }
 

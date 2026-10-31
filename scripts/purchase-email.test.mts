@@ -76,6 +76,13 @@ test('a purchase on longbook.app points at Polar\'s receipts, and its sandbox sa
   assert.ok(!sandbox.html.includes('polar.sh/ccs/portal'), 'no receipt exists for a test purchase')
 })
 
+test('the email prints no price, so a free order reads the same as a charged one', () => {
+  const { html, text, subject } = renderPurchaseEmail({ ...buyer, environment: 'Production', seller: 'polar' })
+  for (const part of [subject, seen(html), text]) {
+    assert.ok(!/[$€£₹]|\b\d+\.\d{2}\b|\b(USD|EUR|INR)\b/.test(part), `a price in: ${part.slice(0, 80)}`)
+  }
+})
+
 test('the name is lowercase everywhere, and nothing is capitalised by style', () => {
   for (const [environment, seller] of [['Production', 'apple'], ['Sandbox', 'apple'], ['Production', 'polar']] as const) {
     const { subject, html, text } = renderPurchaseEmail({ ...buyer, environment, seller })

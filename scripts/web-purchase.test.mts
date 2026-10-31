@@ -153,6 +153,18 @@ test('order.refunded marks a full refund only', () => {
   assert.ok(half.kind === 'order.refunded' && half.facts.order.status === 'paid' && half.facts.order.refunded_at === null)
 })
 
+test('a free order reads as paid: an amount of zero, with nothing refunded, is no refund', () => {
+  const free = { ...orderPaid.data, subtotal_amount: 3800, discount_amount: 3800, net_amount: 0, total_amount: 0, refundable_amount: 0 }
+  const event = readEvent(JSON.stringify({ ...orderPaid, data: free }), NOW)
+  assert.equal(event.kind, 'order.paid')
+  if (event.kind !== 'order.paid') return
+  assert.equal(event.facts.order.amount, 0)
+  assert.equal(event.facts.order.status, 'paid')
+  assert.equal(event.facts.order.refunded_at, null)
+  const refunded = readEvent(JSON.stringify({ ...orderRefunded, data: { ...free, status: 'refunded' } }), NOW)
+  assert.ok(refunded.kind === 'order.refunded' && refunded.facts.order.status === 'refunded', 'Polar\'s own word still counts')
+})
+
 test('a licence key grant names its key, order and customer', () => {
   assert.deepEqual(readEvent(JSON.stringify(benefitGrantCreated), NOW), {
     kind: 'licence_key',
@@ -240,8 +252,13 @@ test('the web licence row: active, polar, paid_at as the purchase, no Apple ids,
 test('a second licence for one account is reported for a refund by hand', () => {
   const note = doublePurchaseNotice(facts.order, 'apple')
   assert.equal(note.subject, 'longbook: a second licence was bought for one account')
-  assert.ok(note.text.includes(`Polar order ${ORDER_ID} (38.00 USD) was paid by Alex.Morgan@example.com`))
+  assert.ok(note.text.includes(`Polar order ${ORDER_ID} (38.00 USD) was placed by Alex.Morgan@example.com`))
   assert.ok(note.text.includes('already holds an active licence from apple'))
+  assert.ok(note.text.includes('Refund the order'))
+  const free = doublePurchaseNotice({ ...facts.order, amount: 0 }, 'apple')
+  assert.ok(free.text.includes(`Polar order ${ORDER_ID} (no charge) was placed by`))
+  assert.ok(free.text.includes('Nothing was charged, so there is nothing to refund.'))
+  assert.ok(!free.text.includes('0.00') && !free.text.includes('Refund the order'))
 })
 
 // ---- seats --------------------------------------------------------------------------------
@@ -255,6 +272,7 @@ function seatClient(apple: number, web: number) {
       eq: (c: string, v: unknown) => (filters.push(`${c}=${v}`), chain),
       not: (c: string, op: string, v: unknown) => (filters.push(`${c} not ${op} ${v}`), chain),
       or: (f: string) => (filters.push(`or ${f}`), chain),
+      gt: (c: string, v: unknown) => (filters.push(`${c}>${v}`), chain),
       gte: (c: string, v: unknown) => (filters.push(`${c}>=${v}`), chain),
       then: (ok: (r: unknown) => unknown) => ok({ count: table === 'entitlements' ? apple : web, error: null }),
     }
@@ -266,7 +284,7 @@ function seatClient(apple: number, web: number) {
 test('seats are App Store licences plus paid production web orders from launch pricing on', async () => {
   const { client, asked } = seatClient(61, 39)
   assert.equal(await soldSeats(client), 100)
-  assert.deepEqual(asked.web_orders, ['status=paid', 'environment=production', `paid_at>=${WEB_SEATS_FROM}`])
+  assert.deepEqual(asked.web_orders, ['status=paid', 'environment=production', 'amount>0', `paid_at>=${WEB_SEATS_FROM}`])
   assert.ok(asked.entitlements!.includes('apple_environment=Production'))
   assert.equal(WEB_SEATS_FROM, '2026-09-21T00:00:00Z', 'the three August orders are not seats')
 })

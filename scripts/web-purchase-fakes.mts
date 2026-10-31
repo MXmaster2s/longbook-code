@@ -71,6 +71,10 @@ class Query {
     this.tests.push((r) => typeof r[column] === 'string' && like.test(r[column]))
     return this
   }
+  gt(column: string, value: number): this {
+    this.tests.push((r) => r[column] > value)
+    return this
+  }
   gte(column: string, value: string): this {
     this.tests.push((r) => new Date(r[column]).getTime() >= new Date(value).getTime())
     return this

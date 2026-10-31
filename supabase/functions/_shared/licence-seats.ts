@@ -53,12 +53,14 @@ export const WEB_SEATS_FROM = '2026-09-21T00:00:00Z'
 
 export interface WebOrderSeat {
   status: string
+  /** Minor units. A free order, such as a full discount, grants a licence but is no sale. */
+  amount: number
   environment: string
   paid_at: string
 }
 
-/** A web order is a seat while it stays paid, if it was a real sale made once launch pricing opened. */
+/** A web order is a seat while it stays paid, if it was a charged sale made once launch pricing opened. */
 export function isWebSeat(order: WebOrderSeat): boolean {
-  return order.status === 'paid' && order.environment === 'production' &&
+  return order.status === 'paid' && order.amount > 0 && order.environment === 'production' &&
     new Date(order.paid_at).getTime() >= new Date(WEB_SEATS_FROM).getTime()
 }
