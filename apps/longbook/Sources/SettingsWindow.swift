@@ -970,6 +970,9 @@ struct SoftwareUpdatePage: View {
                 SettingsRow("Check automatically", symbol: "arrow.clockwise") {
                     Toggle("Check automatically", isOn: $checksUpdates.measured("check_for_updates_automatically"))
                         .labelsHidden()
+                        .onChange(of: checksUpdates) { _, on in
+                            if Distribution.current == .direct { DirectUpdates.setAutomatic(on) }
+                        }
                 }
             }
             SettingsGroup {
@@ -1177,12 +1180,15 @@ struct AppearanceSettingsPane: View {
 // MARK: Account
 
 /// The account pane: the sign-in photo and email once, in the header; then the plan and Cloud,
-/// the ways out, and deleting last.
+/// the ways out, and deleting last. The direct build adds Manage purchase, Polar's portal, and
+/// sends a refund to Support.
 struct AccountSettingsPane: View {
     @ObservedObject var auth: AuthViewModel
     @ObservedObject var entitlement: EntitlementStore
     let open: (SettingsPage) -> Void
     @ObservedObject private var store = StoreClient.shared
+    @ObservedObject private var direct = DirectStore.shared
+    @Environment(\.openWindow) private var openWindow
     @State private var deleting = false
     @State private var signingOut = false
     @State private var refund: (id: UInt64, closes: Date)?
@@ -1207,13 +1213,32 @@ struct AccountSettingsPane: View {
                     SettingsLinkRow(title: "Sign Out", symbol: "rectangle.portrait.and.arrow.right", control: "sign_out") {
                         signingOut = true
                     }
-                    if refund != nil {
+                    if Distribution.current == .direct, entitlement.state.hasLicence {
+                        SettingsDivider()
+                        SettingsLinkRow(title: "Manage purchase", symbol: "bag.fill", tile: .purple, control: "manage_purchase") {
+                            Task { await direct.managePurchase(auth: auth) }
+                        }
+                        SettingsDivider()
+                        SettingsLinkRow(title: "Request a Refund", symbol: "dollarsign.arrow.circlepath", tile: .green,
+                                        control: "request_a_refund") {
+                            // Support lives in the main window, as Help & about's Ask Support opens it.
+                            openWindow(id: LongbookWindow.main)
+                            NSApp.activate(ignoringOtherApps: true)
+                            NotificationCenter.default.post(name: .longbookSupport, object: nil)
+                        }
+                    } else if refund != nil {
                         SettingsDivider()
                         SettingsLinkRow(title: "Request a Refund", symbol: "dollarsign.arrow.circlepath", tile: .green,
                                         control: "request_a_refund") {
                             refunding = true
                         }
                     }
+                }
+                if Distribution.current == .direct, let failure = direct.failure {
+                    Text(failure)
+                        .lbText(.footnote)
+                        .foregroundStyle(LBColor.urgent.color)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 SettingsGroup {
                     SettingsLinkRow(title: "Delete Account…", tone: LBColor.danger.color, chevron: false, control: "delete_account") {
@@ -1222,8 +1247,11 @@ struct AccountSettingsPane: View {
                 }
             }
         }
-        .task { await store.load() }
-        .task(id: entitlement.state.hasLicence) { refund = entitlement.state.hasLicence ? await store.refundable() : nil }
+        .task { if Distribution.current == .appStore { await store.load() } }
+        .task(id: entitlement.state.hasLicence) {
+            guard Distribution.current == .appStore else { return }
+            refund = entitlement.state.hasLicence ? await store.refundable() : nil
+        }
         .refundRequestSheet(for: refund?.id ?? 0, isPresented: $refunding) { _ in
             Task { await entitlement.refresh() }
         }

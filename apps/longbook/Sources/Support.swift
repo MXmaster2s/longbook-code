@@ -275,8 +275,9 @@ final class SupportCenter: ObservableObject {
         save()
         if let id = message.serverId, let key = message.serverKey { Task { await SupportCloud.rate(answer: id, key: key, up: up, askerId: askerId, token: token) } }
         if up {
-            // The App Store is asked about once, after the first answer that helped.
-            if !UserDefaults.standard.bool(forKey: Self.reviewAskedKey) { follow = .appStore }
+            // The App Store is asked about once, after the first answer that helped. A copy
+            // from longbook.app has no App Store page to rate.
+            if Distribution.current == .appStore, !UserDefaults.standard.bool(forKey: Self.reviewAskedKey) { follow = .appStore }
         } else {
             follow = .review
         }

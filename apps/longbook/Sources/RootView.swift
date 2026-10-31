@@ -282,8 +282,11 @@ struct RootView: View {
                 if checked { Telemetry.shared.launched(signedIn: auth.isSignedIn) }
             }
             // What the App Store delivers on its own — a purchase finished elsewhere, a
-            // refund — reaches the server for as long as the app is open.
-            .task { await StoreClient.shared.listen(auth: auth, entitlement: entitlement) }
+            // refund — reaches the server for as long as the app is open. Not on direct.
+            .task {
+                guard Distribution.current == .appStore else { return }
+                await StoreClient.shared.listen(auth: auth, entitlement: entitlement)
+            }
             // Google's redirect first — its SDK says whether the URL was its own; every
             // other longbook:// link is the email flow's.
             .onOpenURL { url in
