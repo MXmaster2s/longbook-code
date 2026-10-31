@@ -9,6 +9,7 @@ A private memory for the money you pay again and again: subscriptions, rent, ins
 - Import a statement: tap Securely Upload Statement and pick a bank or card statement (PDF, CSV or Excel), or tap Skip.
 
 2. THE STATEMENT REVIEW
+- Its header shows how many lines of each file were read and whether the balance matches.
 - It lists Commitments, Past expenses, People and Accounts, all ticked.
 - Untick anything wrong and tap Add. Proposals then shows what was recorded; keep or undo it there.
 - Did it miss a payment, a person or an account the statement shows? Tell us.
@@ -20,7 +21,8 @@ A private memory for the money you pay again and again: subscriptions, rent, ins
 4. EVERYDAY USE
 - The + button: add a commitment (name, how often, amount) or a one-time expense.
 - Open a commitment: edit it, mark it paid, bookmark it, cancel it. Delete a planned charge and choose this one or every one after.
-- Calendar, Charges and Reports (one for each month with charges).
+- Charges, Earnings and Transfers in the sidebar. A charge is a Transfer only when both accounts belong to a person whose Relationship is Self.
+- Calendar and Reports (one for each month with charges).
 - People and Accounts: star, search and filter.
 - Each screen shows a short tutorial once. Replay them in Settings > Tutorials.
 
