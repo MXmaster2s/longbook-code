@@ -359,11 +359,21 @@ const main = async () => {
   const exported = join(BUILD, 'export')
   execSync(`rm -rf "${exported}"`)
   console.log('3/9 exporting with Developer ID…')
-  run('xcodebuild', [
-    '-exportArchive', '-archivePath', archive, '-exportOptionsPlist', EXPORT_OPTIONS, '-exportPath', exported,
-    '-allowProvisioningUpdates',
-    '-authenticationKeyPath', key.path, '-authenticationKeyID', key.id, '-authenticationKeyIssuerID', issuerId,
-  ])
+  // Apple's timestamp service drops out for minutes at a time; a retry costs less than a new archive.
+  for (let attempt = 1; ; attempt++) {
+    try {
+      run('xcodebuild', [
+        '-exportArchive', '-archivePath', archive, '-exportOptionsPlist', EXPORT_OPTIONS, '-exportPath', exported,
+        '-allowProvisioningUpdates',
+        '-authenticationKeyPath', key.path, '-authenticationKeyID', key.id, '-authenticationKeyIssuerID', issuerId,
+      ])
+      break
+    } catch (error) {
+      if (attempt === 4) throw error
+      console.log(`  the export failed; trying again in a minute (${attempt} of 3).`)
+      execSync('sleep 60')
+    }
+  }
   const app = join(exported, 'longbook.app')
   if (!existsSync(app)) {
     console.error(`The export produced no app at ${app}.`)
