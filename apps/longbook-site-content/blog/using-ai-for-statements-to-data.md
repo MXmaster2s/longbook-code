@@ -31,10 +31,11 @@ When you record what was read, a copy of each file goes into the documents folde
 Before anything is sent, the app looks at the file itself.
 
 - **A sheet that is not a statement never leaves.** If a CSV or Excel file has no dated lines with amounts, longbook says so and stops. Nothing is uploaded.
+- **A statement that proves itself leaves as text.** longbook reads every line on the device. When those lines carry the opening balance to the closing one to the paisa, only the lines and the top of the statement go, with long numbers cut to their last four digits. The model adds the names, kinds, people and repeats; the dates and amounts stay the device's. Everything below is what happens to any other file: a scan, an export with no balances, a statement whose lines don't add up.
 - **A PDF is rebuilt, page by page.** longbook copies only the pages into a new PDF, so anything else the original carries, such as scripts, forms or attached files, stays behind.
 - **The file is cut into small pieces.** Three pages of a PDF, or 150 rows of a sheet, at a time. Small pieces mean a piece that fails can be read again on its own, and nothing ever has to carry a whole year in one request.
 
-The pages are sent as the bank printed them. That means an account number printed on a page is on the page when it is read. We can't remove it without breaking the statement, so we say so: it is in the [privacy policy](/privacy-policy/).
+Those pages are sent as the bank printed them. That means an account number printed on a page is on the page when it is read. We can't remove it without breaking the statement, so we say so: it is in the [privacy policy](/privacy-policy/).
 
 ## Step 3: The server checks it is a statement
 
@@ -91,13 +92,13 @@ This is the whole list.
 
 ![longbook's Help and about screen, showing what leaves the device: account, purchase, hosted copy, statements, shared reports, tags and usage data](/blog/media/statements-to-data/help.jpg "Help and about, under What leaves this device. The statements entry is in the app's own words.")
 
-- **The pages of the statement**, a few at a time, for the time it takes to check and read them. They go through our server to the model provider, and are not stored by us.
+- **The statement's lines and its top as text**, when the device could prove them, or **its pages**, a few at a time, when it could not, for the time it takes to check and read them. They go through our server to the model provider, and are not stored by us.
 - **Your category, member and account names and your home currency**, with each piece, so the names come back the way you would write them.
 - **The charges, scrubbed**, once, for the look-over of the year.
 
 What stays with us is the ledger row described in step 3. What stays with you is the copy of each file in your documents folder, and the rows you recorded.
 
-longbook also counts how its own features are used, and that includes imports. The count carries the number of files and pieces, how many were PDFs, and their size rounded to fifty kilobytes. It never carries a name, a line or an amount. The switch is in Help & about, under **Share usage and crash data**, and turning it off deletes the random id those counts are sent under.
+longbook also counts how its own features are used, and that includes imports. The count carries the number of files and pieces, how many were PDFs, how many were read by their lines, and their size rounded to fifty kilobytes. It never carries a name, a line or an amount. The switch is in Help & about, under **Share usage and crash data**, and turning it off deletes the random id those counts are sent under.
 
 ## If you would rather not send it at all
 

@@ -42,7 +42,7 @@ A year of bank statements already holds the rent, the subscriptions, the premium
 
 ### Where does the statement go?
 
-To longbook's server, a few pages or rows at a time, and from there to Anthropic's Claude, which first checks that the file is a statement and then reads it. A PDF is rebuilt page by page on your device before it goes, so only the pages travel. The server keeps neither the statement nor the charges. Reading a statement needs a signed-in longbook account; [longbook Cloud](/features/what-is-longbook-cloud/) reads more of them each month.
+longbook reads the file on your device first. When the lines it reads add up to the balances printed, only those lines and the top of the statement go to longbook's server, with long numbers cut to their last four digits. Otherwise the file goes a few pages or rows at a time, a PDF rebuilt page by page on your device so only the pages travel. From the server it goes to Anthropic's Claude, which first checks that it is a statement and then reads it. The server keeps neither the statement nor the charges. Reading a statement needs a signed-in longbook account; [longbook Cloud](/features/what-is-longbook-cloud/) reads more of them each month.
 
 ### Can my own AI read the statement instead?
 

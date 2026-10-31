@@ -1,6 +1,6 @@
 {
   "name": "@longbook/mcp",
-  "version": "1.48.0",
+  "version": "1.49.0",
   "mcpName": "app.longbook/mcp",
   "license": "GPL-3.0-only",
   "description": "The longbook MCP server: your longbook folder, readable by the AI you already use. Real arithmetic on what is due and what renews; changes go through the app's Proposals screen. mcprush.com-claim-longbook-mcp-5dd29bf58ce121bd23d37ac6",

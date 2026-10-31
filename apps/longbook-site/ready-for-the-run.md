@@ -81,9 +81,9 @@ Your phone plan, hostel fees and the subscriptions you split, with who each one 
    - In ChatGPT: Plugin Creator: create a plugin named longbook, all lowercase, from my MCP server https://longbook.app/mcp. Display name: longbook. Version: the one the server reports. Website: https://longbook.app. Icon and logo: https://longbook.app/apple-touch-icon.png. Description: Your longbook of bills, subscriptions and expenses, for your AI to read and to suggest changes to. Use the server's tools and its guide, and sign in with my longbook account.
 3. ### Let your AI fill it
 
-   Attach a year of bank and card statements and give it this prompt. What it writes waits in the app for you to keep.
+   Attach your last 6 months of bank and card statements and give it this prompt. What it writes waits in the app for you to keep.
 
-   `Read my 12-month bank statement and help me set up my longbook`
+   `Read my 6-month bank statement and help me set up my longbook`
 
 ## Your longbook can do a lot more!
 

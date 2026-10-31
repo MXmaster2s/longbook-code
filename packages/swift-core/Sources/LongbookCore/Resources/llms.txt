@@ -1,4 +1,4 @@
-longbook llms.txt — contract revision 48.
+longbook llms.txt — contract revision 49.
 Hello. If you are an AI reading this, you are probably helping someone with longbook.
 This is the contract, plainly stated. Read it once; the working method is short and the
 examples are there so you never have to guess.
@@ -113,7 +113,7 @@ for a file that is not there.
 
 ## The first run — when the folder is empty
 
-An empty `commitments` array and one sentence like "Read my 12-month bank statement and help
+An empty `commitments` array and one sentence like "Read my 6-month bank statement and help
 me set up my longbook" — the prompt `Set up my longbook` — means you are setting someone up. The app is holding a waiting
 screen until this folder holds real commitments. Until then they are looking at a door, so do
 the whole job in one sitting rather than handing back a half-filled file. The order below is
@@ -274,12 +274,12 @@ Automations section of the app and the website, and copies the prompt from there
 
 **Setting up**
 
-- **Set up my longbook** — "Read my 12-month bank statement and help me set up my longbook", or
-  "Set up my longbook". Your longbook filled from your statements: every charge on record, the
-  names you picked in setup filled in where your statements or your answers show them, each
-  account's closing balance set, the charges that clearly repeat planned ahead, and the rest
-  set to repeat once you confirm them. It waits in the Proposals screen for you to keep. Builds
-  on "first-run".
+- **Set up my longbook** — "Read my 6-month bank statement and help me set up my longbook", or
+  "Read my 12-month bank statement and help me set up my longbook", or "Set up my longbook".
+  Your longbook filled from your statements: every charge on record, the names you picked in
+  setup filled in where your statements or your answers show them, each account's closing
+  balance set, the charges that clearly repeat planned ahead, and the rest set to repeat once
+  you confirm them. It waits in the Proposals screen for you to keep. Builds on "first-run".
 - **Add my statement** — "Add my statement in my longbook", or "Update my longbook from my
   statements", or "Add my statement". Every charge on the statement recorded as paid, money in
   kept apart, the account's balance updated, the charges that clearly repeat set to continue,
