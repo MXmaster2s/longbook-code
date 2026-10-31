@@ -169,6 +169,7 @@ export function readOrder(data: unknown, at: string, event: 'paid' | 'refunded' 
 
 export interface LicenceKeyGrant {
   licenseKeyId: string
+  benefitId: string | null
   orderId: string | null
   customerId: string | null
   createdAt: string | null
@@ -208,7 +209,7 @@ export function readEvent(body: string, now: Date): PolarEvent {
     if (!keyId || grant.is_revoked) return { kind: 'ignored', type, why: 'no licence key on the grant' }
     return {
       kind: 'licence_key',
-      grant: { licenseKeyId: keyId, orderId: text(grant.order_id), customerId: text(grant.customer_id), createdAt: text(grant.created_at) },
+      grant: { licenseKeyId: keyId, benefitId: text(grant.benefit_id), orderId: text(grant.order_id), customerId: text(grant.customer_id), createdAt: text(grant.created_at) },
     }
   }
   return { kind: 'ignored', type, why: 'not an event the licence follows' }

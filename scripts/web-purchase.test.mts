@@ -156,7 +156,7 @@ test('order.refunded marks a full refund only', () => {
 test('a licence key grant names its key, order and customer', () => {
   assert.deepEqual(readEvent(JSON.stringify(benefitGrantCreated), NOW), {
     kind: 'licence_key',
-    grant: { licenseKeyId: LICENSE_KEY_ID, orderId: ORDER_ID, customerId: CUSTOMER_ID, createdAt: benefitGrantCreated.data.created_at },
+    grant: { licenseKeyId: LICENSE_KEY_ID, benefitId: benefitGrantCreated.data.benefit_id, orderId: ORDER_ID, customerId: CUSTOMER_ID, createdAt: benefitGrantCreated.data.created_at },
   })
   const discord = { ...benefitGrantCreated, data: { ...benefitGrantCreated.data, benefit: { ...benefitGrantCreated.data.benefit, type: 'discord' } } }
   assert.equal(readEvent(JSON.stringify(discord), NOW).kind, 'ignored')
@@ -400,7 +400,8 @@ test('the webhook verifies before it reads, and follows only the licence\'s prod
   for (const name of ['POLAR_WEBHOOK_SECRET', 'POLAR_PRODUCT_ID', 'POLAR_ENVIRONMENT', 'RESEND_API_KEY']) assert.ok(hook.includes(`'${name}'`), name)
   const claim = read('supabase/functions/polar-claim/index.ts')
   assert.ok(claim.includes("'/v1/customer-portal/license-keys/validate'") && claim.includes("'/v1/customer-portal/license-keys/activate'"))
-  for (const name of ['POLAR_ORGANIZATION_ID', 'POLAR_ACCESS_TOKEN', 'POLAR_PRODUCT_ID']) assert.ok(claim.includes(`'${name}'`), name)
+  for (const name of ['POLAR_ORGANIZATION_ID', 'POLAR_ACCESS_TOKEN', 'POLAR_PRODUCT_ID', 'POLAR_BENEFIT_ID']) assert.ok(claim.includes(`'${name}'`), name)
+  assert.ok(claim.indexOf("licenceKey.benefit_id !== BENEFIT_ID") < claim.indexOf("service.from('entitlements')\n    .select('status, polar_license_key_id')"), 'before any database work')
   const checkout = read('supabase/functions/polar-checkout/index.ts')
   assert.ok(checkout.includes("'/v1/checkouts/'") && checkout.includes("'/v1/customer-sessions/'"))
   assert.ok(checkout.includes("if (held?.status === 'active') return refuse('licensed', 409)"))

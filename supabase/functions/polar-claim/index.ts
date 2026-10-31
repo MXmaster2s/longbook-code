@@ -31,6 +31,9 @@ const POLAR_ACCESS_TOKEN = Deno.env.get('POLAR_ACCESS_TOKEN')
 // The organization a key must belong to, and the licence's product its order must be for.
 const ORGANIZATION_ID = Deno.env.get('POLAR_ORGANIZATION_ID')
 const PRODUCT_ID = Deno.env.get('POLAR_PRODUCT_ID')
+// The licence's licence-key benefit on Polar. A key from any other benefit of the organization
+// is refused, whatever orders its holder has. Not a secret.
+const BENEFIT_ID = Deno.env.get('POLAR_BENEFIT_ID')
 // production or sandbox, which picks api.polar.sh or sandbox-api.polar.sh.
 const ENVIRONMENT = polarEnvironment(Deno.env.get('POLAR_ENVIRONMENT'))
 const API = polarApi(ENVIRONMENT)
@@ -138,12 +141,13 @@ Deno.serve(async (req) => {
   if (body.action === 'email') return PRODUCT_ID ? await claimByEmail(user) : refuse('notSet', 503)
   const key = typeof body.key === 'string' ? body.key.trim() : ''
   if (!key || key.length > 256) return refuse('noKey', 400)
-  if (!ORGANIZATION_ID || !PRODUCT_ID) return refuse('notSet', 503)
+  if (!ORGANIZATION_ID || !PRODUCT_ID || !BENEFIT_ID) return refuse('notSet', 503)
 
   const validated = await polar('POST', '/v1/customer-portal/license-keys/validate', { key, organization_id: ORGANIZATION_ID })
   if (!validated) return refuse('unavailable', 502)
   if (!validated.ok) return refuse(polarRefusal(validated.status, 'validate'), validated.status >= 500 ? 502 : 400)
   const licenceKey = (await validated.json()) as models.ValidatedLicenseKey
+  if (licenceKey.benefit_id !== BENEFIT_ID) return refuse('notLongbook', 409)
   const problem = keyProblem(licenceKey, new Date())
   if (problem) return refuse(problem, 409)
 

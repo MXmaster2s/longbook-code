@@ -13,6 +13,8 @@ const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const WEBHOOK_SECRET = Deno.env.get('POLAR_WEBHOOK_SECRET') ?? ''
 // The licence's product on Polar. Orders for any other product are answered and ignored.
 const PRODUCT_ID = Deno.env.get('POLAR_PRODUCT_ID') ?? ''
+// The licence's licence-key benefit. A grant from any other benefit is answered and ignored.
+const BENEFIT_ID = Deno.env.get('POLAR_BENEFIT_ID')
 // production or sandbox. Sandbox orders are recorded as such, never count as seats, and their
 // email says nothing was charged.
 const ENVIRONMENT = polarEnvironment(Deno.env.get('POLAR_ENVIRONMENT'))
@@ -103,6 +105,7 @@ Deno.serve(async (req) => {
       case 'order.refunded':
         return await orderRefunded(event.facts)
       case 'licence_key': {
+        if (BENEFIT_ID && event.grant.benefitId !== BENEFIT_ID) return reply({ ignored: 'another benefit' })
         const linked = await linkLicenceKey(createClient(SUPABASE_URL, SERVICE_ROLE_KEY), event.grant)
         const made = event.grant.createdAt ? new Date(event.grant.createdAt).getTime() : 0
         if (!linked && now.getTime() - made < KEY_RETRY_MS) return reply({ error: 'order not recorded yet' }, 503)

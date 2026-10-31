@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url'
 import { beforeEach, test } from 'node:test'
 import { db } from './web-purchase-fakes.mts'
 import {
+  BENEFIT_ID,
   CUSTOMER_ID,
   LICENSE_KEY_ID,
   ORDER_ID,
@@ -37,6 +38,7 @@ const ENV: Record<string, string> = {
   POLAR_WEBHOOK_SECRET: SECRET,
   POLAR_PRODUCT_ID: PRODUCT_ID,
   POLAR_ORGANIZATION_ID: ORGANIZATION_ID,
+  POLAR_BENEFIT_ID: BENEFIT_ID,
   POLAR_ACCESS_TOKEN: 'polar_oat_test',
   POLAR_ENVIRONMENT: 'production',
   RESEND_API_KEY: 're_test',
@@ -331,7 +333,7 @@ test('checkout and claim refuse anyone not signed in, and an unknown action', as
 // ---- polar-claim --------------------------------------------------------------------------
 
 const KEY = 'LONGBOOK-11112222-3333-4444-5555-7C1D'
-const validKey = { id: LICENSE_KEY_ID, customer_id: CUSTOMER_ID, status: 'granted', limit_activations: 1, expires_at: null }
+const validKey = { id: LICENSE_KEY_ID, benefit_id: BENEFIT_ID, customer_id: CUSTOMER_ID, status: 'granted', limit_activations: 1, expires_at: null }
 
 function polarKnowsKey(orders: unknown[] = [orderPaid.data]) {
   outside.answers['/v1/customer-portal/license-keys/validate'] = () => answer(validKey)
@@ -413,6 +415,52 @@ test('claims refuse a missing, unknown or refunded key, another product and a li
   assert.equal(await why({ key: KEY }), 'This account already holds a longbook licence.')
   licence()!.polar_license_key_id = LICENSE_KEY_ID
   assert.deepEqual(await (await claim(signedIn({ key: KEY }))).json(), { ok: true, status: 'active' }, 'the same key again is simply done')
+})
+
+test('a key from another benefit of the organization is refused before anything else happens', async () => {
+  await webhook(delivery(orderPaid))
+  db.users.length = 0
+  const sam = { id: '9b9b9b9b-0000-4000-8000-000000000002', email: 'sam@example.com', email_confirmed_at: alex.email_confirmed_at }
+  db.users.push(sam)
+  const ownsOrder = db.rows('web_orders')[0]!
+  ownsOrder.claimed_at = null
+  ownsOrder.claimed_by = null
+  ownsOrder.user_id = null
+  polarKnowsKey()
+  outside.answers['/v1/customer-portal/license-keys/validate'] = () => answer({ ...validKey, benefit_id: 'the-other-products-benefit' })
+  db.failing = ['entitlements', 'web_orders']
+  const res = await claim(signedIn({ key: KEY }, sam.id))
+  db.failing = []
+  assert.equal(res.status, 409)
+  assert.deepEqual(await res.json(), { why: 'This licence key is not for longbook.' })
+  assert.deepEqual(outside.polar.map((c) => c.path), ['/v1/customer-portal/license-keys/validate'], 'not activated')
+  assert.equal(ownsOrder.claimed_at, null)
+})
+
+test('without the benefit id on the function, a key is refused as not available', async () => {
+  const held = ENV.POLAR_BENEFIT_ID!
+  delete ENV.POLAR_BENEFIT_ID
+  const require = Module.createRequire(import.meta.url)
+  const file = require.resolve('../supabase/functions/polar-claim/index.ts')
+  delete require.cache[file]
+  serving = null
+  require(file)
+  const bare = serving as unknown as Handler
+  ENV.POLAR_BENEFIT_ID = held
+  polarKnowsKey()
+  const res = await bare(signedIn({ key: KEY }))
+  assert.equal(res.status, 503)
+  assert.deepEqual(await res.json(), { why: 'Purchases on longbook.app are not available right now.' })
+  assert.deepEqual(outside.polar, [], 'Polar is not asked')
+})
+
+test('a grant from another benefit is ignored, with no retry and nothing stored', async () => {
+  await webhook(delivery(orderPaid))
+  const other = { ...benefitGrantCreated, data: { ...benefitGrantCreated.data, benefit_id: 'the-other-products-benefit', created_at: new Date().toISOString() } }
+  const res = await webhook(delivery(other))
+  assert.equal(res.status, 200)
+  assert.deepEqual(await res.json(), { ignored: 'another benefit' })
+  assert.equal(webOrder()!.license_key_id ?? null, null)
 })
 
 // ---- bought before the account existed ----------------------------------------------------

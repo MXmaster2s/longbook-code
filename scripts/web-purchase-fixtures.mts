@@ -7,6 +7,7 @@ export const PRODUCT_ID = '857fb352-f0bd-43b5-97e7-9bdcb856cc68'
 export const USER_ID = '4f3c2b1a-0000-4000-8000-00000000abcd'
 export const ORDER_ID = 'b0a4b3f2-61c2-4d8e-9a57-0c1f3e2d9a10'
 export const CUSTOMER_ID = 'c9e1d2a3-4b5c-4d6e-8f70-112233445566'
+export const BENEFIT_ID = '5d6e7f80-9a1b-4c2d-8e3f-4a5b6c7d8e9f'
 export const LICENSE_KEY_ID = 'd4c3b2a1-9f8e-4d7c-8b6a-5f4e3d2c1b0a'
 export const PAID_AT = '2026-10-31T09:41:07.512Z'
 
