@@ -72,7 +72,7 @@ public enum PromptCatalog {
     /// so a Copy button never hands over a slug. Same words as packages/core/src/prompts.ts.
     static let fallbacks: [String: (title: String, phrases: [String], template: String?)] = [
         "set-up-my-longbook": (
-            "Set up my longbook", ["Read my 12-month bank statement and help me set up my longbook"], nil
+            "Set up my longbook", ["Read my 6-month bank statement and help me set up my longbook"], nil
         ),
         "add-my-statement": (
             "Add my statement", ["Add my statement in my longbook", "Update my longbook from my statements", "Add my statement"], nil

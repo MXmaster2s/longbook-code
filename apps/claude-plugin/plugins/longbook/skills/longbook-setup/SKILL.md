@@ -2,13 +2,13 @@
 name: longbook-setup
 description: >
   Use for requests like "set up my longbook", "import my bank statement", "add last month's
-  statement", "categorise my expenses", "complete September in my longbook", "Read my 12-month
-  bank statement and help me set up my longbook", "Add my statement in my longbook", "Update my
-  longbook from my statements", "Add my statement", even when the user does not name longbook.
-  Sets up the user's longbook, their record of subscriptions, bills, rent, salaries, loans and
-  other commitments, from bank and card statements; adds later statements, categorises it, and
-  completes a month so longbook can draw its report. Works through the longbook connector
-  (https://longbook.app/mcp).
+  statement", "categorise my expenses", "complete September in my longbook", "Read my 6-month
+  bank statement and help me set up my longbook", "Read my 12-month bank statement and help me
+  set up my longbook", "Add my statement in my longbook", "Update my longbook from my
+  statements", even when the user does not name longbook. Sets up the user's longbook, their
+  record of subscriptions, bills, rent, salaries, loans and other commitments, from bank and
+  card statements; adds later statements, categorises it, and completes a month so longbook can
+  draw its report. Works through the longbook connector (https://longbook.app/mcp).
 ---
 
 # longbook: Set up
@@ -39,15 +39,15 @@ improvising one.
 
 Name: `set-up-my-longbook`
 
-The user says: "Read my 12-month bank statement and help me set up my longbook", "Set up my
-longbook".
+The user says: "Read my 6-month bank statement and help me set up my longbook", "Read my
+12-month bank statement and help me set up my longbook", "Set up my longbook".
 
 Result: Your longbook filled from your statements: every charge on record, the names you picked
 in setup filled in where your statements or your answers show them, each account's closing
 balance set, the charges that clearly repeat planned ahead, and the rest set to repeat once you
 confirm them. It waits in the Proposals screen for you to keep.
 
-Attachments: bank and card statements, ideally the last 12 months, as a PDF with text, an .xlsx
+Attachments: bank and card statements, ideally the last 6 months, as a PDF with text, an .xlsx
 or a CSV. Card statements matter too: a bank statement shows only the card bill payment, not
 what the card was spent on.
 

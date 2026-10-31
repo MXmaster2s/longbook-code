@@ -217,7 +217,7 @@ test('a prompt quoted in the copy is in the catalogue\'s words', () => {
   assert.deepEqual(misquotedPrompts('Ask “Add October month report in my longbook” each month.'), [])
   assert.deepEqual(misquotedPrompts('A "Netflix" charge.'), [])
   assert.deepEqual(misquotedPrompts('Start with "Setup my longbook".'),
-    ['quotes "Setup my longbook"; the catalogue says "Read my 12-month bank statement and help me set up my longbook"'])
+    ['quotes "Setup my longbook"; the catalogue says "Read my 6-month bank statement and help me set up my longbook"'])
 })
 
 test('a month prompt carries its template, and the build accepts it with another month named', () => {
@@ -259,9 +259,9 @@ test('a month is a slot only in a prompt with a template, and matches in any cas
 test('a hand-written page copies and quotes prompts in the catalogue\'s words', () => {
   const box = (words: string): string =>
     `<div class="copy prompt"><code>${words}</code><button class="cbtn" type="button" data-copy="${words}">Copy</button></div>`
-  assert.deepEqual(misquotedOnPage(box('Read my 12-month bank statement and help me set up my longbook')), [])
+  assert.deepEqual(misquotedOnPage(box('Read my 6-month bank statement and help me set up my longbook')), [])
   assert.deepEqual(misquotedOnPage(box('Setup my longbook')), [
-    'copies "Setup my longbook"; the catalogue says "Read my 12-month bank statement and help me set up my longbook"',
+    'copies "Setup my longbook"; the catalogue says "Read my 6-month bank statement and help me set up my longbook"',
   ])
   assert.deepEqual(misquotedOnPage(box('Add a month report in my longbook')),
     ['copies "Add a month report in my longbook"; the catalogue says "Add September month report in my longbook"'],

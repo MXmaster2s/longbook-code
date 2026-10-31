@@ -119,7 +119,7 @@ ${wrap("longbook is the user's financial memory: every commitment they pay, its 
 ${[
   `1. Call the longbook connector's \`whoami\`. ${CONNECT_STEP} Then stop.`,
   "2. If whoami says this connection cannot write, say its how_to_enable sentence: the user switches it on in the longbook app.",
-  '3. If the longbook holds no commitments yet, offer `/longbook:set-up`: attach bank and card statements, ideally the last 12 months. Stop there unless the user wants the list.',
+  '3. If the longbook holds no commitments yet, offer `/longbook:set-up`: attach bank and card statements, ideally the last 6 months. Stop there unless the user wants the list.',
   '4. Otherwise, say in two lines what it holds (commitments, accounts, members) and what is waiting: names to fill in from setup, and suggestions the app could not apply.',
   '5. Show the prompts below, by group, each with its slash command. The user can also just ask in their own words.',
   "6. Check for a mail connector. If none is signed in, say the email prompts need one: the plugin bundles Gmail, signed in with the user's Google account.",
