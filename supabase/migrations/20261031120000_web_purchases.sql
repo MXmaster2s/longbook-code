@@ -1,6 +1,6 @@
 -- The licence has two sellers: the App Store, and Polar on longbook.app. Each licence names the
--- source that wrote it, and every web order is kept whole, whether or not an account has
--- claimed it yet.
+-- source that wrote it, and every web order is kept, whether or not an account has claimed it
+-- yet: the email, order id, country, amount and refund status, never the name or billing address.
 alter table public.entitlements
   add column source text not null default 'apple' check (source in ('apple', 'polar', 'grant')),
   add column polar_customer_id text,
