@@ -56,6 +56,7 @@ jobs:
       - run: npm run device-build:test
       - run: npm run review:test
       - run: npm run cloud:test
+      - run: npm run web:test
       - run: npm run statements:test
       - run: npm run changelog:check
       - run: npm run dev-tools:test

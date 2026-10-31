@@ -102,6 +102,7 @@
     "device-build:test": "tsx --test scripts/device-build.test.mts",
     "review:test": "tsx --test scripts/review-sign-in.test.mts",
     "cloud:test": "tsx --test scripts/cloud-subscription.test.mts",
+    "web:test": "tsx --test scripts/web-purchase.test.mts",
     "statement:try": "tsx scripts/statement-try.mts",
     "statements:test": "tsx --test scripts/reorganise-run.test.mts scripts/statement-shares.test.mts scripts/statement-counterpart.test.mts scripts/statement-rules.test.mts scripts/licence-seats.test.mts",
     "changelog:check": "tsx scripts/changelog-check.mts",
