@@ -62,7 +62,7 @@ Subject to these Terms, we grant you a personal, non-exclusive, non-transferable
 
 The Licence is issued to one individual and covers both the macOS Application and the iOS Application.
 
-The Licence fee is USD 38 in the United States App Store, or the price the App Store shows in your own storefront, payable once. It is not a subscription and does not renew. It does not include Cloud, which is purchased separately under section 4.
+The Licence fee is USD 38 in the United States App Store, or the price the App Store shows in your own storefront, or the price shown at checkout when it is bought on the website, payable once. It is not a subscription and does not renew. It does not include Cloud, which is purchased separately under section 4.
 
 The Licence may not be sold, rented, sublicensed, transferred or shared, and Account credentials may not be shared.
 
@@ -88,35 +88,49 @@ We may grant Cloud to an Account without charge for a period we state. Such a gr
 
 The Cloud fee may change. A changed fee applies from the first renewal after Apple has notified you of it, in the manner and subject to any consent that Apple’s terms require.
 
+A Licence bought on the website, as clause 6.4 states, includes Cloud for twelve (12) months from the date of purchase, without charge, on the terms of clause 4.4 as they apply to the purchaser’s Account. Cloud for later months is not offered on the website. If a website purchase is refunded, the included Cloud ends with it.
+
 ## Buying before use
 
-There is no free trial. The Application is used with a Licence, bought inside the Application before first use; an Account without one is shown the purchase screen. A demonstration with sample data can be viewed without a Licence.
+There is no free trial. The Application is used with a Licence, bought before first use inside the Application or, as section 6 states, on the website; an Account without one is shown the purchase screen. A demonstration with sample data can be viewed without a Licence.
 
 If a Licence is refunded or revoked, the Application continues to display and export data already recorded. Adding new commitments requires a Licence again, and the Hosted Services require Cloud.
 
 ## Fees, taxes and payment
 
-A Licence and Cloud are purchased inside the Application, on macOS and on iOS alike, and each purchase is processed by Apple through the App Store, under Apple’s own terms. The website sells neither.
+A Licence and Cloud are purchased inside the Application, on macOS and on iOS alike, and each such purchase is processed by Apple through the App Store, under Apple’s own terms. A Licence may also be bought on the website, as clause 6.4 states. The website does not sell Cloud.
 
-Apple, as the seller of the transaction, calculates, collects and remits applicable sales tax, VAT and GST. The App Store shows the price in your own currency, with the taxes that apply to you.
+Apple, as the seller of an App Store transaction, calculates, collects and remits applicable sales tax, VAT and GST. The App Store shows the price in your own currency, with the taxes that apply to you.
 
 We do not receive or store payment card details.
+
+A Licence may also be bought on the website, including from the Application for macOS downloaded from it. A website purchase is processed by Polar Software Inc. (“Polar”) acting as merchant of record, under Polar’s own terms, and the payment is charged at confirmation of the purchase.
+
+Polar, as the seller of a website purchase, calculates, collects and remits applicable sales tax, VAT and GST. Polar’s receipt for the purchase, and the licence key it issues, are kept in Polar’s customer portal.
+
+A Licence is the same Licence whether it is bought in the App Store or on the website. It is issued to the Account that made the purchase, or that enters the licence key Polar issues, and covers every Application on that Account.
 
 ## Refunds
 
 **You may request a refund of a Licence fee within seven (7) days of purchase, for any reason, and longbook supports that request.** A Licence bought through the App Store is refunded by Apple: the request is made to Apple, from the Account screen of the Application or through Apple’s own refund page, and Apple decides it under Apple’s terms. When a refund is made, the Licence, and the Cloud it includes, end.
 
-After those seven (7) days, **Licence fees are non-refundable, and Cloud fees are non-refundable, except where Apple’s terms or the law provide otherwise**.
+After those seven (7) days, **Licence fees are non-refundable, and Cloud fees are non-refundable, except where Apple’s terms, Polar’s terms or the law provide otherwise**.
 
 Clause 7.1 does not limit any statutory right to a refund that cannot be waived under the law applying to you.
 
 A billing error on an App Store purchase — a duplicate charge, an incorrect amount — is corrected by Apple, which took the payment. For anything Apple cannot resolve, write to [contact@longbook.app](mailto:contact@longbook.app).
+
+A Licence bought on the website is refunded within seven (7) days of purchase, for any reason, on request to us at [contact@longbook.app](mailto:contact@longbook.app) or through Support. We issue the refund through Polar, to the payment method used for the purchase. When a refund is made, the Licence, and the Cloud it includes, end.
+
+A billing error on a website purchase — a duplicate charge, an incorrect amount — is corrected by Polar or by us.
 
 ## Updates and versions
 
 A Licence includes every update released for the Application, future major versions included, at no further charge.
 
 Features may be added, changed or withdrawn. Where a change materially reduces functionality, it is recorded in the notes published with that version.
+
+The Application for macOS downloaded from the website updates itself from longbook.app. An Application installed through the App Store or TestFlight is updated through Apple.
 
 ## Accounts
 
@@ -248,6 +262,6 @@ Notices under these Terms are sent to [contact@longbook.app](mailto:contact@long
 
 A postal address for the service of legal notices is provided on written request to that address.
 
-These Terms take effect on 23 October 2026 and replace any earlier version. They differ from the version of 19 October 2026 in publishing the source code openly instead of granting repository access on request (section 13). The version of 19 October 2026 differed from the version of 13 October 2026 in requiring a Licence before use, with a refund window of seven days in place of a trial (section 5); in including twelve months of Cloud with a Licence, also for family members who receive it through Family Sharing; and in extending Cloud to Family Sharing (section 4). The version of 13 October 2026 differed from the version of 6 October 2026 in including a monthly share of statement reading with every Account, with a larger share under Cloud. The version of 6 October 2026 differed from the version of 23 September 2026 in adding section 4, the Cloud subscription, with consequential changes to sections 2, 3, 5, 6, 7, 9, 10, 17 and 19 and to the cross-references.
+These Terms take effect on 31 October 2026 and replace any earlier version. They differ from the version of 23 October 2026 in allowing a Licence to be bought on the website, processed by Polar as merchant of record, with its refund, the Cloud it includes, and the updating of the Application for macOS downloaded from the website (sections 4, 6, 7 and 8). The version of 23 October 2026 differed from the version of 19 October 2026 in publishing the source code openly instead of granting repository access on request (section 13). The version of 19 October 2026 differed from the version of 13 October 2026 in requiring a Licence before use, with a refund window of seven days in place of a trial (section 5); in including twelve months of Cloud with a Licence, also for family members who receive it through Family Sharing; and in extending Cloud to Family Sharing (section 4). The version of 13 October 2026 differed from the version of 6 October 2026 in including a monthly share of statement reading with every Account, with a larger share under Cloud. The version of 6 October 2026 differed from the version of 23 September 2026 in adding section 4, the Cloud subscription, with consequential changes to sections 2, 3, 5, 6, 7, 9, 10, 17 and 19 and to the cross-references.
 
 Back to the top

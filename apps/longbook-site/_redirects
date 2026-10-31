@@ -171,6 +171,8 @@ https://longbook-app.netlify.app/*  https://longbook.app/:splat  301!
 /help/troubleshooting-and-common-questions/index.html.md                          /help/troubleshooting-and-common-questions.md                          200
 /help/glossary/index.md                                                           /help/glossary.md                                                      200
 /help/glossary/index.html.md                                                      /help/glossary.md                                                      200
+/help/buying-longbook-for-mac-from-the-website/index.md                           /help/buying-longbook-for-mac-from-the-website.md                      200
+/help/buying-longbook-for-mac-from-the-website/index.html.md                      /help/buying-longbook-for-mac-from-the-website.md                      200
 /reviews/index.md                                                                 /reviews.md                                                            200
 /reviews/index.html.md                                                            /reviews.md                                                            200
 /blog/open-any-folder-in-longbook/index.md                                        /blog/open-any-folder-in-longbook.md                                   200

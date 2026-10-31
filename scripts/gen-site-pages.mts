@@ -28,7 +28,7 @@ const LINT = process.argv.includes('--lint')
 
 // Hand-written pages that wear the shared header and footer. The shared-report viewer and the
 // sign-in consent screen stand alone on purpose.
-const STAMPED = ['index.html', '404.html', 'faq/index.html', 'download/index.html', 'ios/index.html',
+const STAMPED = ['index.html', '404.html', 'faq/index.html', 'download/index.html', 'buy/index.html', 'thanks/index.html', 'ios/index.html',
   'source/index.html', 'contact/index.html', 'support/index.html', 'privacy-policy/index.html', 'terms/index.html', 'media-kit/index.html',
   'ready-for-the-run/index.html', 'why-we-built-longbook/index.html', 'features/upcoming-features/index.html']
 const LISTED: [string, string][] = [['/', 'index.html'], ['/faq/', 'faq/index.html'],
@@ -294,12 +294,15 @@ function pageMarkdown(html: string, loc: string): string {
     .join('\n').replace(/\n{3,}/g, '\n\n')
 }
 
+const releaseVersion = (JSON.parse(read(join(ROOT, 'apps/longbook/Resources/changelog.json'))) as { version: string }[])[0]!.version
 const shares = shareTargets(features, automations)
 for (const page of STAMPED) {
   const home = page === 'index.html'
   let html = stampChrome(read(join(SITE, page)),
     home ? chrome('header-home.html') : chrome('header.html'),
     chrome('footer.html').replace('{{pricing}}', home ? '#price' : '/#price'))
+  // The download page names the current release, read from the changelog.
+  if (page === 'download/index.html') html = html.replace(/(<span data-version>)[^<]*(<\/span>)/g, `$1${releaseVersion}$2`)
   const found = LISTED.find(([, file]) => file === page)
   const listed = found && !OWN_MD[found[0]] ? found : undefined
   const head: string[] = []

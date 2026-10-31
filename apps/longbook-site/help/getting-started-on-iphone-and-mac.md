@@ -4,7 +4,7 @@
 
 ## Install
 
-Download longbook from the App Store on your iPhone, your Mac, or both. One purchase covers every device signed in to your Apple Account, and your Apple family through Family Sharing.
+Download longbook on your iPhone, your Mac, or both. The Mac app can also be downloaded from longbook.app, as the article "Buying longbook for Mac from the website" explains. One purchase covers every device signed in to your Apple Account, and your Apple family through Family Sharing.
 
 ## Your folder
 

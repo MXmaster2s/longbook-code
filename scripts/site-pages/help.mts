@@ -30,7 +30,7 @@ const GROUPS: { name: string; numbers: number[] }[] = [
   { name: 'Getting started', numbers: [1, 2, 9, 28, 33] },
   { name: 'Using longbook', numbers: [10, 11, 12, 13, 14, 15, 16, 29, 19, 20, 31] },
   { name: 'Statements and your AI', numbers: [3, 17, 4, 21, 22, 23, 24, 25, 26, 27] },
-  { name: 'Purchase, account and Cloud', numbers: [5, 6, 7] },
+  { name: 'Purchase, account and Cloud', numbers: [34, 5, 6, 7] },
   { name: 'Privacy and your data', numbers: [18, 30, 8] },
   { name: 'When something goes wrong', numbers: [32] },
 ]
