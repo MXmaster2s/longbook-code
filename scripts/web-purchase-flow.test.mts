@@ -313,7 +313,7 @@ test('a checkout carries the account and answers with Polar\'s url', async () =>
     customer_email: alex.email,
     external_customer_id: USER_ID,
     metadata: { user_id: USER_ID },
-    success_url: 'https://longbook.app/thanks/?checkout_id={CHECKOUT_ID}',
+    success_url: 'https://longbook.app/thanks/',
   })
 })
 

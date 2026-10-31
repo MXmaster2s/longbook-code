@@ -11,6 +11,7 @@ import { fileURLToPath } from 'node:url'
 import { markDirect, untestedOnDevices } from './release.mts'
 import { carriesFirstUseReset } from './device-build-flag.mts'
 import { releases } from './changelog.mts'
+import { sparklePublicKey } from './sparkle-key.mts'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const APP_DIR = join(ROOT, 'apps/longbook')
@@ -24,6 +25,9 @@ const APPCAST = join(ROOT, 'apps/longbook-site/appcast.xml')
 const REPO = 'MXmaster2s/longbook-code'
 const TEAM = '27F9SH746V'
 const KEY_PLACEHOLDER = 'LONGBOOK_SPARKLE_PUBLIC_KEY'
+// The asset the site's download links name; it never changes between releases.
+const LATEST_DMG = 'longbook.dmg'
+const DMG_PAGES = ['download', 'buy', 'thanks'].map((page) => join(ROOT, 'apps/longbook-site', page, 'index.html'))
 const CHECK = process.argv.includes('--check')
 const NO_PUBLISH = process.argv.includes('--no-publish')
 
@@ -132,6 +136,7 @@ type Check = { name: string; ok: boolean; fix: string }
 const preflight = (): Check[] => {
   const untested = untestedOnDevices()
   const prof = profile()
+  const { marketing } = version()
   const entitlements = existsSync(ENTITLEMENTS) ? readFileSync(ENTITLEMENTS, 'utf8') : ''
   const checks: Check[] = [
     { name: `Developer ID Application certificate for team ${TEAM}`, ok: developerId() !== null, fix: 'Xcode → Settings → Accounts → Manage Certificates → + → Developer ID Application.' },
@@ -144,6 +149,8 @@ const preflight = (): Check[] => {
     { name: 'The direct entitlements leave out Sign in with Apple', ok: !entitlements.includes('com.apple.developer.applesignin'), fix: 'Remove com.apple.developer.applesignin from apps/longbook/LongbookDirect.entitlements.' },
     { name: 'project.yml leaves the Sparkle key placeholder for this script', ok: readFileSync(join(APP_DIR, 'project.yml'), 'utf8').includes(`SUPublicEDKey: ${KEY_PLACEHOLDER}`), fix: `Set the longbook-direct target's SUPublicEDKey to ${KEY_PLACEHOLDER}.` },
     { name: 'SPARKLE_PUBLIC_KEY, the base64 public half of the Sparkle key', ok: sparkleKey() !== null, fix: 'Run Sparkle\'s generate_keys -p (in the Sparkle artifact bundle) and pass what it prints as SPARKLE_PUBLIC_KEY=….' },
+    { name: `The changelog has notes for ${marketing}, for Sparkle's update window`, ok: versionChanges(marketing).length > 0, fix: 'Add them to apps/longbook/Resources/changelog.json.' },
+    { name: `The site's download links name ${LATEST_DMG}`, ok: DMG_PAGES.every((page) => readFileSync(page, 'utf8').includes(`/releases/latest/download/${LATEST_DMG}`)), fix: `Point the download, buy and thanks pages at /releases/latest/download/${LATEST_DMG}.` },
     { name: 'The latest device build, unchanged since', ok: untested === null, fix: untested ?? '' },
   ]
   if (!NO_PUBLISH) {
@@ -272,10 +279,13 @@ const findGenerateAppcast = (): string | null => {
 const escape = (text: string): string => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
 /** Sparkle shows this beside the update: the version's changes, as changelog.json lists them. */
-const releaseNotes = (marketing: string): string => {
-  const changes = [...new Set(releases(readFileSync(join(APP_DIR, 'Resources/changelog.json'), 'utf8'))
+const versionChanges = (marketing: string): string[] =>
+  [...new Set(releases(readFileSync(join(APP_DIR, 'Resources/changelog.json'), 'utf8'))
     .filter((r) => r.version === marketing).flatMap((r) => r.changes))]
     .filter((c) => !c.startsWith('Nothing you will see'))
+
+const releaseNotes = (marketing: string): string => {
+  const changes = versionChanges(marketing)
   return `<h2>longbook ${escape(marketing)}</h2>\n<ul>\n${changes.map((c) => `  <li>${escape(c)}</li>`).join('\n')}\n</ul>\n`
 }
 
@@ -312,6 +322,12 @@ const main = async () => {
   }
   const publicKey = sparkleKey()!
   const identity = developerId()!
+  // Checked before any wait on Apple: a build carrying another key would refuse every update.
+  const sparklePrivate = readFileSync(0, 'utf8').trim()
+  if (sparklePublicKey(sparklePrivate) !== publicKey) {
+    console.error('The Sparkle private key on stdin does not match SPARKLE_PUBLIC_KEY. Installed copies would refuse an update signed with it.')
+    process.exit(1)
+  }
 
   console.log('\n1/9 generating the project and writing the Sparkle public key…')
   run('xcodegen', ['generate'], APP_DIR)
@@ -400,7 +416,7 @@ const main = async () => {
     '--embed-release-notes',
     '-o', APPCAST,
     feed,
-  ], { stdio: ['inherit', 'inherit', 'inherit'] })
+  ], { input: sparklePrivate, stdio: ['pipe', 'inherit', 'inherit'] })
   const appcast = readFileSync(APPCAST, 'utf8')
   if (!appcast.includes(`${tag}/${dmgName}`) || !appcast.includes('sparkle:edSignature')) {
     console.error(`${APPCAST} does not list ${dmgName} with an EdDSA signature.`)
@@ -416,7 +432,10 @@ const main = async () => {
   console.log(`9/9 creating the GitHub release ${tag}…`)
   const notes = join(BUILD, 'release-notes.md')
   writeFileSync(notes, `longbook for Mac ${marketing} (${build}), notarised by Apple. Updates arrive through the app.\n`)
-  run('gh', ['release', 'create', tag, join(BUILD, dmgName), '--repo', REPO, '--title', `longbook for Mac ${marketing} (${build})`, '--notes-file', notes])
+  // The appcast keeps each version's own file; the site's links follow the latest under one name.
+  const latest = join(BUILD, LATEST_DMG)
+  copyFileSync(dmg, latest)
+  run('gh', ['release', 'create', tag, join(BUILD, dmgName), latest, '--repo', REPO, '--latest', '--title', `longbook for Mac ${marketing} (${build})`, '--notes-file', notes])
 
   markDirect()
   console.log(`\nReleased ${marketing} (${build}) at https://github.com/${REPO}/releases/tag/${tag}.`)

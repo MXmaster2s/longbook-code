@@ -8,7 +8,7 @@ export type PolarEnvironment = 'production' | 'sandbox'
 /** The API version every request pins, so responses keep the shapes typed here. */
 export const POLAR_VERSION = '2026-10'
 export const POLAR_PORTAL = 'https://polar.sh/ccs/portal'
-export const SUCCESS_URL = 'https://longbook.app/thanks/?checkout_id={CHECKOUT_ID}'
+export const SUCCESS_URL = 'https://longbook.app/thanks/'
 export const ACTIVATION_LABEL = 'longbook account'
 export const TOLERANCE_SECONDS = 5 * 60
 export const MAJOR_VERSION = 1
@@ -349,9 +349,20 @@ export const WHY = {
   unavailable: 'Polar could not be reached. Try again in a few minutes.',
   notSet: 'Purchases on longbook.app are not available right now.',
   failed: 'The licence could not be recorded. Try again in a few minutes.',
+  tooMany: 'Too many tries. Wait a minute and try again.',
 } as const
 
 export type Why = keyof typeof WHY
+
+/** Counts one attempt for an account in this copy of the function; true past the limit. A
+ *  burst of guessed keys stops here, while a person retrying a key never reaches it. */
+export function overLimit(seen: Map<string, number[]>, id: string, now: number, limit = 20, windowMs = 60_000): boolean {
+  if (seen.size > 5_000) seen.clear()
+  const recent = (seen.get(id) ?? []).filter((at) => now - at < windowMs)
+  recent.push(now)
+  seen.set(id, recent)
+  return recent.length > limit
+}
 
 /** What Polar's answer to validate means for a claim; null when the key may go on. */
 export function keyProblem(key: Partial<models.ValidatedLicenseKey>, now: Date): Why | null {

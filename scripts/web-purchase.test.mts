@@ -5,9 +5,11 @@ import assert from 'node:assert/strict'
 import { createHmac, randomBytes } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
+import { sparklePublicKey } from './sparkle-key.mts'
 import {
   POLAR_VERSION,
   SUCCESS_URL,
+  overLimit,
   WEB_ORDER_COLUMNS,
   WHY,
   activatedBy,
@@ -355,9 +357,10 @@ test('the checkout carries the account to the paid order', () => {
     customer_email: 'alex.morgan@example.com',
     external_customer_id: USER_ID,
     metadata: { user_id: USER_ID },
-    success_url: 'https://longbook.app/thanks/?checkout_id={CHECKOUT_ID}',
+    success_url: 'https://longbook.app/thanks/',
   })
-  assert.equal(SUCCESS_URL.includes('{CHECKOUT_ID}'), true)
+  // The thanks page shows no key, so it needs nothing from the checkout in its address.
+  assert.equal(SUCCESS_URL.includes('?'), false)
   assert.deepEqual(portalBody(USER_ID), { external_customer_id: USER_ID })
 })
 
@@ -443,4 +446,19 @@ test('the migration, the guard, the deploy list and CI carry web orders', () => 
   assert.ok(ci.includes('- run: npm run cloud:test\n      - run: npm run web:test\n'))
   assert.ok(read('supabase/functions/apple-purchase/index.ts').includes('runPriceStep(service'), 'one price step for both sellers')
   assert.ok(!read('supabase/functions/delete-account/index.ts').includes('_shared'), 'account:deploy uploads the one file')
+})
+
+test('a burst of attempts stops at the limit, and the window lets the account back in', () => {
+  const seen = new Map<string, number[]>()
+  for (let i = 0; i < 20; i++) assert.equal(overLimit(seen, USER_ID, 1_000 + i), false)
+  assert.equal(overLimit(seen, USER_ID, 1_020), true)
+  assert.equal(overLimit(seen, 'another-account', 1_020), false)
+  assert.equal(overLimit(seen, USER_ID, 1_020 + 60_000), false)
+})
+
+test("Sparkle's public key comes from its private seed", () => {
+  const seed = Buffer.from('9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60', 'hex').toString('base64')
+  const expected = Buffer.from('d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a', 'hex').toString('base64')
+  assert.equal(sparklePublicKey(seed), expected)
+  assert.equal(sparklePublicKey('not a key'), null)
 })

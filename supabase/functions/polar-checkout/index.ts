@@ -2,7 +2,7 @@
 // the paid order finds it, or the customer portal with its receipts and licence key. An account
 // that already holds an active licence is not sent to checkout.
 import { createClient } from 'npm:@supabase/supabase-js@2'
-import { POLAR_PORTAL, WHY, checkoutBody, polarApi, polarEnvironment, polarHeaders, portalBody, type Why } from '../_shared/polar.ts'
+import { POLAR_PORTAL, WHY, checkoutBody, overLimit, polarApi, polarEnvironment, polarHeaders, portalBody, type Why } from '../_shared/polar.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
@@ -21,6 +21,7 @@ const CORS_HEADERS = {
 const json = (data: unknown, status = 200) =>
   new Response(JSON.stringify(data), { status, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } })
 const refuse = (why: Why, status: number) => json({ why: WHY[why] }, status)
+const ATTEMPTS = new Map<string, number[]>()
 
 async function polar(path: string, body: unknown): Promise<Response | null> {
   return await fetch(`${API}${path}`, {
@@ -40,6 +41,7 @@ Deno.serve(async (req) => {
   const anon = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
   const { data: { user }, error: authError } = await anon.auth.getUser(jwt)
   if (authError || !user) return refuse('signIn', 401)
+  if (overLimit(ATTEMPTS, user.id, Date.now())) return refuse('tooMany', 429)
 
   let body: { action?: unknown }
   try {

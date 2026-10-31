@@ -12,6 +12,7 @@ import {
   keyProblem,
   likeExactly,
   orderFromRow,
+  overLimit,
   pickOrder,
   polarApi,
   polarEnvironment,
@@ -47,6 +48,7 @@ const CORS_HEADERS = {
 const json = (data: unknown, status = 200) =>
   new Response(JSON.stringify(data), { status, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } })
 const refuse = (why: Why, status: number) => json({ why: WHY[why] }, status)
+const ATTEMPTS = new Map<string, number[]>()
 
 async function polar(method: 'GET' | 'POST', path: string, body?: unknown, token?: string): Promise<Response | null> {
   return await fetch(`${API}${path}`, {
@@ -131,6 +133,7 @@ Deno.serve(async (req) => {
   const anon = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
   const { data: { user }, error: authError } = await anon.auth.getUser(jwt)
   if (authError || !user) return refuse('signIn', 401)
+  if (overLimit(ATTEMPTS, user.id, Date.now())) return refuse('tooMany', 429)
 
   let body: { key?: unknown; action?: unknown }
   try {
