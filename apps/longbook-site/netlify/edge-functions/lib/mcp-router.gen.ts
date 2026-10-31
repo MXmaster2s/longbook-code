@@ -3,7 +3,7 @@
 export const ROUTER = {
   "name": "longbook",
   "description": "The owner's financial memory, over MCP. Two doors: the server inside the longbook app, which reads and writes the folder on their own machine, and this hosted one, which reads the copy they chose to push and takes writes as proposals their app applies.",
-  "contract_revision": 48,
+  "contract_revision": 49,
   "endpoint": "https://longbook.app/mcp",
   "transport": "streamable-http",
   "doors": [
@@ -195,7 +195,7 @@ export const ROUTER = {
       "id": "set-up-my-longbook",
       "title": "Set up my longbook",
       "group": "Setting up",
-      "phrase": "Read my 12-month bank statement and help me set up my longbook",
+      "phrase": "Read my 6-month bank statement and help me set up my longbook",
       "result": "Your longbook filled from your statements: every charge on record, the names you picked in setup filled in where your statements or your answers show them, each account's closing balance set, the charges that clearly repeat planned ahead, and the rest set to repeat once you confirm them. It waits in the Proposals screen for you to keep.",
       "needs": []
     },

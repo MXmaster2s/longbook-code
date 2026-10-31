@@ -103,7 +103,7 @@ final class PromptCatalogTests: XCTestCase {
             XCTAssertFalse(phrase.contains("{month}"), id)
         }
         XCTAssertEqual(PromptCatalog.phrase(id: "set-up-my-longbook", month: nil, in: []),
-                       "Read my 12-month bank statement and help me set up my longbook")
+                       "Read my 6-month bank statement and help me set up my longbook")
         XCTAssertEqual(PromptCatalog.phrases(id: "add-my-statement", in: []),
                        ["Add my statement in my longbook", "Update my longbook from my statements", "Add my statement"])
         XCTAssertEqual(PromptCatalog.phrase(id: "add-a-month-report-in-my-longbook", month: "October", in: []),

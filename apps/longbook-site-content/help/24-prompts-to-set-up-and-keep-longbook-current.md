@@ -4,7 +4,7 @@ Paste a prompt into Claude or ChatGPT with the longbook connector on. Each one h
 
 ## Setting up
 
-- **"Read my 12-month bank statement and help me set up my longbook"**: fills longbook from your statements, sets each account's closing balance, and plans the payments that clearly repeat.
+- **"Read my 6-month bank statement and help me set up my longbook"**: fills longbook from your statements, sets each account's closing balance, and plans the payments that clearly repeat.
 - **"Add my statement in my longbook"**: records every charge on a statement as paid, keeps money in apart, and updates the balance.
 - **"Add September month report in my longbook"**: records the month's statements and confirms the charges they prove.
 - **"Categorise my longbook"**: gives every commitment without a category one.

@@ -3,7 +3,7 @@
   "name": "app.longbook/mcp",
   "title": "longbook",
   "description": "Your longbook of bills, subscriptions and expenses, for your AI to read and to suggest changes to.",
-  "version": "1.48.0",
+  "version": "1.49.0",
   "websiteUrl": "https://longbook.app/mcp/",
   "repository": {
     "url": "https://github.com/MXmaster2s/longbook-code",
@@ -29,7 +29,7 @@
     {
       "registryType": "npm",
       "identifier": "@longbook/mcp",
-      "version": "1.48.0",
+      "version": "1.49.0",
       "runtimeHint": "npx",
       "transport": {
         "type": "stdio"

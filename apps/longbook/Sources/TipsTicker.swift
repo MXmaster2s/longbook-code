@@ -48,8 +48,8 @@ struct TipsTicker: View {
         #endif
         return [
             widget,
-            Tip(number: 2, title: "Add a year of history",
-                detail: "Start with a year of your bank statements.", door: .importStatement),
+            Tip(number: 2, title: "Add six months of history",
+                detail: "Start with the last six months of your bank statements.", door: .importStatement),
             otherDevice,
             Tip(number: 4, title: "Ask your AI",
                 detail: "Connect Claude to ask about your money.", door: .screen(.mcpServer)),
