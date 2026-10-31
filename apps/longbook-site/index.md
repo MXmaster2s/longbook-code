@@ -8,7 +8,7 @@ Your longbook is a memory for your money.
 
 Remember every subscription, installment, insurance, fees, when each one is due, from which account and for whom. Cancel all unwanted recurring expenses before they bill you again, or use their free trial without worry. Get your financial life in control today!
 
-[Download for Mac](https://testflight.apple.com/join/g66Nd3Na) [Download for iPhone](https://testflight.apple.com/join/g66Nd3Na)
+[Download for Mac](https://testflight.apple.com/join/g66Nd3Na) [Download for iPhone](https://longbook.app/download/)
 
 Lifetime license · Covers all devices · Family Sharing included · 7-day refund
 
@@ -60,7 +60,7 @@ longbook is added to Claude or ChatGPT as a connector, with a longbook account.
 
 Your AI reads your email and statements and adds commitments, which appear in Proposals to keep, edit or undo.
 
-[Download for Mac](https://testflight.apple.com/join/g66Nd3Na) [Download for iPhone](https://testflight.apple.com/join/g66Nd3Na)
+[Download for Mac](https://testflight.apple.com/join/g66Nd3Na) [Download for iPhone](https://longbook.app/download/)
 
 ![Rohit Kundliwal, the founder of longbook](https://longbook.app/media-kit/files/preview/longbook-founder-rohit-kundliwal-320.jpg)
 
@@ -98,9 +98,9 @@ $149 · after that
 - Every future update, free
 - 12 months of longbook Cloud, free
 
-[Download for Mac](https://testflight.apple.com/join/g66Nd3Na) [Download for iPhone](https://testflight.apple.com/join/g66Nd3Na)
+[Download for Mac](https://testflight.apple.com/join/g66Nd3Na) [Download for iPhone](https://longbook.app/download/)
 
-Paid securely through the App Store. Local taxes may apply.
+Paid securely through the App Store, or on the website through Polar. Local taxes may apply.
 
 OPTIONAL ADD-ON
 
@@ -202,7 +202,7 @@ longbook Cloud is an optional add-on at $4 a month, for people who want their lo
 
 ### Can I try longbook before paying?
 
-longbook is bought before you use it, with a 7-day refund instead of a trial. Within 7 days of buying, tap Request a Refund in Account and Apple refunds you. Before buying, you can look around a demo longbook with made-up data, and every license includes 12 months of longbook Cloud.
+longbook is bought before you use it, with a 7-day refund instead of a trial. Within 7 days of buying, tap Request a Refund in Account and Apple refunds you. A purchase made on the website is refunded through Polar on request to Support. Before buying, you can look around a demo longbook with made-up data, and every license includes 12 months of longbook Cloud.
 
 ### Is longbook open source?
 

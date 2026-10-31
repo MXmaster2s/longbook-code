@@ -39,7 +39,7 @@ More: [Frequently asked questions](/faq/), [What longbook is and what it costs](
 - Platforms: iPhone and Mac, both native apps
 - iPhone: iOS {{ios_min}} or later
 - Mac: macOS {{macos_min}} or later, Apple silicon
-- Download: [TestFlight beta for Mac and iPhone]({{download}})
+- Download: Mac as a [direct download](https://longbook.app/download/), iPhone as a [TestFlight beta]({{download}})
 - App Store: Coming soon
 - Coming soon: {{coming_soon}}
 - Languages: English
@@ -55,10 +55,10 @@ More: [Download longbook](/download/), [Install with TestFlight](/ios/), [Gettin
 - Launch prices: {{price_tiers}}
 - Starting price: {{price_first}}
 - What the licence covers: Every longbook app on every compatible device you own, and every future update
-- Refund: Within {{refund_days}} days of buying, through Apple
+- Refund: Within {{refund_days}} days of buying, through Apple, or through Polar for a purchase on the website
 - Free trial: None. The {{refund_days}}-day refund takes its place, and a demo longbook with made-up data can be explored before buying.
 - Family Sharing: Yes. Everyone in your Apple family gets longbook on their own account and devices.
-- Payment: Through the App Store. Local taxes may apply.
+- Payment: Through the App Store, or on the website through Polar, the merchant of record. Local taxes may apply.
 - longbook Cloud: An optional add-on subscription, {{cloud_price}} through the App Store
 - longbook Cloud included: The first 12 months come with the purchase, for the buyer's Apple family too
 - What longbook Cloud adds: The web connector and access keys, so Claude, ChatGPT and other cloud AI apps reach your longbook from any device; shared reports with a link and a password; more statements read each month

@@ -55,5 +55,5 @@ longbook is a memory for your financial commitments: subscriptions, insurance, r
 
 The next payment stays in view on the iPhone widget and in the Mac menu bar. Your AI can read your longbook and update it through longbook's MCP server, and every change it makes shows in Proposals, to keep or undo.
 
-- Download for Mac: https://testflight.apple.com/join/g66Nd3Na
+- Download for Mac: https://longbook.app/download/
 - Download for iPhone: https://testflight.apple.com/join/g66Nd3Na

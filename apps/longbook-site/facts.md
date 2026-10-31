@@ -40,7 +40,7 @@ More: [Frequently asked questions](https://longbook.app/faq/), [What longbook is
 - **Platforms:** iPhone and Mac, both native apps
 - **iPhone:** iOS 17 or later
 - **Mac:** macOS 14 or later, Apple silicon
-- **Download:** [TestFlight beta for Mac and iPhone](https://testflight.apple.com/join/g66Nd3Na)
+- **Download:** Mac as a [direct download](https://longbook.app/download/), iPhone as a [TestFlight beta](https://testflight.apple.com/join/g66Nd3Na)
 - **App Store:** Coming soon
 - **Coming soon:** Apple Watch, iPad, iPhone Duo and Android
 - **Languages:** English
@@ -56,10 +56,10 @@ More: [Download longbook](https://longbook.app/download/), [Install with TestFli
 - **Launch prices:** $38 for the first 100 buyers, $98 for the next 250, then $149
 - **Starting price:** $38
 - **What the licence covers:** Every longbook app on every compatible device you own, and every future update
-- **Refund:** Within 7 days of buying, through Apple
+- **Refund:** Within 7 days of buying, through Apple, or through Polar for a purchase on the website
 - **Free trial:** None. The 7-day refund takes its place, and a demo longbook with made-up data can be explored before buying.
 - **Family Sharing:** Yes. Everyone in your Apple family gets longbook on their own account and devices.
-- **Payment:** Through the App Store. Local taxes may apply.
+- **Payment:** Through the App Store, or on the website through Polar, the merchant of record. Local taxes may apply.
 - **longbook Cloud:** An optional add-on subscription, $4 a month through the App Store
 - **longbook Cloud included:** The first 12 months come with the purchase, for the buyer's Apple family too
 - **What longbook Cloud adds:** The web connector and access keys, so Claude, ChatGPT and other cloud AI apps reach your longbook from any device; shared reports with a link and a password; more statements read each month
@@ -79,7 +79,7 @@ More: [Pricing](https://longbook.app/#price), [What is longbook Cloud](https://l
 - **Website analytics:** PostHog in its cookieless mode. No cookie is set, no identifier is kept in the browser, and the IP address is discarded once used. Browsers that send Global Privacy Control or Do Not Track are not measured.
 - **App analytics:** PostHog usage and crash counts, never a name, amount or note. Users can switch it off in Help & about.
 - **Server hosting:** Supabase, Asia Pacific (Mumbai) region, ap-south-1
-- **Privacy policy:** [longbook.app/privacy-policy](https://longbook.app/privacy-policy/), in effect since 28 October 2026
+- **Privacy policy:** [longbook.app/privacy-policy](https://longbook.app/privacy-policy/), in effect since 31 October 2026
 - **Terms of service:** [longbook.app/terms](https://longbook.app/terms/)
 
 More: [Where your data lives and what leaves your device](https://longbook.app/help/where-your-data-lives-and-what-leaves-your-device/), [Keep your longbook in your own iCloud](https://longbook.app/features/keep-your-longbook-in-your-own-icloud.md), [Cookieless analytics for a personal finance app](https://longbook.app/blog/using-cookieless-analytics-for-personal-finance-applications.md), [Privacy policy](https://longbook.app/privacy-policy/)
