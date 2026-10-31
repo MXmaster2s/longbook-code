@@ -20,11 +20,11 @@ Payments that repeat are offered as commitments, every one ticked. Every person 
 
 ## What is sent, and what is kept
 
-To read a statement, longbook sends it a few pages at a time from your device to our server, and from there to Anthropic's Claude. If Claude can't answer, the same piece goes to OpenAI instead.
+longbook first reads the statement on your device. When the lines it reads add up to the balances printed, only those lines and the top of the statement go to our server, with long numbers cut to their last four digits, and from there to Anthropic's Claude. Otherwise it sends the file a few pages at a time. If Claude can't answer, the same request goes to OpenAI instead.
 
 - Our server keeps neither the statement nor the charges read from it.
 - We only record that an import happened, so we can count your monthly share.
-- The pages carry whatever your bank printed, including any account number.
+- When the file itself is sent, its pages carry whatever your bank printed, including any account number.
 
 ## How many you can import
 

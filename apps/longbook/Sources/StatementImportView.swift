@@ -3,9 +3,9 @@ import LongbookCore
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// Statements in, one review out: every file goes to longbook's server a few pages at a
-/// time, all at once, and comes back as charges; each year goes once more for its people
-/// and rhythms; the owner ticks and adds, and it lands in Changes, undoable.
+/// Statements in, one review out: every file is read on the device and named by the server
+/// by its lines, or when those don't prove themselves read there a few pages at a time; the
+/// owner ticks and adds, and it lands in Changes, undoable.
 struct StatementImportView: View {
     let model: DashboardModel
     @ObservedObject var auth: AuthViewModel
@@ -37,6 +37,10 @@ struct StatementImportView: View {
         /// The server counts every piece and the review of a file against this.
         var importId = StatementCloud.newImportId()
         var pieces: [StatementCloud.Piece] = []
+        /// Set when the device's own lines prove themselves: then the model only names them.
+        var plan: StatementLinePass.Plan?
+        /// How far the reading of the plan has come, for the reading screen.
+        var counts: StatementLinePass.Progress?
         /// The piece under way, for the progress list.
         var word = ""
         var prepared: StatementCloud.Prepared?
@@ -53,6 +57,9 @@ struct StatementImportView: View {
         /// Lines the server left out, read from the file instead.
         var filled: [StatementCandidate] = []
         var name: String { url.lastPathComponent }
+        var isCut: Bool { plan != nil || !pieces.isEmpty }
+        /// Calls to wait for: the head, each batch and the look-over, or every piece and the review.
+        var units: Int { plan.map { $0.batches.count + 2 } ?? pieces.count + 1 }
     }
 
     /// A repeat being filled in as a commitment, as a sheet's item, with the book's
@@ -1674,6 +1681,8 @@ struct StatementImportView: View {
         if files.map(\.url) != urls { files = urls.map { FileRead(url: $0) } }
         for index in files.indices {
             files[index].pieces = []
+            files[index].plan = nil
+            files[index].counts = nil
             files[index].word = ""
             files[index].prepared = nil
             files[index].unread = []
@@ -1686,54 +1695,65 @@ struct StatementImportView: View {
         cut()
     }
 
-    /// Cuts the files in order. The first locked one stops to ask for its password; a
-    /// file that cannot be cut is set aside with the reason.
+    /// Reads the files in order on the device, off the main actor: each is planned by its
+    /// lines or cut into pieces. The first locked one stops to ask for its password; a file
+    /// that cannot be read is set aside with the reason.
     private func cut() {
         stage = .working("Opening \(files.count == 1 ? files[0].name : "\(files.count) files")…")
-        for index in files.indices where files[index].pieces.isEmpty && files[index].problem == nil {
-            do {
-                let pieces = try StatementCloud.pieces(for: files[index].url, password: password.isEmpty ? nil : password)
-                files[index].password = password.isEmpty ? nil : password
-                password = ""
-                if pieces.isEmpty {
-                    files[index].problem = "Nothing was read from \(files[index].name)."
-                } else {
-                    files[index].pieces = pieces
+        Task {
+            for index in files.indices where !files[index].isCut && files[index].problem == nil {
+                let url = files[index].url
+                let typed = password.isEmpty ? nil : password
+                do {
+                    let reading = try await Task.detached(priority: .userInitiated) { try StatementCloud.reading(for: url, password: typed) }.value
+                    files[index].password = typed
+                    password = ""
+                    switch reading {
+                    case .lines(let plan):
+                        files[index].plan = plan
+                        files[index].counts = StatementLinePass.Progress(lines: plan.lines.count, batches: plan.batches.count)
+                    case .document(let pieces, _):
+                        if pieces.isEmpty {
+                            files[index].problem = "Nothing was read from \(files[index].name)."
+                        } else {
+                            files[index].pieces = pieces
+                        }
+                    }
+                } catch StatementText.ReadError.locked {
+                    lockedIndex = index
+                    stage = .locked
+                    return
+                } catch StatementText.ReadError.wrongPassword {
+                    lockedIndex = index
+                    problem = StatementText.ReadError.wrongPassword.errorDescription
+                    stage = .locked
+                    return
+                } catch {
+                    Telemetry.shared.failed(.statementImport, error)
+                    files[index].problem = "\(files[index].name): \(error.friendlyDescription)"
                 }
-            } catch StatementText.ReadError.locked {
-                lockedIndex = index
-                stage = .locked
-                return
-            } catch StatementText.ReadError.wrongPassword {
-                lockedIndex = index
-                problem = StatementText.ReadError.wrongPassword.errorDescription
-                stage = .locked
-                return
-            } catch {
-                Telemetry.shared.failed(.statementImport, error)
-                files[index].problem = "\(files[index].name): \(error.friendlyDescription)"
             }
+            lockedIndex = nil
+            problem = nil
+            guard files.contains(where: \.isCut) else {
+                problem = files.compactMap(\.problem).joined(separator: "\n")
+                stage = .pick
+                countImport(ok: false)
+                return
+            }
+            await readAll()
         }
-        lockedIndex = nil
-        problem = nil
-        guard files.contains(where: { !$0.pieces.isEmpty }) else {
-            problem = files.compactMap(\.problem).joined(separator: "\n")
-            stage = .pick
-            countImport(ok: false)
-            return
-        }
-        Task { await readAll() }
     }
 
-    /// Every file at once. The units are every piece and each file's look-over; the bar
-    /// lands on a mark as each comes back.
+    /// Every file at once. The units are each file's calls; the bar lands on a mark as each
+    /// comes back.
     private func readAll() async {
         let token = await auth.accessToken()
         let tags = model.commitmentTagNames
         let known = (members: model.memberNames, accounts: model.accountNames)
         let money = currency
-        let readable = files.indices.filter { !files[$0].pieces.isEmpty }
-        units = Double(readable.reduce(0) { $0 + files[$1].pieces.count } + readable.count)
+        let readable = files.indices.filter { files[$0].isCut }
+        units = Double(readable.reduce(0) { $0 + files[$1].units })
         doneUnits = 0
         stage = .working(readable.count == 1 ? "Reading \(files[readable[0]].name)" : "Reading \(readable.count) statements")
         creep(from: 0, toward: 1 / units)
@@ -1761,6 +1781,20 @@ struct StatementImportView: View {
     /// statement; the rest three at a time; then the look-over.
     @MainActor
     private func readFile(_ index: Int, token: String?, tags: [String], known: (members: [String], accounts: [String]), money: String) async {
+        if let plan = files[index].plan {
+            if await readLines(plan, index, token: token, tags: tags, known: known, money: money) { return }
+            // Whatever went wrong with the lines, the document path still reads the file.
+            do {
+                let pieces = try StatementCloud.pieces(for: files[index].url, password: files[index].password)
+                units += Double(pieces.count + 1)
+                files[index].pieces = pieces
+                files[index].plan = nil
+            } catch {
+                Telemetry.shared.failed(.statementImport, error)
+                files[index].problem = "\(files[index].name): \(error.friendlyDescription)"
+                return
+            }
+        }
         let pieces = files[index].pieces
         let id = files[index].importId
         var answers: [StatementCloud.ChargesAnswer?] = Array(repeating: nil, count: pieces.count)
@@ -1862,8 +1896,49 @@ struct StatementImportView: View {
         // Lines still missing are read from the file itself, ticked and marked so.
         prepared = StatementCompleteness.mended(prepared, expected: expected)
         let report = StatementCompleteness.compare(prepared: prepared, expected: expected)
-        files[index].report = report
         files[index].filled = StatementCompleteness.fill(missing: report.missing, among: tags)
+        finish(index, prepared: prepared, report: report)
+    }
+
+    /// A file by the lines the device read: the model names them as the batches return.
+    /// False when the file should be read as a document instead; a share spent or a file
+    /// refused ends here, as the document path's first piece would.
+    @MainActor
+    private func readLines(_ plan: StatementLinePass.Plan, _ index: Int, token: String?, tags: [String],
+                           known: (members: [String], accounts: [String]), money: String) async -> Bool {
+        let asking = StatementLinePass.Asking(importId: files[index].importId, categories: tags, members: known.members,
+                                              accounts: known.accounts, currency: money)
+        files[index].word = "Reading \(plan.lines.count) lines"
+        do {
+            let outcome = try await StatementLinePass.read(plan, asking: asking, transport: { try await StatementCloud.post($0, token: token) }) { state in
+                await MainActor.run {
+                    let before = files[index].counts?.batchesDone ?? 0
+                    files[index].counts = state
+                    if state.batchesDone > before { advance(by: state.batchesDone - before) }
+                }
+            }
+            advance()
+            finish(index, prepared: outcome.prepared, report: outcome.report)
+            return true
+        } catch StatementCloud.CloudError.shareSpent {
+            shareSpent = true
+            Telemetry.shared.send("app.statement_share_spent")
+            files[index].problem = "\(files[index].name): not read, the server has read its share for now."
+            return true
+        } catch StatementCloud.CloudError.notStatement(let said) {
+            Telemetry.shared.send("app.statement_refused")
+            files[index].problem = said
+            return true
+        } catch {
+            Telemetry.shared.failed(.statementImport, error)
+            return false
+        }
+    }
+
+    /// A file's reading laid in, by whichever path it took.
+    @MainActor
+    private func finish(_ index: Int, prepared: StatementCloud.Prepared, report: StatementCompleteness.Report) {
+        files[index].report = report
         files[index].prepared = prepared
         // The currency the statement prints, unless the reader set one: a pound statement
         // read with a rupee guess was written in rupees.
@@ -2061,6 +2136,7 @@ struct StatementImportView: View {
             "outcome": outcome, "charge_count": charges, "file_count": files.count,
             "piece_count": files.reduce(0) { $0 + $1.pieces.count },
             "pdf_count": files.filter { StatementText.kind(of: $0.url) == .pdf }.count,
+            "line_read_count": files.filter { $0.plan != nil }.count,
             "kb_total": Int((Double(bytes) / 1024 / 50).rounded()) * 50,
         ])
     }

@@ -189,7 +189,28 @@ public enum StatementLines {
 
     private static func linesFromRecords(_ records: [[String]]) -> [StatementLine] {
         guard let (headerIndex, columns) = findHeader(records) else { return [] }
-        var out: [StatementLine] = []
+        return lines(records, headerIndex: headerIndex, columns: columns).map(\.line)
+    }
+
+    /// A sheet's running balance column at its two ends, whichever way round the sheet runs:
+    /// the newest balance closes it, the oldest less its own movement opens it. Nil with no
+    /// such column. With every line on one day the order is the one whose sum closes.
+    static func sheetBalances(_ records: [[String]]) -> (opening: Double, closing: Double)? {
+        guard let (headerIndex, columns) = findHeader(records), columns.balance != nil else { return nil }
+        let rows = lines(records, headerIndex: headerIndex, columns: columns)
+        guard let first = rows.first, let last = rows.last, let top = first.balance, let bottom = last.balance else { return nil }
+        func before(_ line: StatementLine, _ balance: Double) -> Double {
+            ((balance + (line.direction == .debit ? line.amount : -line.amount)) * 100).rounded() / 100
+        }
+        let forward = (opening: before(first.line, top), closing: bottom)
+        let backward = (opening: before(last.line, bottom), closing: top)
+        if first.line.date != last.line.date { return first.line.date < last.line.date ? forward : backward }
+        let net = rows.reduce(0.0) { $0 + ($1.line.direction == .credit ? $1.line.amount : -$1.line.amount) }
+        return abs(forward.opening + net - forward.closing) < 0.005 ? forward : backward
+    }
+
+    private static func lines(_ records: [[String]], headerIndex: Int, columns: Columns) -> [(line: StatementLine, balance: Double?)] {
+        var out: [(line: StatementLine, balance: Double?)] = []
         for record in records.dropFirst(headerIndex + 1) {
             guard let date = cell(record, columns.date).flatMap(parseDate),
                   let payee = cell(record, columns.narration)?.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -212,7 +233,8 @@ public enum StatementLines {
             }
             guard let amount else { continue }
             let page = cell(record, columns.page).flatMap { Int($0) }.flatMap { $0 > 0 ? $0 : nil }
-            out.append(StatementLine(date: date, payee: payee, amount: amount, direction: direction, page: page))
+            out.append((StatementLine(date: date, payee: payee, amount: amount, direction: direction, page: page),
+                        cell(record, columns.balance).flatMap(parseAmount)))
         }
         return out
     }
@@ -272,8 +294,15 @@ public enum StatementLines {
                 }
                 if parseDate(word.text) == nil { payee.append(word.text) }
             }
-            // A narration wrapped onto the lines around its row reads as one.
-            let around = block.above.map(\.line) + [payee.joined(separator: " ")] + block.below.map(\.line)
+            // A narration wrapped onto the lines around its row reads as one. It keeps to its
+            // own column; a row starting left of it is the page's footer, and so is all after it.
+            let column = block.above.first?.words.first?.minX ?? row.words.dropFirst(prefix).first { parseDate($0.text) == nil && !isAmountToken($0.text) }?.minX
+                ?? block.below.first?.words.first?.minX
+            let wrapped = block.below.prefix { below in
+                let said = below.line.lowercased()
+                return (below.words.first?.minX ?? 0) >= (column ?? 0) - 6 && !["statement summary", "opening bal", "closing bal"].contains(where: said.contains)
+            }
+            let around = block.above.map(\.line) + [payee.joined(separator: " ")] + wrapped.map(\.line)
             record[2] = around.filter { !$0.isEmpty }.joined(separator: " ")
             // A marked row says its own direction; the columns say the rest.
             records.append(marker.isEmpty ? record : record + [marker])
@@ -418,6 +447,8 @@ public enum StatementLines {
         var deposit: Int?
         var amount: Int?
         var type: Int?
+        /// The running balance, when the sheet prints one.
+        var balance: Int?
         /// The page column fromColumns writes; a bank's own sheet has none.
         var page: Int?
     }
@@ -437,6 +468,8 @@ public enum StatementLines {
                 if name.contains("date") { continue }
                 if name == "page" {
                     columns.page = columns.page ?? i
+                } else if name.contains("balance") {
+                    columns.balance = columns.balance ?? i
                 } else if ["narration", "description", "particulars", "remarks", "details"].contains(where: name.contains) {
                     columns.narration = columns.narration ?? i
                 } else if ["withdrawal", "debit"].contains(where: name.contains) || name == "dr" {

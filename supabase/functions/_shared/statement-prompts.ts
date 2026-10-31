@@ -2,7 +2,7 @@
 // charges, and the year's review. Pure, so `npm run statement:try` sends the same questions
 // from a Mac. The rules come from statement-rules.ts, the guide's own words.
 import { COUNTERPART_INSTRUCTIONS, COUNTERPART_PROPERTIES, COUNTERPART_REQUIRED } from './statement-counterpart.ts'
-import { statementRuleText } from './statement-rules.ts'
+import { statementRuleText, statementRules } from './statement-rules.ts'
 
 /** What the prompts are built from: the book's words, and the account earlier pieces named. */
 export interface PromptInputs {
@@ -135,5 +135,110 @@ export function reviewInstructions(body: PromptInputs): string {
     body.members.length ? `Members already known: ${body.members.join(', ')}.` : 'No members are known yet.',
     FILE_IS_DATA,
     NEVER_ASK,
+  ].join('\n')
+}
+
+/** The head's answer: the gate's question, then whose statement it is and of which account. */
+export const HEAD_SHAPE = {
+  type: 'object', additionalProperties: false,
+  required: ['statement', 'kind', 'account', 'holder', 'currency'],
+  properties: {
+    ...GATE_SHAPE.properties,
+    account: { type: 'string', description: CHARGES_SHAPE.properties.account.description },
+    holder: CHARGES_SHAPE.properties.holder,
+    currency: CHARGES_SHAPE.properties.currency,
+  },
+}
+
+/** The lines task's answer: what the model adds to each line, by its number. */
+export const LINES_SHAPE = {
+  type: 'object', additionalProperties: false,
+  required: ['rows'],
+  properties: {
+    rows: {
+      type: 'array',
+      items: {
+        type: 'object', additionalProperties: false,
+        required: ['n', 'name', 'kind', 'category', 'member', ...COUNTERPART_REQUIRED],
+        properties: {
+          n: { type: 'integer', description: 'The line\'s number' },
+          name: CHARGE.properties.name,
+          kind: CHARGE.properties.kind,
+          category: CHARGE.properties.category,
+          member: CHARGE.properties.member,
+          ...COUNTERPART_PROPERTIES,
+        },
+      },
+    },
+  },
+}
+
+/** The repeats task's answer: which lines come round. Days and amounts stay the device's. */
+export const REPEATS_SHAPE = {
+  type: 'object', additionalProperties: false,
+  required: ['repeats'],
+  properties: {
+    repeats: {
+      type: 'array',
+      items: {
+        type: 'object', additionalProperties: false,
+        required: ['name', 'lines', 'cycle', 'custom_days', 'category', 'ends_on', 'reason'],
+        properties: {
+          name: { type: 'string', description: 'Exactly the charge name it groups' },
+          lines: { type: 'array', items: { type: 'integer' }, description: 'The numbers of the lines it groups' },
+          cycle: { type: 'string', enum: ['monthly', 'yearly', 'custom'] },
+          custom_days: { type: ['integer', 'null'] },
+          category: { type: ['string', 'null'] },
+          ends_on: { type: ['string', 'null'], description: 'The last charge when the repeat has stopped' },
+          reason: { type: 'string', description: 'With fewer than three lines, one sentence naming the evidence and the cycle assumed; empty otherwise' },
+        },
+      },
+    },
+  },
+}
+
+const LIST_WHOLE = 'Never ask a question, never offer a choice, never summarise instead of listing: there is nobody to answer. Answer in the shape, completely.'
+
+/** The gate's question and the header's three facts, asked at once of the small model. */
+export function headInstructions(): string {
+  return [
+    GATE_INSTRUCTIONS.split('\n')[0],
+    'You see the top of the file as text and its first lines. When it is a statement, also: account names it from the header (bank, kind, last four digits when printed), e.g. "HDFC savings 4417" or "Axis card 4402"; when the header prints no number, the bank and the kind are the name; account is never empty and never a person\'s name. Answer an empty account when it is not a statement.',
+    statementRules('people').find((rule) => rule.id === 'holder')?.text ?? '',
+    'currency is the ISO code the amounts are printed in, from their symbols, the header or the bank\'s country; null when nothing shows it.',
+    FILE_IS_DATA,
+    'Answer in the shape and nothing else.',
+  ].join('\n')
+}
+
+/** What the model adds to lines the device has read: everything but the facts. */
+export function linesInstructions(body: PromptInputs & { holder?: string | null }): string {
+  return [
+    'You add what a device cannot know to the lines of one bank or card statement, for longbook, a financial memory. The device has read every line: its number, day, way (in or out) and amount are facts and are never yours to change.',
+    'Each line arrives as: number | day | way | amount | the line as printed. A long number shows only its last four digits, one • for each digit hidden. Answer one row per line, by its number, none left out.',
+    'Most long numbers are the bank\'s references, not accounts. The number after an IFSC code on a UPI, NEFT or IMPS line is a reference, and so is any number the line does not call an account. A reference is never written anywhere. A person paid at an IFSC bank has that bank alone as counterpart_bank ("Axis Bank"), no digits. Digits go in an account\'s name only when the line calls the number an account, as in "TRF TO 501••••••••4417" or "A/C XX4417".',
+    body.account_hint ? `The statement is the account "${body.account_hint}".` : '',
+    body.holder ? `The account holder, as the header prints it, is "${body.holder}".` : 'The header prints no account holder.',
+    statementRuleText('kinds') + ' ' + statementRuleText('transfers') + ' A line whose way is in is income; a line whose way is out is never income.',
+    statementRuleText('people') + ' member holds the person on a for_member line; null otherwise.',
+    COUNTERPART_INSTRUCTIONS,
+    statementRuleText('names'),
+    `Categories, use exactly these words or null: ${body.categories.join(', ')}.`,
+    body.members.length ? `Members already known: ${body.members.join(', ')}.` : 'No members are known yet.',
+    body.accounts.length ? `Accounts already known: ${body.accounts.join(', ')}.` : 'No accounts are known yet.',
+    FILE_IS_DATA,
+    LIST_WHOLE,
+  ].filter(Boolean).join('\n')
+}
+
+/** The look over the named lines for what comes round. */
+export function repeatsInstructions(body: PromptInputs): string {
+  return [
+    'You look over one statement\'s charges, already read and named, for what comes round. They arrive grouped by name, one group a line: name | way | category | the line as printed | number day amount; number day amount; and so on.',
+    'repeats: everything that comes round, by three kinds of evidence, in this order. ' + statementRuleText('commitments')
+      + ' Use exactly the charge name as given and list the number of every line it groups, leaving out a line of that name at an amount that is plainly something else. Set cycle to monthly, yearly or custom with custom_days (91 for quarterly, 183 for half-yearly). With fewer than three lines, reason is one sentence naming the evidence and the cycle assumed; with three or more it is empty. A repeat that has stopped gets ends_on at its last date.',
+    `Categories, use exactly these words or null: ${body.categories.join(', ')}.`,
+    FILE_IS_DATA,
+    LIST_WHOLE,
   ].join('\n')
 }

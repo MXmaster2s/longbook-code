@@ -1,11 +1,12 @@
-// A statement into rows: "charges" reads one piece of a file, "review" looks a year over
-// for members and repeats. A file's first piece is first checked to be a statement. Each
-// file counts against a monthly share, larger with Cloud. Claude reads; OpenAI stands in.
+// A statement into rows. As a document: "charges" reads a piece, "review" finds members and
+// repeats, the first piece checked to be a statement. As lines the device read: "head",
+// "lines", "repeats". A monthly share counts each file. Claude reads; OpenAI stands in.
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { hasCloud } from '../_shared/has-cloud.ts'
 import { shareFor, withinShare } from '../_shared/statement-shares.ts'
 import { tidyCounterparts } from '../_shared/statement-counterpart.ts'
-import { CHARGES_SHAPE, GATE_INSTRUCTIONS, GATE_SHAPE, REVIEW_SHAPE, chargesInstructions, reviewInstructions } from '../_shared/statement-prompts.ts'
+import { CHARGES_SHAPE, GATE_INSTRUCTIONS, GATE_SHAPE, HEAD_SHAPE, LINES_SHAPE, REPEATS_SHAPE, REVIEW_SHAPE, chargesInstructions, headInstructions, linesInstructions, repeatsInstructions, reviewInstructions } from '../_shared/statement-prompts.ts'
+import { MAX_HEADER_CHARS, MAX_REPEATS_CHARS, answerMode, headText, linesText, parseRows, readLines } from '../_shared/statement-lines.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
@@ -16,6 +17,9 @@ const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY') ?? ''
 const ANTHROPIC_MODEL = Deno.env.get('ANTHROPIC_MODEL') ?? 'claude-sonnet-5-5'
 /** The gate's model: one question per file, so the small one. */
 const GATE_MODEL = Deno.env.get('STATEMENT_GATE_MODEL') ?? 'claude-haiku-5-5'
+/** The models for lines the device read: naming lines, and looking them over for repeats. */
+const LINES_MODEL = Deno.env.get('STATEMENT_LINES_MODEL') ?? 'claude-sonnet-5-5'
+const REPEATS_MODEL = Deno.env.get('STATEMENT_REPEATS_MODEL') ?? 'claude-sonnet-5-5'
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY') ?? ''
 const OPENAI_MODEL = Deno.env.get('OPENAI_MODEL') ?? 'gpt-5'
 /** How hard OpenAI's model thinks: reading is transcription, so little; the review a little more. */
@@ -61,7 +65,7 @@ interface Upload {
 }
 
 interface Request_ {
-  task: 'charges' | 'review'
+  task: 'charges' | 'review' | 'head' | 'lines' | 'repeats'
   /** One id per file, chosen by the app: every piece and the review count against it. */
   import_id: string
   file?: Upload
@@ -71,6 +75,15 @@ interface Request_ {
   hint?: string
   /** For "review": the year's charges, one a line: date | amount | name | narration | kind. */
   charges?: string
+  /** For "head" and "lines": what the device read, as numbered lines. */
+  lines?: unknown
+  /** For "head": the top of the file as text, and the file's name. */
+  header?: string
+  file_name?: string
+  /** For "lines": the holder the head found. */
+  holder?: string | null
+  /** For "repeats": the named lines, grouped by name, one group a line. */
+  groups?: string
   categories: string[]
   members: string[]
   accounts: string[]
@@ -96,6 +109,8 @@ interface Question {
   effort: string
   /** Anthropic's model for this task. */
   model: string
+  /** Anthropic's effort, with thinking off: for a task that only reads lines off a list. */
+  plain?: boolean
 }
 
 async function askAnthropic(q: Question): Promise<Asked> {
@@ -111,7 +126,7 @@ async function askAnthropic(q: Question): Promise<Asked> {
       max_tokens: Math.max(2_000, Math.min(MAX_OUTPUT_TOKENS, q.allowance)),
       system: q.instructions,
       messages: [{ role: 'user', content: parts }],
-      output_config: { format: { type: 'json_schema', schema: q.shape } },
+      ...answerMode(q.shape, q.model, q.plain === true),
     }),
   }).catch(() => null)
   if (!answer) {
@@ -285,11 +300,38 @@ Deno.serve(async (req: Request) => {
 
   // What this call carries, checked before anything is spent on it.
   let content: Content[]
+  let askedLines: ReturnType<typeof readLines> = null
   let instructions: string
   let shape: unknown
   let name: string
   let filename = 'statement'
-  if (body.task === 'review') {
+  if (body.task === 'head' || body.task === 'lines') {
+    const lines = readLines(body.lines)
+    if (!lines) return json({ error: 'No statement lines were sent.' }, 400)
+    filename = String(body.file_name ?? 'statement').slice(0, 120)
+    const header = typeof body.header === 'string' ? body.header.slice(0, MAX_HEADER_CHARS) : ''
+    body.holder = typeof body.holder === 'string' ? body.holder.slice(0, 80) : null
+    askedLines = lines
+    if (body.task === 'head') {
+      content = [{ kind: 'text', text: headText(filename, header, lines) }]
+      instructions = headInstructions()
+      shape = HEAD_SHAPE
+      name = 'statement_head'
+    } else {
+      content = [{ kind: 'text', text: linesText(lines) }]
+      instructions = linesInstructions(body)
+      shape = LINES_SHAPE
+      name = 'statement_lines'
+    }
+  } else if (body.task === 'repeats') {
+    const groups = typeof body.groups === 'string' ? body.groups : ''
+    if (!groups.trim()) return json({ error: 'No charges were sent.' }, 400)
+    if (groups.length > MAX_REPEATS_CHARS) return json({ error: 'That is more charges than one statement holds. Read one file at a time.' }, 413)
+    content = [{ kind: 'text', text: groups }]
+    instructions = repeatsInstructions(body)
+    shape = REPEATS_SHAPE
+    name = 'statement_repeats'
+  } else if (body.task === 'review') {
     const lines = typeof body.charges === 'string' ? body.charges : ''
     if (!lines.trim()) return json({ error: 'No charges were sent.' }, 400)
     if (lines.length > MAX_REVIEW_CHARS) return json({ error: 'That is more charges than one statement holds. Read one file at a time.' }, 413)
@@ -321,8 +363,21 @@ Deno.serve(async (req: Request) => {
   const cloud = await hasCloud(service, user.id)
   const row = await ledger(service, user.id, importId, cloud)
   if ('spent' in row) return json({ error: row.spent, code: 'share_spent', resets_on: row.resets_on }, 429)
+  // The head is the gate and more: one small question, and a no is recorded and not counted.
+  if (body.task === 'head') {
+    const looked = await ask({ instructions, content, shape, name, allowance: 2_000, effort: 'minimal', model: GATE_MODEL, plain: true })
+    if (!looked.ok) return looked.response
+    if (looked.result.statement !== true) {
+      if (row.fresh) await open(service, user.id, importId, 'refused')
+      return json({ error: `${filename} ${NOT_A_STATEMENT}`, code: 'not_statement', kind: String(looked.result.kind ?? 'other') }, 422)
+    }
+    if (row.fresh) await open(service, user.id, importId, 'read')
+    const { error: kept } = await service.rpc('statement_import_spend', { p_user: user.id, p_import: importId, p_tokens: looked.tokens })
+    if (kept) console.error('ledger update', kept.message)
+    return json({ ...looked.result, model: looked.model, tokens: looked.tokens })
+  }
   if (row.fresh) {
-    if (body.task === 'charges' && !body.account_hint) {
+    if ((body.task === 'charges' && !body.account_hint) || body.task === 'lines') {
       const looked = await gate(content.slice(0, 1))
       if (looked && !looked.statement) {
         await open(service, user.id, importId, 'refused')
@@ -334,15 +389,20 @@ Deno.serve(async (req: Request) => {
   const allowance = IMPORT_TOKEN_BUDGET - row.tokens
   if (allowance < 5_000) return json({ error: 'This statement has used up its reading budget. What was read stands; the rest of the file waits for another import.' }, 429)
 
+  const quick = body.task === 'lines' || body.task === 'repeats'
   const asked = await ask({
     instructions, content, shape, name, allowance,
-    effort: body.task === 'review' ? REVIEW_EFFORT : CHARGES_EFFORT, model: ANTHROPIC_MODEL,
+    effort: body.task === 'review' || body.task === 'repeats' ? REVIEW_EFFORT : CHARGES_EFFORT,
+    model: body.task === 'lines' ? LINES_MODEL : body.task === 'repeats' ? REPEATS_MODEL : ANTHROPIC_MODEL,
+    plain: quick,
   })
   // An increment in the database: pieces read side by side must both count.
   const { error: kept } = await service.rpc('statement_import_spend', { p_user: user.id, p_import: importId, p_tokens: asked.tokens })
   if (kept) console.error('ledger update', kept.message)
   if (!asked.ok) return asked.response
   // Both readers' answers pass the same tidy: no counterpart leaves with more than four digits.
-  const result = body.task === 'charges' ? tidyCounterparts(asked.result) : asked.result
+  const result = body.task === 'charges' ? tidyCounterparts(asked.result)
+    : body.task === 'lines' ? { rows: parseRows(asked.result.rows, askedLines ?? []) }
+    : asked.result
   return json({ ...result, model: asked.model, tokens: asked.tokens, budget_left: Math.max(0, allowance - asked.tokens) })
 })
