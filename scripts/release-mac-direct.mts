@@ -6,6 +6,7 @@ import { execFileSync, execSync, spawn, spawnSync } from 'node:child_process'
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, symlinkSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { basename, dirname, join } from 'node:path'
+import { isatty } from 'node:tty'
 import { fileURLToPath } from 'node:url'
 import { markDirect, untestedOnDevices } from './release.mts'
 import { carriesFirstUseReset } from './device-build-flag.mts'
@@ -149,7 +150,8 @@ const preflight = (): Check[] => {
   if (!CHECK) {
     checks.push({
       name: 'The Sparkle private key on stdin',
-      ok: !process.stdin.isTTY,
+      // isatty, not process.stdin: touching that stream can start reading the key.
+      ok: !isatty(0),
       fix: "Pipe it in: security find-generic-password -s 'https://sparkle-project.org' -a ed25519 -w | SPARKLE_PUBLIC_KEY=… npm run release:mac-direct",
     })
   }
@@ -209,7 +211,12 @@ const assertSigned = (app: string): void => {
     console.error('The exported app is not sandboxed, or still allows a debugger to attach.')
     process.exit(1)
   }
-  console.log('  it is signed with Developer ID, the hardened runtime and the sandbox.')
+  // The export adds this from iCloudContainerEnvironment; without it iCloud Drive fails quietly.
+  if (!/icloud-container-environment<\/key>\s*<string>Production<\/string>/.test(entitlements)) {
+    console.error('The exported app does not name the production iCloud environment; check scripts/direct-export-options.plist.')
+    process.exit(1)
+  }
+  console.log('  it is signed with Developer ID, the hardened runtime, the sandbox and production iCloud.')
 }
 
 /// Signing proves who built it, never that it runs: the exported app must still be running
