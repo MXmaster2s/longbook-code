@@ -11,7 +11,7 @@ options:
 settings:
   base:
     MARKETING_VERSION: "1.5.0"
-    CURRENT_PROJECT_VERSION: "65"
+    CURRENT_PROJECT_VERSION: "66"
     # The commit a build was made from, shown in Help & about. The build scripts pass it.
     LONGBOOK_COMMIT: ""
     # Empty everywhere but device:install, which passes DEVICE_BUILD to switch on the reset
@@ -26,6 +26,10 @@ packages:
   GoogleSignIn:
     url: https://github.com/google/GoogleSignIn-iOS
     exactVersion: 9.2.0
+  # MIT. The direct Mac build's updater; the App Store build never links it.
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: 2.6.0
 targets:
   longbook:
     type: application
@@ -56,7 +60,8 @@ targets:
       storeKitConfiguration: longbook.storekit
     info:
       path: Info.plist
-      properties:
+      # Anchored: longbook-direct reads the same keys and adds Sparkle's.
+      properties: &appInfo
         CFBundleDisplayName: longbook
         # Spoken, the name reaches Siri as two words; these are the spellings it may hear.
         INAlternativeAppNames:
@@ -144,3 +149,49 @@ targets:
         INFOPLIST_FILE: WidgetInfo.plist
         SWIFT_VERSION: "5.10"
         TARGETED_DEVICE_FAMILY: "1"
+  # The same Mac app for direct distribution: Developer ID signed, notarised, shipped as a
+  # DMG from longbook.app, bought through Polar and updated by Sparkle. DIRECT switches
+  # purchases, refunds and updates over; see Sources/Distribution.swift.
+  longbook-direct:
+    type: application
+    platform: macOS
+    sources:
+      - path: Sources
+      - path: Resources
+        buildPhase: resources
+    dependencies:
+      - package: LongbookCore
+        product: LongbookCore
+      - package: LongbookDesign
+        product: DesignSystem
+      - package: GoogleSignIn
+        product: GoogleSignIn
+      - package: Sparkle
+        product: Sparkle
+    scheme: {}
+    info:
+      path: InfoDirect.plist
+      properties:
+        <<: *appInfo
+        SUFeedURL: https://longbook.app/appcast.xml
+        # A placeholder: release-mac-direct.mts writes the real key from SPARKLE_PUBLIC_KEY
+        # into the generated plist before archiving. Builds without it never start Sparkle.
+        SUPublicEDKey: LONGBOOK_SPARKLE_PUBLIC_KEY
+        SUEnableAutomaticChecks: true
+        # Sandboxed: installs go through Sparkle's installer XPC service.
+        SUEnableInstallerLauncherService: true
+    settings:
+      base:
+        PRODUCT_NAME: longbook
+        PRODUCT_MODULE_NAME: longbook
+        PRODUCT_BUNDLE_IDENTIFIER: app.longbook.longbook
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIconMac
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        CODE_SIGN_ENTITLEMENTS: LongbookDirect.entitlements
+        ENABLE_HARDENED_RUNTIME: "YES"
+        LD_RUNPATH_SEARCH_PATHS: "/usr/lib/swift @executable_path/../Frameworks"
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: 27F9SH746V
+        GENERATE_INFOPLIST_FILE: "NO"
+        SWIFT_VERSION: "5.10"
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) DIRECT"

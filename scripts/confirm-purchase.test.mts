@@ -2,7 +2,7 @@
 // for the database mark and for the mail API. Run: npm run email:test.
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { confirmPurchase, type Purchase, type SentMark } from '../supabase/functions/apple-purchase/confirm-purchase.ts'
+import { confirmPurchase, type Purchase, type SentMark } from '../supabase/functions/_shared/confirm-purchase.ts'
 
 const KEY = 're_test_not_a_real_key'
 const purchase: Purchase = {

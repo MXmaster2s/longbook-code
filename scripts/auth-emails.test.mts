@@ -103,7 +103,7 @@ test('the colours are the site\'s, in the emails here and in the purchase email'
   assert.equal(LIGHT.onBrand.toUpperCase(), value(light, 'on-brand'))
   assert.equal(LIGHT.link.toUpperCase(), value(light, 'brand-text'))
   assert.equal(DARK.link.toUpperCase(), value(dark, 'brand-text'))
-  const purchase = read('supabase/functions/apple-purchase/purchase-email.ts').toUpperCase()
+  const purchase = read('supabase/functions/_shared/purchase-email.ts').toUpperCase()
   for (const hex of [...Object.values(LIGHT), ...Object.values(DARK)]) assert.ok(purchase.includes(hex.toUpperCase()), `the purchase email lacks ${hex}`)
 })
 

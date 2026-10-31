@@ -4,6 +4,8 @@
 
 Within 7 days of buying longbook, open the **Account** screen and tap **Request a Refund**. Apple handles the refund under its own terms. If the button doesn't show, ask Apple at reportaproblem.apple.com.
 
+If you bought on the website, write to Support or contact@longbook.app within 7 days. We refund you through Polar, to the payment method you paid with. Receipts are in Polar's customer portal at polar.sh/ccs/portal.
+
 A refund also ends the 12 months of longbook Cloud that came with the purchase, for you and for your family.
 
 Refunds of Cloud's monthly fee are handled by Apple too. Cancelling Cloud stops the next renewal. It doesn't refund the current month.

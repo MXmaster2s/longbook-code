@@ -6,8 +6,10 @@ export interface PurchaseEmailInput {
   email: string
   purchasedAt: Date
   majorVersion: number
-  /** Apple's environment. Sandbox is TestFlight: the email says so, and nothing was charged. */
+  /** Sandbox is TestFlight, or Polar's sandbox: the email says so, and nothing was charged. */
   environment?: string
+  /** Who took the payment and sends the receipt: the App Store, or Polar on longbook.app. */
+  seller?: 'apple' | 'polar'
 }
 
 export interface PurchaseEmail {
@@ -19,6 +21,7 @@ export interface PurchaseEmail {
 const SITE = 'https://longbook.app'
 const NEXT_STEP = `${SITE}/automations/`
 const APPLE_RECEIPTS = 'https://reportaproblem.apple.com'
+const POLAR_RECEIPTS = 'https://polar.sh/ccs/portal'
 
 // The site's own tokens (apps/longbook-site/tokens.css), light first and dark for the mail
 // apps that follow the device's appearance.
@@ -45,6 +48,7 @@ const esc = (s: string): string =>
 
 function words(input: PurchaseEmailInput) {
   const test = input.environment === 'Sandbox'
+  const polar = input.seller === 'polar'
   const version = input.majorVersion
   const date = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
     .format(input.purchasedAt)
@@ -66,9 +70,14 @@ function words(input: PurchaseEmailInput) {
       ['Includes', `iPhone and Mac, updates to version ${version}`],
       ['Account', input.email],
     ] as [string, string][],
-    testNote: 'This is a test purchase made in TestFlight. Nothing was charged.',
-    receipt: 'Apple emails a receipt for every App Store purchase. You can also find it at',
-    receiptSite: 'reportaproblem.apple.com',
+    testNote: polar
+      ? 'This is a test purchase made in the Polar sandbox. Nothing was charged.'
+      : 'This is a test purchase made in TestFlight. Nothing was charged.',
+    receipt: polar
+      ? 'Polar, which handles payments on longbook.app, emails a receipt for every purchase. You can also find it at'
+      : 'Apple emails a receipt for every App Store purchase. You can also find it at',
+    receiptUrl: polar ? POLAR_RECEIPTS : APPLE_RECEIPTS,
+    receiptSite: polar ? 'polar.sh/ccs/portal' : 'reportaproblem.apple.com',
     help: 'Questions about your purchase? Reply to this email and we will help.',
     why: 'You received this email because a longbook purchase was made with this account.',
   }
@@ -91,7 +100,7 @@ export function renderPurchaseEmail(input: PurchaseEmailInput): PurchaseEmail {
 
   const receipt = w.test
     ? ''
-    : `<p class="tm" style="margin:0 0 10px;font-family:${SANS};font-size:14px;line-height:1.6;color:${L.muted};">${esc(w.receipt)} <a class="lk" href="${APPLE_RECEIPTS}" style="color:${L.link};text-decoration:underline;">${w.receiptSite}</a>.</p>`
+    : `<p class="tm" style="margin:0 0 10px;font-family:${SANS};font-size:14px;line-height:1.6;color:${L.muted};">${esc(w.receipt)} <a class="lk" href="${w.receiptUrl}" style="color:${L.link};text-decoration:underline;">${w.receiptSite}</a>.</p>`
 
   const html = `<!doctype html>
 <html lang="en">
@@ -184,7 +193,7 @@ ${esc(w.why)}<br>&copy; ${w.year} longbook
     w.detailsTitle,
     ...w.details.map(([label, value]) => `${label}: ${value}`),
     '',
-    ...(w.test ? [w.testNote] : [`${w.receipt} ${APPLE_RECEIPTS}`]),
+    ...(w.test ? [w.testNote] : [`${w.receipt} ${w.receiptUrl}`]),
     '',
     w.help,
     '',

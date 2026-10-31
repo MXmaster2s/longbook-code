@@ -1,0 +1,78 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>longbook</title>
+        <item>
+            <title>1.5.0</title>
+            <pubDate>Sat, 31 Oct 2026 13:03:05 +0530</pubDate>
+            <sparkle:version>66</sparkle:version>
+            <sparkle:shortVersionString>1.5.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<h2>longbook 1.5.0</h2>
+<ul>
+  <li>A statement import proves it read everything: the review shows the lines read out of the lines in the file, and whether the balance matches. A line the first reading missed is read again.</li>
+  <li>Every line of a statement comes in, with its statement line on the charge.</li>
+  <li>A charge is a transfer only when its account and its counterpart account both belong to a person whose Relationship is Self. ATM withdrawals, wallet loads and card bill payments stay charges, and setting Self or an account owner updates them on its own.</li>
+  <li>A statement is read with its account holder, who becomes a person with Relationship Self and owns the statement's account. A name on a line that shares two words with the holder is the holder.</li>
+  <li>Account names no longer carry a person's name: HDFC Bank, owned by the person. Accounts at one bank stay apart per owner.</li>
+  <li>A charge named for a person is called Payment to or Payment from that person.</li>
+  <li>Each import shows an Import Completeness Score for every file, and Settings lists your past imports with their scores.</li>
+  <li>A change made on the Mac no longer shows as a proposal on the iPhone, for new people, accounts, tags, pictures and hints too.</li>
+  <li>A commitment longbook guessed says so in its name, with the reason in its notes.</li>
+  <li>Everyone a statement names becomes a person, as printed, and every bank account it names becomes an account, connected to its charges.</li>
+  <li>Proposals stay quick with hundreds of items, folded by kind and shown a hundred at a time.</li>
+  <li>After an import, the Dashboard opens on every month the imported statements spent money in.</li>
+  <li>New categories: food &amp; groceries, and shopping.</li>
+  <li>Getting started takes three steps: welcome and sign in, activate your longbook, then import a statement. Once a statement is kept, your longbook opens.</li>
+  <li>The setup questions moved to Settings as Optimize your data, where your answers help longbook read your statements.</li>
+  <li>On the Mac, Settings in the sidebar opens a menu, and Settings… opens the Settings window, with panes for General, Appearance, Account, AI, Statements, Data &amp; privacy, Tutorials and About.</li>
+  <li>On the Mac, longbook can open at login, check for updates on its own, and hide its Dock icon while the menu bar shows the next payment.</li>
+  <li>On the Mac, Move to iCloud and Back Up Now in Settings are buttons.</li>
+  <li>On the Mac, an AI connected to longbook on this computer now sees every choice its tools offer, such as listing cancelled commitments or reading one chapter of the guide.</li>
+  <li>An AI connected to longbook now reads longbook's guide for the task before it writes, and is told which part to read when it hasn't.</li>
+  <li>The Changes screen is now called Proposals, so it no longer reads like Charges at a glance.</li>
+  <li>Each screen shows a short tutorial the first time you open it. Replay any of them in Settings &gt; Tutorials.</li>
+  <li>Support inside the app: ask a question and longbook's AI answers from the help articles, or email a person.</li>
+  <li>Optimize your data keeps the people and accounts you pick as hints for your AI, instead of adding them to People and Accounts.</li>
+  <li>Star a person or an account to keep it at the top of its list. On the Mac, the sidebar shows only the starred ones.</li>
+  <li>People and Accounts each have a search and a filter by relationship or type.</li>
+  <li>Importing a statement adds its account and the people it names. You can turn this off in Settings.</li>
+  <li>Importing a statement also adds the accounts and people your transfers and card payments go to.</li>
+  <li>Settings &gt; Data &amp; privacy can open a longbook from another folder, and leaves your current folder as it is.</li>
+  <li>On the Mac, buttons, sidebar rows and cards light up under the pointer and darken while pressed, Tab shows a focus ring, and unavailable controls are dimmed.</li>
+  <li>Naming a new account shows an example from your region, and the UPI account type is offered in India only. Accounts already of that type keep it.</li>
+  <li>The purchase screen shows Family Sharing on its own card: everyone in your Apple family gets longbook on their own account and devices.</li>
+  <li>After an update, What's New shows what changed, once. Open it again any time from Settings, or read every version on longbook.app.</li>
+  <li>The statement review now shows Commitments, Past expenses, People and Accounts, in that order, with every commitment ticked to start. After Add, the sheet closes and Proposals shows what was recorded.</li>
+  <li>A statement review offers every person and every account the statement prints, your own other accounts included, so you untick rather than miss one. The statement's own account is always named, even when the header prints no number.</li>
+  <li>Use My Own AI copies prompts that set longbook up for you: in Claude, the longbook plugin or connector; in ChatGPT, a plugin named longbook with its website and icon.</li>
+  <li>The Support button sits in the corner of every screen on iPhone and Mac from the start, and steps aside while Support is open.</li>
+  <li>In Support, the camera button attaches a screenshot of your screen to your message, and longbook's AI reads it to help. It may show amounts, so check it first; you can still email it to the team instead.</li>
+  <li>Deleting a planned charge asks whether to remove only that charge, or that one and every one after it, which also ends the commitment's plan there.</li>
+  <li>The statement review is one list drawn with the app's own cards: commitments, past expenses, people and accounts, every item ticked, and only Discard or Add closes it.</li>
+  <li>A new longbook's Dashboard shows one place to start: import a statement, add a commitment by hand, or use your own AI. On the Mac, drop a statement on it to import it.</li>
+  <li>On the Mac, longbook no longer quits at launch while it reads a crash report from an earlier session.</li>
+  <li>Setting up longbook in iCloud waits for a longbook already there to arrive, so your folder no longer gets copies named with a 2.</li>
+  <li>On the Mac, the statement import opened from setup is as wide as the one opened later, so the review is no longer cut off at the sides.</li>
+  <li>On the Mac, signing out or deleting the account closes the Settings window, instead of leaving it open over the sign-in screen.</li>
+  <li>Charges, Earnings and Transfers are screens of their own under Commitments in the sidebar, and under Settings on iPhone. Earnings adds up the money in. Transfers are never counted.</li>
+  <li>Commitments looks ahead only. A day, a month or a Show Past Charges link opens what has already landed under Charges.</li>
+  <li>A charge's preview shows its Counterpart account, right under Account.</li>
+  <li>On the Mac, double-click, Edit and the right-click menu open the same Edit form that the preview's Edit opens.</li>
+  <li>Starring a person or an account no longer moves its row. The starred ones lead the next time you open the list.</li>
+  <li>People, Accounts and the sidebar open faster, and starring a person or an account no longer makes the whole book think again.</li>
+  <li>Counterpart account on a charge is a menu: pick an account, or None. A charge that names no account, such as a CRED bill, can become a Transfer.</li>
+  <li>Before a change turns charges into Transfers or back, longbook says how many and asks first. This covers a person's Relationship, an account's Owner and the Counterpart account.</li>
+  <li>Adding a reviewed statement is quick and saves as one change, so the Dashboard no longer asks you to keep what you just added.</li>
+  <li>Upcoming lists each commitment once, at its next charge, and Edit there edits the commitment.</li>
+  <li>On the Mac, the statement review opens wide enough to show every card whole, where before its edges were cut off.</li>
+  <li>A commitment or charge you add or edit yourself applies at once, even while an AI's change waits in Proposals, and is never asked about there.</li>
+  <li>Adding or editing a commitment or charge picks its date with the system date picker, right in the form.</li>
+  <li>longbook now says Apple Account, Apple's new name for the Apple ID.</li>
+  <li>Restore Purchase says that the sign-in Apple may ask for is your Apple Account, not your longbook sign-in, and reports whether a purchase was restored.</li>
+</ul>
+]]></description>
+            <enclosure url="https://github.com/MXmaster2s/longbook-code/releases/download/mac-1.5.0-66/longbook-1.5.0-66.dmg" length="19345403" type="application/octet-stream" sparkle:edSignature="IBcMxRXpEVIC5YG4jCKZrIT8XdipNPkuyn0eM0DBcorLUlqHNFnxLV5TxReMC8rYdVetsjRUgKQOpW7CcrHWCg=="/>
+        </item>
+    </channel>
+</rss>

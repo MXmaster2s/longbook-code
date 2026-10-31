@@ -25,7 +25,7 @@ longbook is a one-time purchase, not a subscription. At launch:
 - The next 250 pay $98.
 - Everyone after pays $149.
 
-Prices in other countries are whatever the App Store shows there.
+Prices in other countries are whatever the App Store, or the checkout on the website, shows there.
 
 The purchase includes:
 
@@ -35,7 +35,7 @@ The purchase includes:
 
 ## Trying it first
 
-There is no trial. Instead you get a 7-day refund: within 7 days of buying, tap **Request a Refund** on the Account screen and Apple refunds you. Before buying, you can look around a demo longbook filled with made-up data.
+There is no trial. Instead you get a 7-day refund: within 7 days of buying, tap **Request a Refund** on the Account screen and Apple refunds you. If you bought on the website, write to Support or contact@longbook.app and we refund you through Polar. Before buying, you can look around a demo longbook filled with made-up data.
 
 ## longbook Cloud
 

@@ -47,7 +47,7 @@ struct LongbookCommands: Commands {
 
     var body: some Commands {
         // Beside About, where a Mac app keeps it. It opens the App Store or TestFlight page,
-        // asking first; the store does the updating.
+        // asking first; on the direct build Sparkle checks and installs.
         CommandGroup(after: .appInfo) {
             Button("Check for Updates…") { Measure.used("check_for_updates", .menuItem); AppUpdates.askFromMenu() }
         }

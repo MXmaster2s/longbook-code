@@ -18,6 +18,34 @@ final class EntitlementTests: XCTestCase {
 
     private func day(_ days: Double) -> Date { now.addingTimeInterval(days * 86_400) }
 
+    func testALicenceBoughtOnTheWebIsAskedForOnceAMinutePerAccount() {
+        XCTAssertTrue(EntitlementStore.mayAskForWebLicence(last: nil, account: "a", now: now))
+        let asked = (account: "a", at: now)
+        XCTAssertFalse(EntitlementStore.mayAskForWebLicence(last: asked, account: "a", now: now.addingTimeInterval(59)))
+        XCTAssertTrue(EntitlementStore.mayAskForWebLicence(last: asked, account: "a", now: now.addingTimeInterval(60)))
+        XCTAssertTrue(EntitlementStore.mayAskForWebLicence(last: asked, account: "b", now: now), "another account asks at once")
+    }
+
+    func testTheWebLicenceRequestNamesNoEmailAndGivesUpInFiveSeconds() throws {
+        let request = EntitlementStore.webLicenceRequest(accessToken: "jwt")
+        XCTAssertEqual(request.httpMethod, "POST")
+        XCTAssertEqual(request.url?.path, "/functions/v1/polar-claim")
+        XCTAssertEqual(request.timeoutInterval, 5)
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer jwt")
+        XCTAssertNotNil(request.value(forHTTPHeaderField: "apikey"))
+        let body = try JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: String]
+        XCTAssertEqual(body, ["action": "email"])
+    }
+
+    func testOnlyAnActiveAnswerReadsTheLicenceAgain() {
+        let data = { (text: String) in Data(text.utf8) }
+        XCTAssertTrue(EntitlementStore.webLicenceGranted(status: 200, data: data(#"{"ok":true,"status":"active"}"#)))
+        XCTAssertFalse(EntitlementStore.webLicenceGranted(status: 200, data: data(#"{"ok":true,"status":"none"}"#)))
+        XCTAssertFalse(EntitlementStore.webLicenceGranted(status: 503, data: data(#"{"status":"active"}"#)))
+        XCTAssertFalse(EntitlementStore.webLicenceGranted(status: 200, data: data("not json")))
+        XCTAssertFalse(EntitlementStore.webLicenceGranted(status: nil, data: Data()))
+    }
+
     func testAPartDayCountsAsAWholeDayLeft() {
         XCTAssertEqual(state(endsIn: 3.2).trialDaysLeft(now), 4)
         XCTAssertEqual(state(endsIn: 0.1).trialDaysLeft(now), 1)

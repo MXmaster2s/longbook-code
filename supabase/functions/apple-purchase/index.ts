@@ -5,12 +5,10 @@
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2'
 import * as jose from 'npm:jose@5'
 import * as x509 from 'npm:@peculiar/x509@1'
-import { confirmPurchase, type SentMark } from './confirm-purchase.ts'
+import { confirmPurchase, entitlementSentMark } from '../_shared/confirm-purchase.ts'
 import { isCloudTransaction, isStale, subscriptionRow, type SubscriptionTransaction } from '../_shared/cloud-subscription.ts'
-import { seatsFor, tiersDue, TIERS } from '../_shared/licence-seats.ts'
 import { grantLicenceCloud, revokeLicenceCloud } from '../_shared/licence-cloud.ts'
-import { soldSeats } from '../_shared/seat-count.ts'
-import { setLicencePrice, type AscKey } from '../_shared/app-store-price.ts'
+import { ascKeyFromEnv, runPriceStep } from '../_shared/price-step-live.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
@@ -20,14 +18,15 @@ const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const ENVIRONMENTS = (Deno.env.get('APPLE_ENVIRONMENTS') ?? 'Sandbox,Production').split(',')
 // The confirmation email. Without a key the function records purchases and sends nothing.
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
-// App Store Connect's key, for raising the price when a launch tier fills. Without it the step
-// is still recorded and the owner is emailed to raise it by hand.
-const ASC_KEY: AscKey | null = Deno.env.get('ASC_PRIVATE_KEY') && Deno.env.get('ASC_KEY_ID') && Deno.env.get('ASC_ISSUER_ID')
-  ? { privateKey: Deno.env.get('ASC_PRIVATE_KEY')!, keyId: Deno.env.get('ASC_KEY_ID')!, issuerId: Deno.env.get('ASC_ISSUER_ID')! }
-  : null
-const OWNER_INBOX = 'contact@longbook.app'
+// App Store Connect's key (ASC_PRIVATE_KEY, ASC_KEY_ID, ASC_ISSUER_ID), for raising the price
+// when a launch tier fills. Without it the step is still recorded and the owner is emailed to
+// raise it by hand.
+const ASC_KEY = ascKeyFromEnv((name) => Deno.env.get(name))
 
 const BUNDLE_ID = 'app.longbook.longbook'
+// Every App Store licence names Apple and carries no Polar ids, so a Polar refund, which
+// matches on polar_order_id, cannot touch it.
+const APPLE_SOURCE = { source: 'apple', polar_order_id: null, polar_customer_id: null, polar_license_key_id: null }
 const PRODUCT_ID = 'app.longbook.licence'
 const CURRENT_MAJOR_VERSION = 1
 
@@ -76,43 +75,6 @@ type Payload = SubscriptionTransaction & {
   inAppOwnershipType?: string
 }
 
-/** Each price step a sale has reached, applied once: claimed first, so two sales landing
- *  together raise the price once, then set on the App Store, then the owner is told. */
-async function stepPrice(service: SupabaseClient): Promise<void> {
-  const sold = await soldSeats(service)
-  for (const tier of tiersDue(sold)) {
-    const price = TIERS[tier]!.price
-    const { data: claimed } = await service.from('licence_price_steps')
-      .insert({ tier, price, sold }).select('tier').maybeSingle()
-    if (!claimed) continue
-    let error: string | null = null
-    try {
-      if (!ASC_KEY) throw new Error('no App Store Connect key on the function')
-      await setLicencePrice(ASC_KEY, PRODUCT_ID, price)
-    } catch (e) {
-      error = (e as Error).message.slice(0, 300)
-    }
-    await service.from('licence_price_steps')
-      .update(error ? { error } : { applied_at: new Date().toISOString() }).eq('tier', tier)
-    const left = seatsFor(sold).left
-    const said = error
-      ? `The App Store price could not be changed automatically (${error}). Set the licence to $${price} in App Store Connect, under In-App Purchases.`
-      : `The App Store price of the licence is now $${price}, set automatically. Apple applies it within the hour.`
-    await notifyOwner(`longbook: ${sold} licences sold, the price is now $${price}`,
-      `${sold} App Store licences have been bought, so the launch price stepped up.\n\n${said}${left === null ? '' : `\n\n${left} seats are left at $${price}.`}`)
-  }
-}
-
-async function notifyOwner(subject: string, text: string): Promise<void> {
-  if (!RESEND_API_KEY) return console.error('price step', subject, '(no mail key)')
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: 'longbook <contact@longbook.app>', to: [OWNER_INBOX], subject, text }),
-  }).catch(() => null)
-  if (!res?.ok) console.error('price step mail', res?.status ?? 'unreachable')
-}
-
 /** Apple's chain, leaf to root, verified link by link and ended at the pinned root. */
 async function verifyChain(x5c: string[]): Promise<CryptoKey> {
   if (x5c.length < 3) throw new Error('chain too short')
@@ -147,27 +109,6 @@ async function decode(jws: string): Promise<Payload> {
   const key = await verifyChain(header.x5c as string[])
   const { payload } = await jose.compactVerify(jws, key)
   return JSON.parse(new TextDecoder().decode(payload)) as Payload
-}
-
-/** The entitlement row's mark that a confirmation went out; see confirm-purchase.ts. */
-function sentMark(service: SupabaseClient): SentMark {
-  return {
-    async claim(userId) {
-      const { data, error } = await service
-        .from('entitlements')
-        .update({ purchase_email_sent_at: new Date().toISOString() })
-        .eq('user_id', userId)
-        .eq('status', 'active')
-        .is('purchase_email_sent_at', null)
-        .select('user_id')
-      if (error) throw new Error(`could not claim the send: ${error.message}`)
-      return !!data?.length
-    },
-    async release(userId) {
-      const { error } = await service.from('entitlements').update({ purchase_email_sent_at: null }).eq('user_id', userId)
-      if (error) throw new Error(error.message)
-    },
-  }
 }
 
 /**
@@ -213,6 +154,7 @@ async function recordFamilyCopy(service: SupabaseClient, tx: Payload, userId: st
       apple_family_transaction_id: tx.originalTransactionId,
       apple_ownership: 'FAMILY_SHARED',
       apple_environment: tx.environment,
+      ...APPLE_SOURCE,
       purchased_at: purchasedAt.toISOString(),
     },
     { onConflict: 'user_id' },
@@ -282,6 +224,7 @@ Deno.serve(async (req) => {
       apple_environment: tx.environment,
       apple_ownership: 'PURCHASED',
       apple_family_transaction_id: null,
+      ...APPLE_SOURCE,
       purchased_at: purchasedAt.toISOString(),
     },
     { onConflict: 'user_id' },
@@ -293,13 +236,14 @@ Deno.serve(async (req) => {
   const runtime = (globalThis as { EdgeRuntime?: { waitUntil?(work: Promise<unknown>): void } }).EdgeRuntime
   // A new App Store sale may fill a launch tier. It runs after the reply where the runtime allows.
   if (!holder && status === 'active' && tx.environment === 'Production') {
-    const stepping = stepPrice(service).catch((e) => console.error('price step', (e as Error).message))
+    const stepping = runPriceStep(service, { asc: ASC_KEY, resend: RESEND_API_KEY })
+      .catch((e) => console.error('price step', (e as Error).message))
     if (runtime?.waitUntil) runtime.waitUntil(stepping)
     else await stepping
   }
   if (status === 'active') {
     const confirming = confirmPurchase(
-      { apiKey: RESEND_API_KEY, mark: sentMark(service), send: fetch, log: console.error },
+      { apiKey: RESEND_API_KEY, mark: entitlementSentMark(service), send: fetch, log: console.error },
       {
         userId: user.id,
         transactionId: tx.originalTransactionId,

@@ -233,6 +233,25 @@ public final class AuthViewModel: ObservableObject {
         }
     }
 
+    private let browser = BrowserSignInSession()
+
+    /// Sign in with Apple on the web, for a build Apple gives no native capability: Apple's page
+    /// in a web session, back through longbook://auth/callback with a PKCE code. Nil on success
+    /// or when the reader cancels, else a sentence to show.
+    public func signInWithAppleInBrowser() async -> String? {
+        lastFailure = nil
+        do {
+            let page = try supabase.auth.getOAuthSignInURL(provider: .apple, redirectTo: AUTH_CALLBACK_URL)
+            guard let callback = try await browser.open(page, callbackScheme: AUTH_CALLBACK_URL.scheme ?? "longbook"),
+                  !BrowserSignInSession.cancelled(callback) else { return nil }
+            try await supabase.auth.session(from: callback)
+            return nil
+        } catch {
+            lastFailure = AuthFailure(error)
+            return "Apple couldn't finish signing you in. Try again, or continue with email."
+        }
+    }
+
     /// The confirmation Apple asks for before an Apple account is deleted: the sheet once
     /// more, answering the code the server ends the link with. Nil when the reader closes it.
     public func appleDeletionCode() async throws -> String? {

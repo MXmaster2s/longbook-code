@@ -3,7 +3,7 @@ import LongbookCore
 import SwiftUI
 
 /// What What’s New opens (Check for Updates on the Mac): the version this copy is, what changed in it, the earlier
-/// versions, and the one way to a newer build. The App Store or TestFlight does the updating.
+/// versions, and the one way to a newer build. The App Store, TestFlight or Sparkle does the updating.
 struct UpdatesView: View {
     @State private var place = AppUpdates.Place.testFlight
     @Environment(\.openURL) private var openURL
@@ -103,6 +103,9 @@ struct UpdatesView: View {
             LBSectionHeader("Get the latest")
             Button {
                 Measure.used("open_url")
+                #if os(macOS)
+                if place == .direct { AppUpdates.askFromMenu(); return }
+                #endif
                 openURL(AppUpdates.url(for: place))
             } label: {
                 Text(AppUpdates.button(for: place))

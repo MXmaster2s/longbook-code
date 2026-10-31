@@ -68,7 +68,7 @@ Your phone plan, hostel fees and the subscriptions you split, with who each one 
 
    Download longbook on iPhone or Mac and pick the iCloud folder for your file. Setup asks what you pay for, one card at a time.
 
-   [Download for iPhone](https://testflight.apple.com/join/g66Nd3Na) [Download for Mac](https://testflight.apple.com/join/g66Nd3Na)
+   [Download for iPhone](https://testflight.apple.com/join/g66Nd3Na) [Download for Mac](https://longbook.app/download/)
 2. ### Connect
 
    Add longbook as a connector in your Claude or ChatGPT, at this address:
@@ -104,7 +104,7 @@ $38
 
 For the first 100 buyers, then $98 and $149. One purchase covers the iPhone app, the Mac app and every longbook app to come. Changed your mind within 7 days? Get a refund.
 
-[Download for iPhone](https://testflight.apple.com/join/g66Nd3Na) [Download for Mac](https://testflight.apple.com/join/g66Nd3Na)
+[Download for iPhone](https://longbook.app/download/) [Download for Mac](https://testflight.apple.com/join/g66Nd3Na)
 
 ## Met us at Ready for the Run
 

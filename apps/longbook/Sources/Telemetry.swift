@@ -125,13 +125,15 @@ final class Telemetry {
         send("app.trial_started")
     }
 
-    /// Once per process, however many times the window is rebuilt. On iPhone and iPad it says
-    /// how many longbook widgets are placed; WidgetKit answers, the widget itself sends nothing.
+    /// Once per process, however many times the window is rebuilt, with the channel the copy came
+    /// through. On iPhone and iPad it says how many longbook widgets are placed; WidgetKit answers.
     func launched(signedIn: Bool) {
         guard !launchCounted else { return }
         launchCounted = true
         Task {
-            var props: [String: Any] = ["is_signed_in": signedIn, "device_class": Self.deviceClass]
+            var props: [String: Any] = [
+                "is_signed_in": signedIn, "device_class": Self.deviceClass, "channel": Distribution.current.channel,
+            ]
             #if os(iOS)
             props["widgets_installed"] = await withCheckedContinuation { done in
                 WidgetCenter.shared.getCurrentConfigurations { result in

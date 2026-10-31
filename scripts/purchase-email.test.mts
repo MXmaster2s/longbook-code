@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
-import { renderPurchaseEmail } from '../supabase/functions/apple-purchase/purchase-email.ts'
+import { renderPurchaseEmail } from '../supabase/functions/_shared/purchase-email.ts'
 
 const buyer = { email: 'alex.morgan@example.com', purchasedAt: new Date('2026-09-29T06:49:04Z'), majorVersion: 1 }
 
@@ -62,9 +62,30 @@ test('a TestFlight purchase says so, and a real one points at Apple\'s receipt',
   assert.ok(!sandbox.html.includes('reportaproblem.apple.com'), 'no receipt exists for a test purchase')
 })
 
+test('a purchase on longbook.app points at Polar\'s receipts, and its sandbox says so', () => {
+  const web = renderPurchaseEmail({ ...buyer, environment: 'Production', seller: 'polar' })
+  assert.equal(web.subject, 'Your longbook license is now active')
+  assert.ok(seen(web.html).includes('Polar, which handles payments on longbook.app, emails a receipt for every purchase'))
+  assert.ok(web.html.includes('href="https://polar.sh/ccs/portal"'))
+  assert.ok(web.text.includes('You can also find it at https://polar.sh/ccs/portal\n'))
+  assert.ok(!web.html.includes('reportaproblem.apple.com'))
+
+  const sandbox = renderPurchaseEmail({ ...buyer, environment: 'Sandbox', seller: 'polar' })
+  assert.equal(sandbox.subject, '[Test purchase] Your longbook license is now active')
+  assert.ok(sandbox.text.includes('This is a test purchase made in the Polar sandbox. Nothing was charged.'))
+  assert.ok(!sandbox.html.includes('polar.sh/ccs/portal'), 'no receipt exists for a test purchase')
+})
+
+test('the email prints no price, so a free order reads the same as a charged one', () => {
+  const { html, text, subject } = renderPurchaseEmail({ ...buyer, environment: 'Production', seller: 'polar' })
+  for (const part of [subject, seen(html), text]) {
+    assert.ok(!/[$€£₹]|\b\d+\.\d{2}\b|\b(USD|EUR|INR)\b/.test(part), `a price in: ${part.slice(0, 80)}`)
+  }
+})
+
 test('the name is lowercase everywhere, and nothing is capitalised by style', () => {
-  for (const environment of ['Production', 'Sandbox']) {
-    const { subject, html, text } = renderPurchaseEmail({ ...buyer, environment })
+  for (const [environment, seller] of [['Production', 'apple'], ['Sandbox', 'apple'], ['Production', 'polar']] as const) {
+    const { subject, html, text } = renderPurchaseEmail({ ...buyer, environment, seller })
     for (const part of [subject, seen(html), text]) assert.ok(!/longbook/i.test(part.replace(/longbook/g, '')), 'a capitalised name')
     assert.ok(!/text-transform/i.test(html))
     const attributes = [...html.matchAll(/\b(?:alt|title|aria-label)="([^"]*)"/g)].map((m) => m[1]!)
@@ -110,7 +131,7 @@ test('the button carries its padding where Outlook reads it', () => {
 })
 
 test('the module needs no runtime of its own, so the function, tests and preview all load it', () => {
-  const source = readFileSync(new URL('../supabase/functions/apple-purchase/purchase-email.ts', import.meta.url), 'utf8')
+  const source = readFileSync(new URL('../supabase/functions/_shared/purchase-email.ts', import.meta.url), 'utf8')
   const code = source.replace(/\/\/.*$/gm, '')
   assert.ok(!/\bDeno\b|from 'node:|require\(/.test(code))
 })

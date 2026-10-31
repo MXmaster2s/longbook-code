@@ -1,17 +1,22 @@
 import DesignSystem
 import LongbookCore
 import SwiftUI
+#if os(macOS)
+import AppKit
+#endif
 
 /// What an account without a licence sees instead of the app: longbook is bought before it is
 /// used. "What’s included?" opens every promise the licence carries. A refunded or revoked
-/// licence lands here too. The demo stays a tap away for a look before paying.
+/// licence lands here too. The demo stays a tap away. The direct build buys on longbook.app.
 struct PurchaseView: View {
     @ObservedObject var auth: AuthViewModel
     @ObservedObject var entitlement: EntitlementStore
     /// Shared with sign-in, so the mark keeps its place between the two steps.
     var namespace: Namespace.ID? = nil
     @ObservedObject private var store = StoreClient.shared
+    @ObservedObject private var direct = DirectStore.shared
     @State private var demo = false
+    @State private var enteringKey = false
     @State private var showingIncluded = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -42,22 +47,31 @@ struct PurchaseView: View {
             }
             .multilineTextAlignment(.center)
             .fixedSize(horizontal: false, vertical: true)
-            familySharingCard
+            if Distribution.current == .appStore { familySharingCard }
             includedDisclosure
         } actions: {
             BuyButton(auth: auth, entitlement: entitlement, fullWidth: true)
-            HStack(spacing: LBSpacing.s2) {
-                OnboardingSecondaryButton(title: store.busy ? "Checking…" : "Restore Purchase") {
-                    Task { await store.restore(auth: auth, entitlement: entitlement) }
+            switch Distribution.current {
+            case .appStore:
+                HStack(spacing: LBSpacing.s2) {
+                    OnboardingSecondaryButton(title: store.busy ? "Checking…" : "Restore Purchase") {
+                        Task { await store.restore(auth: auth, entitlement: entitlement) }
+                    }
+                    .disabled(store.busy)
+                    OnboardingSecondaryButton(title: "See Demo") { demo = true }
                 }
-                .disabled(store.busy)
-                OnboardingSecondaryButton(title: "See Demo") { demo = true }
+                Text(StoreClient.restoreWords)
+                    .lbText(.footnote)
+                    .foregroundStyle(LBColor.textTertiary.color)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            case .direct:
+                if direct.waitingOnBrowser { browserNote }
+                HStack(spacing: LBSpacing.s2) {
+                    OnboardingSecondaryButton(title: "I have a licence key") { enteringKey = true }
+                    OnboardingSecondaryButton(title: "See Demo") { demo = true }
+                }
             }
-            Text(StoreClient.restoreWords)
-                .lbText(.footnote)
-                .foregroundStyle(LBColor.textTertiary.color)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
             HStack(spacing: LBSpacing.s1) {
                 Link("Terms of Use", destination: Self.termsURL).lbLinkPointer()
                 Text("·")
@@ -72,8 +86,34 @@ struct PurchaseView: View {
                 .padding(.trailing, LBSpacing.s2)
                 .padding(.top, LBSpacing.s2)
         }
-        .task { await store.load() }
+        .task { if Distribution.current == .appStore { await store.load() } }
+        #if os(macOS)
+        // Back from the browser's checkout: the webhook has written the licence by now, or soon.
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            guard Distribution.current == .direct else { return }
+            Task { await direct.checkAgain(entitlement: entitlement) }
+        }
+        #endif
+        .measured("licence_key", .sheet, when: enteringKey)
+        .sheet(isPresented: $enteringKey) {
+            LicenceKeySheet(auth: auth, entitlement: entitlement) { enteringKey = false }
+        }
         .modifier(RootView.DemoCover(showing: $demo, auth: auth))
+    }
+
+    /// Said once checkout is open in the browser, with a quiet way to ask again by hand.
+    private var browserNote: some View {
+        VStack(spacing: LBSpacing.s1) {
+            Text("Finish your purchase in the browser. longbook checks again when you come back.")
+                .lbText(.footnote)
+                .foregroundStyle(LBColor.textSecondary.color)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+            OnboardingTextButton(title: direct.busy ? "Checking…" : "Check again") {
+                Task { await direct.checkAgain(entitlement: entitlement) }
+            }
+            .disabled(direct.busy)
+        }
     }
 
     /// Family Sharing stated on its own card under the subtitle, so it is read before the
@@ -144,6 +184,68 @@ struct PurchaseView: View {
                 .lbText(.footnote)
                 .foregroundStyle(LBColor.textPrimary.color)
                 .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
+/// One field and Activate: a key from the purchase email, bound to the signed-in account by
+/// the server. What it refuses is said under the field.
+struct LicenceKeySheet: View {
+    @ObservedObject var auth: AuthViewModel
+    @ObservedObject var entitlement: EntitlementStore
+    let close: () -> Void
+    @ObservedObject private var direct = DirectStore.shared
+    @State private var key = ""
+    @State private var why: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: LBSpacing.s3) {
+            Text("Activate with a licence key")
+                .lbText(.screenTitle)
+                .foregroundStyle(LBColor.textPrimary.color)
+            Text("The key is in your purchase email or in Polar’s customer portal.")
+                .lbText(.footnote)
+                .foregroundStyle(LBColor.textSecondary.color)
+                .fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: LBSpacing.s1) {
+                Text("Licence key")
+                    .lbText(.label)
+                    .foregroundStyle(LBColor.textSecondary.color)
+                FormField {
+                    TextField("", text: $key, prompt: Text("Pasted from your purchase email").foregroundStyle(LBColor.textTertiary.color))
+                        .textFieldStyle(.plain)
+                        .lbText(.body)
+                        .foregroundStyle(LBColor.textPrimary.color)
+                        .autocorrectionDisabled()
+                        .onSubmit(activate)
+                }
+                if let why {
+                    Text(why)
+                        .lbText(.footnote)
+                        .foregroundStyle(LBColor.urgent.color)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            HStack(spacing: LBSpacing.s2) {
+                OnboardingCancelButton(action: close)
+                OnboardingPrimaryButton(
+                    title: direct.busy ? "Activating…" : "Activate",
+                    enabled: !key.trimmingCharacters(in: .whitespaces).isEmpty && !direct.busy,
+                    hint: "Enter the licence key first",
+                    action: activate
+                )
+            }
+        }
+        .padding(LBSpacing.s6)
+        .frame(minWidth: 420)
+        .background(LBColor.canvas.color)
+    }
+
+    private func activate() {
+        guard !direct.busy else { return }
+        Task {
+            why = await direct.claim(key: key, auth: auth, entitlement: entitlement)
+            if why == nil { close() }
         }
     }
 }

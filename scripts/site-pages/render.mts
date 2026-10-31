@@ -1,6 +1,6 @@
 // The features section as HTML and as Markdown, from the parsed source. The two are built
 // from the same words, so the page a person reads and the file an AI reads cannot disagree.
-import { ORIGIN, DOWNLOAD, GROUPS, PROMPTS_SECTION, type About, type Automations, type Block, type Feature, type GroupId, type Screen } from './content.mts'
+import { ORIGIN, DOWNLOAD, DOWNLOAD_MAC, GROUPS, PROMPTS_SECTION, type About, type Automations, type Block, type Feature, type GroupId, type Screen } from './content.mts'
 import { findPrompt, promptPhrase, type LongbookPrompt, type PromptGroup } from '../../packages/core/src/prompts'
 
 export interface Picture {
@@ -110,7 +110,7 @@ const APPLE = '<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColo
 
 export function downloads(where: string): string {
   return `<div class="acts" data-cta="${where}">` +
-    `<a class="btn" href="${DOWNLOAD}" rel="noopener">${APPLE}Download for Mac</a>` +
+    `<a class="btn" href="/download/">${APPLE}Download for Mac</a>` +
     `<a class="btn ghost" href="${DOWNLOAD}" rel="noopener">${APPLE}Download for iPhone</a></div>`
 }
 
@@ -336,7 +336,7 @@ function mdBlock(p: string): string {
 
 export function aboutMd(ctx: Ctx): string[] {
   return ['## About longbook', '', ...ctx.about.body.flatMap((p) => [mdBlock(p), '']),
-    `- Download for Mac: ${DOWNLOAD}`, `- Download for iPhone: ${DOWNLOAD}`, '']
+    `- Download for Mac: ${DOWNLOAD_MAC}`, `- Download for iPhone: ${DOWNLOAD}`, '']
 }
 
 export const picturesOf = (f: Feature, ctx: Ctx): Picture[] =>

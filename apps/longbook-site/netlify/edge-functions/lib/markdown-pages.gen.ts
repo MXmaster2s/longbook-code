@@ -74,6 +74,7 @@ export const MARKDOWN_FOR: Record<string, string> = {
   "/help/mac-keyboard-shortcuts/": "/help/mac-keyboard-shortcuts.md",
   "/help/troubleshooting-and-common-questions/": "/help/troubleshooting-and-common-questions.md",
   "/help/glossary/": "/help/glossary.md",
+  "/help/buying-longbook-for-mac-from-the-website/": "/help/buying-longbook-for-mac-from-the-website.md",
   "/reviews/": "/reviews.md",
   "/blog/open-any-folder-in-longbook/": "/blog/open-any-folder-in-longbook.md",
   "/blog/how-to-show-reviews-about-your-product-to-the-world/": "/blog/how-to-show-reviews-about-your-product-to-the-world.md",

@@ -6,6 +6,8 @@ import { basename, join } from 'node:path'
 
 export const ORIGIN = 'https://longbook.app'
 export const DOWNLOAD = 'https://testflight.apple.com/join/g66Nd3Na'
+// The Mac app is a direct download from longbook.app; the iPhone app is TestFlight's.
+export const DOWNLOAD_MAC = `${ORIGIN}/download/`
 
 export const GROUPS = [
   { id: 'track', name: 'Track' },

@@ -144,9 +144,9 @@ try {
 }
 
 const ledger = readLedger()
-// A reinstall of the same app keeps its TestFlight mark.
-const kept = ledger[String(BUILD)]?.testflight
-ledger[String(BUILD)] = { version: APP_VERSION, commit, installed: today, ...(kept ? { testflight: kept } : {}) }
+// A reinstall of the same app keeps its TestFlight and longbook.app marks.
+const { testflight, direct } = ledger[String(BUILD)] ?? {}
+ledger[String(BUILD)] = { version: APP_VERSION, commit, installed: today, ...(testflight ? { testflight } : {}), ...(direct ? { direct } : {}) }
 writeLedger(ledger)
 if (!reuse) {
   writeFileSync(join(ROOT, PROJECT_YML), withBuild(readFileSync(join(ROOT, PROJECT_YML), 'utf8'), BUILD))

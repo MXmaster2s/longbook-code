@@ -1,6 +1,9 @@
 import DesignSystem
 import LongbookCore
 import SwiftUI
+#if os(macOS)
+import AppKit
+#endif
 
 /// The owner's picture in a circle: the photo a Google sign-in carries, or the email's
 /// initial on a tinted circle when there is none or it does not load. Decorative, since
@@ -50,15 +53,21 @@ struct AccountAvatar: View {
 }
 
 /// The one account screen: who is signed in, the plan and its purchase, longbook Cloud,
-/// then the ways out, with deleting last. Account details and Billing both open here.
+/// then the ways out, with deleting last. Account details and Billing both open here. The
+/// direct Mac build manages and refunds its purchase through longbook.app and Support.
 struct AccountScreenView: View {
     @ObservedObject var auth: AuthViewModel
     @ObservedObject var entitlement: EntitlementStore
     /// The plan, purchase and Cloud alone, for the Mac's Settings window, whose pane holds the rest.
     var planOnly = false
     @ObservedObject private var store = StoreClient.shared
+    @ObservedObject private var direct = DirectStore.shared
     @State private var deleting = false
     @State private var paywall = false
+    @State private var enteringKey = false
+    #if os(macOS)
+    @Environment(\.openWindow) private var openWindow
+    #endif
     @State private var signingOut = false
     @State private var refund: (id: UInt64, closes: Date)?
     @State private var refunding = false
@@ -90,9 +99,16 @@ struct AccountScreenView: View {
             cloud
             if !planOnly { actions }
         }
-        .task { await store.load() }
-        .task(id: entitlement.state.hasLicence) { refund = entitlement.state.hasLicence ? await store.refundable() : nil }
+        .task { if Distribution.current == .appStore { await store.load() } }
+        .task(id: entitlement.state.hasLicence) {
+            guard Distribution.current == .appStore else { return }
+            refund = entitlement.state.hasLicence ? await store.refundable() : nil
+        }
         .cloudPaywall(isPresented: $paywall, auth: auth)
+        .measured("licence_key", .sheet, when: enteringKey)
+        .sheet(isPresented: $enteringKey) {
+            LicenceKeySheet(auth: auth, entitlement: entitlement) { enteringKey = false }
+        }
     }
 
     // MARK: identity
@@ -141,6 +157,7 @@ struct AccountScreenView: View {
                 }
             }
         }
+        if Distribution.current == .direct, entitlement.state.hasLicence { directPurchase }
         if let refund {
             // The 7-day refund, the terms' promise: Apple's own refund sheet, two taps away.
             Button { Measure.used("request_a_refund"); refunding = true } label: {
@@ -161,9 +178,74 @@ struct AccountScreenView: View {
         }
     }
 
+    /// The direct build's purchase: Polar's portal holds the order and receipts; a refund is
+    /// asked of Support, since no App Store sheet exists for it.
+    @ViewBuilder
+    private var directPurchase: some View {
+        Button {
+            Measure.used("manage_purchase")
+            Task { await direct.managePurchase(auth: auth) }
+        } label: {
+            Text(direct.busy ? "Opening…" : "Manage Purchase")
+                .lbText(.label)
+                .foregroundStyle(LBColor.brandText.color)
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .contentShape(Rectangle())
+        }
+        .lbButtonStyle()
+        .disabled(direct.busy)
+        if let failure = direct.failure {
+            Text(failure)
+                .lbText(.footnote)
+                .foregroundStyle(LBColor.urgent.color)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        Button { Measure.used("request_a_refund"); askSupport() } label: {
+            Text("Request a Refund")
+                .lbText(.label)
+                .foregroundStyle(LBColor.brandText.color)
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .contentShape(Rectangle())
+        }
+        .lbButtonStyle()
+        Text("Within \(StoreClient.refundDays) days of buying. Support arranges the refund, and the licence ends when it does.")
+            .lbText(.footnote)
+            .foregroundStyle(LBColor.textTertiary.color)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    /// Support opens over the main window, which this screen may sit beside in Settings.
+    private func askSupport() {
+        #if os(macOS)
+        openWindow(id: LongbookWindow.main)
+        NSApp.activate(ignoringOtherApps: true)
+        #endif
+        SupportCenter.shared.open()
+    }
+
     @ViewBuilder
     private var purchase: some View {
         BuyButton(auth: auth, entitlement: entitlement, fullWidth: true)
+        if Distribution.current == .direct {
+            Button { Measure.used("licence_key"); enteringKey = true } label: {
+                Text("I have a licence key")
+                    .lbText(.label)
+                    .foregroundStyle(LBColor.brandText.color)
+                    .frame(maxWidth: .infinity, minHeight: 44)
+                    .contentShape(Rectangle())
+            }
+            .lbButtonStyle()
+            Text("One purchase, not a subscription, for every platform. The receipt comes by email.")
+                .lbText(.footnote)
+                .foregroundStyle(LBColor.textTertiary.color)
+                .fixedSize(horizontal: false, vertical: true)
+        } else {
+            appStorePurchase
+        }
+    }
+
+    @ViewBuilder
+    private var appStorePurchase: some View {
         // The App Store's own way back: a purchase made on another device or before
         // a reinstall is told to the server again.
         Button {
@@ -206,7 +288,11 @@ struct AccountScreenView: View {
             }
         }
         VStack(alignment: .leading, spacing: LBSpacing.s2) {
-            bullet("\(store.cloudDisplayPrice ?? "USD 4") \(store.cloudPeriodWords), through the App Store. Buying the licence includes the first 12 months.")
+            if Distribution.current == .direct {
+                bullet(CloudPaywallView.directWords)
+            } else {
+                bullet("\(store.cloudDisplayPrice ?? "USD 4") \(store.cloudPeriodWords), through the App Store. Buying the licence includes the first 12 months.")
+            }
             bullet("Covers the hosted copy for your AI, more statement reading and shared reports. The app and your folder need no Cloud.")
         }
         if granted {
@@ -216,7 +302,7 @@ struct AccountScreenView: View {
                 .lbText(.footnote)
                 .foregroundStyle(LBColor.textTertiary.color)
                 .fixedSize(horizontal: false, vertical: true)
-        } else {
+        } else if Distribution.current == .appStore {
             cloudButton
         }
     }

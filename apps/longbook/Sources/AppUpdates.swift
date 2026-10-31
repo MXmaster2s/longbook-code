@@ -6,15 +6,15 @@ import AppKit
 #endif
 
 /// Where this copy's next version comes from, and the words that say so. The App Store looks
-/// after an App Store install; TestFlight after a beta or a build from Xcode. The app only opens
-/// that page — it never fetches or installs anything itself.
+/// after an App Store install; TestFlight after a beta or a build from Xcode; Sparkle after the
+/// direct Mac build (DirectUpdates). Otherwise the app only opens that page.
 enum AppUpdates {
     /// The App Store Connect record's Apple ID, the number in the store's URL.
     static let appStoreID = "6795070908"
     static let testFlightLink = URL(string: "https://testflight.apple.com/join/g66Nd3Na")!
 
     enum Place {
-        case appStore, testFlight
+        case appStore, testFlight, direct
     }
 
     /// "Version 1.3.3 (18)", as this copy's bundle states it.
@@ -28,6 +28,7 @@ enum AppUpdates {
     /// Only a signed App Store install reads as the App Store's; anything else, or no answer,
     /// is TestFlight's.
     static func place() async -> Place {
+        if Distribution.current == .direct { return .direct }
         guard let result = try? await AppTransaction.shared,
               case .verified(let transaction) = result else { return .testFlight }
         return transaction.environment == .production ? .appStore : .testFlight
@@ -43,6 +44,8 @@ enum AppUpdates {
             #endif
         case .testFlight:
             return testFlightLink
+        case .direct:
+            return URL(string: "https://longbook.app/")!
         }
     }
 
@@ -74,11 +77,16 @@ enum AppUpdates {
         switch place {
         case .appStore: "Opens the App Store, which installs the latest version of longbook."
         case .testFlight: "Opens TestFlight, which installs the latest build of longbook."
+        case .direct: "Checks longbook.app for a newer version, then downloads and installs it."
         }
     }
 
     static func button(for place: Place) -> String {
-        place == .appStore ? "Open App Store" : "Open TestFlight"
+        switch place {
+        case .appStore: "Open App Store"
+        case .testFlight: "Open TestFlight"
+        case .direct: title
+        }
     }
 
     #if os(macOS)
@@ -91,6 +99,8 @@ enum AppUpdates {
     /// no such answer, so a TestFlight copy is never asked.
     @MainActor
     static func checkIfDue() {
+        // Sparkle keeps its own daily schedule on the direct build.
+        if Distribution.current == .direct { DirectUpdates.start(); return }
         let defaults = UserDefaults.standard
         guard defaults.object(forKey: automaticKey) as? Bool ?? true else { return }
         if let last = defaults.object(forKey: lastCheckKey) as? Date, Date().timeIntervalSince(last) < 86_400 { return }
@@ -120,6 +130,7 @@ enum AppUpdates {
     /// command has no view of its own to present one from.
     @MainActor
     static func askFromMenu(headline: String = title) {
+        if Distribution.current == .direct { DirectUpdates.check(); return }
         Task { @MainActor in
             let place = await place()
             let alert = NSAlert()

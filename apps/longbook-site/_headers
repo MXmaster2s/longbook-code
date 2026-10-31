@@ -1129,6 +1129,21 @@
   Link: <https://longbook.app/help/glossary/>; rel="canonical"
   X-Robots-Tag: noindex, follow
 
+/help/buying-longbook-for-mac-from-the-website.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/buying-longbook-for-mac-from-the-website/>; rel="canonical"
+  X-Robots-Tag: noindex, follow
+
+/help/buying-longbook-for-mac-from-the-website/index.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/buying-longbook-for-mac-from-the-website/>; rel="canonical"
+  X-Robots-Tag: noindex, follow
+
+/help/buying-longbook-for-mac-from-the-website/index.html.md
+  Content-Type: text/markdown; charset=utf-8
+  Link: <https://longbook.app/help/buying-longbook-for-mac-from-the-website/>; rel="canonical"
+  X-Robots-Tag: noindex, follow
+
 /reviews.md
   Content-Type: text/markdown; charset=utf-8
   Link: <https://longbook.app/reviews/>; rel="canonical"

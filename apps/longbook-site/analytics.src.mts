@@ -68,13 +68,14 @@ const device = (link: Element): string | undefined => {
 }
 const feature = (): string | undefined => /^\/features\/([a-z0-9-]+)\/?$/.exec(location.pathname)?.[1]
 
-// The few clicks worth naming on their own: a store or TestFlight link, the source, the MCP page.
+// The few clicks worth naming on their own: a store, TestFlight or disk-image link, the source, the MCP page.
 const onClick = (event: MouseEvent): void => {
   const link = (event.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null
   if (!link) return
   const href = link.href
-  if (/testflight\.apple\.com|apps\.apple\.com/.test(href)) {
-    const store = href.includes('testflight') ? 'testflight' : 'app store'
+  const direct = /\/releases\/latest\/download\/longbook\.dmg$/.test(href)
+  if (direct || /testflight\.apple\.com|apps\.apple\.com/.test(href)) {
+    const store = direct ? 'website' : href.includes('testflight') ? 'testflight' : 'app store'
     capture('download_clicked', { page: page(), store, place: place(link), device: device(link), feature: feature() })
   } else if (/github\.com/.test(href) || link.pathname.startsWith('/source')) {
     capture('source_clicked', { page: page() })

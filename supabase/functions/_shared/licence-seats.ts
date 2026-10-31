@@ -1,6 +1,6 @@
-// The licence's launch pricing: the first 100 App Store purchases at the first price, the next
-// 250 at the second, every one after at the third. Pure, so the page, the purchase function
-// and the tests read the same rule.
+// The licence's launch pricing: the first 100 licences sold, on the App Store and on
+// longbook.app together, at the first price, the next 250 at the second, every one after at
+// the third. Pure, so the page, both sellers' functions and the tests read the same rule.
 
 export interface Tier {
   /** Seats sold before this tier opens. */
@@ -46,4 +46,21 @@ export function seatsFor(sold: number, tiers: Tier[] = TIERS): Seats {
 export function tiersDue(sold: number, tiers: Tier[] = TIERS): number[] {
   const at = seatsFor(sold, tiers).tier
   return Array.from({ length: at }, (_, i) => i + 1)
+}
+
+/** Web orders paid before launch pricing opened are licences, not seats. */
+export const WEB_SEATS_FROM = '2026-09-21T00:00:00Z'
+
+export interface WebOrderSeat {
+  status: string
+  /** Minor units. A free order, such as a full discount, grants a licence but is no sale. */
+  amount: number
+  environment: string
+  paid_at: string
+}
+
+/** A web order is a seat while it stays paid, if it was a charged sale made once launch pricing opened. */
+export function isWebSeat(order: WebOrderSeat): boolean {
+  return order.status === 'paid' && order.amount > 0 && order.environment === 'production' &&
+    new Date(order.paid_at).getTime() >= new Date(WEB_SEATS_FROM).getTime()
 }
