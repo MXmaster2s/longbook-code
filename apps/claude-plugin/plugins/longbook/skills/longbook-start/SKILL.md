@@ -23,7 +23,7 @@ connection, start where the user is, and point to the one prompt that helps most
 2. If whoami says this connection cannot write, say its how_to_enable sentence: the user
    switches it on in the longbook app.
 3. If the longbook holds no commitments yet, offer `/longbook:set-up`: attach bank and card
-   statements, ideally the last 12 months. Stop there unless the user wants the list.
+   statements, ideally the last 6 months. Stop there unless the user wants the list.
 4. Otherwise, say in two lines what it holds (commitments, accounts, members) and what is
    waiting: names to fill in from setup, and suggestions the app could not apply.
 5. Show the prompts below, by group, each with its slash command. The user can also just ask in

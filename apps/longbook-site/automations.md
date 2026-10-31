@@ -165,7 +165,7 @@ The same list, with every step, is at [longbook.app/prompts.json](https://longbo
 
 ### Setting up
 
-- "Read my 12-month bank statement and help me set up my longbook": Your longbook filled from your statements: every charge on record, the names you picked in setup filled in where your statements or your answers show them, each account's closing balance set, the charges that clearly repeat planned ahead, and the rest set to repeat once you confirm them. It waits in the Proposals screen for you to keep.
+- "Read my 6-month bank statement and help me set up my longbook": Your longbook filled from your statements: every charge on record, the names you picked in setup filled in where your statements or your answers show them, each account's closing balance set, the charges that clearly repeat planned ahead, and the rest set to repeat once you confirm them. It waits in the Proposals screen for you to keep.
 - "Add my statement in my longbook": Every charge on the statement recorded as paid, money in kept apart, the account's balance updated, the charges that clearly repeat set to continue, and the rest once you confirm them.
 - "Categorise my longbook": Every commitment without a category gets one. Your AI shows you the ones it guessed, so you can correct any.
 - "Add September month report in my longbook": The month's statements recorded, the charges they prove confirmed, and each account's balance set. longbook draws that month's report, with "Not yet confirmed" beside the total until every charge in it is confirmed.

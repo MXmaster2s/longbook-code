@@ -66,7 +66,7 @@ They're in `llms.txt` and vault-format.md, but the ones tools break most:
 ## The in-app entry point
 
 More › **Your AI** › Copy the prompt. That prompt is deliberately one line: a catalogue phrase
-("Read my 12-month bank statement and help me set up my longbook", or "Update my longbook from my
+("Read my 6-month bank statement and help me set up my longbook", or "Update my longbook from my
 statements") and, on the Mac, where the vault folder is. The phrase finds its procedure through
 `read_guide`; everything above is what the tool then follows.
 

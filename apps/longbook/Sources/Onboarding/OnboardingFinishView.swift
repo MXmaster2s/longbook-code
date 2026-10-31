@@ -39,7 +39,7 @@ struct OnboardingFinishView: View {
         OnboardingStep(dot: 2, mark: .symbol("doc.text.fill")) {
             OnboardingWords(title: "Import a statement",
                             line: "Start with your bank or card statement, and longbook finds the payments you make every month.",
-                            note: "Recommended: most recent 12-month statement")
+                            note: "Recommended: most recent 6-month statement")
         } actions: {
             OnboardingPrimaryButton(title: "Securely Upload Statement") { chargesBefore = model.chargeCount; importing = true }
             OnboardingSecondaryButton(title: "Use My Own AI") { showingAI = true }
