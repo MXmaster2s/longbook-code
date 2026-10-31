@@ -41,10 +41,10 @@ One vault, many readers, one honest engine.
   sign-in, the hosted copy turned on or off, and a shared report, from an outbox table that
   database triggers, a once-a-minute scan of new sessions and `share-report` write; the hosted MCP
   function over the hosted copy the app pushes; report sharing; and `statement-extract`, which
-  receives the pages of a statement the owner picks, asks Claude whether it is a statement and
-  then to read it (OpenAI stands in when Claude cannot answer), and keeps a ledger of calls and
+  receives the lines the device read from a statement the owner picks, or its pages when those
+  lines don't add up, asks Claude whether it is a statement and then to read it (OpenAI stands in when Claude cannot answer), and keeps a ledger of calls and
   tokens per import, with the account's monthly share — never the content. The backend never
-  sees vault data; the statement reader sees statement pages transiently.
+  sees vault data; the statement reader sees statement lines or pages transiently.
 
 ## The website
 

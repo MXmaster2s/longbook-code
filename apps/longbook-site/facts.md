@@ -79,7 +79,7 @@ More: [Pricing](https://longbook.app/#price), [What is longbook Cloud](https://l
 - **Website analytics:** PostHog in its cookieless mode. No cookie is set, no identifier is kept in the browser, and the IP address is discarded once used. Browsers that send Global Privacy Control or Do Not Track are not measured.
 - **App analytics:** PostHog usage and crash counts, never a name, amount or note. Users can switch it off in Help & about.
 - **Server hosting:** Supabase, Asia Pacific (Mumbai) region, ap-south-1
-- **Privacy policy:** [longbook.app/privacy-policy](https://longbook.app/privacy-policy/), in effect since 28 October 2026
+- **Privacy policy:** [longbook.app/privacy-policy](https://longbook.app/privacy-policy/), in effect since 31 October 2026
 - **Terms of service:** [longbook.app/terms](https://longbook.app/terms/)
 
 More: [Where your data lives and what leaves your device](https://longbook.app/help/where-your-data-lives-and-what-leaves-your-device/), [Keep your longbook in your own iCloud](https://longbook.app/features/keep-your-longbook-in-your-own-icloud.md), [Cookieless analytics for a personal finance app](https://longbook.app/blog/using-cookieless-analytics-for-personal-finance-applications.md), [Privacy policy](https://longbook.app/privacy-policy/)
