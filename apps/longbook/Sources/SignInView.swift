@@ -173,7 +173,12 @@ struct SignInView: View {
         // Nothing to do on success: the auth watcher publishes the session and the gate above
         // this view swaps the screen.
         switch provider {
-        case .apple: error = await auth.signInWithApple()
+        case .apple:
+            // Developer ID has no native Sign in with Apple, so the direct build uses Apple's page.
+            switch Distribution.current {
+            case .appStore: error = await auth.signInWithApple()
+            case .direct: error = await auth.signInWithAppleInBrowser()
+            }
         case .google: error = await GoogleNative.signIn(auth: auth)
         }
         opening = nil

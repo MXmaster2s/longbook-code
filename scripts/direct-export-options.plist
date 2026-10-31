@@ -4,7 +4,7 @@
 <dict>
 	<!-- The direct Mac channel: Developer ID signing for a notarised DMG from longbook.app.
 	     Manual, like the store exports; the profile named here is Xcode's Developer ID
-	     profile for the app, carrying iCloud and Sign in with Apple. -->
+	     profile for the app, carrying iCloud. -->
 	<key>method</key>
 	<string>developer-id</string>
 	<key>teamID</key>

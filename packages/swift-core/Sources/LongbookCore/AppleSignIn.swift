@@ -1,6 +1,7 @@
 // Native Sign in with Apple: the system sheet, no browser session and no third-party
 // domain in the consent dialog. Produces the identity token and the raw nonce that
-// AuthViewModel hands to Supabase's signInWithIdToken.
+// AuthViewModel hands to Supabase's signInWithIdToken. Below it, the web session for a
+// build signed without that capability.
 import AuthenticationServices
 import CryptoKit
 import Foundation
@@ -91,14 +92,69 @@ extension AppleSignInCoordinator: ASAuthorizationControllerDelegate {
 
 extension AppleSignInCoordinator: ASAuthorizationControllerPresentationContextProviding {
     nonisolated func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
-        MainActor.assumeIsolated {
-            #if os(macOS)
-            NSApplication.shared.keyWindow ?? NSApplication.shared.windows.first ?? ASPresentationAnchor()
-            #else
-            UIApplication.shared.connectedScenes
-                .compactMap { ($0 as? UIWindowScene)?.keyWindow }
-                .first ?? ASPresentationAnchor()
-            #endif
+        MainActor.assumeIsolated { signInAnchor() }
+    }
+}
+
+/// The window a sign-in sheet or web session hangs from.
+@MainActor
+private func signInAnchor() -> ASPresentationAnchor {
+    #if os(macOS)
+    NSApplication.shared.keyWindow ?? NSApplication.shared.windows.first ?? ASPresentationAnchor()
+    #else
+    UIApplication.shared.connectedScenes
+        .compactMap { ($0 as? UIWindowScene)?.keyWindow }
+        .first ?? ASPresentationAnchor()
+    #endif
+}
+
+/// A sign-in page in the system's web session, which hands back the URL it redirects to.
+@MainActor
+final class BrowserSignInSession: NSObject {
+    private var continuation: CheckedContinuation<URL?, Error>?
+    private var session: ASWebAuthenticationSession?
+
+    /// The callback URL, or nil when the reader closes the window.
+    func open(_ page: URL, callbackScheme: String) async throws -> URL? {
+        try await withCheckedThrowingContinuation { continuation in
+            self.continuation = continuation
+            let session = ASWebAuthenticationSession(url: page, callbackURLScheme: callbackScheme) { [weak self] callback, error in
+                Task { @MainActor in self?.finish(callback, error) }
+            }
+            session.presentationContextProvider = self
+            self.session = session
+            if !session.start() { finish(nil, ASWebAuthenticationSessionError(.presentationContextInvalid)) }
         }
+    }
+
+    /// Runs once: a session that failed to start may still report through its handler.
+    private func finish(_ callback: URL?, _ error: Error?) {
+        guard let continuation else { return }
+        self.continuation = nil
+        session = nil
+        if let error {
+            if (error as? ASWebAuthenticationSessionError)?.code == .canceledLogin {
+                continuation.resume(returning: nil)
+            } else {
+                continuation.resume(throwing: error)
+            }
+        } else {
+            continuation.resume(returning: callback)
+        }
+    }
+
+    /// Whether a callback carries a refusal because the reader cancelled on the provider's page.
+    nonisolated static func cancelled(_ callback: URL) -> Bool {
+        let parts = URLComponents(url: callback, resolvingAgainstBaseURL: false)
+        var fragment = URLComponents()
+        fragment.percentEncodedQuery = parts?.percentEncodedFragment
+        let items = (parts?.queryItems ?? []) + (fragment.queryItems ?? [])
+        return items.contains { ["error", "error_code", "error_description"].contains($0.name) && ($0.value ?? "").lowercased().contains("cancel") }
+    }
+}
+
+extension BrowserSignInSession: ASWebAuthenticationPresentationContextProviding {
+    nonisolated func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        MainActor.assumeIsolated { signInAnchor() }
     }
 }
