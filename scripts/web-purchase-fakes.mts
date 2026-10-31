@@ -7,7 +7,7 @@ type Row = Record<string, any>
 const shared = globalThis as { __webPurchaseDb?: typeof made }
 const made = {
   tables: {} as Record<string, Row[]>,
-  users: [] as { id: string; email: string }[],
+  users: [] as { id: string; email: string; email_confirmed_at?: string | null }[],
   keys: { entitlements: 'user_id', web_orders: 'order_id', cloud_grants: 'user_id', licence_price_steps: 'tier' } as Record<string, string>,
   reset() {
     this.tables = {}
@@ -57,6 +57,16 @@ class Query {
   }
   eq(column: string, value: unknown): this {
     this.tests.push((r) => r[column] === value)
+    return this
+  }
+  ilike(column: string, pattern: string): this {
+    const source = pattern.replace(/\\?[\s\S]/g, (c) => {
+      if (c === '%' || c === '*') return '.*'
+      if (c === '_') return '.'
+      return c.slice(-1).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    })
+    const like = new RegExp(`^${source}$`, 'i')
+    this.tests.push((r) => typeof r[column] === 'string' && like.test(r[column]))
     return this
   }
   gte(column: string, value: string): this {

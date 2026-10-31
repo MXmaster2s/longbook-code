@@ -91,7 +91,7 @@ globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) =>
   return (outside.answers[url.pathname] ?? (() => answer({}, 404)))()
 }) as typeof fetch
 
-const alex = { id: USER_ID, email: 'alex.morgan@example.com' }
+const alex = { id: USER_ID, email: 'alex.morgan@example.com', email_confirmed_at: '2026-10-31T10:00:00Z' }
 
 beforeEach(() => {
   db.reset()
@@ -412,6 +412,100 @@ test('claims refuse a missing, unknown or refunded key, another product and a li
   assert.equal(await why({ key: KEY }), 'This account already holds a longbook licence.')
   licence()!.polar_license_key_id = LICENSE_KEY_ID
   assert.deepEqual(await (await claim(signedIn({ key: KEY }))).json(), { ok: true, status: 'active' }, 'the same key again is simply done')
+})
+
+// ---- bought before the account existed ----------------------------------------------------
+
+async function unclaimedOrder(payload: unknown = orderPaid): Promise<void> {
+  const here = [...db.users]
+  db.users.length = 0
+  await webhook(delivery(payload))
+  db.users.push(...here)
+}
+const byEmail = (extra: Record<string, unknown> = {}, user = USER_ID) => claim(signedIn({ action: 'email', ...extra }, user))
+
+test('an order waiting under the confirmed email reaches the account, without calling Polar', async () => {
+  await unclaimedOrder()
+  const key = await webhook(delivery({ ...benefitGrantCreated, data: { ...benefitGrantCreated.data, created_at: new Date().toISOString() } }))
+  assert.equal(key.status, 200)
+  assert.deepEqual(await (await byEmail()).json(), { ok: true, status: 'active' })
+  assert.deepEqual(outside.polar, [], 'no validate, no activate')
+  assert.equal(licence()!.source, 'polar')
+  assert.equal(licence()!.polar_order_id, ORDER_ID)
+  assert.equal(licence()!.polar_license_key_id, LICENSE_KEY_ID, 'the stored key is used')
+  assert.equal(webOrder()!.claimed_by, USER_ID)
+  assert.equal(db.rows('cloud_grants').length, 1)
+  assert.equal(outside.mail.length, 1)
+  assert.deepEqual(await (await byEmail()).json(), { ok: true, status: 'none' }, 'a second ask finds the licence active')
+  assert.equal(outside.mail.length, 1)
+})
+
+test('the earliest paid order goes first, and the other waits', async () => {
+  const later = { ...orderPaid.data, id: 'later-order' }
+  await unclaimedOrder({ ...orderPaid, timestamp: '2026-11-01T00:00:00Z', data: later })
+  await unclaimedOrder()
+  assert.deepEqual(await (await byEmail()).json(), { ok: true, status: 'active' })
+  assert.equal(licence()!.polar_order_id, ORDER_ID)
+  assert.equal(db.rows('web_orders').find((r) => r.order_id === 'later-order')!.claimed_at ?? null, null)
+})
+
+test('nothing is granted for an unconfirmed email, an address in the body, or a licensed account', async () => {
+  await unclaimedOrder()
+  const unconfirmed = { id: '9c9c9c9c-0000-4000-8000-000000000003', email: alex.email, email_confirmed_at: null }
+  db.users.length = 0
+  db.users.push(unconfirmed as never)
+  assert.deepEqual(await (await byEmail({}, unconfirmed.id)).json(), { ok: true, status: 'none' })
+
+  const sam = { id: '9b9b9b9b-0000-4000-8000-000000000002', email: 'sam@example.com', email_confirmed_at: alex.email_confirmed_at }
+  db.users.push(sam, alex)
+  assert.deepEqual(await (await byEmail({ email: alex.email, user_id: USER_ID }, sam.id)).json(), { ok: true, status: 'none' })
+
+  db.rows('entitlements').push({ user_id: USER_ID, status: 'active', source: 'apple', polar_order_id: null })
+  assert.deepEqual(await (await byEmail()).json(), { ok: true, status: 'none' })
+  assert.equal(licence()!.source, 'apple')
+  assert.equal(webOrder()!.claimed_at ?? null, null, 'the order is left alone')
+  assert.equal(outside.mail.length, 0)
+})
+
+test('the match is the whole address ignoring case: a wildcard in it matches nothing else', async () => {
+  await unclaimedOrder()
+  const lookalike = { id: '9d9d9d9d-0000-4000-8000-000000000004', email: 'alex_morgan@example.com', email_confirmed_at: alex.email_confirmed_at }
+  const star = { id: '9e9e9e9e-0000-4000-8000-000000000005', email: 'alex*@example.com', email_confirmed_at: alex.email_confirmed_at }
+  db.users.push(lookalike, star)
+  assert.deepEqual(await (await byEmail({}, lookalike.id)).json(), { ok: true, status: 'none' })
+  assert.deepEqual(await (await byEmail({}, star.id)).json(), { ok: true, status: 'none' })
+  alex.email = 'ALEX.MORGAN@example.com'
+  try {
+    assert.deepEqual(await (await byEmail()).json(), { ok: true, status: 'active' }, 'the fixture order says Alex.Morgan')
+  } finally {
+    alex.email = 'alex.morgan@example.com'
+  }
+})
+
+test('a refunded order is not offered, and a sandbox order is not offered to production', async () => {
+  await unclaimedOrder()
+  await webhook(delivery(orderRefunded))
+  assert.deepEqual(await (await byEmail()).json(), { ok: true, status: 'none' })
+  db.rows('web_orders').length = 0
+  await unclaimedOrder()
+  webOrder()!.environment = 'sandbox'
+  assert.deepEqual(await (await byEmail()).json(), { ok: true, status: 'none' })
+})
+
+test('after an email claim, another account is refused the key, found by key or by customer', async () => {
+  await unclaimedOrder()
+  await byEmail()
+  const sam = { id: '9b9b9b9b-0000-4000-8000-000000000002', email: 'sam@example.com', email_confirmed_at: alex.email_confirmed_at }
+  db.users.push(sam)
+  polarKnowsKey()
+  for (const stored of [null, LICENSE_KEY_ID]) {
+    webOrder()!.license_key_id = stored
+    const res = await claim(signedIn({ key: KEY }, sam.id))
+    assert.equal(res.status, 409)
+    assert.deepEqual(await res.json(), { why: 'This licence key is already in use on another longbook account.' })
+  }
+  assert.ok(!outside.polar.some((c) => c.path.endsWith('/activate')), 'the refusal comes before activating')
+  assert.equal(db.rows('entitlements').filter((r) => r.user_id === sam.id).length, 0)
 })
 
 test('a Polar outage reads as an outage, not as a bad key', async () => {

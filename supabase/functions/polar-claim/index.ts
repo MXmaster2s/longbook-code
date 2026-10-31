@@ -1,7 +1,7 @@
-// Gives a signed-in account the licence behind a Polar licence key. Polar validates the key,
-// its order must be a paid one for the licence, and activating it binds the key to this account;
-// Polar allows one activation, so a second account is refused.
-import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2'
+// Gives a signed-in account its licence. With a key: Polar validates it, its order must be a
+// paid one for the licence, and activating it binds the key to this account, so a second account
+// is refused. With action email: the earliest unclaimed order paid under the account's confirmed email.
+import { createClient, type SupabaseClient, type User } from 'npm:@supabase/supabase-js@2'
 import type { models } from 'npm:@polar-sh/sdk@1.0.2/2026-10'
 import { grantPolarLicence, recordOrder } from '../_shared/polar-live.ts'
 import {
@@ -10,12 +10,14 @@ import {
   WHY,
   activatedBy,
   keyProblem,
+  likeExactly,
   orderFromRow,
   pickOrder,
   polarApi,
   polarEnvironment,
   polarHeaders,
   polarRefusal,
+  sameEmail,
   type OrderFacts,
   type Why,
 } from '../_shared/polar.ts'
@@ -74,6 +76,49 @@ async function orderFor(service: SupabaseClient, key: models.ValidatedLicenseKey
   return found
 }
 
+const runtime = (globalThis as { EdgeRuntime?: { waitUntil?(work: Promise<unknown>): void } }).EdgeRuntime
+/** The confirmation email: carried on after the reply where the runtime allows. */
+async function after(work: Promise<void> | null): Promise<void> {
+  if (!work) return
+  if (runtime?.waitUntil) runtime.waitUntil(work)
+  else await work
+}
+
+/** A purchase made before the account existed. The address is the one Supabase confirmed, never
+ *  one a request names, and the key is left unactivated: the order's claim holds it to this
+ *  account. An account already licensed is answered none, untouched. */
+async function claimByEmail(user: User): Promise<Response> {
+  const none = json({ ok: true, status: 'none' })
+  if (!user.email || !user.email_confirmed_at) return none
+  const service = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
+  const { data: held, error } = await service.from('entitlements').select('status').eq('user_id', user.id).maybeSingle()
+  if (error) return refuse('failed', 500)
+  if (held?.status === 'active') return none
+  const { data, error: readError } = await service.from('web_orders').select(`${WEB_ORDER_COLUMNS}, license_key_id`)
+    .eq('product_id', PRODUCT_ID!).eq('status', 'paid').eq('environment', ENVIRONMENT).is('claimed_at', null)
+    .ilike('email', likeExactly(user.email)).order('paid_at', { ascending: true })
+  if (readError) return refuse('failed', 500)
+  const rows = (data ?? []) as unknown as (Parameters<typeof orderFromRow>[0] & { license_key_id: string | null })[]
+  const row = rows.find((r) => sameEmail(r.email, user.email))
+  const facts = row ? orderFromRow(row) : null
+  if (!row || !facts) return none
+  try {
+    const granted = await grantPolarLicence(service, {
+      order: facts.order,
+      account: { id: user.id, email: user.email },
+      licenseKeyId: row.license_key_id,
+      environment: ENVIRONMENT,
+      resendKey: RESEND_API_KEY,
+    })
+    if (granted.decision === 'held') return none
+    await after(granted.confirming)
+  } catch (e) {
+    console.error('polar claim', (e as Error).message)
+    return refuse('failed', 500)
+  }
+  return json({ ok: true, status: 'active' })
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS_HEADERS })
   if (req.method !== 'POST') return json({ why: 'POST only.' }, 405)
@@ -84,12 +129,13 @@ Deno.serve(async (req) => {
   const { data: { user }, error: authError } = await anon.auth.getUser(jwt)
   if (authError || !user) return refuse('signIn', 401)
 
-  let body: { key?: unknown }
+  let body: { key?: unknown; action?: unknown }
   try {
     body = await req.json()
   } catch {
     return refuse('noKey', 400)
   }
+  if (body.action === 'email') return PRODUCT_ID ? await claimByEmail(user) : refuse('notSet', 503)
   const key = typeof body.key === 'string' ? body.key.trim() : ''
   if (!key || key.length > 256) return refuse('noKey', 400)
   if (!ORGANIZATION_ID || !PRODUCT_ID) return refuse('notSet', 503)
@@ -145,7 +191,7 @@ Deno.serve(async (req) => {
       resendKey: RESEND_API_KEY,
     })
     if (granted.decision === 'held') return refuse('licensed', 409)
-    if (granted.confirming) await granted.confirming
+    await after(granted.confirming)
   } catch (e) {
     console.error('polar claim', (e as Error).message)
     return refuse('failed', 500)

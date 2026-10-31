@@ -234,6 +234,10 @@ export const isUuid = (v: string | null | undefined): v is string => !!v && UUID
 export const sameEmail = (a: string | null | undefined, b: string | null | undefined): boolean =>
   !!a && !!b && a.trim().toLowerCase() === b.trim().toLowerCase()
 
+/** An email as a LIKE pattern matching only itself. PostgREST's star stays a wildcard, so the
+ *  rows that come back are compared with sameEmail as well. */
+export const likeExactly = (email: string): string => email.trim().replace(/[\\%_]/g, '\\$&')
+
 export function pickByEmail(users: { id: string; email?: string | null }[], email: string): Account | null {
   const user = users.find((u) => sameEmail(u.email, email))
   return user ? { id: user.id, email: user.email ?? null } : null
