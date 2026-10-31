@@ -25,6 +25,8 @@ const APPCAST = join(ROOT, 'apps/longbook-site/appcast.xml')
 const REPO = 'MXmaster2s/longbook-code'
 const TEAM = '27F9SH746V'
 const KEY_PLACEHOLDER = 'LONGBOOK_SPARKLE_PUBLIC_KEY'
+// Xcode manages this profile; the export finds it by signing automatically.
+const DIRECT_PROFILE = 'Mac Team Direct Provisioning Profile: app.longbook.longbook'
 // The asset the site's download links name; it never changes between releases.
 const LATEST_DMG = 'longbook.dmg'
 const DMG_PAGES = ['download', 'buy', 'thanks'].map((page) => join(ROOT, 'apps/longbook-site', page, 'index.html'))
@@ -109,7 +111,7 @@ const plistString = (file: string, key: string): string => {
 
 /** The profile the export options name, whether it is installed, and the developer entitlements it lacks. */
 const profile = (): { name: string; installed: boolean; lacks: string[] } => {
-  const name = plistString(EXPORT_OPTIONS, 'provisioningProfiles:app.longbook.longbook')
+  const name = DIRECT_PROFILE
   const dirs = [join(homedir(), 'Library/Developer/Xcode/UserData/Provisioning Profiles'), join(homedir(), 'Library/MobileDevice/Provisioning Profiles')]
   const decoded = dirs.flatMap((d) => (existsSync(d) ? readdirSync(d).filter((f) => f.endsWith('.provisionprofile')).map((f) => join(d, f)) : []))
     .map((file) => {
@@ -356,9 +358,12 @@ const main = async () => {
 
   const exported = join(BUILD, 'export')
   execSync(`rm -rf "${exported}"`)
-  // No -allowProvisioningUpdates here: the export options name the Developer ID profile.
   console.log('3/9 exporting with Developer ID…')
-  run('xcodebuild', ['-exportArchive', '-archivePath', archive, '-exportOptionsPlist', EXPORT_OPTIONS, '-exportPath', exported])
+  run('xcodebuild', [
+    '-exportArchive', '-archivePath', archive, '-exportOptionsPlist', EXPORT_OPTIONS, '-exportPath', exported,
+    '-allowProvisioningUpdates',
+    '-authenticationKeyPath', key.path, '-authenticationKeyID', key.id, '-authenticationKeyIssuerID', issuerId,
+  ])
   const app = join(exported, 'longbook.app')
   if (!existsSync(app)) {
     console.error(`The export produced no app at ${app}.`)

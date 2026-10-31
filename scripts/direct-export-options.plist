@@ -3,21 +3,14 @@
 <plist version="1.0">
 <dict>
 	<!-- The direct Mac channel: Developer ID signing for a notarised DMG from longbook.app.
-	     Manual, like the store exports; the profile named here is Xcode's Developer ID
-	     profile for the app, carrying iCloud. -->
+	     Automatic: the Developer ID profile carrying iCloud is Xcode-managed, and a manual
+	     export refuses one. -->
 	<key>method</key>
 	<string>developer-id</string>
 	<key>teamID</key>
 	<string>27F9SH746V</string>
 	<key>signingStyle</key>
-	<string>manual</string>
-	<key>signingCertificate</key>
-	<string>Developer ID Application</string>
-	<key>provisioningProfiles</key>
-	<dict>
-		<key>app.longbook.longbook</key>
-		<string>Mac Team Direct Provisioning Profile: app.longbook.longbook</string>
-	</dict>
+	<string>automatic</string>
 	<!-- Developer ID copies talk to the production iCloud container, never development. -->
 	<key>iCloudContainerEnvironment</key>
 	<string>Production</string>
