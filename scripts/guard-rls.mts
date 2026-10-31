@@ -131,6 +131,15 @@ const CHECKS: Check[] = [
             where p.oid is null`,
   },
   {
+    what: 'the web orders table is unreachable by any client role',
+    query: `select table_name::text, grantee::text, privilege_type::text from information_schema.table_privileges
+            where table_schema='public' and grantee in ('anon','authenticated')
+              and table_name='web_orders'
+            union all
+            select c.relname::text, 'policy', p.polname::text from pg_policy p join pg_class c on c.oid = p.polrelid
+            where c.relname='web_orders'`,
+  },
+  {
     what: 'the share tables are unreachable by any client role',
     query: `select table_name, grantee, privilege_type from information_schema.table_privileges
             where table_schema='public' and grantee in ('anon','authenticated')
