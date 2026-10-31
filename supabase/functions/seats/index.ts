@@ -1,6 +1,6 @@
 // How many launch-price licences are left, for the pricing bar on longbook.app. Public and
-// read-only: one number of App Store purchases, never who bought. Family copies, TestFlight's
-// sandbox purchases and free grants are not seats.
+// read-only: one number of licences sold on the App Store and longbook.app, never who bought.
+// Family copies, sandbox purchases and free grants are not seats.
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { TIERS, seatsFor } from '../_shared/licence-seats.ts'
 import { soldSeats } from '../_shared/seat-count.ts'

@@ -1,7 +1,7 @@
 // The licence's launch pricing: which price is on sale, how many seats are left, and when a step opens.
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { seatsFor, tiersDue } from '../supabase/functions/_shared/licence-seats.ts'
+import { WEB_SEATS_FROM, isWebSeat, seatsFor, tiersDue } from '../supabase/functions/_shared/licence-seats.ts'
 
 test('the first hundred seats sell at the first price', () => {
   assert.deepEqual(seatsFor(0), { sold: 0, tier: 0, price: '38', left: 100, next: '98' })
@@ -27,4 +27,19 @@ test('a step is due once the sale that fills a tier is recorded, and stays due',
 
 test('nonsense counts read as none sold', () => {
   assert.equal(seatsFor(-3).sold, 0)
+})
+
+test('a paid web order from launch pricing on is a seat; earlier, refunded or sandbox orders are not', () => {
+  const sale = { status: 'paid', environment: 'production', paid_at: '2026-10-31T10:00:00Z' }
+  assert.equal(isWebSeat(sale), true)
+  assert.equal(isWebSeat({ ...sale, paid_at: WEB_SEATS_FROM }), true, 'the first day counts')
+  assert.equal(isWebSeat({ ...sale, paid_at: '2026-08-14T09:12:00Z' }), false, 'an August order')
+  assert.equal(isWebSeat({ ...sale, paid_at: '2026-09-20T23:59:59Z' }), false)
+  assert.equal(isWebSeat({ ...sale, status: 'refunded' }), false)
+  assert.equal(isWebSeat({ ...sale, environment: 'sandbox' }), false)
+})
+
+test('App Store and web sales share the one count', () => {
+  assert.deepEqual(seatsFor(60 + 40), seatsFor(100), 'a hundred sales between the two sellers fill the first tier')
+  assert.deepEqual(tiersDue(99 + 1), [1])
 })
