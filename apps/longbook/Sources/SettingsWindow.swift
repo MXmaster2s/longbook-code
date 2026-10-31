@@ -1180,7 +1180,7 @@ struct AppearanceSettingsPane: View {
 // MARK: Account
 
 /// The account pane: the sign-in photo and email once, in the header; then the plan and Cloud,
-/// the ways out, and deleting last. The direct build adds Manage purchase, Polar's portal, and
+/// the ways out, and deleting last. The direct build adds Manage Purchase, Polar's portal, and
 /// sends a refund to Support.
 struct AccountSettingsPane: View {
     @ObservedObject var auth: AuthViewModel
@@ -1215,7 +1215,7 @@ struct AccountSettingsPane: View {
                     }
                     if Distribution.current == .direct, entitlement.state.hasLicence {
                         SettingsDivider()
-                        SettingsLinkRow(title: "Manage purchase", symbol: "bag.fill", tile: .purple, control: "manage_purchase") {
+                        SettingsLinkRow(title: "Manage Purchase", symbol: "bag.fill", tile: .purple, control: "manage_purchase") {
                             Task { await direct.managePurchase(auth: auth) }
                         }
                         SettingsDivider()

@@ -203,7 +203,7 @@ struct LicenceKeySheet: View {
             Text("Activate with a licence key")
                 .lbText(.screenTitle)
                 .foregroundStyle(LBColor.textPrimary.color)
-            Text("The key is in your purchase email.")
+            Text("The key is in your purchase email or in Polar’s customer portal.")
                 .lbText(.footnote)
                 .foregroundStyle(LBColor.textSecondary.color)
                 .fixedSize(horizontal: false, vertical: true)

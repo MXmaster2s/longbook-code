@@ -186,7 +186,7 @@ struct AccountScreenView: View {
             Measure.used("manage_purchase")
             Task { await direct.managePurchase(auth: auth) }
         } label: {
-            Text(direct.busy ? "Opening…" : "Manage purchase")
+            Text(direct.busy ? "Opening…" : "Manage Purchase")
                 .lbText(.label)
                 .foregroundStyle(LBColor.brandText.color)
                 .frame(maxWidth: .infinity, minHeight: 44)
