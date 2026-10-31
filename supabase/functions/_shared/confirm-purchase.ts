@@ -13,6 +13,32 @@ export interface SentMark {
   release(userId: string): Promise<void>
 }
 
+interface MarkClient {
+  from(table: string): any
+}
+
+/** The mark as the entitlements row holds it: purchase_email_sent_at, taken only on an active
+ *  licence whose mark is empty. */
+export function entitlementSentMark(service: MarkClient): SentMark {
+  return {
+    async claim(userId) {
+      const { data, error } = await service
+        .from('entitlements')
+        .update({ purchase_email_sent_at: new Date().toISOString() })
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .is('purchase_email_sent_at', null)
+        .select('user_id')
+      if (error) throw new Error(`could not claim the send: ${error.message}`)
+      return !!data?.length
+    },
+    async release(userId) {
+      const { error } = await service.from('entitlements').update({ purchase_email_sent_at: null }).eq('user_id', userId)
+      if (error) throw new Error(error.message)
+    },
+  }
+}
+
 export interface ConfirmDeps {
   apiKey: string | undefined
   mark: SentMark

@@ -5,7 +5,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
-import { renderPurchaseEmail } from '../supabase/functions/apple-purchase/purchase-email.ts'
+import { renderPurchaseEmail } from '../supabase/functions/_shared/purchase-email.ts'
 
 const out = resolve(process.argv[2] ?? join(tmpdir(), 'longbook-purchase-email'))
 mkdirSync(out, { recursive: true })

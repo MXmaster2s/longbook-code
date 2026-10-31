@@ -5,7 +5,7 @@
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2'
 import * as jose from 'npm:jose@5'
 import * as x509 from 'npm:@peculiar/x509@1'
-import { confirmPurchase, type SentMark } from './confirm-purchase.ts'
+import { confirmPurchase, entitlementSentMark } from '../_shared/confirm-purchase.ts'
 import { isCloudTransaction, isStale, subscriptionRow, type SubscriptionTransaction } from '../_shared/cloud-subscription.ts'
 import { seatsFor, tiersDue, TIERS } from '../_shared/licence-seats.ts'
 import { grantLicenceCloud, revokeLicenceCloud } from '../_shared/licence-cloud.ts'
@@ -149,27 +149,6 @@ async function decode(jws: string): Promise<Payload> {
   return JSON.parse(new TextDecoder().decode(payload)) as Payload
 }
 
-/** The entitlement row's mark that a confirmation went out; see confirm-purchase.ts. */
-function sentMark(service: SupabaseClient): SentMark {
-  return {
-    async claim(userId) {
-      const { data, error } = await service
-        .from('entitlements')
-        .update({ purchase_email_sent_at: new Date().toISOString() })
-        .eq('user_id', userId)
-        .eq('status', 'active')
-        .is('purchase_email_sent_at', null)
-        .select('user_id')
-      if (error) throw new Error(`could not claim the send: ${error.message}`)
-      return !!data?.length
-    },
-    async release(userId) {
-      const { error } = await service.from('entitlements').update({ purchase_email_sent_at: null }).eq('user_id', userId)
-      if (error) throw new Error(error.message)
-    },
-  }
-}
-
 /**
  * A longbook Cloud transaction: the account's one subscription row, written by user id. A
  * transaction already recorded for someone else is refused, as a licence is; one Apple
@@ -299,7 +278,7 @@ Deno.serve(async (req) => {
   }
   if (status === 'active') {
     const confirming = confirmPurchase(
-      { apiKey: RESEND_API_KEY, mark: sentMark(service), send: fetch, log: console.error },
+      { apiKey: RESEND_API_KEY, mark: entitlementSentMark(service), send: fetch, log: console.error },
       {
         userId: user.id,
         transactionId: tx.originalTransactionId,
