@@ -143,7 +143,7 @@ export const CONFIRM_WORD = 'reset'
 export const confirmed = (answer: string): boolean => answer.trim().toLowerCase() === CONFIRM_WORD
 
 /** `defaults delete` on a domain or key that is already gone has nothing to do, which is fine. */
-export const alreadyGone = (stderr: string): boolean => /does not exist|not found/i.test(stderr)
+export const alreadyGone = (stderr: string): boolean => /does not exist|not found|no such file/i.test(stderr)
 
 /** macOS refuses a terminal the app's container unless it has Full Disk Access. */
 export const notPermitted = (stderr: string): boolean => /not permitted|permission/i.test(stderr)
