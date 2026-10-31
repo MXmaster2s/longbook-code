@@ -110,13 +110,24 @@ export interface WebOrder {
   status: 'paid' | 'refunded'
   paid_at: string
   refunded_at: string | null
-  raw: unknown
 }
 
 export interface OrderFacts {
   order: WebOrder
   /** The user id the checkout carried in its metadata, when it did. */
   metadataUserId: string | null
+  /** The order's status as Polar gives it: paid, pending, partially_refunded and so on. */
+  polarStatus: string | null
+}
+
+/** The columns of web_orders that rebuild a WebOrder. */
+export const WEB_ORDER_COLUMNS =
+  'order_id, email, polar_customer_id, external_customer_id, product_id, amount, currency, country, status, paid_at, refunded_at'
+
+/** A web_orders row back as facts, or null when it holds no email to send a confirmation to. */
+export function orderFromRow(row: Omit<WebOrder, 'email'> & { email: string | null }): OrderFacts | null {
+  const { email, ...rest } = row
+  return email ? { order: { ...rest, email }, metadataUserId: null, polarStatus: row.status } : null
 }
 
 const text = (v: unknown): string | null => (typeof v === 'string' && v.trim() ? v.trim() : null)
@@ -150,9 +161,9 @@ export function readOrder(data: unknown, at: string, event: 'paid' | 'refunded' 
       status: refunded ? 'refunded' : 'paid',
       paid_at: text(o.paid_at) ?? (event === 'paid' ? at : text(o.created_at) ?? at),
       refunded_at: refunded ? (event === 'refunded' ? at : text(o.modified_at) ?? at) : null,
-      raw: data,
     },
     metadataUserId: text(metadata.user_id),
+    polarStatus: text(o.status),
   }
 }
 
@@ -353,7 +364,7 @@ export function activatedBy(key: Partial<models.LicenseKeyWithActivations>, user
 /** The licence order among a customer's orders: a paid one first, else a refund, else none. */
 export function pickOrder(items: unknown[], productId: string, at: string): OrderFacts | 'refunded' | null {
   const ours = items.map((i) => readOrder(i, at, 'fetched')).filter((f): f is OrderFacts => !!f && f.order.product_id === productId)
-  const paid = ours.find((f) => f.order.status === 'paid' && ['paid', 'partially_refunded'].includes(String((f.order.raw as LooseOrder).status)))
+  const paid = ours.find((f) => f.order.status === 'paid' && ['paid', 'partially_refunded'].includes(f.polarStatus ?? ''))
   if (paid) return paid
   return ours.some((f) => f.order.status === 'refunded') ? 'refunded' : null
 }

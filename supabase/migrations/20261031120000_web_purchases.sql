@@ -43,7 +43,6 @@ create table public.web_orders (
   refunded_at timestamptz,
   claimed_at timestamptz,
   claimed_by uuid,
-  raw jsonb not null,
   created_at timestamptz not null default now()
 );
 

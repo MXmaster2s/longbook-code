@@ -6,15 +6,16 @@ import type { models } from 'npm:@polar-sh/sdk@1.0.2/2026-10'
 import { grantPolarLicence, recordOrder } from '../_shared/polar-live.ts'
 import {
   ACTIVATION_LABEL,
+  WEB_ORDER_COLUMNS,
   WHY,
   activatedBy,
   keyProblem,
+  orderFromRow,
   pickOrder,
   polarApi,
   polarEnvironment,
   polarHeaders,
   polarRefusal,
-  readOrder,
   type OrderFacts,
   type Why,
 } from '../_shared/polar.ts'
@@ -55,14 +56,12 @@ async function polar(method: 'GET' | 'POST', path: string, body?: unknown, token
 async function orderFor(service: SupabaseClient, key: models.ValidatedLicenseKey): Promise<OrderFacts | 'refunded' | Why | null> {
   const at = new Date().toISOString()
   for (const [column, value] of [['license_key_id', key.id], ['polar_customer_id', key.customer_id]] as const) {
-    const { data } = await service.from('web_orders').select('raw, status, paid_at, claimed_by')
+    const { data } = await service.from('web_orders').select(WEB_ORDER_COLUMNS)
       .eq(column, value).eq('product_id', PRODUCT_ID!).order('paid_at', { ascending: true })
-    const rows = (data ?? []) as { raw: unknown; status: string; paid_at: string; claimed_by: string | null }[]
+    const rows = (data ?? []) as unknown as Parameters<typeof orderFromRow>[0][]
     const paid = rows.find((r) => r.status === 'paid')
-    if (paid) {
-      const facts = readOrder(paid.raw, paid.paid_at, 'fetched')
-      if (facts) return { ...facts, order: { ...facts.order, status: 'paid', paid_at: paid.paid_at } }
-    }
+    const facts = paid && orderFromRow(paid)
+    if (facts) return facts
     if (rows.some((r) => r.status === 'refunded')) return 'refunded'
   }
   if (!POLAR_ACCESS_TOKEN) return null

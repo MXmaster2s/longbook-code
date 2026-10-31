@@ -8,6 +8,7 @@ import { test } from 'node:test'
 import {
   POLAR_VERSION,
   SUCCESS_URL,
+  WEB_ORDER_COLUMNS,
   WHY,
   activatedBy,
   checkoutBody,
@@ -15,6 +16,7 @@ import {
   keyProblem,
   licenceDecision,
   matchAccount,
+  orderFromRow,
   pickByEmail,
   pickOrder,
   polarApi,
@@ -110,8 +112,7 @@ test('order.paid becomes the web_orders row, paid at the event time', () => {
   const event = readEvent(JSON.stringify(orderPaid), NOW)
   assert.equal(event.kind, 'order.paid')
   if (event.kind !== 'order.paid') return
-  const { raw, ...row } = event.facts.order
-  assert.deepEqual(row, {
+  assert.deepEqual(event.facts.order, {
     order_id: ORDER_ID,
     email: 'Alex.Morgan@example.com',
     polar_customer_id: CUSTOMER_ID,
@@ -124,8 +125,10 @@ test('order.paid becomes the web_orders row, paid at the event time', () => {
     paid_at: PAID_AT,
     refunded_at: null,
   })
-  assert.deepEqual(raw, orderPaid.data)
   assert.equal(event.facts.metadataUserId, USER_ID)
+  assert.equal(event.facts.polarStatus, 'paid')
+  const kept = JSON.stringify(event.facts.order)
+  for (const dropped of ['Alex Morgan', 'Pune', '411001']) assert.ok(!kept.includes(dropped), `the row holds ${dropped}`)
 })
 
 test('an order in the earlier shape reads amount and the user\'s email', () => {
@@ -363,6 +366,13 @@ test('a key must be granted and unexpired; Polar\'s refusals map to plain words'
   assert.ok(!activatedBy({ activations: [] }, USER_ID))
 })
 
+test('a row rebuilds its facts from the columns; one holding no email rebuilds nothing', () => {
+  const { order } = readOrder(orderPaid.data, PAID_AT, 'paid')!
+  assert.deepEqual(orderFromRow(order), { order, metadataUserId: null, polarStatus: 'paid' })
+  assert.equal(orderFromRow({ ...order, email: null }), null)
+  for (const column of Object.keys(order)) assert.ok(WEB_ORDER_COLUMNS.includes(column), column)
+})
+
 test('a key\'s order is the paid licence order; a refund or another product is refused', () => {
   const at = NOW.toISOString()
   const other = { ...orderPaid.data, id: 'other', product_id: 'another-product' }
@@ -405,6 +415,7 @@ test('the migration, the guard, the deploy list and CI carry web orders', () => 
     'revoke all on table public.web_orders from public, anon, authenticated;',
     "status text not null check (status in ('paid', 'refunded'))",
   ]) assert.ok(sql.includes(piece), `migration lacks: ${piece}`)
+  assert.ok(!/\braw\b/.test(sql), 'the name and billing address are not kept')
   assert.ok(read('scripts/guard-rls.mts').includes("table_name='web_orders'"))
   const deploy = read('scripts/deploy-function.mts')
   for (const fn of ['polar-webhook', 'polar-checkout', 'polar-claim']) assert.ok(deploy.includes(`'${fn}'`), fn)
