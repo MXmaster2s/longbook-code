@@ -23,6 +23,8 @@ let package = Package(
             // codesign reads that layout as an old-style bundle and refuses to sign it.
             resources: [.process("Resources")]
         ),
+        // A real statement through the app's own reading on a Mac, against scripts/statement-serve.mts.
+        .executableTarget(name: "statement-run", dependencies: ["LongbookCore"]),
         .testTarget(
             name: "LongbookCoreTests",
             dependencies: ["LongbookCore"],

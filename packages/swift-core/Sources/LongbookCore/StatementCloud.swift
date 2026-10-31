@@ -1,6 +1,6 @@
-// One statement goes to longbook's server in small pieces — a few pages, or a run of rows —
-// and each comes back as every charge it holds; then the whole year's charges go once more
-// for the people and the rhythms in them. Small pieces, so an answer is always whole.
+// A statement the device cannot vouch for goes to longbook's server in small pieces, a few
+// pages or a run of rows, each returning every charge it holds; then the year's charges go
+// once more for people and rhythms. One the device can vouch for: StatementLinePass.
 import Foundation
 #if canImport(PDFKit)
 import PDFKit
@@ -219,7 +219,7 @@ public enum StatementCloud {
     }
 
     /// Everything the review shows, assembled from the pieces and the look-over.
-    public struct Prepared: Equatable {
+    public struct Prepared: Equatable, Sendable {
         public var account: String
         public var charges: [Charge]
         public var repeats: [Repeat]
@@ -249,7 +249,8 @@ public enum StatementCloud {
 
         /// The pieces' answers as one: the account the first piece named, every charge in
         /// order with its date checked, the notes joined.
-        public static func assemble(_ answers: [ChargesAnswer], review: ReviewAnswer, today: String = LB.toISO(LB.todayMid())) -> Prepared {
+        public static func assemble(_ answers: [ChargesAnswer], review: ReviewAnswer, today: String = LB.toISO(LB.todayMid()),
+                                    mendingDates: Bool = true) -> Prepared {
             let account = answers.first { !$0.account.trimmingCharacters(in: .whitespaces).isEmpty }?.account ?? ""
             var notes = answers.map(\.notes) + [review.notes]
             notes = notes.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
@@ -265,7 +266,9 @@ public enum StatementCloud {
             let holder = answers.lazy.compactMap { StatementHolder.clean($0.holder) }.first
             // Names arrive cleaned on both sides, so a repeat still names the charges it groups.
             let memberNames = review.members.map(\.name)
-            let charges = mendDates(answers.flatMap(\.charges), today: today).map { charge -> Charge in
+            // Days the device read are facts; only a model's reading is ever mended.
+            let read = answers.flatMap(\.charges)
+            let charges = (mendingDates ? mendDates(read, today: today) : read).map { charge -> Charge in
                 var charge = charge
                 if let holder {
                     let member = charge.member.map { StatementHolder.same($0, holder) ? holder : $0 }
@@ -385,6 +388,27 @@ public enum StatementCloud {
     /// answer is always whole.
     public static let pagesPerPiece = 3
     public static let rowsPerPiece = 150
+
+    /// How a picked file will be read, decided on the device: by its lines when they prove
+    /// themselves, else as pieces of a document. A locked file throws until it is opened.
+    public enum Reading: Sendable {
+        case lines(StatementLinePass.Plan)
+        case document([Piece], why: StatementLinePass.Distrust)
+    }
+
+    public static func reading(for url: URL, password: String?) throws -> Reading {
+        var expected: StatementCompleteness.Expected?
+        do {
+            expected = StatementCompleteness.expected(from: try StatementText.read(url, password: password))
+        } catch let error as StatementText.ReadError where error == .locked || error == .wrongPassword {
+            throw error
+        } catch {
+            expected = nil
+        }
+        if let why = StatementLinePass.distrust(expected) { return .document(try pieces(for: url, password: password), why: why) }
+        guard let expected else { return .document(try pieces(for: url, password: password), why: .unreadable) }
+        return .lines(StatementLinePass.Plan(name: url.lastPathComponent, expected: expected))
+    }
 
     /// The file cut into what one call can answer for: a short open PDF as the bank wrote
     /// it, a long or locked one rebuilt a few pages at a time, a sheet as runs of rows
@@ -514,8 +538,8 @@ public enum StatementCloud {
     public static func newImportId() -> String { UUID().uuidString.lowercased() }
 
     /// How many calls may be in flight at once, across every file being read.
-    public static let callsInFlight = 8
-    private static let gate = CallGate(limit: callsInFlight)
+    public static let callsInFlight = 12
+    static let gate = CallGate(limit: callsInFlight)
 
     /// A counting gate: a call waits its turn when the limit is in flight.
     actor CallGate {
@@ -546,6 +570,15 @@ public enum StatementCloud {
     }
 
     private static func call<Body: Encodable, Answer: Decodable>(_ body: Body, token: String?) async throws -> Answer {
+        // Several files read at once, each a few pieces at a time: the gate keeps the
+        // calls in flight to what the server and the model take without refusing.
+        await gate.enter()
+        defer { gate.leave() }
+        return try JSONDecoder().decode(Answer.self, from: try await post(try JSONEncoder().encode(body), token: token))
+    }
+
+    /// One call's bytes to longbook's server and its answer's back, a refusal as its error.
+    public static func post(_ body: Data, token: String?) async throws -> Data {
         guard let token, !token.isEmpty else { throw CloudError.notSignedIn }
         var request = URLRequest(url: SUPABASE_URL.appendingPathComponent("functions/v1/statement-extract"))
         request.httpMethod = "POST"
@@ -553,13 +586,9 @@ public enum StatementCloud {
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue(SUPABASE_ANON_KEY, forHTTPHeaderField: "apikey")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(body)
+        request.httpBody = body
         let data: Data
         let response: URLResponse
-        // Several files read at once, each a few pieces at a time: the gate keeps the
-        // calls in flight to what the server and the model take without refusing.
-        await gate.enter()
-        defer { gate.leave() }
         do {
             (data, response) = try await URLSession.shared.data(for: request)
         } catch {
@@ -574,6 +603,6 @@ public enum StatementCloud {
             }
             throw CloudError.server(said?["error"] as? String ?? "The statement could not be read right now. Try again in a minute.")
         }
-        return try JSONDecoder().decode(Answer.self, from: data)
+        return data
     }
 }

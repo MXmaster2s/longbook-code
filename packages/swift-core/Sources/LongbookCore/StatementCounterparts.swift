@@ -55,8 +55,8 @@ public enum StatementCounterparts {
     }
 
     /// Every counterpart once, in line order, leaving out what the book holds. An account
-    /// seen first without its person takes the person a later line prints beside it. The
-    /// statement's holder is never listed as a person: they are the holder.
+    /// with digits seen first without its person takes the person a later line prints beside
+    /// it; a bank's bare name is many people's. The holder is never listed as a person.
     public static func found(in charges: [StatementCloud.Charge], knownAccounts: [StatementBook.Account], knownPeople: [String],
                              holder: String? = nil) -> Found {
         var out = Found()
@@ -68,7 +68,7 @@ public enum StatementCounterparts {
         for charge in charges {
             if var account = account(on: charge) {
                 account.person = owner(account.person)
-                if let at = out.accounts.firstIndex(where: { $0.id == account.id || ($0.person == nil && sameAccount($0.name, account.name)) }) {
+                if let at = out.accounts.firstIndex(where: { $0.id == account.id || ($0.person == nil && account.name.contains(where: \.isNumber) && sameAccount($0.name, account.name)) }) {
                     if out.accounts[at].person == nil { out.accounts[at].person = account.person }
                 } else if !knownAccounts.contains(where: { holds($0, account) }) {
                     out.accounts.append(account)

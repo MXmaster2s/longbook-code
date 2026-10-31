@@ -721,6 +721,23 @@ final class StatementImportTests: XCTestCase {
         XCTAssertEqual(lines.map(\.direction), [.debit, .credit, .debit], "the column a figure sits in says which way it went")
     }
 
+    func testAPagesFooterAndTheSummaryAreNoPartOfTheLastNarration() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        var cells: [(String, CGFloat, CGFloat)] = [
+            ("Date", 40, 740), ("Narration", 110, 740), ("Withdrawal", 300, 740), ("Deposit", 380, 740), ("Balance", 460, 740),
+            ("01/07/2026", 40, 720), ("UPI-RAMESH K", 110, 720), ("wrapped note", 110, 708),
+            ("A BANK LIMITED registered office", 40, 696),
+            ("02/07/2026", 40, 660), ("NEFT CR-SALARY", 110, 660), ("STATEMENT SUMMARY", 110, 648), ("Opening balance", 110, 636),
+        ]
+        cells += [right("649.00", 360, 720), right("1,00,000.00", 520, 720)]
+        cells += [right("2,000.00", 440, 660), right("1,02,000.00", 520, 660)]
+        let file = dir.appendingPathComponent("footer.pdf")
+        try pdf(cells: cells).write(to: file)
+        XCTAssertEqual(try StatementText.lines(from: file).map(\.payee), ["UPI-RAMESH K wrapped note", "NEFT CR-SALARY"])
+    }
+
     func testANarrationWrappedAroundItsRowReadsAsOne() throws {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)

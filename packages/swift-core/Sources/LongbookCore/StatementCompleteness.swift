@@ -10,16 +10,25 @@ public enum StatementCompleteness {
         /// The balances the file prints, when it prints them.
         public var opening: Double?
         public var closing: Double?
+        /// The file's top as text: what names its holder and account.
+        public var header: String
 
-        public init(lines: [StatementLine], opening: Double? = nil, closing: Double? = nil) {
+        public init(lines: [StatementLine], opening: Double? = nil, closing: Double? = nil, header: String = "") {
             self.lines = lines
             self.opening = opening
             self.closing = closing
+            self.header = header
         }
 
         public var count: Int { lines.count }
         public var debits: Double { lines.filter { $0.direction == .debit }.reduce(0) { $0 + $1.amount } }
         public var credits: Double { lines.filter { $0.direction == .credit }.reduce(0) { $0 + $1.amount } }
+
+        /// The file's own lines carry its opening balance to its closing one, to the paisa.
+        public var closes: Bool {
+            guard let opening, let closing else { return false }
+            return abs(opening + credits - debits - closing) < 0.005
+        }
     }
 
     /// The printed closing balance against the opening one plus what the review holds.
@@ -49,6 +58,9 @@ public enum StatementCompleteness {
         /// named were found as accounts. Equal to the named counts unless the reading says otherwise.
         public var peopleCovered: Int
         public var accountsFound: Int
+        /// Lines the model added to, when the device read the lines itself; nil when the
+        /// model read the file, whose lines are compared with the device's instead.
+        public var named: Int?
 
         public init(read: Int, expectedCount: Int?, missing: [StatementLine], extra: Int, balance: Balance,
                     peopleNamed: Int, peopleListed: Int, accountsNamed: Int, peopleCovered: Int? = nil, accountsFound: Int? = nil) {
@@ -67,6 +79,11 @@ public enum StatementCompleteness {
         /// One line for the review header: "134 of 134 lines · balance matches",
         /// "131 of 134 lines, 3 read from the file · balance off by ₹47.49".
         public func summary(currency: String) -> String {
+            if let named, let expectedCount {
+                var words = "\(expectedCount) line\(expectedCount == 1 ? "" : "s") read on this device"
+                words += balanceWords(currency: currency).map { " · " + $0 }.orEmpty
+                return words + " · " + (named == expectedCount ? "every line named" : "\(named) named, \(expectedCount - named) as printed")
+            }
             guard let expectedCount else {
                 return "Read \(read) line\(read == 1 ? "" : "s") · the file's own count could not be checked"
             }
@@ -75,12 +92,14 @@ public enum StatementCompleteness {
             return words + balanceWords(currency: currency).map { " · " + $0 }.orEmpty
         }
 
-        /// The average percent of lines read out of the file's, the balance (100 matches, 0
-        /// off, left out when unknown), people named who are listed, and accounts named who
-        /// are found. A part with nothing to check is left out; none at all is 100.
+        /// The average percent of lines read (read on the device, of lines the model named), the
+        /// balance (100 matches, 0 off, unknown left out), people listed and accounts found.
+        /// A part with nothing to check is left out; none at all is 100.
         public var score: Int {
             var parts: [Double] = []
-            if let expectedCount, expectedCount > 0 { parts.append(Double(max(0, expectedCount - missing.count)) / Double(expectedCount)) }
+            if let expectedCount, expectedCount > 0 {
+                parts.append(Double(named ?? max(0, expectedCount - missing.count)) / Double(expectedCount))
+            }
             switch balance {
             case .matches: parts.append(1)
             case .off: parts.append(0)
@@ -120,11 +139,29 @@ public enum StatementCompleteness {
     static func expected(from reading: StatementText.Reading) -> Expected {
         let opening = printedBalance("opening", rows: reading.rows)
             ?? printedBalance("opening", records: reading.records)
+            ?? StatementLines.sheetBalances(reading.records)?.opening
             ?? tableBalance(reading, opening: true)
         let closing = printedBalance("closing", rows: reading.rows)
             ?? printedBalance("closing", records: reading.records)
+            ?? StatementLines.sheetBalances(reading.records)?.closing
             ?? tableBalance(reading, opening: false)
-        return Expected(lines: reading.lines, opening: opening, closing: closing)
+        return Expected(lines: reading.lines, opening: opening, closing: closing, header: header(of: reading))
+    }
+
+    /// The most of a file's top that is sent to name its holder and account.
+    static let headerLimit = 3_000
+
+    /// What the file prints above its first line: rows before the first dated one, or the
+    /// cells above a sheet's heading.
+    static func header(of reading: StatementText.Reading) -> String {
+        let above: [String]
+        if reading.rows.isEmpty {
+            let at = StatementLines.headerIndex(reading.records) ?? 0
+            above = reading.records.prefix(at).map { $0.filter { !$0.isEmpty }.joined(separator: " ") }
+        } else {
+            above = reading.rows.prefix { StatementLines.leadingDate($0.line) == nil }.map(\.line)
+        }
+        return String(above.filter { !$0.isEmpty }.joined(separator: "\n").prefix(headerLimit))
     }
 
     /// The amount printed for "Opening balance" or "Closing balance": on the same row to
@@ -260,11 +297,7 @@ public enum StatementCompleteness {
         var directions: [String: [StatementLine.Direction]] = [:]
         for line in expected.lines { directions[key(line.date, line.amount), default: []].append(line.direction) }
         // Only a file whose own lines add up to its printed balance can overrule the reader.
-        var closes = false
-        if let opening = expected.opening, let closing = expected.closing {
-            let net = expected.lines.reduce(0.0) { $0 + ($1.direction == .credit ? $1.amount : -$1.amount) }
-            closes = abs(opening + net - closing) < 0.005
-        }
+        let closes = expected.closes
         var out = prepared
         var leftOut = 0
         out.charges = prepared.charges.compactMap { charge in
