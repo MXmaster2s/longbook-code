@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- The direct Mac channel: Developer ID signing for a notarised DMG from longbook.app.
+	     Manual, like the store exports; the profile named here is Xcode's Developer ID
+	     profile for the app, carrying iCloud and Sign in with Apple. -->
+	<key>method</key>
+	<string>developer-id</string>
+	<key>teamID</key>
+	<string>27F9SH746V</string>
+	<key>signingStyle</key>
+	<string>manual</string>
+	<key>signingCertificate</key>
+	<string>Developer ID Application</string>
+	<key>provisioningProfiles</key>
+	<dict>
+		<key>app.longbook.longbook</key>
+		<string>Mac Team Direct Provisioning Profile: app.longbook.longbook</string>
+	</dict>
+	<!-- Developer ID copies talk to the production iCloud container, never development. -->
+	<key>iCloudContainerEnvironment</key>
+	<string>Production</string>
+	<key>destination</key>
+	<string>export</string>
+	<key>manageAppVersionAndBuildNumber</key>
+	<false/>
+</dict>
+</plist>

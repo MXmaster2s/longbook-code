@@ -33,7 +33,7 @@ export const NPM_NAME = '@longbook/mcp'
 export const LEDGER = join(ROOT, 'apps/longbook/device-builds.json')
 export const PROJECT_YML = 'apps/longbook/project.yml'
 export const CHANGELOG = 'apps/longbook/Resources/changelog.json'
-export type LedgerEntry = { version: string; commit: string; installed: string; testflight?: string }
+export type LedgerEntry = { version: string; commit: string; installed: string; testflight?: string; direct?: string }
 export type Ledger = Record<string, LedgerEntry>
 export const readLedger = (): Ledger =>
   existsSync(LEDGER) ? JSON.parse(readFileSync(LEDGER, 'utf8')) as Ledger : {}
@@ -134,5 +134,14 @@ export function markOnTestFlight(): void {
   const entry = ledger[String(highestBuild(ledger))]
   if (!entry) return
   entry.testflight = new Date().toISOString().slice(0, 10)
+  writeLedger(ledger)
+}
+
+/** Marks the highest device build as released from longbook.app, the direct Mac channel. */
+export function markDirect(): void {
+  const ledger = readLedger()
+  const entry = ledger[String(highestBuild(ledger))]
+  if (!entry) return
+  entry.direct = new Date().toISOString().slice(0, 10)
   writeLedger(ledger)
 }

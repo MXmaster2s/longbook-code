@@ -46,6 +46,7 @@
     "vault:convert": "tsx scripts/vault-convert-v3.mts",
     "release:mas": "tsx scripts/release-mas.mts",
     "release:ios": "tsx scripts/release-ios.mts",
+    "release:mac-direct": "tsx scripts/release-mac-direct.mts",
     "release:doctor": "tsx scripts/release-doctor.mts",
     "app:reset": "tsx scripts/app-reset.mts",
     "clean:slate": "tsx scripts/clean-slate.mts",
