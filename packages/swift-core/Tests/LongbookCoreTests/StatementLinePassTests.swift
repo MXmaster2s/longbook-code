@@ -146,6 +146,48 @@ final class StatementLinePassTests: XCTestCase {
         XCTAssertEqual(answer.charges[0].counterpart, "Asha Mehta")
     }
 
+    func testALinePrintingOneWordOfTheHoldersNameIsNeverTheHolders() {
+        // The holder is Asha Rao; the bank cut the name short and the model completed it.
+        let cut = line("2026-07-01", 100, "UPI-ASHA R-ASHA9@OKAXIS-UTIB0001234-612345678901-X")
+        let rest = [line("2026-07-02", 200), line("2026-07-03", 1000, "SALARY", .credit)]
+        let guessed = StatementLinePass.Row(n: 1, name: "Payment to Asha Rao", kind: "spend", counterpart: "Asha Rao", counterpartKind: "person", counterpartBank: "HDFC savings ••4417")
+        var answer = StatementLinePass.answer(plan([cut] + rest), head: head, rows: [guessed])
+        XCTAssertEqual(answer.charges[0].counterpart, "Asha R", "the name as the line prints it")
+        XCTAssertEqual(answer.charges[0].name, "Payment to Asha R")
+        XCTAssertEqual(answer.charges[0].counterpartBank, "HDFC savings ••4417", "the account stays with the person the line names")
+        var prepared = StatementCloud.Prepared.assemble([answer], review: .empty, mendingDates: false)
+        XCTAssertEqual(prepared.charges[0].counterpart, "Asha R", "assembling does not make them the holder again")
+        var candidate = prepared.candidates(among: [], today: "2026-10-31")[0]
+        XCTAssertNil(candidate.direction, "a guess never makes a Transfer")
+        XCTAssertEqual(candidate.counterpartOwner, "Asha R")
+        XCTAssertFalse(prepared.counterparts(knownAccounts: [], knownPeople: []).accounts.contains { $0.person == "Asha Rao" })
+
+        // Nothing of the name on the line: no person, no account, a name from the line.
+        let none = line("2026-07-01", 100, "NEFT-CORNER SHOP-612345678901")
+        let asMember = StatementLinePass.Row(n: 1, name: "Asha Rao", kind: "for_member", member: "Asha Rao", counterpart: "HDFC savings ••4417", counterpartKind: "account", counterpartBank: "HDFC savings ••4417")
+        answer = StatementLinePass.answer(plan([none] + rest), head: head, rows: [asMember])
+        XCTAssertNil(answer.charges[0].member)
+        XCTAssertNil(answer.charges[0].counterpart)
+        XCTAssertNil(answer.charges[0].counterpartBank)
+        XCTAssertEqual(answer.charges[0].kind, "spend")
+        XCTAssertEqual(answer.charges[0].name, "Corner Shop")
+        prepared = StatementCloud.Prepared.assemble([answer], review: .empty, mendingDates: false)
+        candidate = prepared.candidates(among: [], today: "2026-10-31")[0]
+        XCTAssertNil(candidate.member)
+        XCTAssertNil(candidate.counterpartAccount)
+        XCTAssertNil(candidate.direction)
+
+        // Someone else's row on such a line is left as the model read it.
+        let other = StatementLinePass.Row(n: 1, name: "Payment to Ramesh K", kind: "spend", counterpart: "Ramesh K", counterpartKind: "person")
+        XCTAssertEqual(StatementLinePass.ownLine(other, printed: cut.payee, holder: "ASHA RAO"), other)
+    }
+
+    func testAHolderOfOneWordIsMatchedByThatWordAndAHolderOfInitialsByNothing() {
+        let row = StatementLinePass.Row(n: 1, name: "Shop", kind: "spend")
+        XCTAssertEqual(StatementLinePass.ownLine(row, printed: "NEFT-PRIYA-X", holder: "Priya").counterpart, "Priya")
+        XCTAssertEqual(StatementLinePass.ownLine(row, printed: "NEFT-SHOP-X", holder: "A B"), row, "no word to tell them by")
+    }
+
     func testAPersonOnALineWithAnIFSCCodeHasAnAccountAtThatBank() {
         let printed = "UPI-RAMESH K-RK@OKAXIS-UTIB0001234-612345678901-X"
         let person = StatementLinePass.Row(n: 1, name: "Payment to Ramesh K", kind: "spend", counterpart: "Ramesh K", counterpartKind: "person")

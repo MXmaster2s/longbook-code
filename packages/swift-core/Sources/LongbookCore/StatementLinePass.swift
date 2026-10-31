@@ -181,16 +181,49 @@ public enum StatementLinePass {
         )
     }
 
-    /// A line that prints the holder's own name is the holder's, whatever the model made of
-    /// it, and an account the model put on that line is the holder's account: the people rule
-    /// the device can check for itself, and what the Transfers rule stands on.
+    /// A line is the holder's only when it prints two words of their name, or all of a shorter
+    /// one: the people rule the device can check, and what the Transfers rule stands on. An
+    /// account the model put on such a line is the holder's.
     static func ownLine(_ row: Row, printed: String, holder: String?) -> Row {
         guard let holder = StatementHolder.clean(holder) else { return row }
         let known = StatementHolder.words(holder)
-        guard StatementHolder.words(separated(printed)).intersection(known).count >= min(2, known.count) else { return row }
+        guard !known.isEmpty else { return row }
+        let shared = StatementHolder.words(separated(printed)).intersection(known)
+        guard shared.count >= min(2, known.count) else { return notHolder(row, printed: printed, holder: holder, shared: shared) }
         let bank = row.counterpartBank ?? (row.counterpartKind == "account" ? row.counterpart : nil)
         return Row(n: row.n, name: row.name, kind: row.kind == "for_member" ? "spend" : row.kind, category: row.category, member: nil, counterpart: holder,
                    counterpartKind: "person", counterpartBank: bank)
+    }
+
+    /// A model that called a line's person the holder when the line does not print enough of
+    /// their name has guessed. The person is what the line prints, or nobody, and neither they
+    /// nor their account are the holder's. The charge's name follows.
+    static func notHolder(_ row: Row, printed: String, holder: String, shared: Set<String>) -> Row {
+        let said = row.member ?? (row.counterpartKind == "person" ? row.counterpart : nil)
+        guard let said, StatementHolder.same(said, holder) else { return row }
+        let person = printedName(printed, sharing: shared)
+        let plain = StatementNaming.plainName(separated(printed))
+        let renamed = person.map { StatementNaming.swapPerson(row.name, from: holder, to: $0) } ?? plain
+        let name = StatementHolder.same(renamed, holder) || nameCarries(renamed, holder) ? (person ?? plain) : renamed
+        guard let person else {
+            return Row(n: row.n, name: name, kind: row.kind == "for_member" ? "spend" : row.kind, category: row.category)
+        }
+        return Row(n: row.n, name: name, kind: row.kind, category: row.category, member: row.member == nil ? nil : person,
+                   counterpart: row.counterpartKind == "person" ? person : row.counterpart, counterpartKind: row.counterpartKind,
+                   counterpartBank: row.counterpartBank)
+    }
+
+    /// Whether a name still carries the person, in a form swapPerson did not recognise.
+    private static func nameCarries(_ name: String, _ person: String) -> Bool {
+        StatementHolder.words(name).intersection(StatementHolder.words(person)).count >= 2
+    }
+
+    /// The name the line prints around the words it shares with the holder: the stretch of the
+    /// line between separators, as the line has it. Nil when it shares none.
+    static func printedName(_ printed: String, sharing shared: Set<String>) -> String? {
+        guard !shared.isEmpty else { return nil }
+        let stretches = separated(printed).split(whereSeparator: { "-/|:".contains($0) }).map(String.init)
+        return stretches.first { !StatementHolder.words($0).isDisjoint(with: shared) && !$0.contains("@") }.flatMap(StatementCounterparts.personName)
     }
 
     /// The bank an IFSC code names, the way the statement rules say it. Unknown codes stay
