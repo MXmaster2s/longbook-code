@@ -61,6 +61,8 @@ public final class EntitlementStore: ObservableObject {
     /// True once this launch has asked the server, or found a cached answer: the purchase
     /// screen waits for it rather than flashing in front of a licensed owner.
     @Published public private(set) var known = false
+    /// The last time this store asked for a licence bought on the web, and for which account.
+    private var webLicenceAsk: (account: String, at: Date)?
 
     public init() {
         if let data = UserDefaults.standard.data(forKey: CACHE_KEY),
@@ -123,6 +125,49 @@ public final class EntitlementStore: ObservableObject {
             hasCloud: hasCloud, cloudStatus: subscription.status, cloudExpiresAt: subscription.expiresAt,
             cloudAutoRenew: subscription.autoRenew
         ))
+        if !hasLicence { askForWebLicence(account: userId, accessToken: session.accessToken) }
+    }
+
+    // MARK: - a licence bought on the web
+
+    /// A purchase on longbook.app can come before the account does, and only the server can
+    /// match it, on the account's confirmed email. Not awaited: the purchase screen paints from
+    /// the answer above, and any failure leaves it as it is.
+    private func askForWebLicence(account: String, accessToken: String) {
+        let now = Date()
+        guard Self.mayAskForWebLicence(last: webLicenceAsk, account: account, now: now) else { return }
+        webLicenceAsk = (account, now)
+        let request = Self.webLicenceRequest(accessToken: accessToken)
+        Task { [weak self] in
+            guard let (data, response) = try? await URLSession.shared.data(for: request),
+                  Self.webLicenceGranted(status: (response as? HTTPURLResponse)?.statusCode, data: data)
+            else { return }
+            await self?.refresh()
+        }
+    }
+
+    /// At most once a minute for an account; a different account asks at once.
+    nonisolated static func mayAskForWebLicence(last: (account: String, at: Date)?, account: String, now: Date) -> Bool {
+        guard let last, last.account == account else { return true }
+        return now.timeIntervalSince(last.at) >= 60
+    }
+
+    nonisolated static func webLicenceRequest(accessToken: String) -> URLRequest {
+        var request = URLRequest(url: SUPABASE_URL.appendingPathComponent("functions/v1/polar-claim"))
+        request.httpMethod = "POST"
+        request.timeoutInterval = 5
+        request.setValue(SUPABASE_ANON_KEY, forHTTPHeaderField: "apikey")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = Data(#"{"action":"email"}"#.utf8)
+        return request
+    }
+
+    /// Only a 200 that says active is worth reading the licence again for.
+    nonisolated static func webLicenceGranted(status: Int?, data: Data) -> Bool {
+        struct Answer: Decodable { let status: String? }
+        guard status == 200 else { return false }
+        return (try? JSONDecoder().decode(Answer.self, from: data))?.status == "active"
     }
 
     // MARK: - raw PostgREST
