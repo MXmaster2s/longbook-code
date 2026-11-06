@@ -1,0 +1,215 @@
+{
+  "app": "longbook",
+  "version": 3,
+  "commitments": [
+    {
+      "id": "d5533b69-85e2-4bfb-b888-1fb706e95894",
+      "name": "Car insurance",
+      "amount": 18400,
+      "currency": "INR",
+      "billing_cycle": "yearly",
+      "status": "active",
+      "created_at": "2026-09-05T05:46:57.270Z",
+      "updated_at": "2026-09-05T05:46:57.270Z",
+      "tag": "insurance",
+      "details": {
+        "insurer": "HDFC ERGO",
+        "policy_type": "Comprehensive",
+        "nominee": "Diya"
+      },
+      "notes": "Renews with the car year.",
+      "member_id": "df2699aa-a129-45fc-9dcf-c4b0b4876acb",
+      "account_id": "b5db49e9-34f7-4757-9745-f0dbdbba88c9"
+    },
+    {
+      "id": "2c161cf9-adb8-426d-a586-38512131eb29",
+      "name": "Cult",
+      "amount": 2100,
+      "currency": "INR",
+      "billing_cycle": "monthly",
+      "status": "active",
+      "created_at": "2026-09-05T05:46:57.270Z",
+      "updated_at": "2026-09-05T05:46:57.270Z",
+      "tag": "health & fitness",
+      "account_id": "b5db49e9-34f7-4757-9745-f0dbdbba88c9"
+    },
+    {
+      "id": "f32046d3-7549-473a-9de2-fcddfe88db20",
+      "name": "Airport taxi",
+      "amount": 950,
+      "currency": "INR",
+      "billing_cycle": "once",
+      "status": "cancelled",
+      "created_at": "2026-09-05T05:46:57.270Z",
+      "updated_at": "2026-09-05T05:46:57.280Z",
+      "tag": "colony kitty",
+      "notes": "One ride, kept for the record."
+    }
+  ],
+  "members": [
+    {
+      "id": "df2699aa-a129-45fc-9dcf-c4b0b4876acb",
+      "name": "Rohit",
+      "name_key": "rohit",
+      "is_incomplete": true,
+      "created_at": "2026-09-05T05:46:57.270Z"
+    }
+  ],
+  "accounts": [
+    {
+      "id": "b5db49e9-34f7-4757-9745-f0dbdbba88c9",
+      "name": "HDFC Current account",
+      "name_key": "hdfc current account",
+      "is_incomplete": true,
+      "created_at": "2026-09-05T05:46:57.270Z"
+    }
+  ],
+  "tags": [
+    {
+      "id": "9ee104a9-a0e4-4521-aec5-d216b1a340e0",
+      "kind": "commitment",
+      "name": "insurance",
+      "name_key": "insurance",
+      "is_default": true,
+      "sort": 0,
+      "created_at": "2026-09-05T05:46:57.270Z",
+      "icon": "shield.checkered",
+      "template": [
+        {
+          "key": "insurer",
+          "label": "Insurer",
+          "hint": "text"
+        },
+        {
+          "key": "policy_type",
+          "label": "Policy type",
+          "hint": "text"
+        },
+        {
+          "key": "sum_assured",
+          "label": "Sum assured",
+          "hint": "money"
+        },
+        {
+          "key": "nominee",
+          "label": "Nominee",
+          "hint": "member"
+        },
+        {
+          "key": "policy_doc",
+          "label": "Policy document",
+          "hint": "file"
+        }
+      ]
+    },
+    {
+      "id": "29b84766-95ec-4a9f-bb9c-ee26c7064cce",
+      "kind": "commitment",
+      "name": "health & fitness",
+      "name_key": "health & fitness",
+      "is_default": true,
+      "sort": 1,
+      "created_at": "2026-09-05T05:46:57.270Z",
+      "icon": "heart",
+      "template": [
+        {
+          "key": "provider",
+          "label": "Provider",
+          "hint": "text"
+        }
+      ]
+    },
+    {
+      "id": "6b70f002-fd17-4cf0-a7c6-cc8acaab2181",
+      "kind": "commitment",
+      "name": "colony kitty",
+      "name_key": "colony kitty",
+      "is_default": false,
+      "sort": 2,
+      "created_at": "2026-09-05T05:46:57.270Z"
+    }
+  ],
+  "charges": [
+    {
+      "commitment_id": "d5533b69-85e2-4bfb-b888-1fb706e95894",
+      "date": "2024-03-12",
+      "amount": 18400,
+      "paid": false,
+      "basis": "plan",
+      "written_at": "2026-09-05T05:46:57.270Z"
+    },
+    {
+      "commitment_id": "d5533b69-85e2-4bfb-b888-1fb706e95894",
+      "date": "2025-03-12",
+      "amount": 18400,
+      "paid": false,
+      "basis": "plan",
+      "written_at": "2026-09-05T05:46:57.270Z"
+    },
+    {
+      "commitment_id": "d5533b69-85e2-4bfb-b888-1fb706e95894",
+      "date": "2026-03-12",
+      "amount": 18400,
+      "paid": false,
+      "basis": "plan",
+      "written_at": "2026-09-05T05:46:57.270Z"
+    },
+    {
+      "commitment_id": "2c161cf9-adb8-426d-a586-38512131eb29",
+      "date": "2026-08-30",
+      "amount": 2100,
+      "paid": true,
+      "basis": "mark_paid",
+      "written_at": "2026-09-05T05:46:57.270Z"
+    },
+    {
+      "commitment_id": "2c161cf9-adb8-426d-a586-38512131eb29",
+      "date": "2026-09-30",
+      "amount": 2100,
+      "paid": false,
+      "basis": "plan",
+      "written_at": "2026-09-05T05:46:57.270Z"
+    },
+    {
+      "commitment_id": "2c161cf9-adb8-426d-a586-38512131eb29",
+      "date": "2026-10-30",
+      "amount": 2100,
+      "paid": false,
+      "basis": "plan",
+      "written_at": "2026-09-05T05:46:57.270Z"
+    },
+    {
+      "commitment_id": "f32046d3-7549-473a-9de2-fcddfe88db20",
+      "date": "2026-04-08",
+      "amount": 950,
+      "paid": true,
+      "basis": "statement",
+      "written_at": "2026-09-05T05:46:57.270Z"
+    }
+  ],
+  "_provenance": {
+    "df2699aa-a129-45fc-9dcf-c4b0b4876acb": {
+      "edited_by": "claude",
+      "edited_at": "2026-09-05T05:46:57.279Z",
+      "source": "documents/hdfc-2026.pdf"
+    },
+    "b5db49e9-34f7-4757-9745-f0dbdbba88c9": {
+      "edited_by": "claude",
+      "edited_at": "2026-09-05T05:46:57.279Z",
+      "source": "documents/hdfc-2026.pdf"
+    },
+    "d5533b69-85e2-4bfb-b888-1fb706e95894": {
+      "edited_by": "claude",
+      "edited_at": "2026-09-05T05:46:57.279Z",
+      "source": "documents/hdfc-2026.pdf"
+    },
+    "2c161cf9-adb8-426d-a586-38512131eb29": {
+      "edited_by": "claude",
+      "edited_at": "2026-09-05T05:46:57.281Z"
+    },
+    "f32046d3-7549-473a-9de2-fcddfe88db20": {
+      "edited_by": "claude",
+      "edited_at": "2026-09-05T05:46:57.280Z"
+    }
+  }
+}

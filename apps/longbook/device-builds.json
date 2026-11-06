@@ -1,0 +1,171 @@
+{
+  "29": {
+    "version": "1.3.6",
+    "commit": "4dfeb057a0",
+    "installed": "2026-10-08"
+  },
+  "30": {
+    "version": "1.3.6",
+    "commit": "cc92e27239",
+    "installed": "2026-10-08"
+  },
+  "31": {
+    "version": "1.3.6",
+    "commit": "1f8ce56564",
+    "installed": "2026-10-09"
+  },
+  "38": {
+    "version": "1.3.6",
+    "commit": "ca69717e74",
+    "installed": "2026-10-15"
+  },
+  "39": {
+    "version": "1.3.6",
+    "commit": "ea3525da08",
+    "installed": "2026-10-15"
+  },
+  "41": {
+    "version": "1.4.0",
+    "commit": "61e6e5e77d",
+    "installed": "2026-10-16"
+  },
+  "42": {
+    "version": "1.4.0",
+    "commit": "83fabfff04",
+    "installed": "2026-10-16"
+  },
+  "43": {
+    "version": "1.4.0",
+    "commit": "083f189be5",
+    "installed": "2026-10-16"
+  },
+  "44": {
+    "version": "1.4.0",
+    "commit": "3b7b6bb4ef",
+    "installed": "2026-10-16"
+  },
+  "45": {
+    "version": "1.4.0",
+    "commit": "d935602c81",
+    "installed": "2026-10-16"
+  },
+  "46": {
+    "version": "1.4.0",
+    "commit": "e10e5424ff",
+    "installed": "2026-10-16"
+  },
+  "47": {
+    "version": "1.4.0",
+    "commit": "e9aa90e375",
+    "installed": "2026-10-19"
+  },
+  "48": {
+    "version": "1.4.0",
+    "commit": "4e23b7c72c",
+    "installed": "2026-10-20"
+  },
+  "49": {
+    "version": "1.4.1",
+    "commit": "104247ac10",
+    "installed": "2026-10-22",
+    "testflight": "2026-10-22"
+  },
+  "50": {
+    "version": "1.4.1",
+    "commit": "0fa8b9bda8",
+    "installed": "2026-10-22",
+    "testflight": "2026-10-22"
+  },
+  "51": {
+    "version": "1.4.1",
+    "commit": "51b448c68b",
+    "installed": "2026-10-23",
+    "testflight": "2026-10-23"
+  },
+  "52": {
+    "version": "1.5.0",
+    "commit": "0aba2c0367",
+    "installed": "2026-10-27"
+  },
+  "53": {
+    "version": "1.5.0",
+    "commit": "2ff397b83e",
+    "installed": "2026-10-27"
+  },
+  "54": {
+    "version": "1.5.0",
+    "commit": "879e898927",
+    "installed": "2026-10-28"
+  },
+  "55": {
+    "version": "1.5.0",
+    "commit": "31be9fa5c1",
+    "installed": "2026-10-28"
+  },
+  "56": {
+    "version": "1.5.0",
+    "commit": "4a9d960531",
+    "installed": "2026-10-28"
+  },
+  "57": {
+    "version": "1.5.0",
+    "commit": "e1f368a23c",
+    "installed": "2026-10-28"
+  },
+  "58": {
+    "version": "1.5.0",
+    "commit": "148c0270a1",
+    "installed": "2026-10-28"
+  },
+  "59": {
+    "version": "1.5.0",
+    "commit": "fe11b10ed7",
+    "installed": "2026-10-29",
+    "testflight": "2026-10-29"
+  },
+  "60": {
+    "version": "1.5.0",
+    "commit": "3857fc2714",
+    "installed": "2026-10-29",
+    "testflight": "2026-10-29"
+  },
+  "61": {
+    "version": "1.5.0",
+    "commit": "7e331fe81a",
+    "installed": "2026-10-29",
+    "testflight": "2026-10-29"
+  },
+  "62": {
+    "version": "1.5.0",
+    "commit": "aa95f0c8ff",
+    "installed": "2026-10-29"
+  },
+  "63": {
+    "version": "1.5.0",
+    "commit": "cecc6dad9b",
+    "installed": "2026-10-30"
+  },
+  "64": {
+    "version": "1.5.0",
+    "commit": "c014a5ba4b",
+    "installed": "2026-10-30"
+  },
+  "65": {
+    "version": "1.5.0",
+    "commit": "3a50d36a1d",
+    "installed": "2026-10-31",
+    "testflight": "2026-10-31"
+  },
+  "66": {
+    "version": "1.5.0",
+    "commit": "4fd2f5e861",
+    "installed": "2026-11-03",
+    "testflight": "2026-11-03"
+  },
+  "67": {
+    "version": "1.5.0",
+    "commit": "4424225861",
+    "installed": "2026-11-04",
+    "direct": "2026-11-04"
+  }
+}

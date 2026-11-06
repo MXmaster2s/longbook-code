@@ -1,0 +1,53 @@
+---
+slug: review-every-change-your-ai-makes
+order: 17
+group: automate
+title: Review every change your AI makes
+seo_title: Review and undo AI changes to your expenses
+description: Every row Claude, ChatGPT, Siri or a statement import writes into longbook shows in Proposals with its writer, to keep or discard, and a history of versions.
+card: Every row your AI, Siri or an import writes shows in Proposals, to keep, edit or discard.
+platforms: iphone, mac
+iphone: iphone-changes
+mac: mac-changes
+aliases: review-ai-changes, changes
+related: automate-longbook-with-claude, log-expenses-from-gmail, keep-your-longbook-in-your-own-icloud
+labels: Proposals, Keep All, Discard All, Show History, Restore
+---
+
+Every row an AI, Siri or a statement import writes into longbook shows in Proposals, with the name of its writer, to keep or discard.
+
+## On the screen
+
+**Proposals** on iPhone and Mac: charges, a commitment, an account and a member suggested by Claude, in a tab for each kind, with **Discard All** and **Keep All** beside the title and a search and filter above the rows. **Show History**, at the foot of the list, opens each saved version, who wrote it and when.
+
+## What it does
+
+### Each row with its writer
+
+Each proposed row sits in a tab for its kind: charges, commitments, accounts, members or categories. Rows carry their writer's name, such as Claude, Siri or statement import, and a changed row shows each field before and after.
+
+### One answer for the whole change
+
+**Keep All** accepts the change as it stands; **Discard All** writes back the state from before it. Before that, an added commitment, charge, account or member can be edited or deleted, and a changed one edited, while the rest waits.
+
+### Every version, kept
+
+**History** holds the last 50 versions of your longbook, each with its writer, its time and what it changed. **Restore** writes an earlier version back as one more change, and deletes nothing.
+
+## Why it exists
+
+An AI reading statements and email can misread a line. Proposals shows every row that an AI, Siri, a statement import or another program writes, names who wrote it, and keeps it reversible. An AI can keep longbook current while every row it writes stays yours to keep or discard.
+
+## Questions
+
+### Does a change wait until I keep it?
+
+No. A change is already in your longbook folder when Proposals shows it, and the rest of the app counts it. **Keep All** confirms it; **Discard All** writes back the state from before it, including anything edited since.
+
+### What counts as a change?
+
+A write to your commitments, charges, accounts, members or categories from an AI through the MCP server, Siri, the Shortcuts action, a statement import, or another program editing the file. Edits made in the app's own forms do not wait for review. Notes your AI leaves on cards are kept in a separate file and do not show here.
+
+### Can one row be kept and another discarded?
+
+No. **Keep All** and **Discard All** answer the whole change. An added row can be deleted first, and a changed row edited back by hand; the rest stays to keep or discard.

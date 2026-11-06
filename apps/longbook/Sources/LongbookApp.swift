@@ -1,0 +1,476 @@
+import DesignSystem
+import LongbookCore
+import SwiftUI
+
+#if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
+
+@main
+struct LongbookApp: App {
+    #if os(macOS)
+    /// The tray's own vault read — the menu bar answers with every window closed.
+    @StateObject private var tray = TrayModel()
+    @Environment(\.openWindow) private var openWindow
+    @Environment(\.openSettings) private var openSettings
+    #endif
+
+    #if os(macOS)
+    init() {
+        #if DEVICE_BUILD
+        FirstUseReset.runIfAsked()
+        #endif
+        EntitlementStore.acceptsTestLicences = { await Distribution.acceptsTestLicences() }
+        // iCloud starts preparing the container now, not when the first vault step asks.
+        VaultContainer.prewarm()
+        Self.floatScrollers()
+        #if DEBUG
+        Snapshot.runIfAsked()
+        #endif
+        // Once the app has finished launching: the Dock icon and the menu bar shortcut as
+        // they were left, and the daily update check while its switch is on.
+        Task { @MainActor in
+            DockIcon.applyStored()
+            MenuBarShortcut.applyStored()
+            AppUpdates.checkIfDue()
+        }
+    }
+    #elseif os(iOS)
+    init() {
+        #if DEVICE_BUILD
+        FirstUseReset.runIfAsked()
+        #endif
+        EntitlementStore.acceptsTestLicences = { await Distribution.acceptsTestLicences() }
+        // iCloud starts preparing the container now, not when the first vault step asks.
+        VaultContainer.prewarm()
+        // The navigation bar's titles in the design's face: a Large Title over each
+        // screen that folds into a Headline as the page scrolls.
+        let bar = UINavigationBar.appearance()
+        let ink = UIColor(LBColor.textPrimary.color)
+        bar.largeTitleTextAttributes = [.font: LBFont.uiFont(.largeTitle), .foregroundColor: ink]
+        bar.titleTextAttributes = [.font: LBFont.uiFont(.headline), .foregroundColor: ink]
+        bar.tintColor = UIColor(LBColor.brandText.color)
+    }
+    #endif
+
+    #if os(macOS)
+    /// Scroll bars float over this app's content whatever the Mac's own setting or the mouse
+    /// attached, so no list or panel narrows when it starts to overflow. The setting goes in
+    /// the app's own defaults, which outrank the system-wide one that a registered default
+    /// would lose to.
+    private static func floatScrollers() {
+        UserDefaults.standard.set("WhenScrolling", forKey: "AppleShowScrollBars")
+    }
+    #endif
+
+    @AppStorage("appearance") private var appearance = LBAppearance.system.rawValue
+    #if os(iOS)
+    @Environment(\.scenePhase) private var scenePhase
+    #endif
+
+    var body: some Scene {
+        #if os(macOS)
+        // One window, by id, not a group: the view owns the model and the commands are an
+        // unfiltered broadcast, so a second window would mean two models over one file.
+        // The id is also what lets the tray and the Dock put a closed window back.
+        Window("longbook", id: LongbookWindow.main) {
+            RootView()
+                .preferredColorScheme((LBAppearance(rawValue: appearance) ?? .system).colorScheme)
+                .background(CentersSheets())
+                // The pointing hand over every button that keeps the system's own look.
+                .lbPointerButtons()
+                // No focus ring until Tab, on every screen of the window. Each sheet and
+                // popover sets the same again, since they are hierarchies of their own.
+                .lbKeyboardFocusEffects()
+        }
+        .defaultSize(width: 1280, height: 900)
+        .windowStyle(.hiddenTitleBar)
+        .commands { LongbookCommands() }
+
+        // Help › Keyboard Shortcuts: small, and only as tall as its list.
+        Window("Keyboard Shortcuts", id: LongbookWindow.keyboardShortcuts) {
+            KeyboardShortcutsView()
+                .preferredColorScheme((LBAppearance(rawValue: appearance) ?? .system).colorScheme)
+                .lbKeyboardFocusEffects()
+        }
+        .windowResizability(.contentSize)
+
+        // Help › Ask Support: a tall, narrow column of its own beside the ledger.
+        Window("Support", id: LongbookWindow.support) {
+            SupportWindowView()
+                .preferredColorScheme((LBAppearance(rawValue: appearance) ?? .system).colorScheme)
+                .background(CentersSheets())
+                .lbPointerButtons()
+                .lbKeyboardFocusEffects()
+        }
+        .defaultSize(width: 420, height: 720)
+        .windowResizability(.contentMinSize)
+
+        // The app menu's Settings… (⌘,) opens this window, as on every Mac app.
+        Settings {
+            SettingsWindowView()
+                .lbPointerButtons()
+                .lbKeyboardFocusEffects()
+        }
+        #else
+        WindowGroup {
+            RootView()
+                // Dark is the authored canvas and the default; light is the second
+                // palette the reader can choose. System hands the choice to the OS.
+                .preferredColorScheme((LBAppearance(rawValue: appearance) ?? .system).colorScheme)
+                // The window itself takes the choice too, the moment it changes and each time
+                // the app comes forward, so nothing waits for a relaunch.
+                .onChange(of: appearance, initial: true) { _, value in LBAppearance.applyToWindows(value) }
+                .onChange(of: scenePhase) { _, phase in
+                    if phase == .active { LBAppearance.applyToWindows(appearance) }
+                }
+        }
+        #endif
+
+        #if os(macOS)
+        // The desktop's menu-bar indicator, always present: the next payment beside the clock,
+        // or the mark alone when that switch is off. An isInserted binding on this scene
+        // redraws the app without end, so the switch changes the label instead.
+        MenuBarExtra {
+            Group {
+                Text(tray.menuLine)
+                Divider()
+                Button("Open longbook") {
+                    Measure.used("open_longbook")
+                    // Activation alone raises a process that may have no window left.
+                    openWindow(id: LongbookWindow.main)
+                    NSApp.activate(ignoringOtherApps: true)
+                }
+                // With the Dock icon hidden there is no app menu, so Settings is offered here too.
+                Button("Settings…") {
+                    Measure.used("menu_bar_settings")
+                    openSettings()
+                    NSApp.activate(ignoringOtherApps: true)
+                }
+                Button("Refresh") { Measure.used("refresh"); tray.refresh() }
+                Divider()
+                Button("Quit longbook") { Measure.used("quit_longbook"); NSApplication.shared.terminate(nil) }
+            }
+            // Opening the menu re-reads the vault, so the line is never a stale answer.
+            .onAppear { tray.refresh() }
+        } label: {
+            TrayLabel(tray: tray)
+        }
+        #endif
+    }
+}
+
+#if os(macOS)
+/// The menu bar item's face: the next payment, or the book mark when the owner turned the
+/// line off. Its own view, so the switch redraws the label and never the app's scenes.
+private struct TrayLabel: View {
+    @ObservedObject var tray: TrayModel
+    @AppStorage(DockIcon.menuBarKey) private var showsPayment = true
+
+    var body: some View {
+        if showsPayment {
+            Text(tray.title)
+        } else {
+            Image(systemName: "book.closed")
+        }
+    }
+}
+#endif
+
+#if os(macOS) && DEBUG
+import AppKit
+
+/// Development harness: render the root view to a PNG in a window that is never ordered
+/// onto the screen, then exit. Lets a build be seen without taking anyone's display.
+enum Snapshot {
+    /// The real window, as it stands after `LONGBOOK_SNAPSHOT_WAIT` seconds: the key window
+    /// (a sheet when one is up) drawn to a PNG at Retina scale, then the app quits.
+    static func windowSnapshot(to path: String, env: [String: String]) {
+        let wait = env["LONGBOOK_SNAPSHOT_WAIT"].flatMap(Double.init) ?? 5
+        DispatchQueue.main.asyncAfter(deadline: .now() + wait) {
+            let main = NSApp.keyWindow ?? NSApp.windows.first { $0.isVisible }
+            let window = main?.attachedSheet ?? main
+            if let view = window?.contentView, let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) {
+                view.cacheDisplay(in: view.bounds, to: rep)
+                if let png = rep.representation(using: .png, properties: [:]) { try? png.write(to: URL(fileURLWithPath: path)) }
+            }
+            exit(0)
+        }
+    }
+
+    static func runIfAsked() {
+        let env = ProcessInfo.processInfo.environment
+        if let path = env["LONGBOOK_WINDOW_SNAPSHOT"] { return windowSnapshot(to: path, env: env) }
+        guard let path = env["LONGBOOK_SNAPSHOT"] else { return }
+        // A taller frame shows a whole scrolling screen; a named width makes a store-size
+        // picture. The default is a window's worth.
+        let height = env["LONGBOOK_SNAPSHOT_HEIGHT"].flatMap { CGFloat(Double($0) ?? 0) }.map { max($0, 900) } ?? 900
+        let width = env["LONGBOOK_SNAPSHOT_WIDTH"].flatMap { CGFloat(Double($0) ?? 0) }.map { max($0, 1024) } ?? 1280
+        // A named screen is hosted as the plain root: the shell's pushed panes and sheets
+        // do not draw in a window nothing shows. No name means the dashboard in its shell.
+        let named = env["LONGBOOK_SNAPSHOT_SHEET"] ?? env["LONGBOOK_SNAPSHOT_SCREEN"]
+        // A screen the sidebar opens is pictured in the shell, beside the sidebar, as the
+        // reader meets it; a sheet or a setup screen stands alone.
+        let inShell: Set<String> = ["commitments", "charges", "earnings", "transfers", "noaccount", "daterange", "commitment", "calendar",
+                                    "accounts", "members", "insights", "reports", "report", "changes", "trips",
+                                    "chargecard", "accountcard", "personcard", "bookmarks"]
+        let root: AnyView
+        if let named, !named.isEmpty, !inShell.contains(named) || env["LONGBOOK_SNAPSHOT_SHEET"] != nil {
+            root = AnyView(SnapshotScreenHost(screen: named, id: env["LONGBOOK_SNAPSHOT_ID"] ?? ""))
+        } else {
+            root = AnyView(RootView())
+        }
+        // The harness follows the app's own appearance setting (-appearance light|dark); dark by default.
+        let light = UserDefaults.standard.string(forKey: "appearance") == LBAppearance.light.rawValue
+        let view = NSHostingView(
+            rootView: root.preferredColorScheme(light ? .light : .dark).frame(width: width, height: height)
+        )
+        view.frame = NSRect(x: 0, y: 0, width: width, height: height)
+        let window = NSWindow(
+            contentRect: view.frame, styleMask: [.borderless], backing: .buffered, defer: false
+        )
+        window.contentView = view
+        window.appearance = NSAppearance(named: light ? .aqua : .darkAqua)
+        // Layout needs a few runloop turns; the window never appears because nothing
+        // orders it front. A screen that works first can ask for longer.
+        let wait = env["LONGBOOK_SNAPSHOT_WAIT"].flatMap(Double.init) ?? 3
+        let deadline = Date().addingTimeInterval(wait)
+        while Date() < deadline {
+            RunLoop.main.run(mode: .default, before: Date().addingTimeInterval(0.05))
+        }
+        // A scale above 1 draws the same layout into a denser bitmap, as a Retina screen would:
+        // store pictures need twice the pixels of a window's points.
+        let scale = env["LONGBOOK_SNAPSHOT_SCALE"].flatMap(Double.init).map { max(1, min($0, 3)) } ?? 1
+        let rep: NSBitmapImageRep
+        if scale > 1 {
+            guard let dense = NSBitmapImageRep(
+                bitmapDataPlanes: nil, pixelsWide: Int(width * scale), pixelsHigh: Int(height * scale),
+                bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+                colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
+            ) else { exit(1) }
+            dense.size = view.bounds.size
+            rep = dense
+        } else {
+            guard let plain = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { exit(1) }
+            rep = plain
+        }
+        view.cacheDisplay(in: view.bounds, to: rep)
+        guard let data = rep.representation(using: .png, properties: [:]) else { exit(1) }
+        try? data.write(to: URL(fileURLWithPath: path))
+        if env["LONGBOOK_SNAPSHOT_LAYOUT"] != nil { printLayout(of: view) }
+        exit(0)
+    }
+
+    /// What a picture cannot show: the scroller style, whether each scroller takes room from
+    /// its content, and each table's column widths.
+    private static func printLayout(of root: NSView) {
+        print("preferredScrollerStyle", NSScroller.preferredScrollerStyle == .overlay ? "overlay" : "legacy")
+        func walk(_ view: NSView) {
+            if let scroll = view as? NSScrollView {
+                print("scrollView style", scroll.scrollerStyle == .overlay ? "overlay" : "legacy",
+                      "width", scroll.frame.width, "content", scroll.contentView.frame.width)
+            }
+            if let table = view as? NSTableView, table.headerView != nil {
+                print("table", table.tableColumns.map { "\($0.headerCell.stringValue)=\($0.width)" }, "autoresizing", table.columnAutoresizingStyle.rawValue)
+            }
+            view.subviews.forEach(walk)
+        }
+        walk(root)
+    }
+}
+
+/// Hosts one screen as a plain root so the harness can picture it, drawing the content the
+/// shell's NavigationStack would push. Its own model, auth and store read the vault the env
+/// names; the sidebar and tab bar are the shell's and are absent here.
+private struct SnapshotScreenHost: View {
+    let screen: String
+    let id: String
+    /// The onboarding stage a harness screen name stands for.
+    static func stage(for screen: String) -> OnboardingStage {
+        switch screen {
+        case "setupaccounts": return .accounts(card: 0)
+        case "setupsummary": return .commitmentsDone
+        case "setupstatement": return .finish
+        default: return .commitments(card: 0)
+        }
+    }
+    static func settingsTab(_ id: String) -> SettingsPane {
+        if id == "data" { return .privacy }
+        return SettingsPane(rawValue: id) ?? .general
+    }
+    @State private var model = DashboardModel()
+    @StateObject private var auth = AuthViewModel()
+    @StateObject private var entitlement = EntitlementStore()
+    var body: some View {
+        // A stack, as the shell gives every screen: a link outside one draws disabled.
+        NavigationStack {
+            switch screen {
+            case "commitments": CommitmentsView(model: model, filter: ListFilter())
+            case "commitment": CommitmentDetailView(model: model, id: id)
+            case "calendar": CalendarView(model: model)
+            case "accounts": AccountsView(model: model)
+            case "members": MembersView(model: model)
+            case "insights": InsightsView(model: model, path: .constant([]))
+            case "reports": ReportsView(model: model, auth: auth)
+            case "report": ReportDetailView(model: model, id: id, auth: auth)
+            case "changes": ChangesView(model: model)
+            case "connectai", "automations": AutomationsView(model: model, auth: auth)
+            // The Settings window at its own width; LONGBOOK_SNAPSHOT_ID names the tab.
+            case "settings": SnapshotSettingsWindow(model: model, auth: auth, entitlement: entitlement, picked: Self.settingsTab(id))
+            case "more": MoreView(model: model, auth: auth) {}
+            case "account": AccountDetailsView(auth: auth, entitlement: entitlement)
+            case "display": DisplayCurrencyView(model: model)
+            case "cardcolours":
+                if let kind = LBCardKind(rawValue: id) {
+                    CardColourGrid(kind: kind, onDone: {}).padding(LBSpacing.s4).frame(width: 340)
+                } else {
+                    SettingsGroup { CardColoursList() }.frame(width: 560)
+                }
+            case "privacy": DataPrivacyView(model: model)
+            case "help", "helpabout": HelpAboutView(model: model)
+            case "signout": SignOutScreenView(auth: auth)
+            case "updates": UpdatesView()
+            case "trips": TripsView(model: model, path: .constant([]))
+            case "addtrip": TripFlowView(model: model, mode: .past, onCreated: { _ in }, onClose: {})
+            case "starttrip": TripFlowView(model: model, mode: .start, onCreated: { _ in }, onClose: {})
+            case "billing": BillingView(entitlement: entitlement, auth: auth)
+            case "purchase": PurchaseView(auth: auth, entitlement: entitlement)
+            case "addcommitment": RenewalFormView(model: model, editingId: nil, onDone: {})
+            case "importstatement", "lockedstatement": StatementImportView(model: model, auth: auth, onDone: {})
+            // The first run's import sheet, as the setup step opens it.
+            case "notrecent": StatementImportView(model: model, auth: auth, context: .setup, onDone: {})
+            case "consent": ConsentSheet(consent: .statements, onAccept: {}, onDecline: {})
+            case "reorganise": ReorganiseView(model: model, auth: auth, onDone: {})
+            case "charges": CommitmentsView(model: model, filter: ListFilter(scope: .past, months: id.isEmpty ? [] : [id]))
+            case "noaccount": CommitmentsView(model: model, filter: ListFilter(months: id.isEmpty ? [] : [id], methodId: DashboardModel.unassignedMethodId))
+            case "daterange": CommitmentsView(model: model, filter: ListFilter.snapshotRange(id))
+            case "editaccount": SnapshotAccountEdit(model: model)
+            case "editmember": SnapshotMemberEdit(model: model)
+            case "editcommitment": SnapshotCommitmentEdit(model: model)
+            case "editcharge": SnapshotChargeEdit(model: model)
+            case "movescale": SnapshotMoveScale(path: id)
+            case "tips": TipsView()
+            case "shortcuts": KeyboardShortcutsView()
+            case "welcome": SignInView(auth: auth)
+            case "waiting": OnboardingWaitingView(commitments: 2, accounts: 0, onResume: {}, onDemo: {})
+            case "demo": DemoLongbookView(auth: auth, onLeave: {})
+            case "picker", "setupmembers", "setupaccounts", "setupsummary", "setupstatement":
+                OnboardingFlowView(model: model, auth: auth,
+                                   session: OnboardingSession(start: Self.stage(for: screen), paused: false, model: model,
+                                                              replay: ProcessInfo.processInfo.environment["LONGBOOK_SNAPSHOT_REPLAY"] != nil),
+                                   replay: ProcessInfo.processInfo.environment["LONGBOOK_SNAPSHOT_REPLAY"] != nil, onDone: {})
+            case "vaultchoice": VaultChoiceView(model: model, auth: auth)
+            case "signin": SignInView(auth: auth)
+            case "deleteaccount": DeleteAccountSheet(auth: auth, entitlement: entitlement, onClose: {})
+            default: DashboardView(model: model, auth: auth, path: .constant([]))
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(LBColor.canvas.color)
+        .environmentObject(entitlement)
+        // The locked and turned-away statement pictures are made-up files and read no vault.
+        .onAppear { if !["lockedstatement", "notrecent"].contains(screen) { model.load() } }
+    }
+}
+
+/// The Settings window at its own width, sidebar and picked pane, with the harness's model.
+private struct SnapshotSettingsWindow: View {
+    let model: DashboardModel
+    @ObservedObject var auth: AuthViewModel
+    @ObservedObject var entitlement: EntitlementStore
+    let picked: SettingsPane
+
+    var body: some View {
+        SettingsWindowContent(model: model, auth: auth, entitlement: entitlement, picked: .constant(picked), toMainWindow: { _ in })
+            .frame(width: 820, height: 640)
+            .border(LBColor.hairline.color)
+    }
+}
+
+/// Move and Scale for the picture at LONGBOOK_SNAPSHOT_ID, in the shape LONGBOOK_SNAPSHOT_OPEN
+/// names: circle, or square for a card's rounded square.
+private struct SnapshotMoveScale: View {
+    let path: String
+    var body: some View {
+        if let data = FileManager.default.contents(atPath: path) {
+            let shape: PhotoShape = ProcessInfo.processInfo.environment["LONGBOOK_SNAPSHOT_OPEN"] == "square" ? .rounded : .circle
+            PhotoMoveScaleView(data: data, shape: shape, onChoose: { _ in }, onCancel: {})
+                .border(LBColor.hairline.color)
+        } else {
+            Color.clear
+        }
+    }
+}
+
+/// The first real account's editor, once the vault has loaded and named one.
+/// The member editor as the window's root, since an offscreen window paints no sheet.
+private struct SnapshotMemberEdit: View {
+    let model: DashboardModel
+    var body: some View {
+        if let first = model.entityCards(.familyMember).first(where: \.isReal) {
+            EntityEditView(model: model, kind: .familyMember, id: first.id, currentName: first.name) {}
+        } else {
+            Color.clear
+        }
+    }
+}
+
+private struct SnapshotAccountEdit: View {
+    let model: DashboardModel
+    var body: some View {
+        if let first = model.accountCards().first(where: { $0.id != DashboardModel.unassignedMethodId }) {
+            EntityEditView(model: model, kind: .paymentMethod, id: first.id, currentName: first.name) {}
+        } else {
+            Color.clear
+        }
+    }
+}
+#endif
+
+#if DEBUG
+/// The phone's edit sheet for the harness: the form LONGBOOK_SNAPSHOT_SCREEN names.
+struct SnapshotEditForm: View {
+    let model: DashboardModel
+    var body: some View {
+        // Sized as the app opens it: on a charge over three quarters, on a commitment full.
+        if ProcessInfo.processInfo.environment["LONGBOOK_SNAPSHOT_SCREEN"] == "editcharge" {
+            SnapshotChargeEdit(model: model)
+                .lbThreeQuarterSheet()
+        } else {
+            SnapshotCommitmentEdit(model: model)
+        }
+    }
+}
+
+/// The editing form rather than the adding one, named by LONGBOOK_SNAPSHOT_ID: Status and
+/// Cancelling On only appear for a commitment that exists.
+struct SnapshotCommitmentEdit: View {
+    let model: DashboardModel
+    var body: some View {
+        let wanted = ProcessInfo.processInfo.environment["LONGBOOK_SNAPSHOT_ID"] ?? ""
+        if model.subscription(id: wanted) != nil {
+            RenewalFormView(model: model, editingId: wanted, onDone: {})
+        } else {
+            Color.clear
+        }
+    }
+}
+
+/// The form opened on one charge: the commitment named by LONGBOOK_SNAPSHOT_ID, and the row
+/// on the ISO day named by LONGBOOK_SNAPSHOT_CHARGE.
+struct SnapshotChargeEdit: View {
+    let model: DashboardModel
+    var body: some View {
+        let env = ProcessInfo.processInfo.environment
+        let wanted = env["LONGBOOK_SNAPSHOT_ID"] ?? ""
+        let day = env["LONGBOOK_SNAPSHOT_CHARGE"] ?? ""
+        if model.charges(of: wanted).contains(where: { $0.row.date == day }) {
+            RenewalFormView(model: model, editingId: wanted, chargeISO: day, onDone: {})
+        } else {
+            Color.clear
+        }
+    }
+}
+#endif

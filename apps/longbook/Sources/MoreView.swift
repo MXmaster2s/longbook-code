@@ -1,0 +1,279 @@
+import DesignSystem
+import LongbookCore
+import SwiftUI
+
+/// Everything that isn't a ledger screen: who you are and where your folder is, then
+/// grouped rows — connections, preferences, support — and sign out last, on its own.
+/// Every row leads somewhere that exists.
+struct MoreView: View {
+    let model: DashboardModel
+    @ObservedObject var auth: AuthViewModel
+    let onTutorial: () -> Void
+    /// The demo longbook over the book, from the same group as Optimize your data.
+    var onDemo: (() -> Void)? = nil
+    @State private var importing = false
+    @State private var showingPastImports = false
+    /// Whether a statement adds the accounts and people it finds; read by the importer.
+    @AppStorage(StatementFinds.key) private var addFound = true
+    @Environment(\.openURL) private var openURL
+
+    /// The tab, the sidebar row and the menu item all say Settings.
+    private static let screenTitle = "Settings"
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: LBSpacing.s4) {
+                LBPageTitle(Self.screenTitle)
+                identityCard
+                #if os(iOS)
+                // The phone has no sidebar, so More is its one standing route to these.
+                group("longbook", [
+                    Row("magnifyingglass", 7, "Search", "", .opens(.search)),
+                    Row(LBGlyph.change, 5, "Proposals", "", .opens(.changes)),
+                    Row("lightbulb", 6, "Insights", "", .opens(.insights)),
+                    Row("bookmark", 3, "Bookmarks", "", .opens(.bookmarks)),
+                    Row(LBGlyph.commitment, 1, "Commitments", "", .opens(.commitments(ListFilter()))),
+                    Row(LBGlyph.charge, 2, "Charges", "", .opens(.commitments(ListFilter(scope: .past, kind: .charges)))),
+                    Row(LBGlyph.income, 8, "Earnings", "", .opens(.commitments(ListFilter(scope: .past, kind: .earnings)))),
+                    Row(LBGlyph.transfer, 10, "Transfers", "", .opens(.commitments(ListFilter(scope: .past, kind: .transfers)))),
+                    Row(LBGlyph.account, 4, "Accounts", "", .opens(.accounts)),
+                    Row("person.2", 9, "People", "", .opens(.members)),
+                ])
+                .tutorialTarget(.settingsLongbook)
+                #endif
+                group("Import", [
+                    Row("doc.text.magnifyingglass", 4, "Import a statement", "", .does { importing = true }),
+                ] + importSwitches)
+                .tutorialTarget(.settingsImport)
+                group("Reports", [
+                    Row("airplane", 7, "Trips", "", .opens(.trips)),
+                ])
+                group("Connections", [
+                    Row("sparkles", 9, "AI Connections", "", .opens(.mcpServer)),
+                ])
+                group("Preferences", [
+                    Row("paintpalette", 5, "Display & currency", "", .opens(.display)),
+                    Row("lock", 11, "Data & privacy", "", .opens(.privacy)),
+                ])
+                group("Support", [
+                    Row("slider.horizontal.3", 10, "Optimize your data", "", .does(onTutorial)),
+                ] + (onDemo.map { demo in [Row("sparkles", 12, "Try the demo", "", .does(demo))] } ?? []) + [
+                    Row("lightbulb.max", 1, "Tips", "", .opens(.tips)),
+                    Row("hand.point.up.left", 6, "Tutorials", "", .opens(.tutorials)),
+                    Row("questionmark.circle", 8, "Help & about", "", .opens(.helpAbout)),
+                ] + updateRows, footer: optimizeFooter)
+                group(nil, [
+                    Row("rectangle.portrait.and.arrow.right", nil, "Sign out", "", .opens(.signOut), destructive: true),
+                ], danger: true)
+            }
+            .lbPageColumn(.reading)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(LBColor.canvas.color)
+        #if os(iOS)
+        // The Mac's settings are a window of their own, with no tutorial over them.
+        .screenTutorial(.settings)
+        #endif
+        .measured("more_importing", .sheet, when: importing)
+        .sheet(isPresented: $importing) {
+            StatementImportView(model: model, auth: auth) { importing = false }
+                .lbKeyboardFocusEffects()
+        }
+        .measured("more_past_imports", .sheet, when: showingPastImports)
+        .sheet(isPresented: $showingPastImports) {
+            NavigationStack {
+                ScrollView { PastImportsList(records: model.pastImports()) }
+                    .background(LBColor.canvas.color)
+                    .navigationTitle("Past imports")
+            }
+                .lbKeyboardFocusEffects()
+        }
+        .lbScreenTitle(Self.screenTitle)
+    }
+
+    /// The switch for what a statement adds, on the phone; the Mac keeps it in its Settings window.
+    private var importSwitches: [Row] {
+        #if os(iOS)
+        [Row("person.crop.rectangle.stack", 4, "Add accounts and people found in statements", "",
+             .switches($addFound, detail: addFound ? StatementFinds.onDetail : StatementFinds.offDetail)),
+         Row("clock.arrow.circlepath", 4, "Past imports", "", .does { showingPastImports = true })]
+        #else
+        []
+        #endif
+    }
+
+    /// Under Support on the phone: what Optimize your data keeps, and where it does not go.
+    private var optimizeFooter: String? {
+        #if os(iOS)
+        "Optimize your data keeps your answers as hints for reading statements. Nothing is added to People or Accounts."
+        #else
+        nil
+        #endif
+    }
+
+    /// What changed in this version, the same sheet that opens once after an update.
+    private var updateRows: [Row] {
+        [Row("arrow.down.circle", 2, AppUpdates.screenTitle, "", .does { WhatsNewCenter.shared.open() })]
+    }
+
+    // MARK: identity
+
+    /// The card with the owner's email is the door to the account screen: email, plan,
+    /// purchase, sign out and delete all live behind it.
+    private var identityCard: some View {
+        NavigationLink(value: Destination.accountDetails) {
+            identityBody
+        }
+        .lbButtonStyle()
+        .accessibilityHint("Opens your account and plan")
+    }
+
+    private var identityBody: some View {
+        VStack(alignment: .leading, spacing: LBSpacing.s3) {
+            HStack(spacing: LBSpacing.s3) {
+                AccountAvatar(url: auth.avatarURL, email: auth.email)
+                VStack(alignment: .leading, spacing: 2) {
+                    // Named as Settings names its account row: the email is the only name
+                    // longbook has been told, and with none the row still says what it opens.
+                    Text(auth.email ?? "Your account")
+                        .lbText(.body)
+                        .foregroundStyle(LBColor.textPrimary.color)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                    Text("Account and plan")
+                        .lbText(.footnote)
+                        .foregroundStyle(LBColor.textTertiary.color)
+                }
+                Spacer(minLength: LBSpacing.s2)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(LBColor.textQuaternary.color)
+                    .accessibilityHidden(true)
+            }
+        }
+        .padding(LBSpacing.s4)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
+        .background(LBColor.card.color, in: RoundedRectangle(cornerRadius: LBRadius.md, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: LBRadius.md, style: .continuous)
+                .strokeBorder(LBColor.hairline.color, lineWidth: 1)
+        )
+    }
+
+    // MARK: groups
+
+    private enum RowState {
+        case opens(Destination)
+        case does(() -> Void)
+        /// A setting held on this device, its detail saying what the current choice does.
+        case switches(Binding<Bool>, detail: String)
+        case soon
+        case plain
+    }
+
+    private struct Row: Identifiable {
+        let symbol: String
+        let ink: Int?
+        let title: String
+        let subtitle: String
+        let state: RowState
+        /// Destructive rows wear danger — a label at the boundary floor, per the rule
+        /// delete buttons already follow.
+        let destructive: Bool
+        var id: String { title }
+
+        init(_ symbol: String, _ ink: Int?, _ title: String, _ subtitle: String, _ state: RowState, destructive: Bool = false) {
+            self.symbol = symbol
+            self.ink = ink
+            self.title = title
+            self.subtitle = subtitle
+            self.state = state
+            self.destructive = destructive
+        }
+    }
+
+    /// A titled card of rows, the title a caption above it and a footnote under it. `danger`
+    /// washes the card for the one destructive group.
+    private func group(_ title: String?, _ rows: [Row], danger: Bool = false, footer: String? = nil) -> some View {
+        VStack(alignment: .leading, spacing: LBSpacing.s2) {
+            if let title {
+                Text(title)
+                    .lbText(.footnote)
+                    .foregroundStyle(LBColor.textTertiary.color)
+                    .padding(.horizontal, LBSpacing.s1)
+            }
+            VStack(spacing: 0) {
+                // The rule belongs BETWEEN rows; one under the last would cut the card.
+                ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
+                    self.row(row, separated: index < rows.count - 1)
+                }
+            }
+            .background(
+                (danger ? LBColor.danger.color.opacity(0.08) : LBColor.card.color),
+                in: RoundedRectangle(cornerRadius: LBRadius.md, style: .continuous)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: LBRadius.md, style: .continuous)
+                    .strokeBorder(danger ? LBColor.danger.color.opacity(0.35) : LBColor.hairline.color, lineWidth: 1)
+            )
+            if let footer {
+                Text(footer)
+                    .lbText(.footnote)
+                    .foregroundStyle(LBColor.textTertiary.color)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, LBSpacing.s1)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func row(_ row: Row, separated: Bool) -> some View {
+        switch row.state {
+        case .opens(let destination):
+            NavigationLink(value: destination) {
+                rowBody(row.symbol, ink: row.ink, row.title, row.subtitle, trailing: "chevron.right", separated: separated, destructive: row.destructive)
+            }
+            .lbButtonStyle()
+        case .does(let action):
+            Button(action: { Measure.used("more_row"); action() }) {
+                rowBody(row.symbol, ink: row.ink, row.title, row.subtitle, trailing: "chevron.right", separated: separated, destructive: row.destructive)
+            }
+            .lbButtonStyle()
+        case .switches(let isOn, let detail):
+            Toggle(isOn: isOn.measured("add_found_in_statements")) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(row.title)
+                        .lbText(.body)
+                        .foregroundStyle(LBColor.textPrimary.color)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text(detail)
+                        .lbText(.footnote)
+                        .foregroundStyle(LBColor.textTertiary.color)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .tint(LBColor.brand.color)
+            .padding(LBSpacing.s3)
+            .overlay(alignment: .bottom) {
+                if separated { Rectangle().fill(LBColor.hairline.color).frame(height: 1).padding(.leading, LBSpacing.s3) }
+            }
+        case .soon:
+            rowBody(row.symbol, ink: row.ink, row.title, row.subtitle, trailing: nil, soon: true, separated: separated)
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("\(row.title), coming soon")
+        case .plain:
+            rowBody(row.symbol, ink: row.ink, row.title, row.subtitle, trailing: nil, separated: separated)
+        }
+    }
+
+    private func rowBody(
+        _ symbol: String, ink: Int?, _ title: String, _ subtitle: String,
+        trailing: String?, soon: Bool = false, separated: Bool = false, destructive: Bool = false
+    ) -> some View {
+        SettingsRowLabel(
+            symbol: symbol, ink: ink, title: title, subtitle: subtitle,
+            trailing: trailing, soon: soon, separated: separated, destructive: destructive
+        )
+    }
+}

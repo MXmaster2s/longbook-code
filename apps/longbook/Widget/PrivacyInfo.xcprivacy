@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	  The extension links LongbookCore, so its binary carries the app's UserDefaults and file
+	  timestamp calls. UserDefaults: the group.app.longbook suite holding the vault bookmark,
+	  and the plain defaults used when the group is unavailable. See VaultLocation.
+	-->
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+				<string>1C8F.1</string>
+			</array>
+		</dict>
+		<!--
+		  File timestamps: VaultReader in LongbookCore reads the vault file's modification date
+		  to know a copy is fresh (the built appex imports lstat and NSFileModificationDate). The
+		  file is in the app group or iCloud container, or in a folder the person picked.
+		-->
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>C617.1</string>
+				<string>3B52.1</string>
+			</array>
+		</dict>
+	</array>
+
+	<!-- Empty because the widget reads a copy of the vault from the group container and
+	     contacts no server at all. -->
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+</dict>
+</plist>

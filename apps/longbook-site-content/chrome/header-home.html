@@ -1,0 +1,76 @@
+<div class="top">
+  <div class="top-in">
+    <img class="mk" src="/mark-52.png" width="24" height="24" alt="">
+    <a class="wm" href="#">longbook</a>
+    <nav>
+      <a href="/features/">Features</a>
+      <a href="/automations/">Automations</a>
+      <a href="/faq/">FAQ</a>
+      <a href="#price">Pricing</a>
+      <button class="thm" type="button" aria-label="Switch between light and dark">
+        <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M18.8 5.2l-1.6 1.6M6.8 17.2l-1.6 1.6"/></svg>
+        <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.4 14.2A8.6 8.6 0 0 1 9.8 3.6a8.6 8.6 0 1 0 10.6 10.6z"/></svg>
+      </button>
+      {{products}}
+      <button class="burger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="bmenu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </nav>
+  </div>
+  <div class="bmenu" id="bmenu" hidden><a href="/features/">Features</a><a href="/automations/">Automations</a><a href="/faq/">FAQ</a><a href="#price">Pricing</a>{{products_burger}}</div>
+</div>
+<style>
+  .burger { display:none; place-items:center; width:36px; height:36px; padding:0; border:1px solid var(--lb-hairline); border-radius:50%; background:var(--lb-card); color:var(--lb-text-secondary); cursor:pointer; }
+  .burger:hover { color:var(--lb-brand-text); border-color:var(--lb-brand); }
+  .burger svg { width:18px; height:18px; }
+  .bmenu { position:absolute; left:0; right:0; top:100%; display:none; flex-direction:column; padding:var(--lb-space-s2) var(--lb-space-s4) var(--lb-space-s4); background:var(--lb-canvas); border-bottom:1px solid var(--lb-hairline); box-shadow:var(--sh-2, 0 8px 24px rgba(0,0,0,.2)); }
+  .bmenu:not([hidden]) { display:flex; }
+  .bmenu a { padding:14px 4px; color:var(--lb-text-primary); text-decoration:none; font-size:var(--lb-type-body-size); font-weight:560; border-bottom:1px solid var(--lb-hairline); }
+  .bmenu a:last-child { border-bottom:0; }
+  .bmenu a:hover { color:var(--lb-brand-text); }
+  .dlm { min-width:290px; max-width:calc(100vw - 24px); }
+  .dlm .pmi { display:flex; flex-direction:column; gap:1px; min-width:0; }
+  .dlm .pmi small { font-size:var(--lb-type-footnote-size); font-weight:500; color:var(--lb-text-secondary); }
+  .dlm a:hover .pmi small, .dlm a:focus-visible .pmi small { color:inherit; }
+  .dlm img { width:15px; height:15px; flex:0 0 auto; }
+  .dlm .pmoff { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; color:var(--lb-text-tertiary); font-size:var(--lb-type-body-sm-size); font-weight:600; cursor:default; }
+  .dlm .pmoff .pmi small { color:var(--lb-text-tertiary); }
+  .bmenu { max-height:calc(100vh - 66px); overflow-y:auto; }
+  .bmenu .bmh { margin:var(--lb-space-s4) 0 0; padding:0 4px; color:var(--lb-text-tertiary); font-size:var(--lb-type-footnote-size); font-weight:600; letter-spacing:.06em; text-transform:uppercase; }
+  .bmenu a small, .bmenu .bsoon small { display:block; margin-top:2px; color:var(--lb-text-secondary); font-size:var(--lb-type-footnote-size); font-weight:500; }
+  .bmenu .bsoon { padding:14px 4px; color:var(--lb-text-tertiary); font-size:var(--lb-type-body-size); font-weight:560; border-bottom:1px solid var(--lb-hairline); }
+  @media (max-width:680px) { .top nav > a:not(.btn), .top nav a.nl { display:none; } .burger { display:grid; } }
+  @media (min-width:681px) { .bmenu { display:none !important; } }
+  @media (max-width:380px) { .top-in { padding:0 var(--lb-space-s3); gap:var(--lb-space-s2); } .top nav { gap:var(--lb-space-s2); } .top nav .btn.sm.dlb { padding:0 var(--lb-space-s3); } }
+</style>
+<script>
+(function () {
+  var b = document.querySelector('.burger'), m = document.getElementById('bmenu'); if (!b || !m) return;
+  function set(o) { m.hidden = !o; b.setAttribute('aria-expanded', o ? 'true' : 'false'); }
+  b.addEventListener('click', function (e) { e.stopPropagation(); set(m.hidden); });
+  m.addEventListener('click', function (e) { if (e.target.closest('a')) set(false); });
+  document.addEventListener('click', function (e) { if (!m.hidden && !m.contains(e.target)) set(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') set(false); });
+})();
+(function () {
+  // The Products menu from the keyboard: arrows move through it, Escape closes it and returns to
+  // its button, and leaving it closes it. The page's own script opens and closes it on a click.
+  var dl = document.querySelector('.dl'); if (!dl) return;
+  var btn = dl.querySelector('.dlb'), menu = dl.querySelector('.dlm');
+  function show(on) { menu.hidden = !on; btn.setAttribute('aria-expanded', String(on)); }
+  function items() { return [].slice.call(menu.querySelectorAll('a[role="menuitem"]')); }
+  btn.addEventListener('keydown', function (e) {
+    if (e.key !== 'ArrowDown') return;
+    e.preventDefault(); show(true); var first = items()[0]; if (first) first.focus();
+  });
+  menu.addEventListener('keydown', function (e) {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    var list = items(), i = list.indexOf(document.activeElement), down = e.key === 'ArrowDown';
+    var next = i < 0 ? list[down ? 0 : list.length - 1] : list[(i + (down ? 1 : list.length - 1)) % list.length]; if (next) next.focus();
+  });
+  dl.addEventListener('focusout', function (e) { if (!dl.contains(e.relatedTarget)) show(false); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape' || menu.hidden) return;
+    var inside = dl.contains(document.activeElement); show(false); if (inside) btn.focus();
+  });
+})();
+</script>

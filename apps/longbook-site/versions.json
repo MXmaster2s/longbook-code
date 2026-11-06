@@ -1,0 +1,39 @@
+{
+  "products": [
+    {
+      "id": "mac",
+      "name": "Mac",
+      "version": "1.5.0",
+      "link": "https://github.com/MXmaster2s/longbook-code/releases/latest/download/longbook.dmg",
+      "where": "Download"
+    },
+    {
+      "id": "iphone",
+      "name": "iPhone",
+      "version": "1.5.0 (66)",
+      "link": "https://testflight.apple.com/join/g66Nd3Na",
+      "where": "Beta on TestFlight"
+    },
+    {
+      "id": "claude",
+      "name": "Claude",
+      "version": "1.50.0",
+      "link": "https://longbook.app/features/automate-longbook-with-claude/",
+      "where": "Plugin and connector"
+    },
+    {
+      "id": "chatgpt",
+      "name": "ChatGPT",
+      "version": "1.50.0",
+      "link": "https://longbook.app/help/connect-claude-or-chatgpt/",
+      "where": "Connector"
+    },
+    {
+      "id": "mcp",
+      "name": "MCP server",
+      "version": "1.50.0",
+      "link": "https://longbook.app/features/longbook-npm-package/",
+      "where": "npm package"
+    }
+  ]
+}

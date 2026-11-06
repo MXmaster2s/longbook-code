@@ -1,0 +1,56 @@
+name: swift-weekly
+
+# The macOS half of the checks: both Swift packages and both app builds. Weekly rather
+# than per-push because hosted macOS runners bill at ten times the Linux rate. Start a
+# run from the Actions tab before any release, or after changing Swift sources.
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  # One job, not three: each additional macOS job pays for its own runner boot and
+  # checkout at the same ten-times rate. timeout-minutes caps a hung run's cost.
+  swift:
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      # The app uses the newest SDK's APIs, so the runner's default Xcode is not enough:
+      # pick the newest Xcode installed and print it, so a too-old image shows in the log.
+      - name: xcode
+        run: |
+          xcode="$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)"
+          sudo xcode-select -s "$xcode"
+          xcodebuild -version
+
+      - name: swift-core
+        working-directory: packages/swift-core
+        run: swift build && swift test
+
+      - name: swift-design
+        working-directory: packages/swift-design
+        run: swift build && swift test
+
+      - name: app
+        working-directory: apps/longbook
+        # Releases are built with Xcode 27; Xcode 26 cannot type-check the app in time
+        # (RenewalFormView). Until the runner image carries Xcode 27, the app build is
+        # skipped with a notice, and the packages above still run.
+        run: |
+          major="$(xcodebuild -version | head -1 | sed -E 's/Xcode ([0-9]+).*/\1/')"
+          if [ "$major" -lt 27 ]; then
+            echo "::notice::App build skipped: newest Xcode on this runner is $major, the app needs 27."
+            exit 0
+          fi
+          brew install xcodegen
+          xcodegen generate
+          xcodebuild -project longbook.xcodeproj -scheme longbook \
+            -destination 'platform=macOS' build CODE_SIGNING_ALLOWED=NO
+          xcodebuild -project longbook.xcodeproj -scheme longbook \
+            -destination 'generic/platform=iOS Simulator' build CODE_SIGNING_ALLOWED=NO

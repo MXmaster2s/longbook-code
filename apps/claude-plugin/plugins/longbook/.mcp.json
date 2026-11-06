@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "longbook": {
+      "type": "http",
+      "url": "https://longbook.app/mcp"
+    },
+    "gmail": {
+      "type": "http",
+      "url": "https://gmailmcp.googleapis.com/mcp/v1"
+    }
+  }
+}

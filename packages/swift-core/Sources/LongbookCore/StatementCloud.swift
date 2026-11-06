@@ -1,0 +1,638 @@
+// A statement the device cannot vouch for goes to longbook's server in small pieces, a few
+// pages or a run of rows, each returning every charge it holds; then the year's charges go
+// once more for people and rhythms. One the device can vouch for: StatementLinePass.
+import Foundation
+#if canImport(PDFKit)
+import PDFKit
+#endif
+
+public enum StatementCloud {
+    public enum CloudError: LocalizedError {
+        case notSignedIn
+        case tooLarge(String)
+        case server(String)
+        case unreachable
+        /// The account's share of server readings is spent for now; the words never say how many.
+        case shareSpent
+        /// The server looked at the file's first piece and found no statement in it.
+        case notStatement(String)
+
+        public var errorDescription: String? {
+            switch self {
+            case .notSignedIn: return "Sign in first — the statement is read by your own account."
+            case .tooLarge(let name): return "\(name) is larger than a statement should be. Pick the statement itself, not a scan."
+            case .server(let said): return said
+            case .unreachable: return "longbook's server could not be reached. Check the connection and try again."
+            case .shareSpent:
+                return "longbook's server has read all the statements it can for your account for now. Write to us to read more, or use your own AI for this step."
+            case .notStatement(let said): return said
+            }
+        }
+    }
+
+    /// One piece of a file as it is sent, and the words that say which piece.
+    public struct Piece: Encodable, Equatable, Sendable {
+        public let name: String
+        public let type: String
+        public let data: String
+        /// "pages 4–6 of 12", "rows 151–300 of 527".
+        public let label: String
+
+        enum CodingKeys: String, CodingKey { case name, type, data }
+    }
+
+    public struct Charge: Decodable, Equatable, Sendable {
+        public let date: String
+        public let amount: Double
+        public let name: String
+        public let narration: String
+        public let account: String
+        public let category: String?
+        public let kind: String
+        public let member: String?
+        /// The other account or person the line moves money to or from, when it prints one;
+        /// `counterpartKind` is "account" or "person". An answer without them reads as nil.
+        public let counterpart: String?
+        public let counterpartKind: String?
+        /// The bank account printed beside a person on the other side ("Axis savings ••1234"),
+        /// or the owner's own other account; nil when the line prints none.
+        public let counterpartBank: String?
+
+        enum CodingKeys: String, CodingKey {
+            case date, amount, name, narration, account, category, kind, member, counterpart
+            case counterpartKind = "counterpart_kind"
+            case counterpartBank = "counterpart_bank"
+        }
+
+        public init(date: String, amount: Double, name: String, narration: String, account: String, category: String?,
+                    kind: String, member: String?, counterpart: String? = nil, counterpartKind: String? = nil, counterpartBank: String? = nil) {
+            self.date = date
+            self.amount = amount
+            self.name = name
+            self.narration = narration
+            self.account = account
+            self.category = category
+            self.kind = kind
+            self.member = member
+            self.counterpart = counterpart
+            self.counterpartKind = counterpartKind
+            self.counterpartBank = counterpartBank
+        }
+
+        public init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            date = try c.decode(String.self, forKey: .date)
+            amount = try c.decode(Double.self, forKey: .amount)
+            name = try c.decode(String.self, forKey: .name)
+            narration = try c.decode(String.self, forKey: .narration)
+            account = try c.decode(String.self, forKey: .account)
+            category = try c.decodeIfPresent(String.self, forKey: .category)
+            kind = try c.decode(String.self, forKey: .kind)
+            member = try c.decodeIfPresent(String.self, forKey: .member)
+            counterpart = try c.decodeIfPresent(String.self, forKey: .counterpart)
+            counterpartKind = try c.decodeIfPresent(String.self, forKey: .counterpartKind)
+            counterpartBank = try c.decodeIfPresent(String.self, forKey: .counterpartBank)
+        }
+
+        /// The same line with its people as the statement's holder is called.
+        func replacingPeople(member: String?, counterpart: String?) -> Charge {
+            Charge(date: date, amount: amount, name: name, narration: narration, account: account, category: category, kind: kind,
+                   member: member, counterpart: counterpart, counterpartKind: counterpartKind, counterpartBank: counterpartBank)
+        }
+
+        /// The same line with no person where what it calls one reads as a bank or a company. The
+        /// holder stands whatever their name reads as. A bare bank beside such a name goes too,
+        /// as it is that business's; an account with digits stays.
+        func keepingPeople(holder: String?) -> Charge {
+            func stands(_ person: String) -> Bool {
+                !StatementPeople.readsAsCompany(person) || holder.map { StatementHolder.same(person, $0) } == true
+            }
+            let memberStands = member.map(stands) ?? true
+            let otherStands = counterpartKind != "person" || counterpart.map(stands) ?? true
+            guard !memberStands || !otherStands else { return self }
+            return Charge(date: date, amount: amount, name: name, narration: narration, account: account, category: category,
+                          kind: !memberStands && kind == "for_member" ? "spend" : kind, member: memberStands ? member : nil,
+                          counterpart: otherStands ? counterpart : nil, counterpartKind: otherStands ? counterpartKind : nil,
+                          counterpartBank: otherStands || counterpartBank?.contains(where: \.isNumber) == true ? counterpartBank : nil)
+        }
+
+        /// The person a line names, whichever way the money went: the reader's member or the
+        /// person on its other side.
+        var namedPerson: String? {
+            let said = member?.trimmingCharacters(in: .whitespaces)
+            if let said, !said.isEmpty { return said }
+            if counterpartKind == "person", let other = counterpart?.trimmingCharacters(in: .whitespaces), !other.isEmpty { return other }
+            return nil
+        }
+
+        /// Whether the money came in on this line.
+        var isMoneyIn: Bool { kind == "income" || amount < 0 }
+
+        /// The same line under another name.
+        func renamed(_ name: String) -> Charge {
+            Charge(date: date, amount: amount, name: name, narration: narration, account: account, category: category, kind: kind,
+                   member: member, counterpart: counterpart, counterpartKind: counterpartKind, counterpartBank: counterpartBank)
+        }
+    }
+
+    /// The charges task's answer for one piece.
+    public struct ChargesAnswer: Decodable, Equatable, Sendable {
+        public var account: String
+        /// The account holder's name as the statement's header prints it; nil when it prints none.
+        public var holder: String?
+        public var charges: [Charge]
+        public var notes: String
+        /// The balance the piece prints at its end, and the day — when it prints one.
+        public var closingBalance: Double?
+        public var closingBalanceDate: String?
+        /// The ISO code the piece prints its amounts in; nil when it does not show one.
+        public var currency: String?
+
+        enum CodingKeys: String, CodingKey {
+            case account, holder, charges, notes, currency
+            case closingBalance = "closing_balance"
+            case closingBalanceDate = "closing_balance_date"
+        }
+    }
+
+    public struct Repeat: Decodable, Equatable, Sendable {
+        public let name: String
+        public let cycle: String
+        public let customDays: Int?
+        public let amount: Double
+        public let dates: [String]
+        public let category: String?
+        public let endsOn: String?
+        /// Backed by fewer than three sightings: the name says so and `reason` says why, in
+        /// one sentence. An answer without the fields reads as not guessed.
+        public let guessed: Bool
+        public let reason: String
+        /// The day and amount of each line it gathers, when the device decided them: another
+        /// line of that name on one of those days stays its own. Empty gathers by name and day.
+        public let sightings: Set<String>
+
+        enum CodingKeys: String, CodingKey {
+            case name, cycle, amount, dates, category, guessed, reason
+            case customDays = "custom_days"
+            case endsOn = "ends_on"
+        }
+
+        public init(name: String, cycle: String, customDays: Int?, amount: Double, dates: [String], category: String?, endsOn: String?,
+                    guessed: Bool = false, reason: String = "", sightings: Set<String> = []) {
+            self.sightings = sightings
+            self.name = name
+            self.cycle = cycle
+            self.customDays = customDays
+            self.amount = amount
+            self.dates = dates
+            self.category = category
+            self.endsOn = endsOn
+            self.guessed = guessed
+            self.reason = guessed ? reason : ""
+        }
+
+        public init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            let guessed = try c.decodeIfPresent(Bool.self, forKey: .guessed) ?? false
+            self.init(name: try c.decode(String.self, forKey: .name), cycle: try c.decode(String.self, forKey: .cycle),
+                      customDays: try c.decodeIfPresent(Int.self, forKey: .customDays), amount: try c.decode(Double.self, forKey: .amount),
+                      dates: try c.decodeIfPresent([String].self, forKey: .dates) ?? [], category: try c.decodeIfPresent(String.self, forKey: .category),
+                      endsOn: try c.decodeIfPresent(String.self, forKey: .endsOn), guessed: guessed,
+                      reason: (try c.decodeIfPresent(String.self, forKey: .reason) ?? "").trimmingCharacters(in: .whitespacesAndNewlines))
+        }
+
+        /// The same repeat under the name the owner would say.
+        func renamed(_ name: String) -> Repeat {
+            Repeat(name: name, cycle: cycle, customDays: customDays, amount: amount, dates: dates, category: category, endsOn: endsOn,
+                   guessed: guessed, reason: reason, sightings: sightings)
+        }
+
+        /// The same repeat over exactly these lines.
+        func gathering(dates: [String], sightings: Set<String>) -> Repeat {
+            Repeat(name: name, cycle: cycle, customDays: customDays, amount: amount, dates: dates, category: category, endsOn: endsOn,
+                   guessed: guessed, reason: reason, sightings: sightings)
+        }
+
+        /// The name the commitment is written under: a guess says so at its end.
+        public var writtenName: String { guessed ? "\(name) (Guessed)" : name }
+
+        /// The first line of a guessed commitment's notes; nil when nothing was guessed.
+        public var guessedNote: String? {
+            guard guessed else { return nil }
+            return "Guessed: \(reason.isEmpty ? "seen fewer than three times" : reason)"
+        }
+    }
+
+    public struct Member: Decodable, Equatable, Sendable {
+        public let name: String
+        public let role: String
+        public let reason: String
+
+        public init(name: String, role: String, reason: String) {
+            self.name = name
+            self.role = role
+            self.reason = reason
+        }
+    }
+
+    /// The review task's answer over the year.
+    public struct ReviewAnswer: Decodable, Equatable, Sendable {
+        public var repeats: [Repeat]
+        public var members: [Member]
+        public var notes: String
+
+        public static let empty = ReviewAnswer(repeats: [], members: [], notes: "")
+    }
+
+    /// Everything the review shows, assembled from the pieces and the look-over.
+    public struct Prepared: Equatable, Sendable {
+        public var account: String
+        public var charges: [Charge]
+        public var repeats: [Repeat]
+        public var members: [Member]
+        public var notes: String
+        /// The statement's closing balance and its day: the latest a piece printed.
+        public var balance: Double?
+        public var balanceDate: String?
+        /// The currency most pieces say they print, as an ISO code.
+        public var currency: String?
+        /// The person the statement belongs to, from its header; the statement's own account is
+        /// theirs and they are Self. Nil when the header prints none.
+        public var holder: String?
+
+        public init(account: String, charges: [Charge], repeats: [Repeat], members: [Member], notes: String,
+                    balance: Double? = nil, balanceDate: String? = nil, currency: String? = nil, holder: String? = nil) {
+            self.currency = currency
+            self.holder = holder
+            self.account = account
+            self.charges = charges
+            self.repeats = repeats
+            self.members = members
+            self.notes = notes
+            self.balance = balance
+            self.balanceDate = balanceDate
+        }
+
+        /// The pieces' answers as one: the account the first piece named, every charge in
+        /// order with its date checked, the notes joined.
+        public static func assemble(_ answers: [ChargesAnswer], review: ReviewAnswer, today: String = LB.toISO(LB.todayMid()),
+                                    mendingDates: Bool = true) -> Prepared {
+            let account = answers.first { !$0.account.trimmingCharacters(in: .whitespaces).isEmpty }?.account ?? ""
+            var notes = answers.map(\.notes) + [review.notes]
+            notes = notes.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+            // The latest closing line wins; one without a date only counts when no dated one exists.
+            let closing = answers.compactMap { answer -> (Double, String?)? in
+                answer.closingBalance.map { ($0, answer.closingBalanceDate.flatMap { LB.parseDate($0) != nil && $0 <= today ? $0 : nil }) }
+            }
+            let dated = closing.filter { $0.1 != nil }.max { ($0.1 ?? "") < ($1.1 ?? "") }
+            let balance = dated ?? closing.last
+            let codes = answers.compactMap { $0.currency?.trimmingCharacters(in: .whitespaces).uppercased() }
+                .filter { $0.count == 3 && $0.allSatisfy(\.isLetter) }
+            let currency = Dictionary(codes.map { ($0, 1) }, uniquingKeysWith: +).max { $0.value < $1.value }?.key
+            let holder = answers.lazy.compactMap { StatementHolder.clean($0.holder) }.first
+            // What a reader calls a person is checked here, whichever way the file was read.
+            let people = review.members.filter { member in
+                !StatementPeople.readsAsCompany(member.name) || holder.map { StatementHolder.same(member.name, $0) } == true
+            }
+            // Names arrive cleaned on both sides, so a repeat still names the charges it groups.
+            let memberNames = people.map(\.name)
+            // Days the device read are facts; only a model's reading is ever mended.
+            let read = answers.flatMap(\.charges)
+            let charges = (mendingDates ? mendDates(read, today: today) : read).map { charge -> Charge in
+                var charge = charge.keepingPeople(holder: holder)
+                if let holder {
+                    let member = charge.member.map { StatementHolder.same($0, holder) ? holder : $0 }
+                    let other = charge.counterpartKind == "person" ? charge.counterpart.map { StatementHolder.same($0, holder) ? holder : $0 } : charge.counterpart
+                    charge = charge.replacingPeople(member: member, counterpart: other)
+                }
+                return charge.renamed(StatementNaming.charged(charge.name, person: charge.namedPerson ?? memberNames.first { StatementHolder.same($0, charge.name) }, incoming: charge.isMoneyIn))
+            }
+            let named = Dictionary(charges.compactMap { charge in charge.namedPerson.map { (nameKey($0), $0) } }, uniquingKeysWith: { first, _ in first })
+            let repeats = review.repeats.map { repeated -> Repeat in
+                let name = StatementNaming.clean(repeated.name)
+                guard let person = named[nameKey(name)] ?? memberNames.first(where: { nameKey($0) == nameKey(name) }) else { return repeated.renamed(name) }
+                let incoming = charges.first { $0.namedPerson == person && repeated.dates.contains($0.date) }?.isMoneyIn ?? false
+                return repeated.renamed(StatementNaming.payment(to: person, incoming: incoming))
+            }
+            var listed = people.filter { member in holder.map { !StatementHolder.same(member.name, $0) } ?? true }
+            if let holder { listed.insert(Member(name: holder, role: "", reason: "The account holder"), at: 0) }
+            return Prepared(account: account, charges: charges, repeats: repeats,
+                            members: listed, notes: notes.joined(separator: " "),
+                            balance: balance?.0, balanceDate: balance?.1, currency: currency, holder: holder)
+        }
+
+        /// The same reading with the holder called as the book calls them.
+        public func calling(holder name: String) -> Prepared {
+            guard let old = holder, old != name else { return self }
+            var out = self
+            out.holder = name
+            func swap(_ person: String?) -> String? { person.map { StatementHolder.same($0, old) ? name : $0 } }
+            out.charges = charges.map {
+                $0.replacingPeople(member: swap($0.member), counterpart: $0.counterpartKind == "person" ? swap($0.counterpart) : $0.counterpart)
+                    .renamed(StatementNaming.swapPerson($0.name, from: old, to: name))
+            }
+            out.members = members.map { Member(name: swap($0.name) ?? $0.name, role: $0.role, reason: $0.reason) }
+            out.repeats = repeats.map { $0.renamed(StatementNaming.swapPerson($0.name, from: old, to: name)) }
+            return out
+        }
+
+        /// A model reads "05/10/2026" as the fifth of October now and then; the statement
+        /// meant the tenth of May. A date after today, or one that jumps out of the file's
+        /// order, is read the other way round when that puts it right.
+        static func mendDates(_ charges: [Charge], today: String) -> [Charge] {
+            func swapped(_ iso: String) -> String? {
+                let parts = iso.split(separator: "-")
+                guard parts.count == 3, parts[1] != parts[2] else { return nil }
+                let other = "\(parts[0])-\(parts[2])-\(parts[1])"
+                return LB.parseDate(other) != nil ? other : nil
+            }
+            func days(_ a: String, _ b: String) -> Int? {
+                guard let x = LB.parseDate(a), let y = LB.parseDate(b) else { return nil }
+                return Int(x.timeIntervalSince(y) / 86_400)
+            }
+            var out: [Charge] = []
+            var previous: String?
+            for charge in charges {
+                var date = charge.date
+                if let other = swapped(date) {
+                    let future = date > today
+                    let adrift = previous.flatMap { days(date, $0) }.map { abs($0) > 45 } ?? false
+                    let otherFits = other <= today && (previous.flatMap { days(other, $0) }.map { abs($0) <= 45 } ?? true)
+                    if (future || adrift) && otherFits { date = other }
+                }
+                if date <= today { previous = date }
+                out.append(date == charge.date ? charge : Charge(date: date, amount: charge.amount, name: charge.name, narration: charge.narration,
+                                                                  account: charge.account, category: charge.category, kind: charge.kind, member: charge.member,
+                                                                  counterpart: charge.counterpart, counterpartKind: charge.counterpartKind,
+                                                                  counterpartBank: charge.counterpartBank))
+            }
+            return out
+        }
+
+        /// The charges as candidates, every line ticked. Which way the money went comes from
+        /// the line; a line is a transfer only by the Transfers rule, judged against the
+        /// `book` and this statement's holder, who is Self. `file` carries the account.
+        public func candidates(among tags: [String], today: String = LB.toISO(LB.todayMid()),
+                               book: StatementBook = StatementBook()) -> [StatementCandidate] {
+            charges.compactMap { charge in
+                // A negative amount is a line printed as money back: a reversal, kept as money in.
+                guard LB.parseDate(charge.date) != nil, charge.amount != 0 else { return nil }
+                let line = StatementLine(date: charge.date, payee: charge.narration, amount: abs(charge.amount),
+                                         direction: charge.isMoneyIn ? .credit : .debit)
+                // A day ahead of today is refused, whatever the line: a statement proves the past.
+                let skip = charge.date > today ? StatementTriage.afterToday : nil
+                let tag = charge.category.flatMap { named in tags.first { $0.caseInsensitiveCompare(named) == .orderedSame } }
+                let name = StatementNaming.clean(charge.name)
+                let account = charge.account.trimmingCharacters(in: .whitespaces).isEmpty ? self.account : charge.account
+                let other = StatementCounterparts.account(on: charge)
+                let said = charge.isMoneyIn ? "in" : nil
+                let moved = StatementTransfers.isTransfer(fileAccount: account, fileOwner: holder, counterpart: other?.name,
+                                                          counterpartOwner: other?.person, holder: holder, book: book)
+                return StatementCandidate(
+                    line: line, name: name.isEmpty ? StatementNaming.plainName(charge.narration) : name,
+                    tag: tag, keep: charge.date <= today, skipReason: skip, file: account,
+                    member: person(on: charge), direction: moved ? "transfer" : said,
+                    counterpartAccount: other?.name, counterpartOwner: other?.person, lineDirection: other == nil ? nil : (said ?? "out")
+                )
+            }
+        }
+
+        /// The person a line names, whichever way the money went: the reader's member, the
+        /// person on its other side, or a listed person the charge is named after.
+        private func person(on charge: Charge) -> String? {
+            if let named = charge.namedPerson { return named }
+            let name = charge.name.trimmingCharacters(in: .whitespaces)
+            return members.first { $0.name.caseInsensitiveCompare(name) == .orderedSame }?.name
+        }
+
+        /// The charges as the review task reads them: one a line.
+        public var chargeLines: String {
+            charges.map { "\($0.date) | \($0.amount) | \($0.name) | \(StatementNaming.scrubbed($0.narration)) | \($0.kind)" }
+                .joined(separator: "\n")
+        }
+    }
+
+    // MARK: pieces
+
+    /// How much goes in one call: pages of a PDF, rows of a sheet. Small enough that the
+    /// answer is always whole.
+    public static let pagesPerPiece = 3
+    public static let rowsPerPiece = 150
+
+    /// How a picked file will be read, decided on the device: by its lines when they prove
+    /// themselves, else as pieces of a document. A locked file throws until it is opened.
+    public enum Reading: Sendable {
+        case lines(StatementLinePass.Plan)
+        case document([Piece], why: StatementLinePass.Distrust)
+    }
+
+    public static func reading(for url: URL, password: String?) throws -> Reading {
+        var expected: StatementCompleteness.Expected?
+        do {
+            expected = StatementCompleteness.expected(from: try StatementText.read(url, password: password))
+        } catch let error as StatementText.ReadError where error == .locked || error == .wrongPassword {
+            throw error
+        } catch {
+            expected = nil
+        }
+        if let why = StatementLinePass.distrust(expected) { return .document(try pieces(for: url, password: password), why: why) }
+        guard let expected else { return .document(try pieces(for: url, password: password), why: .unreadable) }
+        return .lines(StatementLinePass.Plan(name: url.lastPathComponent, expected: expected))
+    }
+
+    /// The file cut into what one call can answer for: a short open PDF as the bank wrote
+    /// it, a long or locked one rebuilt a few pages at a time, a sheet as runs of rows
+    /// under the header.
+    public static func pieces(for url: URL, password: String?) throws -> [Piece] {
+        let name = url.lastPathComponent
+        let scoped = url.startAccessingSecurityScopedResource()
+        defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+        switch StatementText.kind(of: url) {
+        case .pdf?:
+            return try pdfPieces(url, name: name, password: password)
+        case .csv?, .text?, .xlsx?, .xls?:
+            let records = try StatementText.records(for: url)
+            // A sheet with no dated lines and amounts is not a statement; it never leaves the device.
+            guard StatementLines.fromRecords(records).count >= 3 else {
+                throw StatementText.ReadError.noLines("The sheet has \(records.count) rows, but no header row naming a date, a description and an amount.")
+            }
+            return rowPieces(records, name: name)
+        case nil:
+            throw StatementText.ReadError.unsupported(url.pathExtension.lowercased())
+        }
+    }
+
+    static func pdfPieces(_ url: URL, name: String, password: String?) throws -> [Piece] {
+        #if canImport(PDFKit)
+        guard let document = PDFDocument(url: url) else { throw StatementText.ReadError.unreadable }
+        if document.isLocked {
+            guard let password, !password.isEmpty else { throw StatementText.ReadError.locked }
+            guard document.unlock(withPassword: password) else { throw StatementText.ReadError.wrongPassword }
+        }
+        let pages = document.pageCount
+        guard pages > 0 else { throw StatementText.ReadError.unreadable }
+        // Every PDF is rebuilt page by page, the short ones too: what goes to the server is
+        // the pages alone, never a script, a form or a file the original may carry.
+        var out: [Piece] = []
+        var first = 0
+        while first < pages {
+            let last = min(first + pagesPerPiece, pages)
+            let open = PDFDocument()
+            for index in first..<last {
+                if let page = document.page(at: index) { open.insert(page, at: open.pageCount) }
+            }
+            guard let bytes = open.dataRepresentation() else { throw StatementText.ReadError.unreadable }
+            guard bytes.count <= 4_000_000 else { throw CloudError.tooLarge(name) }
+            let label = pages <= pagesPerPiece ? (pages == 1 ? "1 page" : "\(pages) pages")
+                : last - first == 1 ? "page \(first + 1) of \(pages)" : "pages \(first + 1)–\(last) of \(pages)"
+            out.append(Piece(name: name, type: "pdf", data: bytes.base64EncodedString(), label: label))
+            first = last
+        }
+        return out
+        #else
+        throw StatementText.ReadError.unsupported("pdf")
+        #endif
+    }
+
+    /// Runs of rows, the header row above each so every piece names its columns. A cell
+    /// that is a date goes as YYYY-MM-DD in the order the sheet itself shows — a "31/12"
+    /// anywhere settles it — so the model is never left to guess which of 05/10 is the month.
+    static func rowPieces(_ sheet: [[String]], name: String) -> [Piece] {
+        guard !sheet.isEmpty else { return [] }
+        let order = StatementLines.dateOrder(sheet)
+        let headerAt = StatementLines.headerIndex(sheet) ?? 0
+        // A bare five-digit number is a date only under a date heading; anywhere else it is an
+        // amount, and 42000.00 must not travel as 2014-12-27.
+        let dateColumns = Set((sheet.indices.contains(headerAt) ? sheet[headerAt] : []).enumerated()
+            .filter { $0.element.lowercased().contains("date") || $0.element.lowercased().hasSuffix(" dt") }.map(\.offset))
+        let records = sheet.map { row in
+            row.enumerated().map { column, cell in
+                if !dateColumns.contains(column), cell.trimmingCharacters(in: .whitespaces).range(of: #"^\d+(\.\d+)?$"#, options: .regularExpression) != nil {
+                    return cell
+                }
+                return StatementLines.parseDate(cell, order: order) ?? cell
+            }
+        }
+        let header = Array(records.prefix(headerAt + 1))
+        let rows = Array(records.dropFirst(headerAt + 1))
+        guard rows.count > rowsPerPiece else {
+            return [Piece(name: name, type: "text", data: CSV.text(records), label: "\(rows.count) row\(rows.count == 1 ? "" : "s")")]
+        }
+        var out: [Piece] = []
+        var first = 0
+        while first < rows.count {
+            let last = min(first + rowsPerPiece, rows.count)
+            out.append(Piece(name: name, type: "text", data: CSV.text(header + Array(rows[first..<last])),
+                             label: "rows \(first + 1)–\(last) of \(rows.count)"))
+            first = last
+        }
+        return out
+    }
+
+    // MARK: calls
+
+    /// One piece up, its charges down. `importId` names the file every piece belongs to,
+    /// so the server can count the whole file's reading against one budget. `hint` is
+    /// what a second reading is told about the first, at most `StatementCompleteness.hintLimit`.
+    public static func charges(of piece: Piece, importId: String, accountHint: String?, categories: [String], members: [String], accounts: [String], currency: String, token: String?, hint: String? = nil) async throws -> ChargesAnswer {
+        struct Body: Encodable {
+            let task = "charges"
+            let import_id: String
+            let file: Piece
+            let account_hint: String?
+            let categories: [String]
+            let members: [String]
+            let accounts: [String]
+            let currency: String
+            let hint: String?
+        }
+        let clipped = hint.map { String($0.prefix(StatementCompleteness.hintLimit)) }
+        return try await call(Body(import_id: importId, file: piece, account_hint: accountHint, categories: categories, members: members, accounts: accounts, currency: currency, hint: clipped), token: token)
+    }
+
+    /// The year's charges up, the people and the rhythms down.
+    public static func review(_ prepared: Prepared, importId: String, categories: [String], members: [String], currency: String, token: String?) async throws -> ReviewAnswer {
+        struct Body: Encodable {
+            let task = "review"
+            let import_id: String
+            let charges: String
+            let categories: [String]
+            let members: [String]
+            let accounts: [String]
+            let currency: String
+        }
+        return try await call(Body(import_id: importId, charges: prepared.chargeLines, categories: categories, members: members, accounts: [prepared.account], currency: currency), token: token)
+    }
+
+    /// A new id for one file's reading, as the server counts it.
+    public static func newImportId() -> String { UUID().uuidString.lowercased() }
+
+    /// How many calls may be in flight at once, across every file being read.
+    public static let callsInFlight = 12
+    static let gate = CallGate(limit: callsInFlight)
+
+    /// A counting gate: a call waits its turn when the limit is in flight.
+    actor CallGate {
+        private let limit: Int
+        private var inFlight = 0
+        private var waiting: [CheckedContinuation<Void, Never>] = []
+
+        init(limit: Int) { self.limit = limit }
+
+        func enter() async {
+            if inFlight < limit {
+                inFlight += 1
+                return
+            }
+            await withCheckedContinuation { waiting.append($0) }
+        }
+
+        nonisolated func leave() { Task { await self.release() } }
+
+        private func release() {
+            if let next = waiting.first {
+                waiting.removeFirst()
+                next.resume()
+            } else {
+                inFlight -= 1
+            }
+        }
+    }
+
+    private static func call<Body: Encodable, Answer: Decodable>(_ body: Body, token: String?) async throws -> Answer {
+        // Several files read at once, each a few pieces at a time: the gate keeps the
+        // calls in flight to what the server and the model take without refusing.
+        await gate.enter()
+        defer { gate.leave() }
+        return try JSONDecoder().decode(Answer.self, from: try await post(try JSONEncoder().encode(body), token: token))
+    }
+
+    /// One call's bytes to longbook's server and its answer's back, a refusal as its error.
+    public static func post(_ body: Data, token: String?) async throws -> Data {
+        guard let token, !token.isEmpty else { throw CloudError.notSignedIn }
+        var request = URLRequest(url: SUPABASE_URL.appendingPathComponent("functions/v1/statement-extract"))
+        request.httpMethod = "POST"
+        request.timeoutInterval = 300
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue(SUPABASE_ANON_KEY, forHTTPHeaderField: "apikey")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = body
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch {
+            throw CloudError.unreachable
+        }
+        guard (response as? HTTPURLResponse)?.statusCode == 200 else {
+            let said = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
+            switch said?["code"] as? String {
+            case "share_spent": throw CloudError.shareSpent
+            case "not_statement": throw CloudError.notStatement(said?["error"] as? String ?? "That file does not look like a statement, so it was not read.")
+            default: break
+            }
+            throw CloudError.server(said?["error"] as? String ?? "The statement could not be read right now. Try again in a minute.")
+        }
+        return data
+    }
+}

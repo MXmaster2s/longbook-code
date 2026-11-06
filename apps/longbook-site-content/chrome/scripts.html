@@ -1,0 +1,67 @@
+<script>
+  // The email mark copies the address. Clipboard access can be refused, so the plain
+  // mailto in the href is left to fire when it is — the button is never a dead end.
+  (function () {
+    var btn = document.querySelector('.fsoc .copymail');
+    if (!btn) return;
+    var tip = btn.querySelector('.tip');
+    var addr = btn.getAttribute('data-email');
+    var timer;
+    btn.addEventListener('click', function (e) {
+      var done = function (ok) {
+        if (!ok) return;
+        e.preventDefault();
+        tip.textContent = 'Copied';
+        btn.classList.add('done');
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+          btn.classList.remove('done');
+          tip.textContent = addr;
+        }, 1600);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        e.preventDefault();
+        navigator.clipboard.writeText(addr).then(function () { done(true); }, function () { done(legacy()); });
+        return;
+      }
+      done(legacy());
+    });
+    function legacy() {
+      var t = document.createElement('textarea');
+      t.value = addr;
+      t.setAttribute('readonly', '');
+      t.style.position = 'fixed';
+      t.style.top = '-1000px';
+      document.body.appendChild(t);
+      t.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+      t.parentNode.removeChild(t);
+      return ok;
+    }
+  })();
+
+
+  // Appearance: dark is the default, the toggle flips it, and the choice is kept on this browser.
+  (function () {
+    var KEY = 'lb-appearance';
+    var root = document.documentElement;
+    var btn = document.querySelector('.thm');
+    if (btn) btn.addEventListener('click', function () {
+      var next = root.getAttribute('data-appearance') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-appearance', next);
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  })();
+  (function () {
+    var dl = document.querySelector('.dl'); if (!dl) return;
+    var btn = dl.querySelector('.dlb'), menu = dl.querySelector('.dlm');
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var open = !menu.hidden;
+      menu.hidden = open;
+      btn.setAttribute('aria-expanded', String(!open));
+    });
+    document.addEventListener('click', function () { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); });
+  })();
+</script>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- The App Store's own channel. The Mac ships Developer ID from its own options file;
+	     the two cannot share one, because a Developer ID app is signed to run anywhere and
+	     an App Store app is signed to be distributed by Apple. -->
+	<key>method</key>
+	<string>app-store-connect</string>
+	<key>teamID</key>
+	<string>27F9SH746V</string>
+	<!-- Manual, and not by preference. Automatic signing routes an export through Apple's
+	     cloud signing, which answers "Cloud signing permission error" for an App Store Connect
+	     key without that entitlement — and then reports it as "no profiles were found", which
+	     sends you looking for the wrong thing. Naming the profiles skips that path entirely.
+	     They are created once by scripts/asc-provision.mts, which prints these exact names. -->
+	<key>signingStyle</key>
+	<string>manual</string>
+	<key>signingCertificate</key>
+	<string>Apple Distribution</string>
+	<key>provisioningProfiles</key>
+	<dict>
+		<key>app.longbook.longbook</key>
+		<string>longbook App Store</string>
+		<key>app.longbook.longbook.widget</key>
+		<string>longbook Widget App Store</string>
+	</dict>
+	<!-- Export the package and stop. Uploading is a separate step so a build can be looked
+	     at before it leaves the machine, and so a failed upload never costs a rebuild. -->
+	<key>destination</key>
+	<string>export</string>
+	<!-- The symbols Apple needs to make a crash report readable. Nothing else is sent. -->
+	<key>uploadSymbols</key>
+	<true/>
+	<!-- Off, deliberately. Left on, Xcode rewrites the version and build during export, and
+	     the number that ships stops being the one project.yml names — which is the single
+	     source the release assertion reads. -->
+	<key>manageAppVersionAndBuildNumber</key>
+	<false/>
+</dict>
+</plist>
